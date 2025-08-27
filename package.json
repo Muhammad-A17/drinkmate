@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@netlify/blobs": "^10.0.9",
+    "@netlify/next": "^1.4.9"
+  }
+}
