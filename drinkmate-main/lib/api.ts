@@ -128,8 +128,13 @@ export const shopAPI = {
   },
   
   getProductBySlug: async (slug: string) => {
-    const response = await api.get(`/shop/products/slug/${slug}`);
-    return response.data;
+    try {
+      const response = await api.get(`/shop/products/slug/${slug}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching product by slug:', error.response?.data || error.message);
+      throw error;
+    }
   },
   
   // Categories
@@ -139,8 +144,13 @@ export const shopAPI = {
   },
   
   getProductsByCategory: async (slug: string, params = {}) => {
-    const response = await api.get(`/shop/categories/${slug}/products`, { params });
-    return response.data;
+    try {
+      const response = await api.get(`/shop/categories/${slug}/products`, { params });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching products by category:', error.response?.data || error.message);
+      throw error;
+    }
   },
   
   // Bundles
@@ -160,13 +170,18 @@ export const shopAPI = {
     title?: string;
     comment: string;
   }) => {
-    const token = getAuthToken();
-    const response = await api.post(`/shop/products/${productId}/reviews`, reviewData, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    return response.data;
+    try {
+      const token = getAuthToken();
+      const response = await api.post(`/shop/products/${productId}/reviews`, reviewData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error adding review:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   // Admin product management

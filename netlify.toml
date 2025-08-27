@@ -1,0 +1,15 @@
+[[plugins]]
+package = "@netlify/plugin-nextjs"
+
+[build]
+command = "cd drinkmate-main && npm install && npm run build"
+publish = "drinkmate-main/.next"
+functions = "drinkmate-main/.netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+  NEXT_USE_NETLIFY_EDGE = "true"
+
+[functions]
+  node_bundler = "esbuild"
+  node_version = "18"
