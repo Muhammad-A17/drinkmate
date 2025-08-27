@@ -209,16 +209,22 @@ export default function TrackOrderImproved() {
         <section className="py-16 bg-gradient-to-b from-white to-[#f3f3f3]">
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center space-y-6">
-              <h1 className={`text-5xl font-bold text-black leading-tight ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+              <h1
+                className={`text-5xl font-extrabold text-black leading-tight tracking-tight ${isRTL ? "font-cairo" : "font-montserrat"}`}
+              >
                 {t("trackOrder.hero.title")}
               </h1>
-              <p className={`text-xl text-gray-600 max-w-3xl mx-auto ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+              <p
+                className={`text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+              >
                 {t("trackOrder.hero.subtitle")}
               </p>
 
               {isAuthenticated && recentOrders.length > 0 && !trackingResult && (
                 <div className="mt-8">
-                  <p className={`text-sm text-gray-600 mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                  <p
+                    className={`text-sm text-gray-600 mb-4 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                  >
                     Quick track your recent orders:
                   </p>
                   <div className="flex flex-wrap justify-center gap-2">
@@ -228,7 +234,7 @@ export default function TrackOrderImproved() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleQuickTrack(order.id)}
-                        className={`${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                        className={`hover:scale-105 transition-all duration-200 hover:shadow-md border-2 hover:border-[#12d6fa] ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                       >
                         {order.id}
                       </Button>
@@ -243,20 +249,22 @@ export default function TrackOrderImproved() {
         {/* Order Tracking Form */}
         <section id="tracking-form" className="py-16 bg-white">
           <div className="max-w-4xl mx-auto px-4">
-            <div className="bg-gradient-to-b from-white to-[#f3f3f3] rounded-3xl p-8 shadow-lg">
+            <div className="bg-gradient-to-b from-white to-[#f8fafc] rounded-3xl p-8 shadow-2xl border border-gray-100">
               <div className="text-center mb-8">
-                <h2 className={`text-3xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                <h2
+                  className={`text-3xl font-bold text-black mb-4 tracking-tight ${isRTL ? "font-cairo" : "font-montserrat"}`}
+                >
                   {t("trackOrder.form.title")}
                 </h2>
-                <p className={`text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                <p className={`text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                   {t("trackOrder.form.subtitle")}
                 </p>
               </div>
 
               {error && (
-                <Alert variant="destructive" className="mb-6 border-red-200 bg-red-50">
+                <Alert variant="destructive" className="mb-6 border-red-200 bg-red-50 shadow-sm">
                   <AlertCircle className="h-4 w-4 mr-2" />
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription className="font-medium">{error}</AlertDescription>
                 </Alert>
               )}
 
@@ -265,7 +273,7 @@ export default function TrackOrderImproved() {
                   <div>
                     <label
                       htmlFor="orderNumber"
-                      className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                      className={`block text-sm font-semibold text-gray-700 mb-2 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     >
                       {t("trackOrder.form.orderNumber")}
                     </label>
@@ -276,7 +284,7 @@ export default function TrackOrderImproved() {
                       onChange={(e) => setOrderNumber(e.target.value)}
                       required
                       disabled={isLoading}
-                      className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-transparent ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                      className={`w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] transition-all duration-200 shadow-sm hover:shadow-md ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                       placeholder={t("trackOrder.form.orderNumberPlaceholder")}
                     />
                   </div>
@@ -284,7 +292,7 @@ export default function TrackOrderImproved() {
                   <div>
                     <label
                       htmlFor="email"
-                      className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                      className={`block text-sm font-semibold text-gray-700 mb-2 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     >
                       {t("trackOrder.form.email")}
                     </label>
@@ -295,7 +303,7 @@ export default function TrackOrderImproved() {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       disabled={isLoading}
-                      className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-transparent ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                      className={`w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] transition-all duration-200 shadow-sm hover:shadow-md ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                       placeholder={t("trackOrder.form.emailPlaceholder")}
                     />
                   </div>
@@ -304,7 +312,7 @@ export default function TrackOrderImproved() {
                 <div className="text-center space-y-4">
                   <Button
                     type="submit"
-                    className={`bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-8 py-3 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                    className={`bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#12d6fa] text-white px-8 py-3 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -326,7 +334,7 @@ export default function TrackOrderImproved() {
                         type="button"
                         variant="outline"
                         onClick={resetSearch}
-                        className={`ml-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                        className={`ml-4 border-2 hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 hover:scale-105 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                       >
                         <RefreshCw className="w-4 h-4 mr-2" />
                         Track Another Order
@@ -343,46 +351,52 @@ export default function TrackOrderImproved() {
         {trackingResult && (
           <section id="tracking-results" className="py-16 bg-[#f3f3f3]">
             <div className="max-w-4xl mx-auto px-4">
-              <div className="bg-white rounded-3xl p-8 shadow-lg">
+              <div className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-100">
                 <div className="text-center mb-8">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <CheckCircle className="w-8 h-8 text-white" />
                   </div>
-                  <h2 className={`text-3xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                  <h2
+                    className={`text-3xl font-bold text-black mb-4 tracking-tight ${isRTL ? "font-cairo" : "font-montserrat"}`}
+                  >
                     {t("trackOrder.results.title")}
                   </h2>
-                  <p className={`text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                  <p className={`text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                     {t("trackOrder.results.orderNumber")}
                     {trackingResult.orderNumber}
                   </p>
                 </div>
 
                 {/* Current Status */}
-                <div className="bg-gradient-to-b from-white to-gray-50 rounded-2xl p-6 mb-8">
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 mb-8 shadow-lg border border-gray-100">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className={`text-xl font-bold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>
                       {t("trackOrder.results.currentStatus")}
                     </h3>
                     <span
-                      className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(trackingResult.status)} ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                      className={`px-4 py-2 rounded-full text-sm font-bold shadow-sm ${getStatusColor(trackingResult.status)} ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     >
                       {trackingResult.status}
                     </span>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <p className={`text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                      <p
+                        className={`text-sm text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                      >
                         {t("trackOrder.results.estimatedDelivery")}
                       </p>
-                      <p className={`font-semibold text-black ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                      <p className={`font-bold text-black ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                         {trackingResult.estimatedDelivery}
                       </p>
                     </div>
                     <div>
-                      <p className={`text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                      <p
+                        className={`text-sm text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                      >
                         {t("trackOrder.results.currentLocation")}
                       </p>
-                      <p className={`font-semibold text-black ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                      <p className={`font-bold text-black ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                         {trackingResult.currentLocation}
                       </p>
                     </div>
@@ -396,20 +410,25 @@ export default function TrackOrderImproved() {
                   </h3>
                   <div className="space-y-4">
                     {trackingResult.trackingHistory.map((event: any, index: number) => (
-                      <div key={index} className="flex items-start space-x-4">
-                        <div className="w-10 h-10 bg-[#f3f3f3] rounded-full flex items-center justify-center flex-shrink-0">
+                      <div
+                        key={index}
+                        className="flex items-start space-x-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
+                      >
+                        <div className="w-10 h-10 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
                           {getStatusIcon(event.status)}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <h4 className={`font-semibold text-black ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                            <h4 className={`font-bold text-black ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                               {event.status}
                             </h4>
-                            <span className={`text-sm text-gray-500 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                            <span
+                              className={`text-sm text-gray-500 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                            >
                               {event.date} at {event.time}
                             </span>
                           </div>
-                          <p className={`text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                          <p className={`text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                             {event.location}
                           </p>
                         </div>
@@ -423,7 +442,7 @@ export default function TrackOrderImproved() {
                     <Button
                       onClick={resetSearch}
                       variant="outline"
-                      className={isRTL ? "font-noto-arabic" : "font-noto-sans"}
+                      className={`border-2 hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 hover:scale-105 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     >
                       Track Another Order
                     </Button>
@@ -431,7 +450,7 @@ export default function TrackOrderImproved() {
                       <Button
                         onClick={() => setShowRecentOrders(!showRecentOrders)}
                         variant="outline"
-                        className={isRTL ? "font-noto-arabic" : "font-noto-sans"}
+                        className={`border-2 hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 hover:scale-105 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                       >
                         {showRecentOrders ? "Hide" : "Show"} Recent Orders
                       </Button>
@@ -439,7 +458,7 @@ export default function TrackOrderImproved() {
                     <Button
                       onClick={() => document.getElementById("help-section")?.scrollIntoView({ behavior: "smooth" })}
                       variant="outline"
-                      className={isRTL ? "font-noto-arabic" : "font-noto-sans"}
+                      className={`border-2 hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 hover:scale-105 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     >
                       Need Help?
                     </Button>
@@ -454,10 +473,12 @@ export default function TrackOrderImproved() {
           <section className="py-16 bg-white">
             <div className="max-w-7xl mx-auto px-4">
               <div className="text-center mb-12">
-                <h2 className={`text-4xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                <h2
+                  className={`text-4xl font-bold text-black mb-4 tracking-tight ${isRTL ? "font-cairo" : "font-montserrat"}`}
+                >
                   {t("trackOrder.recentOrders.title")}
                 </h2>
-                <p className={`text-xl text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                <p className={`text-xl text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                   {t("trackOrder.recentOrders.subtitle")}
                 </p>
               </div>
@@ -465,21 +486,21 @@ export default function TrackOrderImproved() {
               {isLoadingRecentOrders ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="h-12 w-12 animate-spin text-[#12d6fa] mb-4" />
-                  <p className="text-gray-600">{t("trackOrder.recentOrders.loading")}</p>
+                  <p className="text-gray-600 font-medium">{t("trackOrder.recentOrders.loading")}</p>
                 </div>
               ) : (
                 <div className="grid md:grid-cols-3 gap-8">
                   {recentOrders.map((order) => (
                     <div
                       key={order.id}
-                      className="bg-gradient-to-b from-white to-[#f3f3f3] rounded-3xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300"
+                      className="bg-gradient-to-br from-white to-[#f8fafc] rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:scale-105"
                     >
                       <div className="flex items-center justify-between mb-4">
                         <h3 className={`text-lg font-bold text-black ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                           {order.id}
                         </h3>
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)} ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                          className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getStatusColor(order.status)} ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                         >
                           {order.status}
                         </span>
@@ -487,28 +508,36 @@ export default function TrackOrderImproved() {
 
                       <div className="space-y-3 mb-4">
                         <div>
-                          <p className={`text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                          <p
+                            className={`text-sm text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                          >
                             {t("trackOrder.recentOrders.orderDate")}
                           </p>
-                          <p className={`font-semibold text-black ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                          <p className={`font-bold text-black ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                             {order.date}
                           </p>
                         </div>
                         <div>
-                          <p className={`text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                          <p
+                            className={`text-sm text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                          >
                             {t("trackOrder.recentOrders.items")}
                           </p>
-                          <ul className={`text-sm text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                          <ul
+                            className={`text-sm text-gray-700 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                          >
                             {order.items.map((item: string, index: number) => (
                               <li key={index}>• {item}</li>
                             ))}
                           </ul>
                         </div>
                         <div>
-                          <p className={`text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                          <p
+                            className={`text-sm text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                          >
                             {t("trackOrder.recentOrders.total")}
                           </p>
-                          <p className={`font-semibold text-black ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                          <p className={`font-bold text-black ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                             {order.total}
                           </p>
                         </div>
@@ -516,7 +545,7 @@ export default function TrackOrderImproved() {
 
                       <Button
                         onClick={() => handleQuickTrack(order.id)}
-                        className={`w-full bg-[#12d6fa] hover:bg-[#0bc4e8] text-white ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                        className={`w-full bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#12d6fa] text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                       >
                         {t("trackOrder.recentOrders.trackThisOrder")}
                       </Button>
@@ -532,56 +561,58 @@ export default function TrackOrderImproved() {
           <section className="py-16 bg-[#f3f3f3]">
             <div className="max-w-7xl mx-auto px-4">
               <div className="text-center mb-12">
-                <h2 className={`text-4xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                <h2
+                  className={`text-4xl font-bold text-black mb-4 tracking-tight ${isRTL ? "font-cairo" : "font-montserrat"}`}
+                >
                   {t("trackOrder.delivery.title")}
                 </h2>
-                <p className={`text-xl text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                <p className={`text-xl text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                   {t("trackOrder.delivery.subtitle")}
                 </p>
               </div>
 
               <div className="grid md:grid-cols-3 gap-8">
-                <div className="text-center p-6 rounded-2xl bg-white shadow-lg">
-                  <div className="w-16 h-16 bg-[#12d6fa] rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="text-center p-6 rounded-2xl bg-white shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:scale-105">
+                  <div className="w-16 h-16 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                     <Truck className="w-8 h-8 text-white" />
                   </div>
                   <h3 className={`text-xl font-bold text-black mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
                     {t("trackOrder.delivery.standardDelivery")}
                   </h3>
-                  <p className={`text-gray-600 mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                  <p className={`text-gray-600 mb-4 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                     {t("trackOrder.delivery.standardDeliveryTime")}
                   </p>
-                  <p className={`text-sm text-gray-500 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                  <p className={`text-sm text-gray-500 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                     {t("trackOrder.delivery.standardDeliveryNote")}
                   </p>
                 </div>
 
-                <div className="text-center p-6 rounded-2xl bg-white shadow-lg">
-                  <div className="w-16 h-16 bg-[#a8f387] rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="text-center p-6 rounded-2xl bg-white shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:scale-105">
+                  <div className="w-16 h-16 bg-gradient-to-r from-[#a8f387] to-[#8ee65f] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                     <Package className="w-8 h-8 text-white" />
                   </div>
                   <h3 className={`text-xl font-bold text-black mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
                     {t("trackOrder.delivery.expressDelivery")}
                   </h3>
-                  <p className={`text-gray-600 mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                  <p className={`text-gray-600 mb-4 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                     {t("trackOrder.delivery.expressDeliveryTime")}
                   </p>
-                  <p className={`text-sm text-gray-500 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                  <p className={`text-sm text-gray-500 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                     {t("trackOrder.delivery.expressDeliveryNote")}
                   </p>
                 </div>
 
-                <div className="text-center p-6 rounded-2xl bg-white shadow-lg">
-                  <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="text-center p-6 rounded-2xl bg-white shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:scale-105">
+                  <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                     <MapPin className="w-8 h-8 text-white" />
                   </div>
                   <h3 className={`text-xl font-bold text-black mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
                     {t("trackOrder.delivery.localPickup")}
                   </h3>
-                  <p className={`text-gray-600 mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                  <p className={`text-gray-600 mb-4 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                     {t("trackOrder.delivery.localPickupTime")}
                   </p>
-                  <p className={`text-sm text-gray-500 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                  <p className={`text-sm text-gray-500 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                     {t("trackOrder.delivery.localPickupNote")}
                   </p>
                 </div>
@@ -594,41 +625,43 @@ export default function TrackOrderImproved() {
         <section id="help-section" className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
-              <h2 className={`text-4xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+              <h2
+                className={`text-4xl font-bold text-black mb-4 tracking-tight ${isRTL ? "font-cairo" : "font-montserrat"}`}
+              >
                 {t("trackOrder.help.title")}
               </h2>
-              <p className={`text-xl text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+              <p className={`text-xl text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                 {t("trackOrder.help.subtitle")}
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
-              <div className="text-center p-6 rounded-2xl bg-white shadow-lg">
-                <div className="w-16 h-16 bg-[#12d6fa] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="text-center p-6 rounded-2xl bg-white shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:scale-105">
+                <div className="w-16 h-16 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <Phone className="w-8 h-8 text-white" />
                 </div>
                 <h3 className={`text-xl font-bold text-black mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
                   {t("trackOrder.help.callUs")}
                 </h3>
-                <p className={`text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                <p className={`text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                   {t("trackOrder.help.callUsNumber")}
                 </p>
-                <p className={`text-sm text-gray-500 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                <p className={`text-sm text-gray-500 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                   {t("trackOrder.help.callUsNote")}
                 </p>
               </div>
 
-              <div className="text-center p-6 rounded-2xl bg-white shadow-lg">
-                <div className="w-16 h-16 bg-[#12d6fa] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="text-center p-6 rounded-2xl bg-white shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:scale-105">
+                <div className="w-16 h-16 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <Mail className="w-8 h-8 text-white" />
                 </div>
                 <h3 className={`text-xl font-bold text-black mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
                   {t("trackOrder.help.emailUs")}
                 </h3>
-                <p className={`text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                <p className={`text-gray-600 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                   {t("trackOrder.help.emailUsAddress")}
                 </p>
-                <p className={`text-sm text-gray-500 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                <p className={`text-sm text-gray-500 font-medium ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                   {t("trackOrder.help.emailUsNote")}
                 </p>
               </div>

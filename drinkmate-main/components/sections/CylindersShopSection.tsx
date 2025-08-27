@@ -1,82 +1,97 @@
-import React from "react";
-import SaudiRiyal from "@/components/ui/SaudiRiyal";
+"use client"
+import { useState } from "react"
 
-export const CylindersShopSection = (): JSX.Element => {
-  const cylinderProducts = [
-    {
-      id: 1,
-      title: "Cylinder Subscription Service",
-      description:
-        "A customised service that provides cylinder service as per your needs.",
-      priceLabel: "Subscriptions starts from",
-      price: "150.00",
-    },
-    {
-      id: 2,
-      title: "Refill / Exchange Cylinder",
-      description:
-        "Refill / exchange your empty cylinder for a full cylinder and only pay for the refill.",
-      priceLabel: "Refill / Exchange starts from",
-      price: "65.00",
-    },
-    {
-      id: 3,
-      title: "New / Spare Cylinder",
-      description:
-        "Have a spare cylinder so you never run out of sparkling drinks.",
-      priceLabel: "Buy a new cylinder just for",
-      price: "175.00",
-    },
-  ];
+const cylinderServices = [
+  {
+    id: 1,
+    title: "Cylinder Subscription Service",
+    description: "A customised service that provides cylinder service as per your needs.",
+    price: "150.00",
+    currency: "ê",
+    buttonText: "Shop Now",
+    type: "subscription",
+  },
+  {
+    id: 2,
+    title: "Refill / Exchange Cylinder",
+    description: "Refill / exchange your empty cylinder for a full cylinder and only pay for the refill.",
+    price: "65.00",
+    currency: "ê",
+    buttonText: "Shop Now",
+    type: "refill",
+  },
+  {
+    id: 3,
+    title: "New / Spare Cylinder",
+    description: "Have a spare cylinder so you never run out of sparkling drinks.",
+    price: "175.00",
+    currency: "ê",
+    buttonText: "Shop Now",
+    type: "new",
+  },
+]
+
+export function CylindersShopSection() {
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null)
 
   return (
-    <section className="w-full">
-      <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold text-black font-montserrat mb-4">
-          Choose Your Service
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl md:text-4xl font-bold text-black font-montserrat mb-4 tracking-tight">
+          Shop CO2 Cylinders
         </h2>
-        <p className="text-xl text-gray-600 font-noto-sans max-w-2xl mx-auto">
-          Select the perfect CO2 service for your needs
+        <p className="text-lg md:text-xl text-gray-600 font-noto-sans max-w-2xl mx-auto">
+          Choose the perfect CO2 solution for your needs
         </p>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {cylinderProducts.map((product) => (
-          <article
-            key={product.id}
-            className="flex flex-col items-center gap-6 p-8 bg-[#f3f3f3] rounded-[20px] h-full"
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {cylinderServices.map((service) => (
+          <div
+            key={service.id}
+            className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-105"
+            onMouseEnter={() => setHoveredCard(service.id)}
+            onMouseLeave={() => setHoveredCard(null)}
           >
-            <div className="w-full h-48 bg-white rounded-[15px] flex items-center justify-center">
-              <div className="w-16 h-16 bg-[#12d6fa]/20 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-[#12d6fa]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                </svg>
+            <div className="text-center space-y-6">
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto shadow-lg">
+                <img src="/co2-cylinder-icon.png" alt="CO2 Cylinder" className="w-10 h-10 object-contain" />
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">{service.title}</h3>
+                <p className="text-gray-600 text-base leading-relaxed font-noto-sans mb-6">{service.description}</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="text-center">
+                  <p className="text-sm text-gray-500 mb-1">
+                    {service.type === "subscription"
+                      ? "Subscriptions starts from"
+                      : service.type === "refill"
+                        ? "Refill / Exchange starts from"
+                        : "Buy a new cylinder just for"}
+                  </p>
+                  <div className="text-3xl font-bold text-[#12d6fa] font-montserrat">
+                    {service.price}
+                    <span className="text-lg">{service.currency}</span>
+                  </div>
+                </div>
+
+                <button
+                  className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 transform ${
+                    hoveredCard === service.id
+                      ? "bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] text-white scale-105 shadow-xl"
+                      : "bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] text-white hover:scale-105 shadow-lg hover:shadow-xl"
+                  }`}
+                >
+                  {service.buttonText}
+                </button>
               </div>
             </div>
-
-            <h3 className="text-xl font-bold text-black text-center font-montserrat">
-              {product.title}
-            </h3>
-
-            <p className="text-gray-600 text-center font-noto-sans leading-relaxed">
-              {product.description}
-            </p>
-
-            <div className="text-center">
-              <p className="text-sm text-gray-600 font-medium mb-2">
-                {product.priceLabel}
-              </p>
-              <p className="text-2xl font-bold text-black">
-                                 <SaudiRiyal amount={parseFloat(product.price)} size="xl" />
-              </p>
-            </div>
-
-            <button className="w-full bg-[#16d6fa] hover:bg-[#14c4e8] text-white py-3 px-6 rounded-md font-medium transition-colors duration-200">
-              Shop Now
-            </button>
-          </article>
+          </div>
         ))}
       </div>
-    </section>
-  );
-};
+    </div>
+  )
+}
