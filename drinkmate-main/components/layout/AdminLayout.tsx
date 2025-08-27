@@ -36,6 +36,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [authError, setAuthError] = useState<string | null>(null)
   
   const router = useRouter()
   const pathname = usePathname()
@@ -43,14 +44,46 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const { isRTL, language, setLanguage } = useTranslation()
   const { t } = useAdminTranslation()
 
+  // Debug logging
+  useEffect(() => {
+    console.log("AdminLayout auth state:", { 
+      isAuthenticated, 
+      user: user ? { 
+        id: user._id, 
+        email: user.email, 
+        isAdmin: user.isAdmin 
+      } : null,
+      isLoading
+    });
+  }, [isAuthenticated, user, isLoading]);
+
   // Protect admin routes
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || (user && !user.isAdmin))) {
-      router.push("/login?redirect=admin")
-    } else {
-      setIsLoading(false)
-    }
-  }, [isAuthenticated, user, isLoading, router])
+    const checkAuth = async () => {
+      try {
+        // Wait a bit for auth to initialize if needed
+        if (isAuthenticated === false && user === null) {
+          // User is definitely not authenticated
+          router.push("/login?redirect=/admin");
+          return;
+        }
+        
+        if (isAuthenticated && user && !user.isAdmin) {
+          // User is authenticated but not an admin
+          router.push("/");
+          return;
+        }
+        
+        // User is authenticated and is an admin
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Auth check error:", error);
+        router.push("/login?redirect=/admin");
+      }
+    };
+    
+    checkAuth();
+  }, [isAuthenticated, user, router]);
 
   const handleLogout = () => {
     logout()
@@ -197,6 +230,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="hidden lg:block text-gray-500 hover:text-gray-900"
+              aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             >
               <ChevronDown 
                 className={`w-5 h-5 transform transition-transform ${!isSidebarOpen ? "rotate-90" : "-rotate-90"}`} 
@@ -205,6 +239,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <button 
               onClick={() => setIsMobileSidebarOpen(false)}
               className="lg:hidden text-gray-500 hover:text-gray-900"
+              aria-label="Close sidebar"
             >
               <X className="w-5 h-5" />
             </button>
@@ -281,6 +316,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <button
             onClick={() => setIsMobileSidebarOpen(true)}
             className="lg:hidden text-gray-600 hover:text-gray-900 focus:outline-none"
+            aria-label="Open sidebar menu"
           >
             <Menu className="w-6 h-6" />
           </button>

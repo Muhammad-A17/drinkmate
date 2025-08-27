@@ -57,15 +57,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Verify token and get user data
         try {
+          console.log("Verifying token...");
           const data = await authAPI.verifyToken();
-          setAuthState({
-            user: data.user,
-            token,
-            isAuthenticated: true,
-            isLoading: false,
-          });
+          console.log("Token verification response:", data);
+          
+          if (data && data.user) {
+            setAuthState({
+              user: data.user,
+              token,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+            console.log("User authenticated with isAdmin:", data.user.isAdmin);
+          } else {
+            throw new Error("Invalid user data from token verification");
+          }
         } catch (error) {
           // Invalid token
+          console.error("Token verification failed:", error);
           localStorage.removeItem(TOKEN_KEY);
           sessionStorage.removeItem(TOKEN_KEY);
           setAuthState({
