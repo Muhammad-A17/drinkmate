@@ -1,0 +1,1083 @@
+"use client"
+
+import Image from "next/image"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ShoppingCart, User, ChevronLeft, ChevronRight } from "lucide-react"
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import PageLayout from "@/components/layout/PageLayout"
+import { useTranslation } from "@/lib/translation-context"
+
+export default function Home() {
+  const { t, isRTL } = useTranslation()
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [activeMachineColor, setActiveMachineColor] = useState("cyan") // Default to cyan
+
+  const slides = [
+   
+    {
+      headline: t('home.carousel.slide1.headline'),
+      description: t('home.carousel.slide1.description'),
+      buttonText: t('home.carousel.slide1.buttonText'),
+      offerText: t('home.carousel.slide1.offerText'),
+      imageSrc: "/images/co2-cylinders.png",
+      imageAlt: "CO2 Cylinders",
+      showYellowCircle: true,
+      yellowCircleData: {
+        carbonatesUpto: t('home.carousel.slide1.carbonatesUpto'),
+        liters: t('home.carousel.slide1.liters'),
+        litersOfDrink: t('home.carousel.slide1.litersOfDrink'),
+      },
+      multiImages: [], // Not used for this slide
+    },
+    {
+      headline: t('home.carousel.slide2.headline'),
+      description: t('home.carousel.slide2.description'),
+      buttonText: "",
+      offerText: "",
+      imageSrc: "/images/energy-cola-flavors.png",
+      imageAlt: "Energy Drink & Cola Flavor",
+      showYellowCircle: false,
+      yellowCircleData: null,
+      multiImages: [], // Not used for this slide
+    },
+    {
+      headline: t('home.carousel.slide3.headline'),
+      description: t('home.carousel.slide3.description'),
+      buttonText: t('home.carousel.slide3.buttonText'),
+      offerText: "",
+      imageSrc: null, // Not a single image for this slide
+      imageAlt: "Drinkmate products",
+      showYellowCircle: false,
+      yellowCircleData: null,
+      multiImages: [
+        {
+          src: "/images/drinkmate-machine.png",
+          alt: "Drinkmate Machine",
+          width: 121,
+          height: 345,
+          top: 18, // Relative to the main gray container
+          left: 1324, // Relative to the main gray container
+          zIndex: 2, // Machine is in front
+        },
+        {
+          src: "/images/co2-cylinder-single.png",
+          alt: "CO2 Cylinder",
+          width: 340,
+          height: 340,
+          top: 28, // Relative to the main gray container
+          left: 1281, // Relative to the main gray container
+          zIndex: 1, // Cylinder is behind machine
+        },
+        {
+          src: "/images/strawberry-lemon-flavor.png",
+          alt: "Strawberry Lemon Flavor",
+          width: 55,
+          height: 157,
+          top: 135, // Relative to the main gray container
+          left: 1500, // Relative to the main gray container
+          zIndex: 3, // Strawberry is in front of machine
+        },
+      ],
+    },
+  ]
+  const steps = [
+    {
+      id: 1,
+      title: "Fill",
+      description: "Fill the bottle with your desired beverage.",
+      img: "/images/step/step 1.webp",
+      alt: "Step 1: Fill Bottle",
+    },
+    {
+      id: 2,
+      title: "Fizz",
+      description: "Press the button to carbonate your drink.",
+      img: "/images/step/step 2.webp",
+      alt: "Step 2: Carbonate Drink",
+    },
+    {
+      id: 3,
+      title: "Flip",
+      description:
+        "Open the valve on the Fizz Infuser to release the pressure.",
+      img: "/images/step/step 3.webp",
+      alt: "Step 3: Flip to Release Pressure",
+    },
+    {
+      id: 4,
+      title: "Enjoy!",
+      description: "Fill into a glass and enjoy the drink.",
+      img: "/images/step/step 4.webp", // 👉 Add this image to your public/images
+      alt: "Step 4: Enjoy Drink",
+    },
+  ];
+
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1))
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1))
+  }
+
+  const slide = slides[currentSlide]
+
+  // Calculate the starting X position of the right grid column relative to the max-w-7xl container
+  // max-w-7xl is 1280px. Inner content area (1280 - 2*p-16) = 1152px.
+  // Grid columns: (1152px - gap-8) / 2 = (1152 - 32) / 2 = 560px per column.
+  // Left column starts at 64px (p-16). Right column starts at 64px + 560px + 32px = 656px.
+  const rightColumnStartX = 656
+
+  const baseMachines = [
+    { id: "red", src: "/images/drinkmate-machine-red.png", alt: "Drinkmate OmniFizz Red" },
+    { id: "cyan", src: "/images/drinkmate-machine-blue.png", alt: "Drinkmate OmniFizz Blue" },
+    { id: "black", src: "/images/drinkmate-machine-black-small.png", alt: "Drinkmate OmniFizz Black" },
+  ]
+
+  const machineStyles = {
+    red: {
+      red: {
+        width: 258,
+        height: 645,
+        top: "78px",
+        left: `${801 - rightColumnStartX}px`,
+        opacity: 1,
+        zIndex: 2,
+        borderRadius: "5px",
+      },
+      cyan: {
+        width: 91.04199981689453,
+        height: 221,
+        top: "290px",
+        left: `${1076.2 - rightColumnStartX}px`,
+        opacity: 0.5,
+        zIndex: 1,
+      },
+      black: {
+        width: 77,
+        height: 221,
+        top: "290px",
+        left: `${1083 - rightColumnStartX}px`,
+        opacity: 0,
+        zIndex: 0,
+        borderRadius: "5px",
+      },
+    },
+    cyan: {
+      red: {
+        width: 100,
+        height: 251,
+        top: "278px",
+        left: `${640 - rightColumnStartX}px`,
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+      },
+      cyan: { width: 255, height: 619, top: "90px", left: `${828 - rightColumnStartX}px`, opacity: 1, zIndex: 2 },
+      black: {
+        width: 77,
+        height: 221,
+        top: "290px",
+        left: `${1083 - rightColumnStartX}px`,
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+      },
+    },
+    black: {
+      red: {
+        width: 100,
+        height: 251,
+        top: "278px",
+        left: `${640 - rightColumnStartX}px`,
+        opacity: 0, // Hide red machine
+        zIndex: 0,
+        borderRadius: "5px",
+      },
+      cyan: {
+        width: 94, // Updated width
+        height: 227, // Updated height
+        top: "286px", // Updated top
+        left: `${720 - rightColumnStartX}px`, // Updated left
+        opacity: 0.5,
+        zIndex: 1,
+      },
+      black: {
+        width: 218, // Updated width
+        height: 623, // Updated height
+        top: "89px", // Updated top
+        left: `${847 - rightColumnStartX}px`, // Updated left
+        opacity: 1,
+        zIndex: 2,
+        borderRadius: "5px",
+      },
+    },
+  }
+
+  return (
+    <PageLayout currentPage="home">
+
+
+      {/* Hero Section */}
+      <section className="py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 relative z-30">
+        <div className="w-full bg-gradient-to-b from-white to-[#f3f3f3] rounded-b-3xl relative overflow-hidden min-h-[400px] md:h-[600px]">
+          {/* Product Images (Absolute Positioning) */}
+          <Image
+            src="/images/drinkmate-machine-hero.png"
+            alt="Drinkmate OmniFizz Soda Maker"
+            width={242}
+            height={417}
+            className="absolute object-contain hidden md:block"
+            style={{ top: "203px", left: "121px" }}
+          />
+          <Image
+            src="/images/italian-strawberry-lemon.png"
+            alt="Italian Strawberry Lemon Flavor"
+            width={99}
+            height={206}
+            className="absolute object-contain hidden md:block"
+            style={{ top: "414px", left: "313px" }}
+          />
+
+          {/* Mobile Product Images */}
+          <div className="block md:hidden w-full">
+            <div className="flex flex-row items-center justify-center space-x-6 p-4">
+              <Image
+                src="/images/drinkmate-machine-hero.png"
+                alt="Drinkmate OmniFizz Soda Maker"
+                width={120}
+                height={200}
+                className="object-contain"
+              />
+              <Image
+                src="/images/italian-strawberry-lemon.png"
+                alt="Italian Strawberry Lemon Flavor"
+                width={80}
+                height={160}
+                className="object-contain"
+              />
+            </div>
+
+            {/* Mobile Content - After Images */}
+            <div className="text-center px-2 py-6 bg-white rounded-lg mx-2 shadow-lg mb-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fade-in-up">
+              <div className="space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
+                <h1 className={`text-2xl font-bold text-black leading-tight ${isRTL ? 'font-cairo text-right' : 'font-montserrat'} drop-shadow-sm animate-slide-in-up`}>{t('home.hero.title')}</h1>
+                <h2 className={`text-lg text-gray-700 font-medium ${isRTL ? 'font-cairo text-right' : 'font-montserrat'} opacity-90 animate-slide-in-up delay-200`}>{t('home.hero.subtitle')}</h2>
+                <p className={`text-gray-600 text-sm leading-relaxed ${isRTL ? 'font-noto-arabic text-right' : 'font-noto-sans'} px-2 animate-slide-in-up delay-300`}>
+                  {t('home.hero.description')}
+                </p>
+                <div className={`flex ${isRTL ? 'flex-row-reverse' : 'flex-row'} gap-3 justify-center animate-slide-in-up delay-500`}>
+                  <button 
+                    onClick={() => window.location.href = '/shop'}
+                    className="px-6 py-3 text-gray-600 border-2 border-gray-300 bg-white hover:bg-gray-50 font-medium rounded-md min-w-[140px] transition-all duration-300 transform hover:scale-105 hover:border-gray-400"
+                  >
+                    {t('home.hero.exploreMore')}
+                  </button>
+                  <button 
+                    onClick={() => window.location.href = '/shop'}
+                    className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-6 py-3 font-medium shadow-md border-2 border-[#12d6fa] rounded-md min-w-[140px] transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  >
+                    {t('home.hero.buyNow')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Content (positioned to the right on desktop, below images on mobile) */}
+          <div className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-4 md:right-[550px] left-4 md:left-auto' : 'left-4 md:left-[550px] right-4 md:right-auto'} w-auto md:w-[500px] ${isRTL ? 'md:pl-4' : 'md:pr-4'} md:block hidden`}>
+            <div className={`space-y-4 md:space-y-6 text-center ${isRTL ? 'md:text-right rtl' : 'md:text-left ltr'} animate-fade-in-up`} dir={isRTL ? 'rtl' : 'ltr'}>
+              <h1 className={`text-3xl md:text-5xl lg:text-6xl font-bold text-black leading-tight ${isRTL ? 'font-cairo' : 'font-montserrat'} drop-shadow-sm animate-slide-in-left`}>{t('home.hero.title')}</h1>
+              <h2 className={`text-lg md:text-2xl text-gray-700 font-medium ${isRTL ? 'font-cairo' : 'font-montserrat'} opacity-90 animate-slide-in-left delay-200`}>{t('home.hero.subtitle')}</h2>
+              <p className={`text-gray-600 text-base md:text-lg leading-relaxed ${isRTL ? 'font-noto-arabic' : 'font-noto-sans'} max-w-md ${isRTL ? 'md:ml-auto' : 'md:mr-auto'} animate-slide-in-left delay-300`}>
+                {t('home.hero.description')}
+              </p>
+              <div className={`flex flex-row ${isRTL ? 'space-x-reverse space-x-4 flex-row-reverse' : 'space-x-4'} justify-center md:${isRTL ? 'justify-start' : 'justify-start'} gap-3 animate-slide-in-left delay-500`}>
+                <Button 
+                  onClick={() => window.location.href = '/shop'}
+                  variant="outline" 
+                  className="px-6 py-3 text-gray-600 border-gray-300 bg-transparent min-w-[140px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 transform hover:scale-105"
+                >
+                  {t('home.hero.exploreMore')}
+                </Button>
+                <Button 
+                  onClick={() => window.location.href = '/shop'}
+                  className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-6 py-3 min-w-[140px] shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                >
+                  {t('home.hero.buyNow')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Refill Section */}
+      <section className="py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 animate-fade-in-up">
+        <div className="w-full bg-[#f3f3f3] rounded-3xl relative min-h-[300px] md:h-[250px] flex items-center justify-between px-2 md:px-4 lg:px-8 xl:px-12">
+          {/* Left Navigation Button */}
+          <Button
+            className="rounded-full w-10 h-10 flex items-center justify-center border border-gray-300 bg-white text-gray-700 shadow-sm z-10 hover:bg-gray-100 hover:border-gray-400"
+            onClick={prevSlide}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
+
+          {/* Main Content Area - Responsive Layout */}
+          <div className="flex-1 mx-4 md:mx-0 md:absolute md:top-[44px] md:left-[125px]">
+            <div className="w-full md:w-[520px] h-auto md:h-[138px] flex flex-col justify-between text-center md:text-left">
+              <div className="space-y-3 mb-4 md:mb-0">
+                <h2 className={`text-2xl md:text-4xl font-bold text-black leading-tight ${isRTL ? 'font-cairo' : 'font-montserrat'}`}>{slide.headline}</h2>
+                <p className={`text-gray-700 text-sm md:text-[15px] md:whitespace-nowrap ${isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>{slide.description}</p>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 justify-center md:justify-start">
+                {slide.buttonText && (
+                  <Button 
+                    onClick={() => {
+                      if (slide.buttonText === "Refill Now") {
+                        window.location.href = "/co2"
+                      } else if (slide.buttonText === "Shop Now") {
+                        window.location.href = "/shop"
+                      } else {
+                        window.location.href = "/shop"
+                      }
+                    }}
+                    className={`font-medium px-6 py-3 rounded-full min-w-[140px] ${
+                      slide.buttonText === "Shop Now" 
+                        ? "bg-[#a8f387] hover:bg-[#9ae374] text-black" 
+                        : "bg-[#a8f387] hover:bg-[#9ae374] text-black"
+                    }`}
+                  >
+                    {slide.buttonText}
+                  </Button>
+                )}
+                {slide.offerText && <span className="text-sm text-gray-500">{slide.offerText}</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* Product Image Container */}
+          {slide.imageSrc ? (
+            <div className="hidden md:flex absolute right-[100px] h-full justify-center items-center">
+              <Image
+                src={slide.imageSrc || "/placeholder.svg"}
+                alt={slide.imageAlt}
+                width={300}
+                height={200}
+                className="object-cover w-auto h-full"
+              />
+              {/* Yellow 60 Liters Circle */}
+              {slide.showYellowCircle && slide.yellowCircleData && (
+                <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 bg-yellow-400 rounded-full w-28 h-28 flex flex-col items-center justify-center text-white font-bold text-center p-2 shadow-md">
+                  <span className="text-[10px]">{slide.yellowCircleData.carbonatesUpto}</span>
+                  <span className="text-4xl">{slide.yellowCircleData.liters}</span>
+                  <span className="text-[10px]">{slide.yellowCircleData.litersOfDrink}</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Multi-image container for the third slide
+            <div className="hidden md:block absolute inset-0">
+              {slide.multiImages &&
+                slide.multiImages.map((img, index) => (
+                  <Image
+                    key={index}
+                    src={img.src || "/placeholder.svg"}
+                    alt={img.alt}
+                    width={img.width}
+                    height={img.height}
+                    className="absolute object-contain"
+                    style={{ top: `${img.top}px`, left: `${img.left}px`, zIndex: img.zIndex }}
+                  />
+                ))}
+            </div>
+          )}
+
+          {/* Right Navigation Button */}
+          <Button
+            className="rounded-full w-10 h-10 flex items-center justify-center border border-gray-300 bg-white text-gray-700 shadow-sm z-10 hover:bg-gray-100 hover:border-gray-400"
+            onClick={nextSlide}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </Button>
+
+          {/* Slideshow Dots */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            {slides.map((_, index) => (
+              <div
+                key={index}
+                className={`w-3 h-3 rounded-full ${index === currentSlide ? "bg-yellow-400" : "bg-gray-300"}`}
+              ></div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Product Categories Section */}
+      <section className="py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 animate-fade-in-up">
+        <div className="w-full">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+            {/* Soda Makers */}
+            <Link href="/shop/sodamakers" className="text-center space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-2 animate-slide-in-up block" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className="bg-gradient-to-b from-white to-[#f3f3f3] rounded-3xl p-4 md:p-8 relative overflow-hidden h-[280px] md:h-[270px] group shadow-md group-hover:shadow-xl transition-all duration-300">
+                {/* Multiple Soda Maker Images in Row */}
+                <div className="flex justify-center items-end space-x-2 h-full">
+                  <Image
+                    src="/images/02 - Soda Makers/black-sodaamachine.png"
+                    alt="Soda Makers"
+                    width={160}
+                    height={200}
+                    className="object-contain transition-all duration-500 ease-out translate-y-[30px] group-hover:translate-y-0 scale-150 group-hover:scale-200 hover:scale-225 animate-pop-up"
+                  />
+                  
+                </div>
+              </div>
+              <h3 className={`text-lg md:text-xl font-semibold text-black ${isRTL ? 'font-cairo text-right' : 'font-montserrat'} group-hover:text-[#12d6fa] transition-colors duration-300`}>{t('home.productCategories.sodaMakers')}</h3>
+            </Link>
+
+            {/* CO2 */}
+            <Link href="/co2" className="text-center space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-2 animate-slide-in-up delay-200 block" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className="bg-gradient-to-b from-white to-[#f3f3f3] rounded-3xl p-4 md:p-8 relative overflow-hidden h-[280px] md:h-[270px] group shadow-md group-hover:shadow-xl transition-all duration-300">
+                {/* Multiple CO2 Images in Row */}
+                <div className="flex justify-center items-end space-x-2 h-full">
+                  <Image
+                    src="/images/03 - CO2/co2-group-cylinder.png"
+                    alt="CO2"
+                    width={180}
+                    height={225}
+                    className="object-contain transition-all duration-500 ease-out translate-y-[50px] group-hover:translate-y-0 scale-150 group-hover:scale-200 hover:scale-225 animate-pop-up"
+                  />
+                  
+                </div>
+              </div>
+              <h3 className={`text-lg md:text-xl font-semibold text-black ${isRTL ? 'font-cairo text-right' : 'font-montserrat'} group-hover:text-[#12d6fa] transition-colors duration-300`}>{t('home.productCategories.co2')}</h3>
+            </Link>
+
+            {/* Premium Italian Flavors */}
+            <Link href="/shop/flavor" className="text-center space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-2 animate-slide-in-up delay-300 block" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className="bg-gradient-to-b from-white to-[#f3f3f3] rounded-3xl p-4 md:p-8 relative overflow-hidden h-[280px] md:h-[270px] group shadow-md group-hover:shadow-xl transition-all duration-300">
+                {/* Multiple Flavor Images from Flavors Folder in Row */}
+                <div className="flex justify-center items-end space-x-2 h-full">
+                  <Image
+                    src="/images/01 - Flavors/strawberry-group.png"
+                    alt="Premium Italian Flavors"
+                    width={180}
+                    height={225}
+                    className="object-contain transition-all duration-500 ease-out translate-y-[50px] group-hover:translate-y-0 scale-150 group-hover:scale-200 hover:scale-225 animate-pop-up"
+                  />
+                 
+                </div>
+              </div>
+              <h3 className={`text-lg md:text-xl font-semibold text-black ${isRTL ? 'font-cairo text-right' : 'font-montserrat'} group-hover:text-[#12d6fa] transition-colors duration-300`}>{t('home.productCategories.premiumItalianFlavors')}</h3>
+            </Link>
+
+            {/* Accessories */}
+            <Link href="/shop/accessories" className="text-center space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-2 animate-slide-in-up delay-500 block" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className="bg-gradient-to-b from-white to-[#f3f3f3] rounded-3xl p-4 md:p-8 relative overflow-hidden h-[280px] md:h-[270px] group shadow-md group-hover:shadow-xl transition-all duration-300">
+                {/* Multiple Accessory Images in Row */}
+                <div className="flex justify-center items-end space-x-2 h-full">
+                  <Image
+                    src="/images/05 - Accessories-20250824T073107Z-1-001/05 - Accessories/empty-bottle-group.png"
+                    alt="Accessories"
+                    width={180}
+                    height={225}
+                    className="object-contain transition-all duration-500 ease-out translate-y-[50px] group-hover:translate-y-0 scale-150 group-hover:scale-200 hover:scale-225 animate-pop-up"
+                  />
+                 
+                </div>
+              </div>
+              <h3 className={`text-lg md:text-xl font-semibold text-black ${isRTL ? 'font-cairo text-right' : 'font-montserrat'} group-hover:text-[#12d6fa] transition-colors duration-300`}>{t('home.productCategories.accessories')}</h3>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+       {/* Horizontal Border */}
+       <div className="w-full px-2 md:px-4 lg:px-8 xl:px-12">
+        <hr className="border-gray-200" />
+      </div>
+
+      {/* Mega Offer Section */}
+      <section className="py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 animate-fade-in-up">
+        <div className="w-full">
+          {/* First Card - Drinkmate OmniFizz */}
+          <div className="bg-gradient-to-b from-white to-[#f3f3f3] rounded-b-3xl py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 pb-4 relative overflow-hidden mb-8">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              {/* Left Content */}
+              <div className="space-y-6 md:space-y-8 max-w-lg animate-slide-in-left" dir={isRTL ? 'rtl' : 'ltr'}>
+                <h2 className={`text-4xl md:text-6xl font-bold text-black leading-tight ${isRTL ? 'font-cairo text-right' : 'font-montserrat'} animate-slide-in-left delay-200`}>
+                  {t('home.megaOffer.title')}
+                </h2>
+                <p className={`text-base md:text-lg text-gray-600 leading-relaxed ${isRTL ? 'font-noto-arabic text-right' : 'font-noto-sans'} animate-slide-in-left delay-300`}>
+                  {t('home.megaOffer.description')}
+                </p>
+
+                {/* Available Color Options */}
+                <div className="space-y-4">
+                  <h3 className={`text-sm md:text-base font-semibold text-black ${isRTL ? 'font-cairo text-right' : 'font-montserrat'}`}>{t('home.megaOffer.availableColors')}</h3>
+                  <div className={`flex ${isRTL ? 'flex-row-reverse' : ''} space-x-3 ${isRTL ? 'space-x-reverse justify-start' : 'justify-start'}`}>
+                    <button
+                      className="w-8 h-8 md:w-10 md:h-10 bg-red-500 rounded cursor-pointer"
+                      onClick={() => setActiveMachineColor("red")}
+                      aria-label="Select Red Machine"
+                    ></button>
+                    <button
+                      className="w-8 h-8 md:w-10 md:h-10 bg-[#badee4] rounded cursor-pointer"
+                      onClick={() => setActiveMachineColor("cyan")}
+                      aria-label="Select Cyan Machine"
+                    ></button>
+                    <button
+                      className="w-8 h-8 md:w-10 md:h-10 bg-black rounded cursor-pointer"
+                      onClick={() => setActiveMachineColor("black")}
+                      aria-label="Select Black Machine"
+                    ></button>
+                  </div>
+                </div>
+
+                {/* Buttons */}
+                <div className={`flex ${isRTL ? 'flex-row-reverse space-x-reverse' : 'flex-row'} space-x-3 justify-center ${isRTL ? 'md:justify-start' : 'md:justify-start'}`}>
+                  <Button 
+                    onClick={() => window.location.href = '/shop/bundles'}
+                    variant="outline" 
+                    className="px-6 py-3 text-gray-600 border-gray-300 bg-transparent min-w-[140px]"
+                  >
+                    {t('home.megaOffer.offersBundles')}
+                  </Button>
+                  <Button 
+                    onClick={() => window.location.href = '/shop'}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium px-6 py-3 min-w-[140px]"
+                  >
+                    {t('home.megaOffer.exploreMore')}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Right Image - Slideshow */}
+              <div className="relative flex justify-center items-center h-[750px] md:h-[700px]">
+                {baseMachines.map((machine) => {
+                  const styles = (machineStyles as any)[activeMachineColor]?.[machine.id]
+                  if (!styles) return null // Fallback in case a style is not defined for a state
+                  return (
+                    <Image
+                      key={machine.id}
+                      src={machine.src || "/placeholder.svg"}
+                      alt={machine.alt}
+                      width={styles.width}
+                      height={styles.height}
+                      className="absolute object-contain transition-all duration-300 ease-in-out"
+                      style={{
+                        top: styles.top,
+                        left: styles.left,
+                        opacity: activeMachineColor === machine.id ? 1 : Math.max(styles.opacity, 0.6), // Increased minimum opacity to 60%
+                        zIndex: styles.zIndex,
+                        borderRadius: styles.borderRadius || "0px",
+                        filter: activeMachineColor === machine.id ? 'none' : 'grayscale(10%) brightness(1.1)', // Reduced grayscale, added brightness
+                        transform: activeMachineColor === machine.id ? 'scale(1)' : 'scale(0.95)', // Slight scale down for inactive machines
+                      }}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+          </div>
+      </section>
+      {/* Horizontal Border */}
+      <div className="w-full px-2 md:px-4 lg:px-8 xl:px-12">
+        <hr className="border-gray-200" />
+      </div>
+
+       {/* Second Card - How does it work */}
+       
+       <div className="py-8 md:py-16 px-2 md:px-4">
+      {/* Container Card */}
+      <div className="max-w-full mx-auto bg-gradient-to-b from-white to-[#f3f3f3] rounded-2xl py-8 px-2 md:px-4 relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+          {/* Left Side - Text Content */}
+          <div className="lg:w-1/4 flex-shrink-0">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#12d6fa] leading-tight mb-6">
+              How does the
+              <br />
+              Drinkmate
+              <br />
+              OmniFizz work?
+            </h2>
+            <p className="text-lg md:text-xl text-gray-600">
+              Three simple steps that show you how to use the Drinkmate OmniFizz
+            </p>
+          </div>
+
+          {/* Right Side - Steps Grid */}
+          <div className="lg:w-3/4 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full overflow-x-visible">
+            {steps.map((step, index) => (
+              <motion.div
+                key={step.id}
+                className="flex flex-col items-center text-center"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.2, duration: 0.6 }}
+                aria-label={`Step ${step.id}: ${step.title}`}
+              >
+                {/* Step Image */}
+                <div className="relative w-full h-[320px] sm:h-[320px] md:h-[320px] lg:h-[320px] mb-4">
+                  <motion.div
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="relative w-full h-full"
+                  >
+                    <Image
+                      src={step.img || "/placeholder.svg"}
+                      alt={step.alt}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
+                      priority={index < 2}
+                      className="object-cover rounded-2xl shadow-lg"
+                    />
+                    {/* Gradient and overlayed text */}
+                    <div className="absolute inset-x-0 bottom-0 p-4 rounded-b-2xl bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                      <p className="text-white font-extrabold text-lg">{`Step ${step.id}: ${step.title}`}</p>
+                      <p className="text-white/90 text-sm leading-snug">{step.description}</p>
+                    </div>
+                  </motion.div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    
+      
+    
+      {/* Horizontal Border */}
+      <div className="w-full px-2 md:px-4 lg:px-8 xl:px-12">
+        <hr className="border-gray-200" />
+      </div>
+
+{/* CO₂ Section */}
+      <div className="relative w-full">
+        <section className="relative w-full">
+      {/* 🌍 Mobile & Tablet (Responsive Fluid Layout) */}
+      <div className="xl:hidden flex flex-col items-center text-center px-6 py-12 bg-white">
+        {/* Image Container */}
+        <div className="relative w-full h-[350px] sm:h-[400px] md:h-[450px] mb-0 overflow-visible">
+          <Image
+            src="/images/food-grade-co2-text.png"
+            alt="Food Grade CO2"
+            fill
+            className="object-contain opacity-90"
+          />
+
+          {/* Advanced popup animation for CO₂ image */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0, y: 20 }}
+            animate={{ 
+              scale: [0.8, 1.05, 1],
+              opacity: [0, 1, 1],
+              y: [20, -5, 0]
+            }}
+            transition={{ 
+              duration: 1.2, 
+              ease: "easeOut",
+              times: [0, 0.7, 1]
+            }}
+            className="absolute inset-0"
+          >
+            <motion.div
+              animate={{ 
+                y: [0, -8, 0, -4, 0],
+                scale: [1, 1.02, 1, 1.01, 1]
+              }}
+              transition={{ 
+                duration: 6, 
+                ease: "easeInOut",
+                repeat: Infinity,
+                repeatType: "reverse"
+              }}
+              className="w-full h-full"
+            >
+              <Image
+                src="/videos/cylinder-anim.png"
+                alt="CO2 Cylinders"
+                fill
+                priority
+                className="object-contain"
+              />
+            </motion.div>
+          </motion.div>
+          
+          {/* Badge with animation */}
+          <motion.div
+            initial={{ scale: 0, rotate: -10, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            transition={{ 
+              delay: 0.5,
+              duration: 0.7, 
+              type: "spring",
+              stiffness: 200
+            }}
+            whileHover={{ 
+              scale: 1.05,
+              boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
+            }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-yellow-400 rounded-full flex flex-col items-center justify-center text-white font-bold text-center shadow-lg w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 z-10">
+            <span className="text-[10px] sm:text-xs md:text-sm">Drinkmate</span>
+            <span className="text-[22px] sm:text-2xl md:text-3xl">CO₂</span>
+            <span className="text-[10px] sm:text-xs md:text-sm">Exchange</span>
+          </motion.div>
+        </div>
+
+        {/* Content - Below Image */}
+        <motion.div
+          initial={{ y: 40, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+          className="flex flex-col items-center mt-6"
+        >
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">
+            Why CO₂?
+          </h2>
+          <p className="text-sm sm:text-base md:text-lg text-gray-700 max-w-md leading-relaxed">
+            CO₂ gas adds bubbles and fizz to your water. Our Food Grade CO₂ ensures safe, fresh, and sparkling drinks every time.
+          </p>
+
+          <div className="mt-6 flex flex-row space-x-4 justify-center">
+            <Button
+              aria-label="Learn more about Drinkmate CO2 Exchange"
+              className="bg-yellow-400 text-gray-900 px-6 py-2 rounded-full font-semibold shadow-md hover:bg-yellow-500 transition"
+            >
+              Learn More
+            </Button>
+            <Button
+              aria-label="Explore CO2 Subscriptions"
+              className="bg-white text-gray-900 border border-gray-300 px-6 py-2 rounded-full font-semibold shadow-md hover:bg-gray-50 transition"
+            >
+              Explore Subscriptions
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* 💻 Desktop (Pixel-Fixed Layout) */}
+      <div className="hidden xl:block relative w-[1200px] h-[660px] mx-auto">
+        {/* Background Images */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/food-grade-co2-text.png"
+            alt="Food Grade CO2"
+            fill
+            className="object-cover opacity-90 rounded-[20px]"
+          />
+
+          {/* Advanced popup animation for desktop CO₂ image */}
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0, y: 20 }}
+            animate={{ 
+              scale: [0.85, 1.05, 1],
+              opacity: [0, 1, 1],
+              y: [20, -5, 0]
+            }}
+            transition={{ 
+              duration: 1.2, 
+              ease: "easeOut",
+              times: [0, 0.7, 1]
+            }}
+            className="absolute inset-0 rounded-[20px]"
+          >
+            <motion.div
+              animate={{ 
+                y: [0, -10, 0, -5, 0],
+                scale: [1, 1.02, 1, 1.01, 1]
+              }}
+              transition={{ 
+                duration: 7, 
+                ease: "easeInOut",
+                repeat: Infinity,
+                repeatType: "reverse"
+              }}
+              className="w-full h-full"
+            >
+              <Image
+                src="/videos/cylinder-anim.png"
+                alt="CO2 Cylinders"
+                fill
+                priority
+                className="object-contain rounded-[20px]"
+              />
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Badge with advanced animation */}
+        <motion.div
+          initial={{ scale: 0, rotate: -10, opacity: 0 }}
+          animate={{ scale: 1, rotate: 0, opacity: 1 }}
+          transition={{ 
+            delay: 0.5,
+            duration: 0.8, 
+            type: "spring",
+            stiffness: 200
+          }}
+          whileHover={{ 
+            scale: 1.05,
+            boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
+          }}
+          className="absolute bg-yellow-400 rounded-full flex flex-col items-center justify-center text-white font-bold text-center shadow-lg z-20 w-[124px] h-[124px] top-[250px] left-[643px]"
+        >
+          <motion.span 
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9, duration: 0.5 }}
+            className="text-xs"
+          >
+            Drinkmate
+          </motion.span>
+          <motion.span 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.1, duration: 0.5 }}
+            className="text-3xl"
+          >
+            CO₂
+          </motion.span>
+          <motion.span 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.3, duration: 0.5 }}
+            className="text-xs"
+          >
+            Exchange
+          </motion.span>
+        </motion.div>
+
+        {/* Content */}
+        <motion.div
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.4 }}
+          className="absolute z-10 flex flex-col items-end max-w-md top-[410px] right-[50px] text-right"
+        >
+          <h2 className="text-[40px] font-extrabold text-gray-900 mb-2">Why CO₂?</h2>
+          <p className="text-lg text-gray-700 leading-relaxed max-w-sm">
+            CO₂ gas adds bubbles and fizz to your water. Our Food Grade CO₂ ensures safe, fresh, and sparkling drinks every time.
+          </p>
+
+          <div className="mt-6 flex flex-row space-x-4 justify-end">
+            <Button
+              aria-label="Learn more about Drinkmate CO2 Exchange"
+              className="bg-yellow-400 text-gray-900 px-8 py-3 rounded-full font-semibold shadow-md hover:bg-yellow-500 transition"
+            >
+              Learn More
+            </Button>
+            <Button
+              aria-label="Explore CO2 Subscriptions"
+              className="bg-white text-gray-900 border border-gray-300 px-8 py-3 rounded-full font-semibold shadow-md hover:bg-gray-50 transition"
+            >
+              Explore Subscriptions
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+        </section>
+      </div>
+
+       {/* Horizontal Border */}
+       <div className="w-full px-2 md:px-4 lg:px-8 xl:px-12">
+        <hr className="border-gray-200" />
+      </div>
+
+      {/* Flavor Section */}
+      <section className="py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 animate-fade-in-up">
+        {/* Header Text - Above Image */}
+        <div className="text-center mb-8 animate-fade-in-down">
+          <p className={`text-gray-700 text-xl md:text-2xl font-medium ${isRTL ? 'font-noto-arabic' : ''} opacity-90 mb-3`}>
+            {t('home.flavorSection.subtitle')}
+          </p>
+          <h2 className={`text-4xl md:text-6xl font-bold text-black leading-tight ${isRTL ? 'font-cairo' : 'font-montserrat'} drop-shadow-md`}>
+            {t('home.flavorSection.title')}
+          </h2>
+        </div>
+        
+        <div className="w-full bg-gradient-to-b from-white to-[#f3f3f3] rounded-2xl relative overflow-hidden shadow-lg">
+          {/* Background Image */}
+          <div className="relative">
+            <Image
+              src="/images/flavor-section-background.png"
+              alt="Italian Flavors and Cherry Cola Bottle"
+              width={1198}
+              height={518}
+              className="w-full h-auto object-cover rounded-2xl opacity-80 md:opacity-100"
+            />
+            
+            {/* Mobile Layout - Content Below Image */}
+            <div className="md:hidden">
+              <div className="p-6 space-y-4">
+                <p className={`text-gray-700 text-base leading-relaxed font-medium text-center ${isRTL ? 'font-noto-arabic' : ''}`}>
+                  {t('home.flavorSection.description')}
+                </p>
+                <div className="text-center">
+                  <Button 
+                    onClick={() => window.location.href = '/shop'}
+                    className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-medium px-8 py-3 text-base shadow-lg hover:shadow-xl transition-all duration-200 min-w-[160px] rounded-full"
+                  >
+                    {t('home.flavorSection.exploreFlavors')}
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Desktop Layout - Content Overlaid on Image */}
+            <div className="hidden md:block">
+              <div className={`absolute ${isRTL ? 'right-16' : 'left-16'} top-1/2 transform -translate-y-1/2 z-20 max-w-sm`} dir={isRTL ? 'rtl' : 'ltr'}>
+                <p className={`text-gray-700 text-lg leading-relaxed mb-10 font-medium ${isRTL ? 'font-noto-arabic text-right' : ''}`}>
+                  {t('home.flavorSection.description')}
+                </p>
+                <div className={`flex ${isRTL ? 'justify-end' : 'justify-start'}`}>
+                  <Button 
+                    onClick={() => window.location.href = '/shop'}
+                    className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-medium px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all duration-200 rounded-full"
+                  >
+                    {t('home.flavorSection.exploreFlavors')}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+  
+      {/* Horizontal Border */}
+      <div className="w-full px-2 md:px-4 lg:px-8 xl:px-12">
+        <hr className="border-gray-200" />
+      </div>
+      {/* New Sections below Flavor Section */}
+      <section className="py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 animate-fade-in-up">
+        <div className="w-full bg-white rounded-2xl relative overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 py-12">
+            {/* How to Use */}
+            <div className="text-center group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-2 animate-slide-in-up" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div
+                className="bg-gradient-to-b from-white to-[#f3f3f3] rounded-2xl overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-300 h-[280px] min-h-[280px]"
+              >
+                <Image
+                  src="/images/how-to-use-drinkmate.png"
+                  alt="How to Use Drinkmate"
+                  width={280}
+                  height={200}
+                  className="object-contain rounded-2xl w-full h-full group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <h3 className={`text-lg md:text-xl font-semibold text-black mt-6 ${isRTL ? 'font-cairo text-right' : 'font-montserrat'} group-hover:text-[#12d6fa] transition-colors duration-300`}>{t('home.additionalSections.howToUse.title')}</h3>
+                              <p className={`text-gray-600 text-sm px-2 ${isRTL ? 'font-noto-arabic text-right' : 'font-noto-sans'} group-hover:text-gray-700 transition-colors duration-300`}>
+                  {t('home.additionalSections.howToUse.description')}
+                </p>
+            </div>
+
+            {/* Recipes */}
+            <div className="text-center group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-2 animate-slide-in-up delay-200" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div
+                className="bg-gradient-to-b from-white to-[#f3f3f3] rounded-2xl overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-300 h-[280px] min-h-[280px]"
+              >
+                <Image
+                  src="/images/drink-recipes.png"
+                  alt="Drink Recipes"
+                  width={342.8571472167969}
+                  height={270}
+                  className="object-contain rounded-2xl w-full h-full group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <h3 className={`text-lg md:text-xl font-semibold text-black mt-6 ${isRTL ? 'font-cairo text-right' : 'font-montserrat'} group-hover:text-[#12d6fa] transition-colors duration-300`}>{t('home.additionalSections.recipes.title')}</h3>
+                              <p className={`text-gray-600 text-sm px-2 ${isRTL ? 'font-noto-arabic text-right' : 'font-noto-sans'} group-hover:text-gray-700 transition-colors duration-300`}>{t('home.additionalSections.recipes.description')}</p>
+            </div>
+
+            {/* Premium Italian Flavors */}
+            <div className="text-center group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-2 animate-slide-in-up delay-400" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div
+                className="bg-gradient-to-b from-white to-[#f3f3f3] rounded-2xl overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-300 h-[280px] min-h-[280px]"
+              >
+                <Image
+                  src="/images/premium-italian-flavors.png"
+                  alt="Premium Italian Flavors"
+                  width={342}
+                  height={251}
+                  className="object-contain rounded-2xl w-full h-full group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <h3 className={`text-lg md:text-xl font-semibold text-black mt-6 ${isRTL ? 'font-cairo text-right' : 'font-montserrat'} group-hover:text-[#12d6fa] transition-colors duration-300`}>{t('home.additionalSections.premiumFlavors.title')}</h3>
+                              <p className={`text-gray-600 text-sm px-2 ${isRTL ? 'font-noto-arabic text-right' : 'font-noto-sans'} group-hover:text-gray-700 transition-colors duration-300`}>
+                  {t('home.additionalSections.premiumFlavors.description')}
+                </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Horizontal Border */}
+      <div className="w-full px-2 md:px-4 lg:px-8 xl:px-12">
+        <hr className="border-gray-200" />
+      </div>
+
+      {/* Environmental Impact Section */}
+      <section className="py-8 md:py-16 bg-white px-2 md:px-4 lg:px-8 xl:px-12 animate-fade-in-up delay-300">
+        <div className="w-full">
+          {/* Header */}
+          <div className="text-center mb-8 md:mb-12" dir={isRTL ? 'rtl' : 'ltr'}>
+            <p className={`text-black text-base md:text-lg mb-2 ${isRTL ? 'font-noto-arabic' : ''} animate-slide-in-up`}>{t('home.environmental.subtitle')}</p>
+            <h2 className={`text-3xl md:text-4xl font-bold text-purple-400 ${isRTL ? 'font-cairo' : 'font-montserrat'} animate-slide-in-up delay-200`}>{t('home.environmental.title')}</h2>
+          </div>
+
+          {/* Three Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {/* Our impact on One time plastic use */}
+            <div className="text-center animate-slide-in-up group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-2" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className="bg-white rounded-2xl overflow-hidden mb-4">
+                <Image
+                  src="/images/plastic-impact.png"
+                  alt="Our impact on One time plastic use"
+                  width={300}
+                  height={280}
+                  className="object-cover w-full h-56 md:h-72 rounded-2xl group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <h3 className={`text-base md:text-lg font-medium text-black ${isRTL ? 'font-cairo' : 'font-montserrat'} group-hover:text-[#12d6fa] transition-colors duration-300`}>{t('home.environmental.plasticImpact')}</h3>
+            </div>
+
+            {/* How our natural flavors are made */}
+            <div className="text-center animate-slide-in-up delay-200 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-2" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className="bg-white rounded-2xl overflow-hidden mb-4">
+                <Image
+                  src="/images/natural-flavors.png"
+                  alt="How our natural flavors are made"
+                  width={300}
+                  height={280}
+                  className="object-cover w-full h-56 md:h-72 rounded-2xl group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <h3 className={`text-base md:text-lg font-medium text-black ${isRTL ? 'font-cairo' : 'font-montserrat'} group-hover:text-[#12d6fa] transition-colors duration-300`}>{t('home.environmental.naturalFlavors')}</h3>
+            </div>
+
+            {/* Health Benefits of sparkling water */}
+            <div className="text-center animate-slide-in-up delay-400 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-2" dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className="bg-white rounded-2xl overflow-hidden mb-4">
+                <Image
+                  src="/images/health-benefits.png"
+                  alt="Health Benefits of sparkling water"
+                  width={300}
+                  height={280}
+                  className="object-cover w-full h-56 md:h-72 rounded-2xl group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <h3 className={`text-base md:text-lg font-medium text-black ${isRTL ? 'font-cairo' : 'font-montserrat'} group-hover:text-[#12d6fa] transition-colors duration-300`}>{t('home.environmental.healthBenefits')}</h3>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+    </PageLayout>
+  )
+}

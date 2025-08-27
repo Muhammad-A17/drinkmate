@@ -1,0 +1,928 @@
+const Product = require('../Models/product-model');
+const Category = require('../Models/category-model');
+const Bundle = require('../Models/bundle-model');
+const Review = require('../Models/review-model');
+
+// Get all products with pagination, filtering and sorting
+exports.getAllProducts = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        
+        // Build filter object based on query parameters
+        const filter = { isActive: true };
+        
+        // Category filter
+        if (req.query.category) {
+            const category = await Category.findOne({ slug: req.query.category });
+            if (category) {
+                filter.category = category._id;
+            }
+        }
+        
+        // Price range filter
+        if (req.query.minPrice || req.query.maxPrice) {
+            filter.price = {};
+            if (req.query.minPrice) filter.price.$gte = parseFloat(req.query.minPrice);
+            if (req.query.maxPrice) filter.price.$lte = parseFloat(req.query.maxPrice);
+        }
+        
+        // Color filter
+        if (req.query.color) {
+            filter['colors.name'] = req.query.color;
+        }
+        
+        // Featured products filter
+        if (req.query.featured === 'true') {
+            filter.isFeatured = true;
+        }
+        
+        // Best sellers filter
+        if (req.query.bestSeller === 'true') {
+            filter.isBestSeller = true;
+        }
+        
+        // New arrivals filter
+        if (req.query.newArrival === 'true') {
+            filter.isNewArrival = true;
+        }
+        
+        // Search query
+        if (req.query.search) {
+            filter.$text = { $search: req.query.search };
+        }
+        
+        // Determine sort order
+        let sort = {};
+        switch(req.query.sort) {
+            case 'price_asc':
+                sort = { price: 1 };
+                break;
+            case 'price_desc':
+                sort = { price: -1 };
+                break;
+            case 'newest':
+                sort = { createdAt: -1 };
+                break;
+            case 'rating':
+                sort = { averageRating: -1 };
+                break;
+            case 'popularity':
+                sort = { reviewCount: -1 };
+                break;
+            default:
+                sort = { createdAt: -1 };
+        }
+        
+        // Execute query with pagination
+        const products = await Product.find(filter)
+            .populate('category', 'name slug')
+            .sort(sort)
+            .skip(skip)
+            .limit(limit);
+            
+        // Get total count for pagination
+        const totalProducts = await Product.countDocuments(filter);
+        
+        // Calculate total pages
+        const totalPages = Math.ceil(totalProducts / limit);
+        
+        res.status(200).json({
+            success: true,
+            count: products.length,
+            totalProducts,
+            totalPages,
+            currentPage: page,
+            products
+        });
+    } catch (error) {
+        console.error('Error in getAllProducts:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Get a single product by ID or slug
+exports.getProduct = async (req, res) => {
+    try {
+        const { idOrSlug } = req.params;
+        
+        // Check if the parameter is an ObjectId or a slug
+        const isObjectId = /^[0-9a-fA-F]{24}$/.test(idOrSlug);
+        
+        let product;
+        if (isObjectId) {
+            product = await Product.findById(idOrSlug);
+        } else {
+            product = await Product.findOne({ slug: idOrSlug });
+        }
+        
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+        
+        // Populate category
+        await product.populate('category', 'name slug');
+        
+        // Get related products
+        await product.populate('relatedProducts');
+        
+        // Get reviews for this product
+        const reviews = await Review.find({ 
+            product: product._id,
+            status: 'approved'
+        })
+        .populate('user', 'username avatar')
+        .sort({ createdAt: -1 })
+        .limit(5);
+        
+        res.status(200).json({
+            success: true,
+            product,
+            reviews
+        });
+    } catch (error) {
+        console.error('Error in getProduct:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Create a new product
+exports.createProduct = async (req, res) => {
+    try {
+        // Check if product with same name or SKU already exists
+        const existingProduct = await Product.findOne({
+            $or: [
+                { name: req.body.name },
+                { sku: req.body.sku }
+            ]
+        });
+        
+        if (existingProduct) {
+            return res.status(400).json({
+                success: false,
+                message: 'Product with this name or SKU already exists'
+            });
+        }
+        
+        // Create new product
+        const product = new Product(req.body);
+        await product.save();
+        
+        res.status(201).json({
+            success: true,
+            message: 'Product created successfully',
+            product
+        });
+    } catch (error) {
+        console.error('Error in createProduct:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Update a product
+exports.updateProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Check if product exists
+        let product = await Product.findById(id);
+        
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+        
+        // If name or SKU is being updated, check for duplicates
+        if (req.body.name !== product.name || req.body.sku !== product.sku) {
+            const existingProduct = await Product.findOne({
+                $or: [
+                    { name: req.body.name, _id: { $ne: id } },
+                    { sku: req.body.sku, _id: { $ne: id } }
+                ]
+            });
+            
+            if (existingProduct) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Product with this name or SKU already exists'
+                });
+            }
+        }
+        
+        // Update product
+        product = await Product.findByIdAndUpdate(id, req.body, {
+            new: true,
+            runValidators: true
+        });
+        
+        res.status(200).json({
+            success: true,
+            message: 'Product updated successfully',
+            product
+        });
+    } catch (error) {
+        console.error('Error in updateProduct:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Delete a product
+exports.deleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Check if product exists
+        const product = await Product.findById(id);
+        
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+        
+        // Delete product
+        await Product.findByIdAndDelete(id);
+        
+        res.status(200).json({
+            success: true,
+            message: 'Product deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error in deleteProduct:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Get product categories
+exports.getCategories = async (req, res) => {
+    try {
+        const categories = await Category.find({ isActive: true })
+            .sort({ displayOrder: 1 });
+        
+        res.status(200).json({
+            success: true,
+            count: categories.length,
+            categories
+        });
+    } catch (error) {
+        console.error('Error in getCategories:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Get products by category
+exports.getProductsByCategory = async (req, res) => {
+    try {
+        const { slug } = req.params;
+        
+        // Find category by slug
+        const category = await Category.findOne({ slug, isActive: true });
+        
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                message: 'Category not found'
+            });
+        }
+        
+        // Pagination
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        
+        // Get products in this category
+        const products = await Product.find({ 
+            category: category._id,
+            isActive: true
+        })
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 });
+        
+        // Get total count for pagination
+        const totalProducts = await Product.countDocuments({ 
+            category: category._id,
+            isActive: true
+        });
+        
+        // Calculate total pages
+        const totalPages = Math.ceil(totalProducts / limit);
+        
+        res.status(200).json({
+            success: true,
+            category,
+            count: products.length,
+            totalProducts,
+            totalPages,
+            currentPage: page,
+            products
+        });
+    } catch (error) {
+        console.error('Error in getProductsByCategory:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Get bundles
+exports.getBundles = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        
+        // Build filter object
+        const filter = { isActive: true };
+        
+        // Category filter
+        if (req.query.category) {
+            const category = await Category.findOne({ slug: req.query.category });
+            if (category) {
+                filter.category = category._id;
+            }
+        }
+        
+        // Featured bundles filter
+        if (req.query.featured === 'true') {
+            filter.isFeatured = true;
+        }
+        
+        // Execute query with pagination
+        const bundles = await Bundle.find(filter)
+            .populate('category', 'name slug')
+            .populate('items.product', 'name images')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+            
+        // Get total count for pagination
+        const totalBundles = await Bundle.countDocuments(filter);
+        
+        // Calculate total pages
+        const totalPages = Math.ceil(totalBundles / limit);
+        
+        res.status(200).json({
+            success: true,
+            count: bundles.length,
+            totalBundles,
+            totalPages,
+            currentPage: page,
+            bundles
+        });
+    } catch (error) {
+        console.error('Error in getBundles:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Get a single bundle by ID or slug
+exports.getBundle = async (req, res) => {
+    try {
+        const { idOrSlug } = req.params;
+        
+        // Check if the parameter is an ObjectId or a slug
+        const isObjectId = /^[0-9a-fA-F]{24}$/.test(idOrSlug);
+        
+        let bundle;
+        if (isObjectId) {
+            bundle = await Bundle.findById(idOrSlug);
+        } else {
+            bundle = await Bundle.findOne({ slug: idOrSlug });
+        }
+        
+        if (!bundle) {
+            return res.status(404).json({
+                success: false,
+                message: 'Bundle not found'
+            });
+        }
+        
+        // Populate category and product items
+        await bundle.populate('category', 'name slug');
+        await bundle.populate('items.product', 'name images price stock');
+        
+        // Get reviews for this bundle
+        const reviews = await Review.find({ 
+            bundle: bundle._id,
+            status: 'approved'
+        })
+        .populate('user', 'username avatar')
+        .sort({ createdAt: -1 })
+        .limit(5);
+        
+        res.status(200).json({
+            success: true,
+            bundle,
+            reviews
+        });
+    } catch (error) {
+        console.error('Error in getBundle:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// Create a new bundle
+exports.createBundle = async (req, res) => {
+    try {
+        const bundleData = req.body;
+        
+        console.log('Creating bundle with data:', bundleData);
+        
+        // Validate required fields
+        if (!bundleData.name || !bundleData.description || !bundleData.price) {
+            return res.status(400).json({
+                success: false,
+                message: 'Name, description, and price are required'
+            });
+        }
+
+        // Generate slug from name if not provided
+        if (!bundleData.slug) {
+            bundleData.slug = bundleData.name.toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
+        }
+
+        // Ensure numeric fields are properly converted
+        if (bundleData.price) bundleData.price = parseFloat(bundleData.price);
+        if (bundleData.originalPrice) bundleData.originalPrice = parseFloat(bundleData.originalPrice);
+        if (bundleData.bundleDiscount) bundleData.bundleDiscount = parseFloat(bundleData.bundleDiscount);
+        if (bundleData.stock) bundleData.stock = parseInt(bundleData.stock);
+
+        console.log('Processed bundle data:', bundleData);
+
+        // Create new bundle
+        const bundle = new Bundle(bundleData);
+        await bundle.save();
+
+        console.log('Bundle saved successfully:', bundle);
+
+        res.status(201).json({
+            success: true,
+            message: 'Bundle created successfully',
+            bundle
+        });
+    } catch (error) {
+        console.error('Error in createBundle:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to create bundle',
+            error: error.message
+        });
+    }
+};
+
+// Update an existing bundle
+exports.updateBundle = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+
+        console.log('Updating bundle:', id, 'with data:', updateData);
+
+        // Check if bundle exists
+        const bundle = await Bundle.findById(id);
+        if (!bundle) {
+            return res.status(404).json({
+                success: false,
+                message: 'Bundle not found'
+            });
+        }
+
+        // Ensure numeric fields are properly converted
+        if (updateData.price) updateData.price = parseFloat(updateData.price);
+        if (updateData.originalPrice) updateData.originalPrice = parseFloat(updateData.originalPrice);
+        if (updateData.bundleDiscount) updateData.bundleDiscount = parseFloat(updateData.bundleDiscount);
+        if (updateData.stock) updateData.stock = parseInt(updateData.stock);
+
+        // Update bundle
+        Object.assign(bundle, updateData);
+        await bundle.save();
+
+        console.log('Bundle updated successfully:', bundle);
+
+        res.status(200).json({
+            success: true,
+            message: 'Bundle updated successfully',
+            bundle
+        });
+    } catch (error) {
+        console.error('Error in updateBundle:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update bundle',
+            error: error.message
+        });
+    }
+};
+
+// Delete a bundle
+exports.deleteBundle = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check if bundle exists
+        const bundle = await Bundle.findById(id);
+        if (!bundle) {
+            return res.status(404).json({
+                success: false,
+                message: 'Bundle not found'
+            });
+        }
+
+        // Delete bundle
+        await Bundle.findByIdAndDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Bundle deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error in deleteBundle:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete bundle',
+            error: error.message
+        });
+    }
+};
+
+// Review management functions
+exports.getProductReviews = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const reviews = await Review.find({ 
+            product: id,
+            status: 'approved'
+        })
+        .populate('user', 'username avatar')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+        const totalReviews = await Review.countDocuments({ 
+            product: id,
+            status: 'approved'
+        });
+
+        res.status(200).json({
+            success: true,
+            reviews,
+            totalReviews,
+            currentPage: page,
+            totalPages: Math.ceil(totalReviews / limit)
+        });
+    } catch (error) {
+        console.error('Error in getProductReviews:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch reviews',
+            error: error.message
+        });
+    }
+};
+
+exports.getBundleReviews = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const reviews = await Review.find({ 
+            bundle: id,
+            status: 'approved'
+        })
+        .populate('user', 'username avatar')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+        const totalReviews = await Review.countDocuments({ 
+            bundle: id,
+            status: 'approved'
+        });
+
+        res.status(200).json({
+            success: true,
+            reviews,
+            totalReviews,
+            currentPage: page,
+            totalPages: Math.ceil(totalReviews / limit)
+        });
+    } catch (error) {
+        console.error('Error in getBundleReviews:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch reviews',
+            error: error.message
+        });
+    }
+};
+
+exports.createReview = async (req, res) => {
+    try {
+        const { product, bundle, rating, title, comment, images } = req.body;
+        const userId = req.user._id;
+
+        // Validate required fields
+        if (!rating || rating < 1 || rating > 5) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid rating (1-5) is required'
+            });
+        }
+
+        if (!comment || comment.trim().length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Review comment is required'
+            });
+        }
+
+        if (!product && !bundle) {
+            return res.status(400).json({
+                success: false,
+                message: 'Either product or bundle ID is required'
+            });
+        }
+
+        // Check if user already reviewed this product/bundle
+        console.log('Checking for existing review:', { userId, product, bundle });
+        
+        const existingReview = await Review.findOne({
+            user: userId,
+            $or: [
+                { product: product || null },
+                { bundle: bundle || null }
+            ]
+        });
+
+        if (existingReview) {
+            console.log('Found existing review:', existingReview._id);
+            return res.status(400).json({
+                success: false,
+                message: 'You have already reviewed this item. You can only review each product/bundle once.'
+            });
+        }
+
+        console.log('No existing review found, proceeding to create new review');
+
+        // Create new review - no purchase verification required
+        const reviewData = {
+            user: userId,
+            rating,
+            comment: comment.trim(),
+            status: 'pending', // Reviews still need admin approval for quality control
+            isVerifiedPurchase: false // Mark as not verified since no purchase check
+        };
+
+        if (product) reviewData.product = product;
+        if (bundle) reviewData.bundle = bundle;
+        if (title) reviewData.title = title.trim();
+        if (images && images.length > 0) reviewData.images = images;
+
+        const review = new Review(reviewData);
+        await review.save();
+
+        // Populate user info for response
+        await review.populate('user', 'username avatar');
+
+        res.status(201).json({
+            success: true,
+            message: 'Review submitted successfully and pending approval',
+            review
+        });
+    } catch (error) {
+        console.error('Error in createReview:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to create review',
+            error: error.message
+        });
+    }
+};
+
+exports.updateReview = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+        const userId = req.user._id;
+
+        // Find review and check ownership
+        const review = await Review.findById(id);
+        if (!review) {
+            return res.status(404).json({
+                success: false,
+                message: 'Review not found'
+            });
+        }
+
+        if (review.user.toString() !== userId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'You can only edit your own reviews'
+            });
+        }
+
+        // Only allow updating certain fields
+        const allowedUpdates = ['rating', 'title', 'comment', 'images'];
+        const updates = {};
+        
+        allowedUpdates.forEach(field => {
+            if (updateData[field] !== undefined) {
+                updates[field] = updateData[field];
+            }
+        });
+
+        // Reset status to pending for admin approval
+        updates.status = 'pending';
+
+        const updatedReview = await Review.findByIdAndUpdate(
+            id,
+            updates,
+            { new: true, runValidators: true }
+        ).populate('user', 'username avatar');
+
+        res.status(200).json({
+            success: true,
+            message: 'Review updated successfully and pending approval',
+            review: updatedReview
+        });
+    } catch (error) {
+        console.error('Error in updateReview:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update review',
+            error: error.message
+        });
+    }
+};
+
+exports.deleteReview = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user._id;
+
+        // Find review and check ownership
+        const review = await Review.findById(id);
+        if (!review) {
+            return res.status(404).json({
+                success: false,
+                message: 'Review not found'
+            });
+        }
+
+        if (review.user.toString() !== userId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'You can only delete your own reviews'
+            });
+        }
+
+        await Review.findByIdAndDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message: 'Review deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error in deleteReview:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete review',
+            error: error.message
+        });
+    }
+};
+
+// Admin review management functions
+exports.getAllReviews = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+        const skip = (page - 1) * limit;
+
+        const reviews = await Review.find({})
+            .populate('user', 'username avatar')
+            .populate('product', 'name')
+            .populate('bundle', 'name')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalReviews = await Review.countDocuments({});
+
+        res.status(200).json({
+            success: true,
+            reviews,
+            totalReviews,
+            currentPage: page,
+            totalPages: Math.ceil(totalReviews / limit)
+        });
+    } catch (error) {
+        console.error('Error in getAllReviews:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch reviews',
+            error: error.message
+        });
+    }
+};
+
+exports.updateReviewStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (!['pending', 'approved', 'rejected'].includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid status. Must be pending, approved, or rejected'
+            });
+        }
+
+        const review = await Review.findByIdAndUpdate(
+            id,
+            { status },
+            { new: true, runValidators: true }
+        ).populate('user', 'username avatar')
+         .populate('product', 'name')
+         .populate('bundle', 'name');
+
+        if (!review) {
+            return res.status(404).json({
+                success: false,
+                message: 'Review not found'
+            });
+        }
+
+        // If status is approved, update product/bundle rating
+        if (status === 'approved') {
+            if (review.product) {
+                await review.updateProductRating();
+            } else if (review.bundle) {
+                await review.updateBundleRating();
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `Review ${status} successfully`,
+            review
+        });
+    } catch (error) {
+        console.error('Error in updateReviewStatus:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update review status',
+            error: error.message
+        });
+    }
+};

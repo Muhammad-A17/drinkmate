@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saudi Riyal Font Test</title>
+    <style>
+        @font-face {
+            font-family: 'SaudiRiyalSymbol';
+            src: url('/fonts/saudiriyalsymbol.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .riyal-symbol {
+            font-family: 'SaudiRiyalSymbol', Arial, sans-serif;
+            font-size: 2em;
+            color: #333;
+        }
+
+        .test-price {
+            font-size: 1.5em;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Saudi Riyal Font Test</h1>
+    
+    <div class="test-price">
+        Price: <span class="riyal-symbol">&#xea;</span> 123.45
+    </div>
+    
+    <div class="test-price">
+        Total: <span class="riyal-symbol">&#xea;</span> 599.00
+    </div>
+    
+    <p>If you see the custom Saudi Riyal symbol above, the font is working correctly.</p>
+    <p>If you see a box or different character, the font file needs to be added to the /fonts/ directory.</p>
+</body>
+</html>

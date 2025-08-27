@@ -1,0 +1,337 @@
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&family=Noto+Sans+Arabic:wght@100;200;300;400;500;600;700;800;900&family=Montserrat:wght@200;300;400;500;600;700;800;900&family=Noto+Sans:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Saudi Riyal Font */
+@font-face {
+  font-family: 'SaudiRiyalSymbol';
+  src: url('/fonts/saudiriyalsymbol.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Font Variables */
+:root {
+  --font-sans: var(--geist-sans);
+  --font-mono: var(--geist-mono);
+}
+
+/* Ensure fonts are loaded with proper fallbacks */
+@layer base {
+  html {
+    font-family: 'Montserrat', 'Arial', sans-serif;
+  }
+  
+  [dir="rtl"] {
+    font-family: 'Cairo', 'Arial', sans-serif;
+  }
+  
+  /* Ensure font classes work properly */
+  .font-cairo {
+    font-family: 'Cairo', 'Arial', sans-serif !important;
+    font-display: swap;
+  }
+  
+  .font-montserrat {
+    font-family: 'Montserrat', 'Arial', sans-serif !important;
+    font-display: swap;
+  }
+  
+  .font-noto-arabic {
+    font-family: 'Noto Sans Arabic', 'Arial', sans-serif !important;
+    font-display: swap;
+  }
+  
+  .font-noto-sans {
+    font-family: 'Noto Sans', 'Arial', sans-serif !important;
+    font-display: swap;
+  }
+  
+  .font-geist {
+    font-family: var(--geist-sans), 'Arial', sans-serif !important;
+    font-display: swap;
+  }
+}
+
+/* Saudi Riyal Currency Symbol - Global Styles */
+.riyal-symbol {
+  font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
+  font-size: 1em;
+  line-height: 1;
+}
+
+/* Fallback for when the custom font is not loaded */
+.riyal-symbol-fallback {
+  font-family: 'Arial', sans-serif;
+  font-size: 1em;
+  line-height: 1;
+}
+
+/* Global utility classes for Saudi Riyal */
+.currency-riyal {
+  font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
+}
+
+/* Responsive font sizes for different contexts */
+.riyal-symbol-sm {
+  font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
+  font-size: 0.875em;
+}
+
+.riyal-symbol-lg {
+  font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
+  font-size: 1.25em;
+}
+
+.riyal-symbol-xl {
+  font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
+  font-size: 1.5em;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
+/* Custom animations for popular badges */
+@keyframes popular-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(251, 191, 36, 0.5), 0 0 10px rgba(251, 191, 36, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.8), 0 0 30px rgba(251, 191, 36, 0.5);
+  }
+}
+
+@keyframes popular-bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+@keyframes popular-shine {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.popular-badge-glow {
+  animation: popular-glow 2s ease-in-out infinite;
+}
+
+.popular-badge-bounce {
+  animation: popular-bounce 2s ease-in-out infinite;
+}
+
+.popular-badge-shine {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b, #d97706, #fbbf24);
+  background-size: 200% 100%;
+  animation: popular-shine 3s ease-in-out infinite;
+}
+
+/* Enhanced hover effects */
+.popular-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.popular-card-hover:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Home Page Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation Classes */
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.8s ease-out forwards;
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.8s ease-out forwards;
+}
+
+.animate-fade-in-down {
+  animation: fade-in-down 0.8s ease-out forwards;
+}
+
+/* Animation Delays */
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+
+.delay-500 {
+  animation-delay: 0.5s;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #171717;
+  --primary-foreground: #fafafa;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+  --destructive: #ef4444;
+  --destructive-foreground: #ef4444;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #a3a3a3;
+  --chart-1: #3b82f6;
+  --chart-2: #06b6d4;
+  --chart-3: #8b5cf6;
+  --chart-4: #f59e0b;
+  --chart-5: #10b981;
+  --radius: 0.625rem;
+  --sidebar: #fafafa;
+  --sidebar-foreground: #171717;
+  --sidebar-primary: #171717;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #f5f5f5;
+  --sidebar-accent-foreground: #171717;
+  --sidebar-border: #e5e5e5;
+  --sidebar-ring: #a3a3a3;
+}
+
+.dark {
+  --background: #171717;
+  --foreground: #fafafa;
+  --card: #171717;
+  --card-foreground: #fafafa;
+  --popover: #171717;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #171717;
+  --secondary: #404040;
+  --secondary-foreground: #fafafa;
+  --muted: #404040;
+  --muted-foreground: #a3a3a3;
+  --accent: #404040;
+  --accent-foreground: #fafafa;
+  --destructive: #dc2626;
+  --destructive-foreground: #f87171;
+  --border: #404040;
+  --input: #404040;
+  --ring: #525252;
+  --chart-1: #6366f1;
+  --chart-2: #06b6d4;
+  --chart-3: #8b5cf6;
+  --chart-4: #f59e0b;
+  --chart-5: #10b981;
+  --sidebar: #171717;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #6366f1;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #404040;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #404040;
+  --sidebar-ring: #525252;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
