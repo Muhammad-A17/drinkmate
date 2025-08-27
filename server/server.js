@@ -20,25 +20,27 @@ const app = express();
 
 // Configure CORS to allow requests from the frontend
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3001',
-  credentials: true
+  origin: [process.env.FRONTEND_URL || 'http://localhost:3001', 'https://drinkmates.netlify.app'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
 // Note: Static file serving for uploads removed - now using Cloudinary for image storage
 
 // API routes
-app.use('/api/admin', adminRouter);
-app.use('/api/auth', authRouter);
-app.use('/api/services', serviceRouter);
-app.use('/api/shop', productRouter);
-app.use('/api/checkout', orderRouter);
-app.use('/api/contact', contactRouter);
-app.use('/api/blog', blogRouter);
-app.use('/api/testimonials', testimonialRouter);
-app.use('/api', categoryRouter);
-app.use('/api/co2', co2Router);
-app.use('/api/refill', refillRouter);
+app.use('/admin', adminRouter);
+app.use('/auth', authRouter);
+app.use('/services', serviceRouter);
+app.use('/shop', productRouter);
+app.use('/checkout', orderRouter);
+app.use('/contact', contactRouter);
+app.use('/blog', blogRouter);
+app.use('/testimonials', testimonialRouter);
+app.use('/', categoryRouter);
+app.use('/co2', co2Router);
+app.use('/refill', refillRouter);
 
 // Root route
 app.get('/', (req, res) => {

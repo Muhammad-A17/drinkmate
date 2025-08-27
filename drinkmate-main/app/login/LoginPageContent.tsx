@@ -218,11 +218,11 @@ export default function LoginPageContent() {
             
             <div className="grid grid-cols-2 gap-4">
               <Button variant="outline" className="border-gray-300 hover:bg-gray-50 transition-colors">
-                <Image src="/images/google-icon.png" alt="Google" width={20} height={20} className="mr-2" />
+                <span className="mr-2">G</span>
                 Google
               </Button>
               <Button variant="outline" className="border-gray-300 hover:bg-gray-50 transition-colors">
-                <Image src="/images/facebook-icon.png" alt="Facebook" width={20} height={20} className="mr-2" />
+                <span className="mr-2">F</span>
                 Facebook
               </Button>
             </div>
