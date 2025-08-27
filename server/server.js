@@ -20,7 +20,12 @@ const app = express();
 
 // Configure CORS to allow requests from the frontend
 app.use(cors({
-  origin: [process.env.FRONTEND_URL || 'http://localhost:3001', 'https://drinkmates.vercel.app/'],
+  origin: [
+    process.env.FRONTEND_URL || 'http://localhost:3001', 
+    'https://drinkmates.vercel.app',
+    'https://drinkmates-jm7rtm4hz-devopsdrinkmate-6879s-projects.vercel.app',
+    'https://*.vercel.app'  // Allow all Vercel preview deployments
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -62,7 +67,7 @@ if (!fs.existsSync('./.env')) {
   try {
     fs.writeFileSync('./.env', `PORT=3000
 JWT_SECRET=drinkmate_secret_key_development
-FRONTEND_URL=https://drinkmates.vercel.app/
+FRONTEND_URL=https://drinkmates-jm7rtm4hz-devopsdrinkmate-6879s-projects.vercel.app
 MONGODB_URI=mongodb+srv://faizanhassan608:jWnMYMNtJK0M79Fa@cluster0.rvqclhq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 
 # Cloudinary Configuration
