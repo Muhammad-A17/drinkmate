@@ -92,6 +92,7 @@ interface RecentProduct {
 export default function AdminDashboard() {
   const { t } = useAdminTranslation()
   const { isRTL } = useTranslation()
+  const { user, isAuthenticated, isLoading } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalOrders: 0,
@@ -106,12 +107,21 @@ export default function AdminDashboard() {
     orderGrowth: 0,
     userGrowth: 0
   })
+
+  // Debug info
+  useEffect(() => {
+    console.log("Admin Dashboard - Auth State:", {
+      isAuthenticated,
+      isLoading,
+      user: user ? { id: user._id, email: user.email, isAdmin: user.isAdmin } : null
+    });
+  }, [isAuthenticated, isLoading, user]);
   
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([])
   const [recentProducts, setRecentProducts] = useState<RecentProduct[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isDataLoading, setIsDataLoading] = useState(true)
   
-  const { user, token } = useAuth()
+  const { token } = useAuth()
   const router = useRouter()
 
   // Fetch dashboard stats
@@ -121,7 +131,7 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      setIsLoading(true)
+      setIsDataLoading(true)
       
       // TODO: Replace with real API calls when endpoints are ready
       // const [usersRes, ordersRes, productsRes, testimonialsRes, blogRes, contactsRes] = await Promise.all([
@@ -237,9 +247,9 @@ export default function AdminDashboard() {
         orderGrowth: 0,
         userGrowth: 0
       })
-    } finally {
-      setIsLoading(false)
-    }
+          } finally {
+        setIsDataLoading(false)
+      }
   }
 
   // Refresh dashboard data

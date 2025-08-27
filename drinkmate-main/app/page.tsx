@@ -8,9 +8,11 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
-  const { t, isRTL } = useTranslation()
+  const { t, isRTL, isHydrated } = useTranslation()
+  const router = useRouter()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [activeMachineColor, setActiveMachineColor] = useState("cyan") // Default to cyan
 
@@ -217,12 +219,26 @@ export default function Home() {
     },
   }
 
+  // Don't render until hydration is complete to prevent mismatches
+  if (!isHydrated) {
+    return (
+      <PageLayout currentPage="home">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#12d6fa] mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
+
   return (
     <PageLayout currentPage="home">
 
 
       {/* Hero Section */}
-      <section className="py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 relative z-30">
+      <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 relative z-30">
         <div className="w-full bg-gradient-to-b from-white to-[#f3f3f3] rounded-b-3xl relative overflow-hidden min-h-[400px] md:h-[600px]">
           {/* Product Images (Absolute Positioning) */}
           <Image
@@ -271,13 +287,13 @@ export default function Home() {
                 </p>
                 <div className={`flex ${isRTL ? 'flex-row-reverse' : 'flex-row'} gap-3 justify-center animate-slide-in-up delay-500`}>
                   <button 
-                    onClick={() => window.location.href = '/shop'}
+                    onClick={() => router.push('/shop')}
                     className="px-6 py-3 text-gray-600 border-2 border-gray-300 bg-white hover:bg-gray-50 font-medium rounded-md min-w-[140px] transition-all duration-300 transform hover:scale-105 hover:border-gray-400"
                   >
                     {t('home.hero.exploreMore')}
                   </button>
                   <button 
-                    onClick={() => window.location.href = '/shop'}
+                    onClick={() => router.push('/shop')}
                     className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-6 py-3 font-medium shadow-md border-2 border-[#12d6fa] rounded-md min-w-[140px] transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                   >
                     {t('home.hero.buyNow')}
@@ -297,14 +313,14 @@ export default function Home() {
               </p>
               <div className={`flex flex-row ${isRTL ? 'space-x-reverse space-x-4 flex-row-reverse' : 'space-x-4'} justify-center md:${isRTL ? 'justify-start' : 'justify-start'} gap-3 animate-slide-in-left delay-500`}>
                 <Button 
-                  onClick={() => window.location.href = '/shop'}
+                  onClick={() => router.push('/shop')}
                   variant="outline" 
                   className="px-6 py-3 text-gray-600 border-gray-300 bg-transparent min-w-[140px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 transform hover:scale-105"
                 >
                   {t('home.hero.exploreMore')}
                 </Button>
                 <Button 
-                  onClick={() => window.location.href = '/shop'}
+                  onClick={() => router.push('/shop')}
                   className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-6 py-3 min-w-[140px] shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 >
                   {t('home.hero.buyNow')}
@@ -316,8 +332,8 @@ export default function Home() {
       </section>
 
       {/* Refill Section */}
-      <section className="py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 animate-fade-in-up">
-        <div className="w-full bg-[#f3f3f3] rounded-3xl relative min-h-[300px] md:h-[250px] flex items-center justify-between px-2 md:px-4 lg:px-8 xl:px-12">
+      <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
+        <div className="w-full bg-[#f3f3f3] rounded-3xl relative min-h-[300px] md:h-[250px] flex items-center justify-between px-10 md:px-16 lg:px-20 xl:px-24">
           {/* Left Navigation Button */}
           <Button
             className="rounded-full w-10 h-10 flex items-center justify-center border border-gray-300 bg-white text-gray-700 shadow-sm z-10 hover:bg-gray-100 hover:border-gray-400"
@@ -338,11 +354,11 @@ export default function Home() {
                   <Button 
                     onClick={() => {
                       if (slide.buttonText === "Refill Now") {
-                        window.location.href = "/co2"
+                        router.push("/co2")
                       } else if (slide.buttonText === "Shop Now") {
-                        window.location.href = "/shop"
+                        router.push("/shop")
                       } else {
-                        window.location.href = "/shop"
+                        router.push("/shop")
                       }
                     }}
                     className={`font-medium px-6 py-3 rounded-full min-w-[140px] ${
@@ -417,7 +433,7 @@ export default function Home() {
       </section>
 
       {/* Product Categories Section */}
-      <section className="py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 animate-fade-in-up">
+      <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
         <div className="w-full">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {/* Soda Makers */}
@@ -496,15 +512,15 @@ export default function Home() {
       </section>
 
        {/* Horizontal Border */}
-       <div className="w-full px-2 md:px-4 lg:px-8 xl:px-12">
+       <div className="w-full px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 py-4">
         <hr className="border-gray-200" />
       </div>
 
       {/* Mega Offer Section */}
-      <section className="py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 animate-fade-in-up">
+      <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
         <div className="w-full">
           {/* First Card - Drinkmate OmniFizz */}
-          <div className="bg-gradient-to-b from-white to-[#f3f3f3] rounded-b-3xl py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 pb-4 relative overflow-hidden mb-8">
+          <div className="bg-gradient-to-b from-white to-[#f3f3f3] rounded-b-3xl py-8 md:py-16 px-6 md:px-8 lg:px-12 xl:px-16 pb-4 relative overflow-hidden mb-8">
             <div className="grid md:grid-cols-2 gap-8 items-center">
               {/* Left Content */}
               <div className="space-y-6 md:space-y-8 max-w-lg animate-slide-in-left" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -518,7 +534,7 @@ export default function Home() {
                 {/* Available Color Options */}
                 <div className="space-y-4">
                   <h3 className={`text-sm md:text-base font-semibold text-black ${isRTL ? 'font-cairo text-right' : 'font-montserrat'}`}>{t('home.megaOffer.availableColors')}</h3>
-                  <div className={`flex ${isRTL ? 'flex-row-reverse' : ''} space-x-3 ${isRTL ? 'space-x-reverse justify-start' : 'justify-start'}`}>
+                  <div className={`flex ${isRTL ? 'flex-row-reverse' : ''} space-x-4 ${isRTL ? 'space-x-reverse justify-start' : 'justify-start'}`}>
                     <button
                       className="w-8 h-8 md:w-10 md:h-10 bg-red-500 rounded cursor-pointer"
                       onClick={() => setActiveMachineColor("red")}
@@ -540,14 +556,14 @@ export default function Home() {
                 {/* Buttons */}
                 <div className={`flex ${isRTL ? 'flex-row-reverse space-x-reverse' : 'flex-row'} space-x-3 justify-center ${isRTL ? 'md:justify-start' : 'md:justify-start'}`}>
                   <Button 
-                    onClick={() => window.location.href = '/shop/bundles'}
+                    onClick={() => router.push('/shop/bundles')}
                     variant="outline" 
                     className="px-6 py-3 text-gray-600 border-gray-300 bg-transparent min-w-[140px]"
                   >
                     {t('home.megaOffer.offersBundles')}
                   </Button>
                   <Button 
-                    onClick={() => window.location.href = '/shop'}
+                    onClick={() => router.push('/shop')}
                     className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium px-6 py-3 min-w-[140px]"
                   >
                     {t('home.megaOffer.exploreMore')}
@@ -586,15 +602,15 @@ export default function Home() {
           </div>
       </section>
       {/* Horizontal Border */}
-      <div className="w-full px-2 md:px-4 lg:px-8 xl:px-12">
+      <div className="w-full px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 py-4">
         <hr className="border-gray-200" />
       </div>
 
        {/* Second Card - How does it work */}
        
-       <div className="py-8 md:py-16 px-2 md:px-4">
+       <div className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40">
       {/* Container Card */}
-      <div className="max-w-full mx-auto bg-gradient-to-b from-white to-[#f3f3f3] rounded-2xl py-8 px-2 md:px-4 relative overflow-hidden">
+      <div className="max-w-full mx-auto bg-gradient-to-b from-white to-[#f3f3f3] rounded-2xl py-8 px-12 md:px-20 lg:px-24 relative overflow-hidden">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Left Side - Text Content */}
           <div className="lg:w-1/4 flex-shrink-0">
@@ -611,7 +627,7 @@ export default function Home() {
           </div>
 
           {/* Right Side - Steps Grid */}
-          <div className="lg:w-3/4 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full overflow-x-visible">
+          <div className="lg:w-3/4 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 w-full overflow-x-visible">
             {steps.map((step, index) => (
               <motion.div
                 key={step.id}
@@ -654,7 +670,7 @@ export default function Home() {
       
     
       {/* Horizontal Border */}
-      <div className="w-full px-2 md:px-4 lg:px-8 xl:px-12">
+      <div className="w-full px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 py-4">
         <hr className="border-gray-200" />
       </div>
 
@@ -662,7 +678,7 @@ export default function Home() {
       <div className="relative w-full">
         <section className="relative w-full">
       {/* 🌍 Mobile & Tablet (Responsive Fluid Layout) */}
-      <div className="xl:hidden flex flex-col items-center text-center px-6 py-12 bg-white">
+      <div className="xl:hidden flex flex-col items-center text-center px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 py-12 bg-white">
         {/* Image Container */}
         <div className="relative w-full h-[350px] sm:h-[400px] md:h-[450px] mb-0 overflow-visible">
           <Image
@@ -886,76 +902,44 @@ export default function Home() {
       </div>
 
        {/* Horizontal Border */}
-       <div className="w-full px-2 md:px-4 lg:px-8 xl:px-12">
+       <div className="w-full px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 py-4">
         <hr className="border-gray-200" />
       </div>
 
       {/* Flavor Section */}
-      <section className="py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 animate-fade-in-up">
-        {/* Header Text - Above Image */}
-        <div className="text-center mb-8 animate-fade-in-down">
-          <p className={`text-gray-700 text-xl md:text-2xl font-medium ${isRTL ? 'font-noto-arabic' : ''} opacity-90 mb-3`}>
-            {t('home.flavorSection.subtitle')}
-          </p>
-          <h2 className={`text-4xl md:text-6xl font-bold text-black leading-tight ${isRTL ? 'font-cairo' : 'font-montserrat'} drop-shadow-md`}>
-            {t('home.flavorSection.title')}
-          </h2>
+      <section className="py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40">
+        {/* Header */}
+        <div className="text-center pt-12">
+          <p className="text-gray-600 text-lg mb-2">Don't just sparkle water</p>
+          <h2 className="text-4xl font-bold text-black">Sparkle Anything</h2>
         </div>
         
-        <div className="w-full bg-gradient-to-b from-white to-[#f3f3f3] rounded-2xl relative overflow-hidden shadow-lg">
-          {/* Background Image */}
-          <div className="relative">
-            <Image
-              src="/images/flavor-section-background.png"
-              alt="Italian Flavors and Cherry Cola Bottle"
-              width={1198}
-              height={518}
-              className="w-full h-auto object-cover rounded-2xl opacity-80 md:opacity-100"
-            />
-            
-            {/* Mobile Layout - Content Below Image */}
-            <div className="md:hidden">
-              <div className="p-6 space-y-4">
-                <p className={`text-gray-700 text-base leading-relaxed font-medium text-center ${isRTL ? 'font-noto-arabic' : ''}`}>
-                  {t('home.flavorSection.description')}
-                </p>
-                <div className="text-center">
-                  <Button 
-                    onClick={() => window.location.href = '/shop'}
-                    className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-medium px-8 py-3 text-base shadow-lg hover:shadow-xl transition-all duration-200 min-w-[160px] rounded-full"
-                  >
-                    {t('home.flavorSection.exploreFlavors')}
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
-            {/* Desktop Layout - Content Overlaid on Image */}
-            <div className="hidden md:block">
-              <div className={`absolute ${isRTL ? 'right-16' : 'left-16'} top-1/2 transform -translate-y-1/2 z-20 max-w-sm`} dir={isRTL ? 'rtl' : 'ltr'}>
-                <p className={`text-gray-700 text-lg leading-relaxed mb-10 font-medium ${isRTL ? 'font-noto-arabic text-right' : ''}`}>
-                  {t('home.flavorSection.description')}
-                </p>
-                <div className={`flex ${isRTL ? 'justify-end' : 'justify-start'}`}>
-                  <Button 
-                    onClick={() => window.location.href = '/shop'}
-                    className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-medium px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all duration-200 rounded-full"
-                  >
-                    {t('home.flavorSection.exploreFlavors')}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div
+          className="mx-auto bg-gradient-to-b from-white to-[#f3f3f3] rounded-2xl relative overflow-hidden"
+          style={{ height: "600px" }}
+        >
+          {/* Main Content with Background Image */}
+          <Image
+            src="/images/flavor-section-background.png"
+            alt="Italian Flavors and Cherry Cola Bottle"
+            width={1198}
+            height={518}
+            className="absolute object-cover rounded-2xl w-full h-full"
+            style={{ 
+              top: "50%", 
+              left: "50%", 
+              transform: "translate(-50%, -50%)" 
+            }}
+          />
         </div>
       </section>
   
       {/* Horizontal Border */}
-      <div className="w-full px-2 md:px-4 lg:px-8 xl:px-12">
+      <div className="w-full px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 py-8">
         <hr className="border-gray-200" />
       </div>
-      {/* New Sections below Flavor Section */}
-      <section className="py-8 md:py-16 px-2 md:px-4 lg:px-8 xl:px-12 animate-fade-in-up">
+                              {/* New Sections below Flavor Section */}
+      <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
         <div className="w-full bg-white rounded-2xl relative overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 py-12">
             {/* How to Use */}
@@ -1017,12 +1001,12 @@ export default function Home() {
       </section>
 
       {/* Horizontal Border */}
-      <div className="w-full px-2 md:px-4 lg:px-8 xl:px-12">
+      <div className="w-full px-10 md:px-16 lg:px-20 xl:px-28 2xl:px-36 py-8">
         <hr className="border-gray-200" />
       </div>
 
       {/* Environmental Impact Section */}
-      <section className="py-8 md:py-16 bg-white px-2 md:px-4 lg:px-8 xl:px-12 animate-fade-in-up delay-300">
+      <section className="py-8 md:py-16 bg-white px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up delay-300">
         <div className="w-full">
           {/* Header */}
           <div className="text-center mb-8 md:mb-12" dir={isRTL ? 'rtl' : 'ltr'}>

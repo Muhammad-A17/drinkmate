@@ -5,12 +5,15 @@ import { getAuthToken } from './auth-context';
 // Base API URL - should be set in environment variables
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
 
+console.log('API URL configured as:', API_URL);
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Request interceptor to add auth token to requests
@@ -95,10 +98,17 @@ export const authAPI = {
   
   verifyToken: async () => {
     try {
+      console.log('Attempting to verify token with API URL:', API_URL);
       const response = await api.get('/auth/verify');
+      console.log('Token verification successful:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('Token verification error:', error.response?.data || error.message);
+      console.error('Token verification failed:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+        url: `${API_URL}/auth/verify`
+      });
       throw error;
     }
   }
@@ -114,6 +124,11 @@ export const shopAPI = {
   
   getProduct: async (idOrSlug: string) => {
     const response = await api.get(`/shop/products/${idOrSlug}`);
+    return response.data;
+  },
+  
+  getProductBySlug: async (slug: string) => {
+    const response = await api.get(`/shop/products/slug/${slug}`);
     return response.data;
   },
   
@@ -136,6 +151,21 @@ export const shopAPI = {
   
   getBundle: async (idOrSlug: string) => {
     const response = await api.get(`/shop/bundles/${idOrSlug}`);
+    return response.data;
+  },
+
+  // Reviews
+  addReview: async (productId: string, reviewData: {
+    rating: number;
+    title?: string;
+    comment: string;
+  }) => {
+    const token = getAuthToken();
+    const response = await api.post(`/shop/products/${productId}/reviews`, reviewData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
     return response.data;
   },
 

@@ -20,7 +20,7 @@ export default function PageLayout({ children, currentPage }: PageLayoutProps) {
     >
       <Banner />
       <Header currentPage={currentPage} />
-      <main className={isHydrated && isRTL ? 'font-noto-arabic' : 'font-geist'}>
+      <main className={`${isHydrated && isRTL ? 'font-noto-arabic' : 'font-geist'} max-w-[1920px] mx-auto`}>
         {children}
       </main>
       <Footer />

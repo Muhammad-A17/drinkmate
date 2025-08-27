@@ -72,17 +72,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           } else {
             throw new Error("Invalid user data from token verification");
           }
-        } catch (error) {
-          // Invalid token
+        } catch (error: any) {
+          // Invalid token - but don't clear immediately, give user a chance
           console.error("Token verification failed:", error);
-          localStorage.removeItem(TOKEN_KEY);
-          sessionStorage.removeItem(TOKEN_KEY);
-          setAuthState({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            isLoading: false,
-          });
+          // Only clear token if it's a 401 error
+          if (error.response?.status === 401) {
+            localStorage.removeItem(TOKEN_KEY);
+            sessionStorage.removeItem(TOKEN_KEY);
+            setAuthState({
+              user: null,
+              token: null,
+              isAuthenticated: false,
+              isLoading: false,
+            });
+          } else {
+            // For other errors, keep the token but mark as not authenticated
+            setAuthState({
+              user: null,
+              token,
+              isAuthenticated: false,
+              isLoading: false,
+            });
+          }
         }
       } catch (error) {
         console.error("Authentication error:", error);
