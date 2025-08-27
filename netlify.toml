@@ -1,0 +1,6 @@
+[[plugins]]
+package = "@netlify/plugin-nextjs"
+
+[build]
+command = "cd drinkmate-main && npm install && npm run build"
+publish = "drinkmate-main/.next"
