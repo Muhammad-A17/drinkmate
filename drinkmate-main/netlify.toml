@@ -5,6 +5,9 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  NEXT_USE_NETLIFY_EDGE = "true"
 
 [[plugins]]
-  package = "@netlify/next"
+  package = "@netlify/plugin-nextjs"
+  [plugins.inputs]
+    enableImageOptimization = false
