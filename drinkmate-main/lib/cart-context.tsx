@@ -12,6 +12,7 @@ export interface CartItem {
   color?: string
   size?: string
   isBundle?: boolean
+  isFree?: boolean
 }
 
 interface CartState {
@@ -132,26 +133,9 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 }
 
 const initialState: CartState = {
-  items: [
-    {
-      id: 1,
-      name: "Drinkmate - OmniFizz Machine - Red",
-      price: 599.0,
-      quantity: 1,
-      image: "/images/drinkmate-machine-red.png",
-      category: "machines",
-    },
-    {
-      id: 2,
-      name: "Drinkmate - Premium Italian Bloody Orange Flavor Syrup",
-      price: 49.0,
-      quantity: 2,
-      image: "/images/italian-strawberry-lemon-syrup.png",
-      category: "flavors",
-    },
-  ],
-  total: 697.0,
-  itemCount: 3
+  items: [],
+  total: 0,
+  itemCount: 0
 }
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

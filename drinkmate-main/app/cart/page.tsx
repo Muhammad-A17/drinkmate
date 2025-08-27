@@ -79,7 +79,7 @@ export default function CartPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
   const [couponError, setCouponError] = useState("")
 
-  const handleQuantityChange = (id: number, newQuantity: number) => {
+  const handleQuantityChange = (id: string | number, newQuantity: number) => {
     updateQuantity(id, newQuantity)
     toast.success("Quantity updated", {
       duration: 2000,
@@ -465,7 +465,7 @@ export default function CartPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleQuantityChange(Number(item.id), Math.max(1, item.quantity - 1))}
+                    onClick={() => handleQuantityChange(item.id, Math.max(1, item.quantity - 1))}
                     className="h-8 w-8 p-0 text-gray-600 hover:text-gray-800 border-gray-300"
                     disabled={item.quantity <= 1}
                   >
@@ -475,7 +475,7 @@ export default function CartPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleQuantityChange(Number(item.id), item.quantity + 1)}
+                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                     className="h-8 w-8 p-0 text-gray-600 hover:text-gray-800 border-gray-300"
                   >
                     +
