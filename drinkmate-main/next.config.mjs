@@ -17,8 +17,6 @@ const nextConfig = {
       },
     ],
   },
-  // Disable static export for proper handling by @netlify/plugin-nextjs
-  output: 'standalone',
 }
 
 export default nextConfig
