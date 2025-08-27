@@ -20,12 +20,37 @@ const app = express();
 
 // Configure CORS to allow requests from the frontend
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:3001', 
-    'https://drinkmates.vercel.app',
-    'https://drinkmates-jm7rtm4hz-devopsdrinkmate-6879s-projects.vercel.app',
-    'https://*.vercel.app'  // Allow all Vercel preview deployments
-  ],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) return callback(null, true);
+    
+    // List of allowed origins
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://drinkmates.vercel.app',
+      'https://drinkmates-git-main-devopsdrinkmate-6879s-projects.vercel.app',
+      'https://drinkmates-jm7rtm4hz-devopsdrinkmate-6879s-projects.vercel.app',
+      'https://drinkmates-1a8de3m4h-devopsdrinkmate-6879s-projects.vercel.app'
+    ];
+    
+    // Allow all Vercel preview deployments
+    if (
+      origin.includes('vercel.app') || 
+      origin.includes('netlify.app') ||
+      origin.includes('drinkmates')
+    ) {
+      return callback(null, true);
+    }
+    
+    // Check if origin is in the allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    
+    // Not allowed
+    callback(new Error('CORS not allowed for this origin'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
