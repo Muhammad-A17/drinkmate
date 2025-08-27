@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Mail, Lock, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, Mail, Lock, AlertCircle, CheckCircle2, Info, AlertTriangle } from "lucide-react";
 import PageLayout from "@/components/layout/PageLayout";
 import { toast } from "sonner";
 
@@ -21,6 +22,9 @@ export default function LoginPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [redirectPath, setRedirectPath] = useState("/");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [messageType, setMessageType] = useState<"error" | "success" | "info" | "">("");
   
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -36,9 +40,31 @@ export default function LoginPageContent() {
 
       const message = searchParams.get('message');
       if (message) {
+        setStatusMessage(decodeURIComponent(message));
+        setMessageType("success");
         toast.success(decodeURIComponent(message), {
           duration: 5000,
           icon: <CheckCircle2 className="h-5 w-5" />
+        });
+      }
+      
+      const error = searchParams.get('error');
+      if (error) {
+        setErrorMessage(decodeURIComponent(error));
+        setMessageType("error");
+        toast.error(decodeURIComponent(error), {
+          duration: 5000,
+          icon: <AlertCircle className="h-5 w-5" />
+        });
+      }
+      
+      const session = searchParams.get('session');
+      if (session === 'expired') {
+        setErrorMessage("Your session has expired. Please sign in again.");
+        setMessageType("info");
+        toast.info("Your session has expired. Please sign in again.", {
+          duration: 5000,
+          icon: <Info className="h-5 w-5" />
         });
       }
     }
@@ -54,8 +80,13 @@ export default function LoginPageContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage(""); // Clear previous errors
+    setStatusMessage("");
+    setMessageType("");
 
     if (!email || !password) {
+      setErrorMessage("Please fill in all fields");
+      setMessageType("error");
       toast.error("Please fill in all fields", {
         duration: 5000,
         icon: <AlertCircle className="h-5 w-5" />
@@ -75,6 +106,8 @@ export default function LoginPageContent() {
           localStorage.removeItem("rememberedEmail");
         }
         
+        setStatusMessage("Login successful! Redirecting...");
+        setMessageType("success");
         toast.success("Login successful! Redirecting...", {
           duration: 3000,
           icon: <CheckCircle2 className="h-5 w-5" />
@@ -83,13 +116,18 @@ export default function LoginPageContent() {
           router.push(redirectPath);
         }, 1000);
       } else {
+        setErrorMessage(result.message || "Invalid email or password");
+        setMessageType("error");
         toast.error(result.message, {
           duration: 5000,
           icon: <AlertCircle className="h-5 w-5" />
         });
       }
-    } catch (err) {
-      toast.error("An unexpected error occurred", {
+    } catch (err: any) {
+      const errorMsg = err.message || "An unexpected error occurred";
+      setErrorMessage(errorMsg);
+      setMessageType("error");
+      toast.error(errorMsg, {
         duration: 5000,
         icon: <AlertCircle className="h-5 w-5" />
       });
@@ -128,6 +166,31 @@ export default function LoginPageContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Status/Error Messages */}
+            {messageType === "error" && errorMessage && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
+            
+            {messageType === "success" && statusMessage && (
+              <Alert className="mb-6 bg-green-50 border-green-200 text-green-800">
+                <CheckCircle2 className="h-4 w-4" />
+                <AlertTitle>Success</AlertTitle>
+                <AlertDescription>{statusMessage}</AlertDescription>
+              </Alert>
+            )}
+            
+            {messageType === "info" && errorMessage && (
+              <Alert className="mb-6 bg-blue-50 border-blue-200 text-blue-800">
+                <Info className="h-4 w-4" />
+                <AlertTitle>Information</AlertTitle>
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">

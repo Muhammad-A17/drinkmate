@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
@@ -42,6 +43,7 @@ interface Bundle {
 }
 
 export default function FlavorPage() {
+  const router = useRouter()
   const { addItem, isInCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -52,197 +54,198 @@ export default function FlavorPage() {
   const [premiumSyrups, setPremiumSyrups] = useState<Product[]>([])
   const [shopSyrups, setShopSyrups] = useState<Product[]>([])
 
-  // Fetch products and bundles from API
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setIsLoading(true)
+  // Define fetch function
+  async function fetchProducts() {
+    try {
+      setIsLoading(true)
 
-        // Fetch bundles
-        const bundlesResponse = await shopAPI.getBundles({
+      // Fetch bundles
+      const bundlesResponse = await shopAPI.getBundles({
+        category: "flavors",
+        featured: true,
+        limit: 4,
+      })
+
+      // Format bundles data
+      const formattedBundles = bundlesResponse.bundles.map((bundle: any) => ({
+        _id: bundle._id,
+        id: bundle._id,
+        slug: bundle.slug,
+        name: bundle.name,
+        price: bundle.price,
+        originalPrice: bundle.originalPrice,
+        image:
+          bundle.images && bundle.images.length > 0
+            ? bundle.images[0].url
+            : "/images/01 - Flavors/Strawberry-Lemon-Flavor.png",
+        description: bundle.shortDescription || "Premium Italian flavor bundle",
+        rating: bundle.averageRating || 5,
+        reviews: bundle.reviewCount || 300,
+        badge: bundle.isFeatured ? "POPULAR" : bundle.isLimited ? "SALE" : undefined,
+      }))
+
+      setBundles(formattedBundles)
+
+      // Fetch all products and filter by category
+      const allProductsResponse = await shopAPI.getProducts({
+        limit: 50,
+      })
+
+      console.log("All products response:", allProductsResponse)
+
+      // Filter products by category
+      const allProducts = allProductsResponse.products || []
+      const flavorProducts = allProducts.filter(
+        (product: any) => product.category === "flavors" || product.category === "flavor",
+      )
+
+      console.log("Flavor products found:", flavorProducts.length)
+
+      // Format flavor products
+      const formattedFlavors = flavorProducts.map((product: any) => ({
+        _id: product._id,
+        id: product._id,
+        name: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        image:
+          product.images && product.images.length > 0
+            ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
+            : "/images/01 - Flavors/Strawberry-Lemon-Flavor.png",
+        category: "flavors",
+        rating: product.averageRating || 5,
+        reviews: product.reviewCount || 300,
+        description: product.shortDescription,
+        images: product.images,
+      }))
+
+      setFlavorProducts(formattedFlavors)
+
+      // Filter by subcategory for premium syrups
+      const premiumSyrups = flavorProducts.filter(
+        (product: any) =>
+          product.subcategory === "premium" ||
+          product.name.toLowerCase().includes("premium") ||
+          product.name.toLowerCase().includes("italian"),
+      )
+
+      // Format premium syrups
+      const formattedPremium = premiumSyrups.map((product: any) => ({
+        _id: product._id,
+        id: product._id,
+        name: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        image:
+          product.images && product.images.length > 0
+            ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
+            : "/images/01 - Flavors/Cola-Flavor.png",
+        category: "flavors",
+        rating: product.averageRating || 5,
+        reviews: product.reviewCount || 280,
+        description: product.shortDescription,
+        images: product.images,
+      }))
+
+      setPremiumSyrups(formattedPremium)
+
+      // Filter by subcategory for shop syrups
+      const shopSyrups = flavorProducts.filter(
+        (product: any) =>
+          product.subcategory === "standard" ||
+          !product.name.toLowerCase().includes("premium") ||
+          !product.name.toLowerCase().includes("italian"),
+      )
+
+      // Format shop syrups
+      const formattedSyrups = shopSyrups.map((product: any) => ({
+        _id: product._id,
+        id: product._id,
+        name: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        image:
+          product.images && product.images.length > 0
+            ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
+            : "/images/01 - Flavors/Mojito-Mocktails.png",
+        category: "flavors",
+        rating: product.averageRating || 5,
+        reviews: product.reviewCount || 350,
+        description: product.shortDescription,
+        images: product.images,
+      }))
+
+      setShopSyrups(formattedSyrups)
+    } catch (error) {
+      console.error("Error fetching products:", error)
+      setError("Failed to load products. Please try again later.")
+
+      // Fallback to static data if API fails
+      setFlavorProducts([
+        {
+          _id: "401",
+          id: 401,
+          name: "Italian Strawberry Lemon",
+          price: 49.99,
+          originalPrice: 59.99,
+          image: "/images/01 - Flavors/Strawberry-Lemon-Flavor.png",
           category: "flavors",
-          featured: true,
-          limit: 4,
-        })
-
-        // Format bundles data
-        const formattedBundles = bundlesResponse.bundles.map((bundle: any) => ({
-          _id: bundle._id,
-          id: bundle._id,
-          slug: bundle.slug,
-          name: bundle.name,
-          price: bundle.price,
-          originalPrice: bundle.originalPrice,
-          image:
-            bundle.images && bundle.images.length > 0
-              ? bundle.images[0].url
-              : "/images/01 - Flavors/Strawberry-Lemon-Flavor.png",
-          description: bundle.shortDescription || "Premium Italian flavor bundle",
-          rating: bundle.averageRating || 5,
-          reviews: bundle.reviewCount || 300,
-          badge: bundle.isFeatured ? "POPULAR" : bundle.isLimited ? "SALE" : undefined,
-        }))
-
-        setBundles(formattedBundles)
-
-        // Fetch all products and filter by category
-        const allProductsResponse = await shopAPI.getProducts({
-          limit: 50,
-        })
-
-        console.log("All products response:", allProductsResponse)
-
-        // Filter products by category
-        const allProducts = allProductsResponse.products || []
-        const flavorProducts = allProducts.filter(
-          (product: any) => product.category === "flavors" || product.category === "flavor",
-        )
-
-        console.log("Flavor products found:", flavorProducts.length)
-
-        // Format flavor products
-        const formattedFlavors = flavorProducts.map((product: any) => ({
-          _id: product._id,
-          id: product._id,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          image:
-            product.images && product.images.length > 0
-              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-              : "/images/01 - Flavors/Strawberry-Lemon-Flavor.png",
+          rating: 5,
+          reviews: 320,
+          description: "Natural premium Italian flavor syrup",
+        },
+        {
+          _id: "402",
+          id: 402,
+          name: "Italian Cola",
+          price: 49.99,
+          originalPrice: 59.99,
+          image: "/images/01 - Flavors/Cola-Flavor.png",
           category: "flavors",
-          rating: product.averageRating || 5,
-          reviews: product.reviewCount || 300,
-          description: product.shortDescription,
-          images: product.images,
-        }))
-
-        setFlavorProducts(formattedFlavors)
-
-        // Filter by subcategory for premium syrups
-        const premiumSyrups = flavorProducts.filter(
-          (product: any) =>
-            product.subcategory === "premium" ||
-            product.name.toLowerCase().includes("premium") ||
-            product.name.toLowerCase().includes("italian"),
-        )
-
-        // Format premium syrups
-        const formattedPremium = premiumSyrups.map((product: any) => ({
-          _id: product._id,
-          id: product._id,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          image:
-            product.images && product.images.length > 0
-              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-              : "/images/01 - Flavors/Cola-Flavor.png",
+          rating: 5,
+          reviews: 280,
+          description: "Classic cola flavor for your carbonated drinks",
+        },
+        {
+          _id: "403",
+          id: 403,
+          name: "Italian Mojito Mocktail",
+          price: 49.99,
+          originalPrice: 59.99,
+          image: "/images/01 - Flavors/Mojito-Mocktails.png",
           category: "flavors",
-          rating: product.averageRating || 5,
-          reviews: product.reviewCount || 280,
-          description: product.shortDescription,
-          images: product.images,
-        }))
-
-        setPremiumSyrups(formattedPremium)
-
-        // Filter by subcategory for shop syrups
-        const shopSyrups = flavorProducts.filter(
-          (product: any) =>
-            product.subcategory === "standard" ||
-            !product.name.toLowerCase().includes("premium") ||
-            !product.name.toLowerCase().includes("italian"),
-        )
-
-        // Format shop syrups
-        const formattedSyrups = shopSyrups.map((product: any) => ({
-          _id: product._id,
-          id: product._id,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          image:
-            product.images && product.images.length > 0
-              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-              : "/images/01 - Flavors/Mojito-Mocktails.png",
+          rating: 5,
+          reviews: 350,
+          description: "Refreshing mojito flavor without the alcohol",
+        },
+        {
+          _id: "404",
+          id: 404,
+          name: "Italian Strawberry Lemon",
+          price: 49.99,
+          originalPrice: 59.99,
+          image: "/images/01 - Flavors/Strawberry-Lemon-Flavor.png",
           category: "flavors",
-          rating: product.averageRating || 5,
-          reviews: product.reviewCount || 350,
-          description: product.shortDescription,
-          images: product.images,
-        }))
+          rating: 5,
+          reviews: 290,
+          description: "Natural premium Italian flavor syrup",
+        },
+      ])
 
-        setShopSyrups(formattedSyrups)
-      } catch (error) {
-        console.error("Error fetching products:", error)
-        setError("Failed to load products. Please try again later.")
-
-        // Fallback to static data if API fails
-        setFlavorProducts([
-          {
-            _id: "401",
-            id: 401,
-            name: "Italian Strawberry Lemon",
-            price: 49.99,
-            originalPrice: 59.99,
-            image: "/images/01 - Flavors/Strawberry-Lemon-Flavor.png",
-            category: "flavors",
-            rating: 5,
-            reviews: 320,
-            description: "Natural premium Italian flavor syrup",
-          },
-          {
-            _id: "402",
-            id: 402,
-            name: "Italian Cola",
-            price: 49.99,
-            originalPrice: 59.99,
-            image: "/images/01 - Flavors/Cola-Flavor.png",
-            category: "flavors",
-            rating: 5,
-            reviews: 280,
-            description: "Classic cola flavor for your carbonated drinks",
-          },
-          {
-            _id: "403",
-            id: 403,
-            name: "Italian Mojito Mocktail",
-            price: 49.99,
-            originalPrice: 59.99,
-            image: "/images/01 - Flavors/Mojito-Mocktails.png",
-            category: "flavors",
-            rating: 5,
-            reviews: 350,
-            description: "Refreshing mojito flavor without the alcohol",
-          },
-          {
-            _id: "404",
-            id: 404,
-            name: "Italian Strawberry Lemon",
-            price: 49.99,
-            originalPrice: 59.99,
-            image: "/images/01 - Flavors/Strawberry-Lemon-Flavor.png",
-            category: "flavors",
-            rating: 5,
-            reviews: 290,
-            description: "Natural premium Italian flavor syrup",
-          },
-        ])
-
-        setPremiumSyrups([])
-        setShopSyrups([])
-        setBundles([])
-      } finally {
-        setIsLoading(false)
-      }
+      setPremiumSyrups([])
+      setShopSyrups([])
+      setBundles([])
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    fetchProducts()
-  }, [])
+  // Fetch products on component mount
+  useEffect(() => {
+    fetchProducts();
+  }, []) // Empty dependency array means this effect runs once on mount
 
-  const handleAddToCart = (product: Product) => {
+  function handleAddToCart(product: Product) {
     addItem({
       id: product._id,
       name: product.name,
@@ -254,7 +257,7 @@ export default function FlavorPage() {
   }
 
   // Function to render star ratings
-  const renderStars = (rating: number) => {
+  function renderStars(rating: number) {
     const stars = []
     for (let i = 0; i < 5; i++) {
       stars.push(
@@ -268,7 +271,7 @@ export default function FlavorPage() {
   }
 
   // Function to render product cards
-  const renderProductCard = (product: Product) => {
+  function renderProductCard(product: Product) {
     const isInCartStatus = isInCart(product._id)
     const discountPercentage = product.originalPrice
       ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -279,7 +282,7 @@ export default function FlavorPage() {
         key={product.id}
         className="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col group"
       >
-        <Link href={`/shop/flavor/${product._id}`} className="block">
+  <Link href={`/shop/flavor/${(product as any).slug || product._id}`} className="block">
           <div className="relative h-48 bg-white mb-3 flex items-center justify-center rounded-t-xl overflow-hidden">
             <Image
               src={product.image || "/placeholder.svg"}
@@ -343,7 +346,11 @@ export default function FlavorPage() {
             fill
             className="object-cover object-center hidden md:block"
             priority
+            quality={90}
             sizes="(max-width: 768px) 100vw, 100vw"
+            loading="eager"
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YxZjVmOSIvPjwvc3ZnPg=="
           />
           {/* Mobile Banner */}
           <Image
@@ -352,7 +359,11 @@ export default function FlavorPage() {
             fill
             className="object-cover object-center md:hidden"
             priority
+            quality={90}
             sizes="100vw"
+            loading="eager"
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YxZjVmOSIvPjwvc3ZnPg=="
           />
         </div>
 
@@ -375,7 +386,7 @@ export default function FlavorPage() {
             {bundles.length > 0 && (
               <div className="mb-16">
                 <h2 className="text-xl font-bold mb-6 text-gray-900">Bundles & Promotions</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {bundles.map((bundle) => (
                     <div
                       key={bundle._id}
@@ -420,7 +431,7 @@ export default function FlavorPage() {
                             <span className="text-xs text-gray-500 font-medium">({bundle.reviews})</span>
                           </div>
                           <Button
-                            onClick={() => (window.location.href = `/shop/flavor/bundles/${bundle.slug}`)}
+                            onClick={() => router.push(`/shop/flavor/bundles/${bundle.slug}`)}
                             className="bg-[#16d6fa] hover:bg-[#14c4e8] text-black font-bold rounded-lg px-4 py-2 h-8 text-xs shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                           >
                             BUY
@@ -442,11 +453,11 @@ export default function FlavorPage() {
             <div className="mb-16">
               <h2 className="text-xl font-bold mb-6 text-gray-900">Premium Italian Syrups</h2>
               {premiumSyrups.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {premiumSyrups.map((product) => renderProductCard(product))}
                 </div>
               ) : flavorProducts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {flavorProducts.slice(0, 4).map((product) => renderProductCard(product))}
                 </div>
               ) : (
@@ -466,7 +477,7 @@ export default function FlavorPage() {
                     We're working on adding premium Italian syrups to our collection.
                   </p>
                   <Button
-                    onClick={() => (window.location.href = "/admin/products")}
+                    onClick={() => router.push("/admin/products")}
                     className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white font-bold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                   >
                     Add Products (Admin)
@@ -479,11 +490,11 @@ export default function FlavorPage() {
             <div className="mb-16">
               <h2 className="text-xl font-bold mb-6 text-gray-900">Shop Syrups</h2>
               {shopSyrups.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {shopSyrups.map((product) => renderProductCard(product))}
                 </div>
               ) : flavorProducts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {flavorProducts.slice(4, 8).map((product) => renderProductCard(product))}
                 </div>
               ) : (
@@ -503,7 +514,7 @@ export default function FlavorPage() {
                     We're working on adding shop syrups to our collection.
                   </p>
                   <Button
-                    onClick={() => (window.location.href = "/admin/products")}
+                    onClick={() => router.push("/admin/products")}
                     className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white font-bold px-6 py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                   >
                     Add Products (Admin)

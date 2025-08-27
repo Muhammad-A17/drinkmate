@@ -49,7 +49,7 @@ interface Bundle {
 }
 
 export default function FlavorBundleDetailPage() {
-  const { id } = useParams()
+  const { slug } = useParams() as { slug: string }
   const { addItem, isInCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -61,8 +61,10 @@ export default function FlavorBundleDetailPage() {
   const fetchBundle = async () => {
     try {
       setIsLoading(true)
+      console.log('Fetching flavor bundle details for slug:', slug);
       
-      const response = await shopAPI.getBundle(id as string)
+  const response = await shopAPI.getBundleFlexible(slug)
+      console.log('Flavor bundle fetch successful:', response.bundle?.name);
       setBundle(response.bundle)
       setReviews(response.reviews || [])
       
@@ -73,7 +75,7 @@ export default function FlavorBundleDetailPage() {
       }
       
     } catch (error) {
-      console.error("Error fetching bundle:", error)
+      console.error("Error fetching flavor bundle:", error)
       setError("Failed to load bundle. Please try again later.")
     } finally {
       setIsLoading(false)
@@ -81,10 +83,10 @@ export default function FlavorBundleDetailPage() {
   }
 
   useEffect(() => {
-    if (id) {
+    if (slug) {
       fetchBundle()
     }
-  }, [id])
+  }, [slug])
 
   const handleAddToCart = () => {
     if (!bundle) return

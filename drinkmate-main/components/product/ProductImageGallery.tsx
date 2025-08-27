@@ -8,12 +8,16 @@ interface ProductImageGalleryProps {
   images: string[];
   activeIndex: number;
   setActiveIndex: (index: number) => void;
+  priority?: boolean;
+  quality?: number;
 }
 
 export default function ProductImageGallery({ 
   images = ["/images/placeholder.png"], 
   activeIndex = 0, 
-  setActiveIndex 
+  setActiveIndex,
+  priority = false,
+  quality = 80
 }: ProductImageGalleryProps) {
   
   const handlePrevious = () => {
@@ -34,7 +38,8 @@ export default function ProductImageGallery({
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
           className="object-contain"
-          priority
+          priority={priority}
+          quality={quality}
         />
         
         {/* Navigation buttons */}

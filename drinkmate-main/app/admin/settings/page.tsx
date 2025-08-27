@@ -39,7 +39,7 @@ export default function SettingsPage() {
   const [currency, setCurrency] = useState("SAR")
   const [language, setLanguage] = useState("en")
   
-  const handleSaveSettings = (e) => {
+  const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault()
     // Save settings logic would go here
     console.log("Settings saved")

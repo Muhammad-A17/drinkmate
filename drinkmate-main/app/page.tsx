@@ -241,6 +241,8 @@ export default function Home() {
             alt="Drinkmate OmniFizz Soda Maker"
             width={242}
             height={417}
+            quality={85}
+            priority
             className="absolute object-contain hidden md:block drop-shadow-2xl"
             style={{ top: "203px", left: "121px" }}
           />
@@ -249,6 +251,8 @@ export default function Home() {
             alt="Italian Strawberry Lemon Flavor"
             width={99}
             height={206}
+            quality={85}
+            priority
             className="absolute object-contain hidden md:block drop-shadow-xl"
             style={{ top: "414px", left: "313px" }}
           />
@@ -261,6 +265,8 @@ export default function Home() {
                 alt="Drinkmate OmniFizz Soda Maker"
                 width={120}
                 height={200}
+                quality={85}
+                priority
                 className="object-contain drop-shadow-xl"
               />
               <Image
@@ -268,6 +274,8 @@ export default function Home() {
                 alt="Italian Strawberry Lemon Flavor"
                 width={80}
                 height={160}
+                quality={85}
+                priority
                 className="object-contain drop-shadow-lg"
               />
             </div>
@@ -1003,9 +1011,11 @@ export default function Home() {
           <Image
             src="/images/flavor-section-background.png"
             alt="Italian Flavors and Cherry Cola Bottle"
-            width={1198}
-            height={518}
-            className="absolute object-cover rounded-2xl w-full h-full"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 1200px"
+            priority
+            quality={90}
+            className="absolute object-cover rounded-2xl"
             style={{
               top: "50%",
               left: "50%",

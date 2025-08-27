@@ -10,6 +10,9 @@
 [functions]
   node_bundler = "esbuild"
   node_version = "18"
+  # Harden function bundling to avoid pulling unintended transitive versions
+  external_node_modules = []
+  included_files = []
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
@@ -42,6 +43,7 @@ interface Bundle {
 }
 
 export default function AccessoriesPage() {
+  const router = useRouter()
   const { addItem, isInCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -419,7 +421,7 @@ export default function AccessoriesPage() {
             {bundles.length > 0 && (
               <div className="mb-16">
                 <h2 className="text-2xl font-bold mb-6 text-gray-900">Bundles & Promotions</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {bundles.map((bundle) => (
                     <div
                       key={bundle._id}
@@ -464,7 +466,7 @@ export default function AccessoriesPage() {
                             <span className="text-xs text-gray-500 font-medium">({bundle.reviews})</span>
                           </div>
                           <Button
-                            onClick={() => (window.location.href = `/shop/accessories/bundles/${bundle.slug}`)}
+                            onClick={() => router.push(`/shop/accessories/bundles/${bundle.slug}`)}
                             className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-bold rounded-lg px-4 py-2 h-8 text-xs shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
                           >
                             BUY
@@ -486,7 +488,7 @@ export default function AccessoriesPage() {
             <div className="mb-16">
               <h2 className="text-2xl font-bold mb-6 text-gray-900">Accessories</h2>
               {accessoriesProducts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {accessoriesProducts.map((product) => renderProductCard(product))}
                 </div>
               ) : (
@@ -504,7 +506,7 @@ export default function AccessoriesPage() {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No Accessories Available</h3>
                   <p className="text-gray-500 mb-4">We're working on adding accessories to our collection.</p>
                   <Button
-                    onClick={() => (window.location.href = "/admin/products")}
+                    onClick={() => router.push("/admin/products")}
                     className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
                   >
                     Add Products (Admin)
@@ -517,7 +519,7 @@ export default function AccessoriesPage() {
             <div className="mb-16">
               <h2 className="text-2xl font-bold mb-6 text-gray-900">Shop Bottles</h2>
               {bottleProducts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {bottleProducts.map((product) => renderProductCard(product))}
                 </div>
               ) : (
@@ -535,7 +537,7 @@ export default function AccessoriesPage() {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No Bottles Available</h3>
                   <p className="text-gray-500 mb-4">We're working on adding bottles to our collection.</p>
                   <Button
-                    onClick={() => (window.location.href = "/admin/products")}
+                    onClick={() => router.push("/admin/products")}
                     className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
                   >
                     Add Products (Admin)

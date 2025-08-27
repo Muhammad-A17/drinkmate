@@ -38,7 +38,7 @@ interface Product {
 }
 
 export default function AccessoryDetailPage() {
-  const { id } = useParams()
+  const { slug } = useParams() as { slug: string }
   const { addItem, isInCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -51,8 +51,10 @@ export default function AccessoryDetailPage() {
   const fetchProduct = async () => {
     try {
       setIsLoading(true)
+      console.log('Fetching accessory product details for slug:', slug);
       
-      const response = await shopAPI.getProduct(id as string)
+  const response = await shopAPI.getProductFlexible(slug)
+      console.log('Accessory product fetch successful:', response.product?.name);
       setProduct(response.product)
       setReviews(response.reviews || [])
       
@@ -63,7 +65,7 @@ export default function AccessoryDetailPage() {
       }
       
     } catch (error) {
-      console.error("Error fetching product:", error)
+      console.error("Error fetching accessory product:", error)
       setError("Failed to load product. Please try again later.")
     } finally {
       setIsLoading(false)
@@ -71,10 +73,10 @@ export default function AccessoryDetailPage() {
   }
 
   useEffect(() => {
-    if (id) {
+    if (slug) {
       fetchProduct()
     }
-  }, [id])
+  }, [slug])
 
   const handleAddToCart = () => {
     if (!product) return
@@ -332,7 +334,7 @@ export default function AccessoryDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
               {product.relatedProducts.map((relatedProduct: any) => (
                 <div key={relatedProduct._id} className="bg-white border border-gray-100 hover:shadow-sm transition-shadow flex flex-col">
-                  <Link href={`/shop/accessories/${relatedProduct._id}`} className="block">
+                  <Link href={`/shop/accessories/${relatedProduct.slug || relatedProduct._id}`} className="block">
                     <div className="relative h-48 bg-white mb-2 flex items-center justify-center">
                       <Image
                         src={relatedProduct.images && relatedProduct.images.length > 0 

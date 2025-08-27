@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Suspense } from "react";
-import { shopAPI } from "@/lib/api";
 import { useCart } from "@/lib/cart-context";
+import { useProductBySlug } from "@/hooks/use-swr";
 import { Button } from "@/components/ui/button";
 import { 
   Plus, 
@@ -31,33 +31,24 @@ import { toast } from "sonner";
 export const dynamic = "force-dynamic";
 
 export default function ProductDetailPage({ params }: { params: { slug: string } }) {
-  const [product, setProduct] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const router = useRouter();
   const { addItem } = useCart();
-
+  
+  // Use SWR for data fetching with optimized config
+  const { product, isLoading, isError } = useProductBySlug(params.slug, {
+    revalidateOnMount: true,
+    dedupingInterval: 300000, // 5 minutes
+    keepPreviousData: true
+  });
+  
+  // If there's an error, redirect to shop
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const data = await shopAPI.getProductBySlug(params.slug);
-        if (data && data.product) {
-          console.log("Product data:", data.product);
-          setProduct(data.product);
-        } else {
-          router.push("/shop");
-        }
-      } catch (error) {
-        console.error("Error fetching product:", error);
-        router.push("/shop");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [params.slug, router]);
+    if (isError) {
+      router.push("/shop");
+    }
+  }, [isError, router]);
 
   const handleAddToCart = () => {
     if (product) {
@@ -78,29 +69,45 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
     }
   };
 
-  if (loading) {
-    return (
-      <PageLayout currentPage="shop">
-        <div className="container mx-auto py-16 flex justify-center items-center min-h-[50vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-[#12d6fa]" />
-          <span className="ml-2 text-gray-600">Loading product...</span>
-        </div>
-      </PageLayout>
-    );
+  // Memoize loading state to prevent unnecessary rerenders
+  const loadingState = useMemo(() => {
+    if (isLoading) {
+      return (
+        <PageLayout currentPage="shop">
+          <div className="container mx-auto py-16 flex justify-center items-center min-h-[50vh]">
+            <Loader2 className="h-8 w-8 animate-spin text-[#12d6fa]" />
+            <span className="ml-2 text-gray-600">Loading product...</span>
+          </div>
+        </PageLayout>
+      );
+    }
+    return null;
+  }, [isLoading]);
+  
+  if (isLoading) {
+    return loadingState;
   }
 
-  if (!product) {
-    return (
-      <PageLayout currentPage="shop">
-        <div className="container mx-auto py-16 text-center min-h-[50vh]">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Product Not Found</h1>
-          <p className="text-gray-600 mb-8">The product you're looking for doesn't exist or has been removed.</p>
-          <Button onClick={() => router.push("/shop")} className="bg-[#12d6fa] hover:bg-[#0fb8d9] transition-colors">
-            Return to Shop
-          </Button>
-        </div>
-      </PageLayout>
-    );
+  // Memoize not found state to prevent unnecessary rerenders
+  const notFoundState = useMemo(() => {
+    if (!product && !isLoading) {
+      return (
+        <PageLayout currentPage="shop">
+          <div className="container mx-auto py-16 text-center min-h-[50vh]">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Product Not Found</h1>
+            <p className="text-gray-600 mb-8">The product you're looking for doesn't exist or has been removed.</p>
+            <Button onClick={() => router.push("/shop")} className="bg-[#12d6fa] hover:bg-[#0fb8d9] transition-colors">
+              Return to Shop
+            </Button>
+          </div>
+        </PageLayout>
+      );
+    }
+    return null;
+  }, [product, isLoading, router]);
+  
+  if (!product && !isLoading) {
+    return notFoundState;
   }
 
   return (
@@ -134,6 +141,8 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                   : ["/images/placeholder.png"]}
                 activeIndex={activeImageIndex}
                 setActiveIndex={setActiveImageIndex}
+                priority={true} // Add priority loading for first image
+                quality={90} // Higher quality for product images
               />
             </div>
             

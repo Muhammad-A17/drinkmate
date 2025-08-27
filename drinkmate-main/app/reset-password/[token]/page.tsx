@@ -260,7 +260,7 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
                                "Strong"}
                             </span>
                           </div>
-                          <Progress value={passwordStrength} className="h-1" indicatorClassName={getStrengthColor()} />
+                          <Progress value={passwordStrength} className="h-1" />
                         </div>
                         
                         <div className="grid grid-cols-2 gap-2 text-xs">

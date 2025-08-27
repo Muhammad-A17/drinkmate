@@ -111,28 +111,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string, rememberMe = false) => {
     try {
-      console.log('Attempting login with:', { email });
-      const data = await authAPI.login(email, password);
-      console.log('Login response:', data);
-      
-      // Store token in appropriate storage based on rememberMe flag
-      if (rememberMe) {
-        localStorage.setItem(TOKEN_KEY, data.token);
-      } else {
-        sessionStorage.setItem(TOKEN_KEY, data.token);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Attempting login with:', { email });
       }
       
-      setAuthState({
-        user: data.user,
-        token: data.token,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-      return { success: true, message: data.message || "Login successful" };
-    } catch (error: any) {
-      console.error("Login error:", error);
+      // Implement retry logic for login
+      let attempts = 0;
+      const maxAttempts = 2;
+      let lastError: any = null;
+      
+      while (attempts < maxAttempts) {
+        try {
+          const data = await authAPI.login(email, password);
+          
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Login response:', data);
+          }
+          
+          // Store token in appropriate storage based on rememberMe flag
+          if (rememberMe) {
+            localStorage.setItem(TOKEN_KEY, data.token);
+          } else {
+            sessionStorage.setItem(TOKEN_KEY, data.token);
+          }
+          
+          setAuthState({
+            user: data.user,
+            token: data.token,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+          
+          return { success: true, message: data.message || "Login successful" };
+        } catch (error: any) {
+          lastError = error;
+          
+          // Don't retry for certain errors like invalid credentials
+          if (error.response?.status === 401 || error.response?.status === 403) {
+            break;
+          }
+          
+          attempts++;
+          if (attempts < maxAttempts) {
+            // Wait before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
+      
+      // All attempts failed or we hit a non-retryable error
+      console.error("Login error:", lastError);
+      
       // Try demo login for testing if API is down
-      if (!error.response && email === 'test@example.com' && password === 'test123') {
+      if (!lastError.response && email === 'test@example.com' && password === 'test123') {
         const demoUser = {
           _id: 'demo_user_123',
           username: 'Test User',
@@ -154,9 +185,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true, message: "Demo login successful" };
       }
       
+      // Format error message based on response
+      let errorMessage = "Login failed";
+      
+      if (lastError.response?.status === 401) {
+        errorMessage = "Invalid email or password";
+      } else if (lastError.response?.status === 403) {
+        errorMessage = "Your account is suspended. Please contact support.";
+      } else if (lastError.response?.data?.error) {
+        errorMessage = lastError.response.data.error;
+      } else if (lastError.message) {
+        errorMessage = lastError.message;
+      }
+      
       return { 
         success: false, 
-        message: error.response?.data?.error || error.message || "Login failed" 
+        message: errorMessage
+      };
+    } catch (error: any) {
+      console.error("Unexpected error during login:", error);
+      return { 
+        success: false, 
+        message: "An unexpected error occurred. Please try again later."
       };
     }
   };

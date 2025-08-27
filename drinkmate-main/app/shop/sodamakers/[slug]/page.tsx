@@ -45,7 +45,7 @@ interface Product {
 }
 
 export default function ProductDetailPage() {
-  const { id } = useParams()
+  const { slug } = useParams() as { slug: string }
   const { addItem, isInCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -59,8 +59,10 @@ export default function ProductDetailPage() {
   const fetchProduct = async () => {
     try {
       setIsLoading(true)
+      console.log('Fetching sodamaker product details for slug:', slug);
       
-      const response = await shopAPI.getProduct(id as string)
+  const response = await shopAPI.getProductFlexible(slug)
+      console.log('Sodamaker product fetch successful:', response.product?.name);
       setProduct(response.product)
       setReviews(response.reviews || [])
       
@@ -76,7 +78,7 @@ export default function ProductDetailPage() {
       }
       
     } catch (error) {
-      console.error("Error fetching product:", error)
+      console.error("Error fetching sodamaker product:", error)
       setError("Failed to load product. Please try again later.")
     } finally {
       setIsLoading(false)
@@ -84,10 +86,10 @@ export default function ProductDetailPage() {
   }
 
   useEffect(() => {
-    if (id) {
+    if (slug) {
       fetchProduct()
     }
-  }, [id])
+  }, [slug])
 
   const handleAddToCart = () => {
     if (!product) return
@@ -227,7 +229,7 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
               {product.relatedProducts.map((relatedProduct: any) => (
                 <div key={relatedProduct._id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow p-4 flex flex-col">
-                  <Link href={`/shop/sodamakers/${relatedProduct._id}`} className="block">
+                  <Link href={`/shop/sodamakers/${relatedProduct.slug || relatedProduct._id}`} className="block">
                     <div className="relative h-48 bg-[#f3f3f3] rounded-2xl mb-4 flex items-center justify-center">
                       <Image
                         src={relatedProduct.images && relatedProduct.images.length > 0 

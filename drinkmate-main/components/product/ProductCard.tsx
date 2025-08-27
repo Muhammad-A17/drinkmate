@@ -26,7 +26,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, compact = false }: ProductCardProps) {
-  const { addItem } = useCart();
+  const { addItem, isInCart } = useCart();
   
   const productUrl = `/shop/${product.slug || product._id}`;
   const productImage = product.images && product.images.length > 0 
@@ -52,15 +52,19 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
   };
 
   return (
-    <Card className="group overflow-hidden border-gray-200 hover:border-[#12d6fa] transition-colors h-full">
+    <Card className="group overflow-hidden border-gray-200 hover:border-[#12d6fa] transition-colors h-full shadow-sm hover:shadow-md">
       <Link href={productUrl} className="block h-full">
         <div className="relative aspect-square bg-gray-100 overflow-hidden">
           <Image
             src={productImage}
             alt={product.name}
             fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-contain group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            quality={80}
+            loading="lazy"
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YxZjVmOSIvPjwvc3ZnPg=="
+            className="object-contain group-hover:scale-105 transition-transform duration-300 p-2 sm:p-4"
           />
           
           {/* Product badges */}
@@ -92,7 +96,7 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
           )}
         </div>
         
-        <CardContent className={`${compact ? 'p-3' : 'p-4'}`}>
+        <CardContent className={`${compact ? 'p-3' : 'p-4 sm:p-5'}`}>
           {/* Rating (non-compact view) */}
           {!compact && product.rating && (
             <div className="flex items-center mb-1">
@@ -107,34 +111,52 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
             </div>
           )}
           
-          <h3 className={`font-medium text-gray-800 mb-1 line-clamp-2 ${compact ? 'text-sm' : 'text-base'}`}>
+          <h3 className={`font-medium text-gray-800 mb-2 line-clamp-2 ${compact ? 'text-sm' : 'text-sm sm:text-base'} hover:text-[#12d6fa] transition-colors`}>
             {product.name}
           </h3>
           
-          <div className="flex items-center">
-            {product.salePrice && product.salePrice < product.price ? (
-              <>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center mb-2 sm:mb-0">
+              {product.salePrice && product.salePrice < product.price ? (
+                <>
+                  <span className={`font-bold text-gray-800 ${compact ? 'text-sm' : 'text-base'}`}>
+                    ${product.salePrice.toFixed(2)}
+                  </span>
+                  <span className="ml-2 text-gray-500 line-through text-sm">
+                    ${product.price.toFixed(2)}
+                  </span>
+                </>
+              ) : (
                 <span className={`font-bold text-gray-800 ${compact ? 'text-sm' : 'text-base'}`}>
-                  ${product.salePrice.toFixed(2)}
-                </span>
-                <span className="ml-2 text-gray-500 line-through text-sm">
                   ${product.price.toFixed(2)}
                 </span>
-              </>
-            ) : (
-              <span className={`font-bold text-gray-800 ${compact ? 'text-sm' : 'text-base'}`}>
-                ${product.price.toFixed(2)}
-              </span>
-            )}
+              )}
+            </div>
+            
+            {/* Quick add button for mobile */}
+            <div className="sm:hidden">
+              <Button 
+                onClick={handleAddToCart}
+                disabled={!product.stock || product.stock <= 0}
+                className="w-full bg-[#12d6fa] hover:bg-[#0fb8d9] text-white text-xs py-1 px-3 rounded-full"
+                size="sm"
+              >
+                {isInCart(product._id) ? "Added" : "Add to Cart"}
+              </Button>
+            </div>
           </div>
           
           {/* Stock status (non-compact view) */}
           {!compact && (
-            <div className="mt-2 text-xs">
-              {product.stock && product.stock > 0 ? (
-                <span className="text-green-600">In Stock</span>
-              ) : (
-                <span className="text-red-600">Out of Stock</span>
+            <div className="mt-2 text-xs flex justify-between items-center">
+              <span className={product.stock && product.stock > 0 ? "text-green-600" : "text-red-600"}>
+                {product.stock && product.stock > 0 ? "In Stock" : "Out of Stock"}
+              </span>
+              
+              {product.stock && product.stock <= 5 && product.stock > 0 && (
+                <span className="text-amber-600 text-xs">
+                  Only {product.stock} left
+                </span>
               )}
             </div>
           )}

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo } from 'react'
 
 export interface CartItem {
   id: string | number
@@ -157,38 +157,45 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [])
 
   // Save cart to localStorage whenever it changes
+  // Using a debounced effect to avoid frequent localStorage writes
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') return
+    
+    const timeoutId = setTimeout(() => {
       localStorage.setItem('drinkmate-cart', JSON.stringify(state.items))
-    }
+    }, 300) // 300ms debounce
+    
+    return () => clearTimeout(timeoutId)
   }, [state.items])
 
-  const addItem = (item: CartItem) => {
+  // Memoize cart operations to prevent unnecessary re-renders
+  const addItem = useCallback((item: CartItem) => {
     dispatch({ type: 'ADD_ITEM', payload: item })
-  }
+  }, [])
 
-  const removeItem = (id: string | number) => {
+  const removeItem = useCallback((id: string | number) => {
     dispatch({ type: 'REMOVE_ITEM', payload: id })
-  }
+  }, [])
 
-  const updateQuantity = (id: string | number, quantity: number) => {
+  const updateQuantity = useCallback((id: string | number, quantity: number) => {
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } })
-  }
+  }, [])
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     dispatch({ type: 'CLEAR_CART' })
-  }
+  }, [])
 
-  const isInCart = (id: string | number): boolean => {
+  const isInCart = useCallback((id: string | number): boolean => {
     return state.items.some(item => item.id === id)
-  }
+  }, [state.items])
 
-  const getItemQuantity = (id: string | number): number => {
+  const getItemQuantity = useCallback((id: string | number): number => {
     const item = state.items.find(item => item.id === id)
     return item ? item.quantity : 0
-  }
+  }, [state.items])
 
-  const value: CartContextType = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
     state,
     addItem,
     removeItem,
@@ -196,7 +203,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     clearCart,
     isInCart,
     getItemQuantity
-  }
+  }), [state, addItem, removeItem, updateQuantity, clearCart, isInCart, getItemQuantity])
 
   return (
     <CartContext.Provider value={value}>

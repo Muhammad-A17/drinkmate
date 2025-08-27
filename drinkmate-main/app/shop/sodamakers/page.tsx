@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
@@ -43,6 +44,7 @@ interface Bundle {
 }
 
 export default function SodamakersPage() {
+  const router = useRouter()
   const { addItem, isInCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -298,7 +300,7 @@ export default function SodamakersPage() {
         key={product._id}
         className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 flex flex-col border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
       >
-        <Link href={`/shop/sodamakers/${product._id}`} className="block">
+  <Link href={`/shop/sodamakers/${(product as any).slug || product._id}`} className="block">
           <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
             <Image
               src={product.image || "/placeholder.svg"}
@@ -418,7 +420,7 @@ export default function SodamakersPage() {
             {bundles.length > 0 ? (
               <div className="mb-16">
                 <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Bundles & Promotions</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {bundles.map((bundle) => (
                     <div
                       key={bundle._id}
@@ -459,7 +461,7 @@ export default function SodamakersPage() {
                             </span>
                           </div>
                           <Button
-                            onClick={() => (window.location.href = `/shop/sodamakers/bundles/${bundle.slug}`)}
+                            onClick={() => router.push(`/shop/sodamakers/bundles/${bundle.slug}`)}
                             className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-bold rounded-full px-8 py-2 h-10 text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                           >
                             BUY
@@ -508,7 +510,7 @@ export default function SodamakersPage() {
             <div className="mb-16">
               <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">OmniFizz Soda Makers</h2>
               {omnifizzMakers.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {omnifizzMakers.map((product) => renderProductCard(product))}
                 </div>
               ) : (
@@ -526,7 +528,7 @@ export default function SodamakersPage() {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No OmniFizz Soda Makers Available</h3>
                   <p className="text-gray-500 mb-4">We're working on adding OmniFizz soda makers to our collection.</p>
                   <Button
-                    onClick={() => (window.location.href = "/admin/products")}
+                    onClick={() => router.push("/admin/products")}
                     className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
                   >
                     Add Products (Admin)
@@ -539,7 +541,7 @@ export default function SodamakersPage() {
             <div className="mb-16">
               <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Luxe Soda Makers</h2>
               {luxeMakers.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {luxeMakers.map((product) => renderProductCard(product))}
                 </div>
               ) : (
@@ -557,7 +559,7 @@ export default function SodamakersPage() {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No Luxe Soda Makers Available</h3>
                   <p className="text-gray-500 mb-4">We're working on adding Luxe soda makers to our collection.</p>
                   <Button
-                    onClick={() => (window.location.href = "/admin/products")}
+                    onClick={() => router.push("/admin/products")}
                     className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
                   >
                     Add Products (Admin)
@@ -570,7 +572,7 @@ export default function SodamakersPage() {
             <div className="mb-16">
               <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Best Seller Soda Makers</h2>
               {bestSellerMakers.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {bestSellerMakers.map((product) => renderProductCard(product))}
                 </div>
               ) : (
@@ -590,7 +592,7 @@ export default function SodamakersPage() {
                     We're working on adding best seller soda makers to our collection.
                   </p>
                   <Button
-                    onClick={() => (window.location.href = "/admin/products")}
+                    onClick={() => router.push("/admin/products")}
                     className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
                   >
                     Add Products (Admin)
