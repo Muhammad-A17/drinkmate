@@ -3,7 +3,7 @@ import axios from 'axios';
 import { getAuthToken } from './auth-context';
 
 // Base API URL - should be set in environment variables
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
 
 // Create axios instance with default config
 const api = axios.create({

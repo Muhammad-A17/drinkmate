@@ -74,6 +74,7 @@ export default function Header({ currentPage }: HeaderProps) {
               <button 
                 onClick={() => setIsShopDropdownOpen(!isShopDropdownOpen)}
                 onMouseEnter={() => setIsShopDropdownOpen(true)}
+                aria-label="Shop Menu"
                 className={`flex items-center text-sm font-medium transition-colors duration-200 ${
                   currentPage === "shop" || currentPage?.startsWith("shop-")
                     ? "text-[#12d6fa]" 
@@ -164,6 +165,7 @@ export default function Header({ currentPage }: HeaderProps) {
             {/* Language Selector */}
             <button
               onClick={toggleLanguage}
+              aria-label={`Change language to ${language === "EN" ? "Arabic" : "English"}`}
               className={`flex items-center ${isRTL ? 'space-x-reverse space-x-1' : 'space-x-1'} px-1 sm:px-2 md:px-3 py-1 sm:py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200`}
             >
               <Image
@@ -193,6 +195,7 @@ export default function Header({ currentPage }: HeaderProps) {
               <button
                 onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                 onBlur={() => setTimeout(() => setIsUserDropdownOpen(false), 100)}
+                aria-label="User Menu"
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
               >
                 <User className="w-5 h-5 text-gray-700" />
@@ -264,6 +267,7 @@ export default function Header({ currentPage }: HeaderProps) {
             {/* Mobile Menu Toggle */}
             <button
               onClick={toggleMobileMenu}
+              aria-label={isMobileMenuOpen ? "Close Menu" : "Open Menu"}
               className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
             >
               {isMobileMenuOpen ? (
