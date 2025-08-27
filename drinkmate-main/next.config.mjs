@@ -10,9 +10,9 @@ const nextConfig = {
     unoptimized: true,
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3000',
+        protocol: 'https',
+        hostname: 'drinkmates.onrender.com',
+        port: '',
         pathname: '/uploads/**',
       },
     ],
