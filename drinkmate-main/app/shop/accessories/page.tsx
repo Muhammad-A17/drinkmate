@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
-import { Star, Loader2 } from "lucide-react"
+import { Star, Loader2, ShoppingCart } from "lucide-react"
 import { shopAPI } from "@/lib/api"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 
@@ -327,51 +327,50 @@ export default function AccessoriesPage() {
     return (
       <div
         key={product.id}
-        className="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col transform hover:scale-[1.02]"
+        className="bg-white rounded-3xl p-6 flex flex-col border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1 transition-all duration-300"
       >
         <Link href={`/shop/accessories/${product._id}`} className="block">
-          <div className="relative h-48 bg-white mb-3 flex items-center justify-center rounded-t-xl overflow-hidden">
+          <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
             <Image
               src={product.image || "/placeholder.svg"}
               alt={product.name}
-              width={120}
-              height={120}
-              className="object-contain h-40 transition-transform duration-300 hover:scale-105"
+              width={180}
+              height={180}
+              className="object-contain h-44 transition-transform duration-300 hover:scale-105"
             />
           </div>
-          <h3 className="font-semibold text-sm px-4 mb-2 hover:text-[#12d6fa] transition-colors leading-tight">
-            {product.name}
-          </h3>
+          <h3 className="text-xl mb-3 hover:text-[#12d6fa] transition-colors leading-tight">{product.name}</h3>
         </Link>
-        <div className="px-4 pb-4 flex-1 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1">
-              <span className="font-bold text-base text-gray-900">
-                <SaudiRiyal amount={product.price} />
-              </span>
-            </div>
+        <div className="flex items-center gap-3 mb-4">
+          {renderStars(product.rating)}
+          <span className="text-sm text-gray-600">({product.reviews} Reviews)</span>
+        </div>
+        <div className="mt-auto">
+          <div className="flex items-center gap-2 mb-2">
             {product.originalPrice && (
-              <div className="flex items-center gap-2">
-                <span className="text-gray-400 text-xs line-through">
+              <>
+                <span className="text-gray-500 text-sm line-through">
                   <SaudiRiyal amount={product.originalPrice} size="sm" />
                 </span>
-                <span className="text-xs bg-gradient-to-r from-red-500 to-red-600 text-white px-2 py-1 rounded-full font-medium shadow-sm">
+                <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">
                   {discountPercentage}% OFF
                 </span>
-              </div>
+              </>
             )}
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-1">
-              {renderStars(product.rating)}
-              <span className="text-xs text-gray-500 font-medium">({product.reviews})</span>
+              <span className="text-xl text-gray-900">
+                <SaudiRiyal amount={product.price} size="md" />
+              </span>
             </div>
             <Button
               onClick={() => handleAddToCart(product)}
               disabled={isInCartStatus}
-              className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-bold rounded-lg px-4 py-2 h-8 text-xs shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full px-6 py-2 h-10 text-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {isInCartStatus ? "ADDED" : "BUY"}
+              <ShoppingCart className="w-4 h-4" />
+              {isInCartStatus ? "Added" : "Add to Cart"}
             </Button>
           </div>
         </div>
@@ -382,10 +381,10 @@ export default function AccessoriesPage() {
   return (
     <PageLayout currentPage="shop-accessories">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-8 text-gray-900">Explore Our Accessories</h1>
+        <h1 className="text-2xl font-medium mb-8 text-gray-900">Explore Our Accessories</h1>
 
         {/* Hero section - Accessories Banner */}
-        <div className="w-full h-[570px] mb-12 relative overflow-hidden rounded-2xl shadow-lg">
+        <div className="w-full h-[570px] md:h-[350px] mb-12 relative overflow-hidden rounded-2xl shadow-lg">
           {/* Desktop Banner */}
           <Image
             src="/images/banner/WhatsApp Image 2025-08-27 at 7.09.33 PM (1).webp"
@@ -420,61 +419,61 @@ export default function AccessoriesPage() {
             {/* Bundles & Promotions Section */}
             {bundles.length > 0 && (
               <div className="mb-16">
-                <h2 className="text-2xl font-bold mb-6 text-gray-900">Bundles & Promotions</h2>
+                <h2 className="text-2xl font-medium mb-6 text-gray-900">Bundles & Promotions</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {bundles.map((bundle) => (
                     <div
                       key={bundle._id}
-                      className="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col relative transform hover:scale-[1.02]"
+                      className="bg-white rounded-3xl transition-all duration-300 p-6 flex flex-col border border-gray-100 hover:border-gray-200 relative transform hover:-translate-y-1"
                     >
                       <Link href={`/shop/accessories/bundles/${bundle.slug}`} className="block">
-                        <div className="relative h-48 bg-white mb-3 flex items-center justify-center rounded-t-xl overflow-hidden">
+                        <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
                           <Image
                             src={bundle.image || "/placeholder.svg"}
                             alt={bundle.name}
-                            width={120}
-                            height={120}
-                            className="object-contain h-40 transition-transform duration-300 hover:scale-105"
+                            width={180}
+                            height={180}
+                            className="object-contain h-44 transition-transform duration-300 hover:scale-105"
                           />
                         </div>
-                        <h3 className="font-semibold text-sm px-4 mb-2 hover:text-[#12d6fa] transition-colors leading-tight">
+                        <h3 className="font-medium text-lg mb-3 line-clamp-2 text-gray-900 hover:text-[#12d6fa] transition-colors">
                           {bundle.name}
                         </h3>
                       </Link>
-                      <div className="px-4 pb-4 flex-1 flex flex-col justify-between">
-                        <p className="text-sm text-gray-600 mb-3 leading-relaxed">{bundle.description}</p>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-1">
-                            <span className="font-bold text-base text-gray-900">
-                              <SaudiRiyal amount={bundle.price} />
-                            </span>
-                          </div>
+                      <div className="mt-auto">
+                        <p className="text-sm text-gray-600 mb-4">{bundle.description}</p>
+                        <div className="flex items-center gap-2 mb-2">
                           {bundle.originalPrice && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-gray-400 text-xs line-through">
+                            <>
+                              <span className="text-gray-500 text-sm line-through">
                                 <SaudiRiyal amount={bundle.originalPrice} size="sm" />
                               </span>
-                              <span className="text-xs bg-gradient-to-r from-red-500 to-red-600 text-white px-2 py-1 rounded-full font-medium shadow-sm">
+                              <span className="bg-red-50 text-red-500 text-xs font-normal px-2 py-0.5 rounded-full">
                                 {Math.round(((bundle.originalPrice - bundle.price) / bundle.originalPrice) * 100)}% OFF
                               </span>
-                            </div>
+                            </>
                           )}
                         </div>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-1">
-                            {renderStars(bundle.rating)}
-                            <span className="text-xs text-gray-500 font-medium">({bundle.reviews})</span>
+                            <span className="font-medium text-xl text-gray-900">
+                              <SaudiRiyal amount={bundle.price} size="lg" />
+                            </span>
                           </div>
                           <Button
                             onClick={() => router.push(`/shop/accessories/bundles/${bundle.slug}`)}
-                            className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-bold rounded-lg px-4 py-2 h-8 text-xs shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                            className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full px-8 py-2 h-10 text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                           >
                             BUY
                           </Button>
                         </div>
+                        <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
+                          {renderStars(bundle.rating)}
+                          <span className="text-sm text-gray-600">({bundle.reviews} Reviews)</span>
+                        </div>
                       </div>
                       {bundle.badge && (
-                        <div className="absolute top-3 right-3 bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] text-black text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                        <div className="absolute top-4 right-4 bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] text-black text-xs px-3 py-2 rounded-full shadow-lg">
                           {bundle.badge}
                         </div>
                       )}
@@ -486,7 +485,7 @@ export default function AccessoriesPage() {
 
             {/* Accessories Section */}
             <div className="mb-16">
-              <h2 className="text-2xl font-bold mb-6 text-gray-900">Accessories</h2>
+              <h2 className="text-2xl font-medium mb-6 text-gray-900">Accessories</h2>
               {accessoriesProducts.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {accessoriesProducts.map((product) => renderProductCard(product))}
@@ -503,7 +502,7 @@ export default function AccessoriesPage() {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Accessories Available</h3>
+                  <h3 className="text-lg text-gray-900 mb-2">No Accessories Available</h3>
                   <p className="text-gray-500 mb-4">We're working on adding accessories to our collection.</p>
                   <Button
                     onClick={() => router.push("/admin/products")}
@@ -517,7 +516,7 @@ export default function AccessoriesPage() {
 
             {/* Shop Bottles Section */}
             <div className="mb-16">
-              <h2 className="text-2xl font-bold mb-6 text-gray-900">Shop Bottles</h2>
+              <h2 className="text-2xl font-medium mb-6 text-gray-900">Shop Bottles</h2>
               {bottleProducts.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {bottleProducts.map((product) => renderProductCard(product))}
@@ -534,7 +533,7 @@ export default function AccessoriesPage() {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Bottles Available</h3>
+                  <h3 className="text-lg text-gray-900 mb-2">No Bottles Available</h3>
                   <p className="text-gray-500 mb-4">We're working on adding bottles to our collection.</p>
                   <Button
                     onClick={() => router.push("/admin/products")}

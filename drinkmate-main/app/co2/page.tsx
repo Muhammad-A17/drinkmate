@@ -92,42 +92,15 @@ export default function CO2() {
   return (
     <PageLayout currentPage="co2">
       {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#f3f3f3] animate-fade-in-up">
+      <section className="py-16 bg-gradient-to-b from-white to-[#f3f3f3]">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left content */}
-            <div className="space-y-6">
-              <h1 className="text-4xl md:text-5xl font-bold text-black leading-tight font-montserrat animate-slide-in-left tracking-tight">
-                Refill / Exchange
-                <br />
-                <span className="text-[#12d6fa]">CO2 Cylinders</span>
-              </h1>
-              <p className="text-lg md:text-xl text-gray-600 leading-relaxed font-noto-sans animate-slide-in-left delay-200">
-                Never let your sparkling run out with our fast and amazing refill / exchange service. Get your cylinders
-                refilled or exchange them for full ones instantly.
-              </p>
-              <div className="flex flex-wrap gap-4 animate-slide-in-left delay-400">
-                <button className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#12d6fa] text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                  Get Started
-                </button>
-                <button className="px-8 py-4 text-gray-700 border-2 border-gray-300 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
-                  Learn More
-                </button>
-              </div>
-            </div>
-
-            {/* Right illustration */}
-            <div className="relative flex justify-center">
-              <div className="w-full max-w-sm h-[280px] sm:h-[320px] bg-white rounded-2xl flex items-center justify-center overflow-hidden shadow-2xl">
-                <Image
-                  src="/images/co2-cylinder-new.png"
-                  alt="CO2 Cylinder"
-                  width={200}
-                  height={300}
-                  className="object-contain"
-                />
-              </div>
-            </div>
+          <div className="text-center space-y-6">
+            <h1 className="text-5xl font-bold text-black leading-tight tracking-tight font-montserrat">
+              Refill / Exchange Cylinders
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-noto-sans">
+              Never let your sparkling run out with our fast and amazing refill / exchange service.
+            </p>
           </div>
         </div>
       </section>
@@ -155,7 +128,7 @@ export default function CO2() {
             {benefits.map((benefit) => (
               <div
                 key={benefit.id}
-                className="bg-white rounded-2xl h-[280px] flex items-center justify-center shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-105"
+                className="bg-white rounded-2xl h-[280px] flex items-center justify-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg"
               >
                 <div className="text-center p-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
@@ -173,7 +146,7 @@ export default function CO2() {
       {/* Exchange Program Section */}
       <section className="py-16 bg-gradient-to-r from-[#f3f3f3] to-white">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="bg-white rounded-3xl p-8 md:p-12 shadow-2xl">
+          <div className="bg-white rounded-3xl p-8 md:p-12 transition-all duration-300 hover:shadow-lg">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               {/* Left content */}
               <div className="space-y-6">
@@ -278,7 +251,7 @@ export default function CO2() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-2xl p-8 text-center shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-105">
+            <div className="bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg">
               <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <span className="text-3xl font-bold text-[#12d6fa] font-montserrat">1</span>
               </div>
@@ -288,7 +261,7 @@ export default function CO2() {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 text-center shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-105">
+            <div className="bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg">
               <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <span className="text-3xl font-bold text-[#12d6fa] font-montserrat">2</span>
               </div>
@@ -298,7 +271,7 @@ export default function CO2() {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 text-center shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-105">
+            <div className="bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg">
               <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <span className="text-3xl font-bold text-[#12d6fa] font-montserrat">3</span>
               </div>
@@ -323,7 +296,7 @@ export default function CO2() {
             {faqCards.map((card) => (
               <div
                 key={card.id}
-                className="bg-white rounded-2xl p-6 flex flex-col h-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-1"
+                className="bg-white rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               >
                 <h3 className="text-lg font-bold text-black mb-3 tracking-tight">{card.question}</h3>
                 <p className="text-gray-600 text-sm leading-relaxed">{card.answer}</p>

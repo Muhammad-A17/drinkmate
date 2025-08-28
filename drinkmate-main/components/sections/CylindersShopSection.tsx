@@ -49,13 +49,22 @@ export function CylindersShopSection() {
         {cylinderServices.map((service) => (
           <div
             key={service.id}
-            className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 hover:scale-105"
+            className="bg-white rounded-2xl p-8 transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg"
             onMouseEnter={() => setHoveredCard(service.id)}
             onMouseLeave={() => setHoveredCard(null)}
           >
             <div className="text-center space-y-6">
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto shadow-lg">
-                <img src="/co2-cylinder-icon.png" alt="CO2 Cylinder" className="w-10 h-10 object-contain" />
+              <div className="w-56 h-56 bg-white rounded-2xl flex items-center justify-center mx-auto overflow-hidden">
+                <img 
+                  src={service.type === "subscription" 
+                    ? "/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
+                    : service.type === "refill" 
+                      ? "/images/02 - Soda Makers/Purple-Machine---Front.png" 
+                      : "/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
+                  } 
+                  alt={service.title}
+                  className="w-40 h-40 object-contain"
+                />
               </div>
 
               <div>
@@ -72,9 +81,9 @@ export function CylindersShopSection() {
                         ? "Refill / Exchange starts from"
                         : "Buy a new cylinder just for"}
                   </p>
-                  <div className="text-3xl font-bold text-[#12d6fa] font-montserrat">
+                  <div className="text-3xl font-bold text-black font-montserrat">
                     {service.price}
-                    <span className="text-lg">{service.currency}</span>
+                    <span className="text-md">{service.currency}</span>
                   </div>
                 </div>
 

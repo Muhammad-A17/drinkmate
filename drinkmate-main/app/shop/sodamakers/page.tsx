@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
-import { Star, Loader2 } from "lucide-react"
+import { Star, Loader2, ShoppingCart } from "lucide-react"
 import { shopAPI } from "@/lib/api"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 
@@ -298,9 +298,9 @@ export default function SodamakersPage() {
     return (
       <div
         key={product._id}
-        className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 flex flex-col border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
+        className="bg-white rounded-3xl p-6 flex flex-col border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1 transition-all duration-300"
       >
-  <Link href={`/shop/sodamakers/${(product as any).slug || product._id}`} className="block">
+        <Link href={`/shop/sodamakers/${(product as any).slug || product._id}`} className="block">
           <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
             <Image
               src={product.image || "/placeholder.svg"}
@@ -310,18 +310,20 @@ export default function SodamakersPage() {
               className="object-contain h-44 transition-transform duration-300 hover:scale-105"
             />
           </div>
-          <h3 className="font-bold text-xl mb-3 hover:text-[#12d6fa] transition-colors leading-tight">
-            {product.name}
-          </h3>
+          <h3 className="text-xl mb-3 hover:text-[#12d6fa] transition-colors leading-tight">{product.name}</h3>
         </Link>
+        <div className="flex items-center gap-3 mb-4">
+          {renderStars(product.rating)}
+          <span className="text-sm text-gray-600">({product.reviews} Reviews)</span>
+        </div>
         <div className="mt-auto">
           <div className="flex items-center gap-2 mb-2">
             {product.originalPrice && (
               <>
-                <span className="text-gray-500 text-sm line-through font-medium">
+                <span className="text-gray-500 text-sm line-through">
                   <SaudiRiyal amount={product.originalPrice} size="sm" />
                 </span>
-                <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
+                <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">
                   {discountPercentage}% OFF
                 </span>
               </>
@@ -329,21 +331,18 @@ export default function SodamakersPage() {
           </div>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-1">
-              <span className="font-bold text-2xl text-gray-900">
-                <SaudiRiyal amount={product.price} size="lg" />
+              <span className="text-xl text-gray-900">
+                <SaudiRiyal amount={product.price} size="md" />
               </span>
             </div>
             <Button
               onClick={() => handleAddToCart(product)}
               disabled={isInCartStatus}
-              className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-bold rounded-full px-8 py-2 h-10 text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full px-6 py-2 h-10 text-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {isInCartStatus ? "ADDED" : "BUY"}
+              <ShoppingCart className="w-4 h-4" />
+              {isInCartStatus ? "Added" : "Add to Cart"}
             </Button>
-          </div>
-          <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-            {renderStars(product.rating)}
-            <span className="text-sm text-gray-600 font-medium">({product.reviews} Reviews)</span>
           </div>
         </div>
       </div>
@@ -353,7 +352,7 @@ export default function SodamakersPage() {
   return (
     <PageLayout currentPage="shop-sodamakers">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-12 text-gray-900 tracking-tight">Explore Our Soda Makers</h1>
+        <h1 className="text-4xl font-medium mb-12 text-gray-900 tracking-tight">Explore Our Soda Makers</h1>
 
         {/* Error message */}
         {error && (
@@ -390,7 +389,7 @@ export default function SodamakersPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
               <div className="bg-gradient-to-br from-[#fac334] to-[#f0b429] rounded-3xl p-8 flex flex-col justify-between h-72 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                 <div>
-                  <h2 className="text-3xl font-bold mb-3 text-gray-900">OmniFizz Soda Makers</h2>
+                  <h2 className="text-3xl mb-3 text-gray-900">OmniFizz Soda Makers</h2>
                   <p className="text-gray-800 text-lg font-medium">Premium carbonation for all beverages</p>
                 </div>
                 <Image
@@ -403,7 +402,7 @@ export default function SodamakersPage() {
               </div>
               <div className="bg-gradient-to-br from-black to-gray-800 rounded-3xl p-8 flex flex-col justify-between h-72 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                 <div>
-                  <h2 className="text-3xl font-bold mb-3 text-white">Luxe Soda Makers</h2>
+                  <h2 className="text-3xl mb-3 text-white">Luxe Soda Makers</h2>
                   <p className="text-gray-300 text-lg font-medium">Luxurious and elegant carbonation experience</p>
                 </div>
                 <Image
@@ -419,12 +418,12 @@ export default function SodamakersPage() {
             {/* Bundles & Promotions Section */}
             {bundles.length > 0 ? (
               <div className="mb-16">
-                <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Bundles & Promotions</h2>
+                <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">Bundles & Promotions</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {bundles.map((bundle) => (
                     <div
                       key={bundle._id}
-                      className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 flex flex-col relative border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
+                      className="bg-white rounded-3xl p-6 flex flex-col relative border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1 transition-all duration-300"
                     >
                       <Link href={`/shop/sodamakers/bundles/${bundle.slug}`} className="block">
                         <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
@@ -436,19 +435,23 @@ export default function SodamakersPage() {
                             className="object-contain h-44 transition-transform duration-300 hover:scale-105"
                           />
                         </div>
-                        <h3 className="font-bold text-xl mb-2 hover:text-[#12d6fa] transition-colors leading-tight">
+                        <h3 className="text-xl mb-2 hover:text-[#12d6fa] transition-colors leading-tight">
                           {bundle.name}
                         </h3>
                       </Link>
-                      <p className="text-sm text-gray-600 mb-4 font-medium">{bundle.description}</p>
+                      <div className="flex items-center gap-3 mb-4">
+                        {renderStars(bundle.rating)}
+                        <span className="text-sm text-gray-600">({bundle.reviews} Reviews)</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4">{bundle.description}</p>
                       <div className="mt-auto">
                         <div className="flex items-center gap-2 mb-2">
                           {bundle.originalPrice && (
                             <>
-                              <span className="text-gray-500 text-sm line-through font-medium">
+                              <span className="text-gray-500 text-sm line-through">
                                 <SaudiRiyal amount={bundle.originalPrice} size="sm" />
                               </span>
-                              <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
+                              <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">
                                 {Math.round(((bundle.originalPrice - bundle.price) / bundle.originalPrice) * 100)}% OFF
                               </span>
                             </>
@@ -456,24 +459,21 @@ export default function SodamakersPage() {
                         </div>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-1">
-                            <span className="font-bold text-2xl text-gray-900">
-                              <SaudiRiyal amount={bundle.price} size="lg" />
+                            <span className="text-xl text-gray-900">
+                              <SaudiRiyal amount={bundle.price} size="md" />
                             </span>
                           </div>
                           <Button
                             onClick={() => router.push(`/shop/sodamakers/bundles/${bundle.slug}`)}
-                            className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-bold rounded-full px-8 py-2 h-10 text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                            className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full px-6 py-2 h-10 text-sm transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
                           >
-                            BUY
+                            <ShoppingCart className="w-4 h-4" />
+                            View Bundle
                           </Button>
-                        </div>
-                        <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-                          {renderStars(bundle.rating)}
-                          <span className="text-sm text-gray-600 font-medium">({bundle.reviews} Reviews)</span>
                         </div>
                       </div>
                       {bundle.badge && (
-                        <div className="absolute top-4 right-4 bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] text-black text-xs font-bold px-3 py-2 rounded-full shadow-lg">
+                        <div className="absolute top-4 right-4 bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] text-black text-xs px-3 py-2 rounded-full">
                           {bundle.badge}
                         </div>
                       )}
@@ -483,7 +483,7 @@ export default function SodamakersPage() {
               </div>
             ) : (
               <div className="mb-16">
-                <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Bundles & Promotions</h2>
+                <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">Bundles & Promotions</h2>
                 <div className="text-center py-12 bg-gray-50 rounded-lg">
                   <div className="text-gray-400 mb-4">
                     <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -508,7 +508,7 @@ export default function SodamakersPage() {
 
             {/* OmniFizz Soda Makers Section */}
             <div className="mb-16">
-              <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">OmniFizz Soda Makers</h2>
+              <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">OmniFizz Soda Makers</h2>
               {omnifizzMakers.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {omnifizzMakers.map((product) => renderProductCard(product))}
@@ -539,7 +539,7 @@ export default function SodamakersPage() {
 
             {/* Luxe Soda Makers Section */}
             <div className="mb-16">
-              <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Luxe Soda Makers</h2>
+              <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">Luxe Soda Makers</h2>
               {luxeMakers.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {luxeMakers.map((product) => renderProductCard(product))}
@@ -570,7 +570,7 @@ export default function SodamakersPage() {
 
             {/* Best Seller Soda Makers Section */}
             <div className="mb-16">
-              <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Best Seller Soda Makers</h2>
+              <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">Best Seller Soda Makers</h2>
               {bestSellerMakers.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {bestSellerMakers.map((product) => renderProductCard(product))}

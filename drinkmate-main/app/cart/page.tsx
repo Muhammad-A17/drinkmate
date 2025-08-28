@@ -254,7 +254,7 @@ export default function CartPage() {
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6">
               <ShoppingCart className="w-10 h-10 text-gray-400" />
             </div>
-            <h1 className="text-2xl font-semibold mb-4 text-gray-900">Your cart is currently empty.</h1>
+            <h1 className="text-2xl font-medium mb-4 text-gray-900">Your cart is currently empty.</h1>
             <p className="text-gray-600 mb-8">Looks like you haven't added any items to your cart yet.</p>
             <Button
               onClick={() => router.push("/shop/sodamakers")}
@@ -265,8 +265,8 @@ export default function CartPage() {
           </div>
 
           <div className="mt-16">
-            <h2 className="text-xl font-semibold mb-8 text-center text-gray-900">Products You Might Like</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+            <h2 className="text-xl font-medium mb-8 text-center text-gray-900">Products You Might Like</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
                 {
                   id: 201,
@@ -296,25 +296,34 @@ export default function CartPage() {
               ].map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                  className="bg-white rounded-3xl transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
                 >
-                  <div className="relative h-28 sm:h-32 mb-3">
-                    <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-contain" />
+                  <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
+                    <Image 
+                      src={item.image || "/placeholder.svg"} 
+                      alt={item.name} 
+                      width={180}
+                      height={180}
+                      className="object-contain h-44 transition-transform duration-300 hover:scale-105" 
+                    />
                   </div>
-                  <h3 className="text-sm font-medium mb-2 line-clamp-2 text-gray-900">{item.name}</h3>
-                  <div className="mb-3">
+                  <h3 className="font-medium text-lg mb-3 line-clamp-2 text-gray-900">{item.name}</h3>
+                  <div className="mb-4">
                     {item.originalPrice ? (
-                      <div className="flex items-center">
-                        <span className="text-sm font-semibold text-red-600">
-                          <SaudiRiyal amount={item.price} />
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-xl text-gray-900">
+                          <SaudiRiyal amount={item.price} size="lg" />
                         </span>
-                        <span className="text-xs text-gray-500 line-through ml-2">
-                          <SaudiRiyal amount={item.originalPrice} />
+                        <span className="text-sm text-gray-500 line-through">
+                          <SaudiRiyal amount={item.originalPrice} size="sm" />
+                        </span>
+                        <span className="bg-red-50 text-red-500 text-xs font-normal px-2 py-0.5 rounded-full">
+                          {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% OFF
                         </span>
                       </div>
                     ) : (
-                      <span className="text-sm font-semibold text-gray-900">
-                        <SaudiRiyal amount={item.price} />
+                      <span className="font-normal text-lg text-gray-900">
+                        <SaudiRiyal amount={item.price} size="md" />
                       </span>
                     )}
                   </div>
@@ -343,9 +352,9 @@ export default function CartPage() {
                         })
                       }
                     }}
-                    className="w-full bg-[#00D1FF] hover:bg-[#00bae0] text-white text-sm py-2 font-medium rounded-lg"
+                    className="w-full bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-medium rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                   >
-                    Add to Cart
+                    <ShoppingCart size={16} /> Add to Cart
                   </Button>
                 </div>
               ))}
@@ -365,7 +374,7 @@ export default function CartPage() {
         <div className="bg-white rounded-lg p-6 mb-6 border border-gray-200">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl font-semibold text-gray-900 mb-2">Your Cart</h1>
+              <h1 className="text-2xl font-medium text-gray-900 mb-2">Your Cart</h1>
               {state.total >= 150 ? (
                 <div className="flex items-center text-sm text-green-600 font-medium">
                   <CheckCircle className="w-4 h-4 mr-2" />
@@ -455,7 +464,7 @@ export default function CartPage() {
               </div>
               <div className="md:text-right self-center flex justify-between md:block">
                 <span className="md:hidden font-medium text-sm text-gray-600">Price:</span>
-                <span className="font-semibold text-gray-900">
+                <span className="font-medium text-gray-900">
                   <SaudiRiyal amount={item.price} />
                 </span>
               </div>
@@ -482,7 +491,7 @@ export default function CartPage() {
                   </Button>
                 </div>
               </div>
-              <div className="md:text-right self-center font-semibold flex justify-between md:block">
+              <div className="md:text-right self-center font-medium flex justify-between md:block">
                 <span className="md:hidden font-medium text-sm text-gray-600">Total:</span>
                 <span className="text-gray-900">
                   <SaudiRiyal amount={item.price * item.quantity} />
@@ -496,12 +505,12 @@ export default function CartPage() {
           <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
             <div className="flex items-center mb-4">
               <Tag className="h-5 w-5 text-green-600 mr-2" />
-              <h3 className="text-lg font-semibold text-green-800">Select a FREE product</h3>
+              <h3 className="text-lg font-medium text-green-800">Select a FREE product</h3>
             </div>
             <p className="text-sm text-green-700 mb-6">
               You qualify for one free product! Choose from the options below.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
                 {
                   id: 101,
@@ -524,21 +533,22 @@ export default function CartPage() {
               ].map((freeItem) => (
                 <div
                   key={freeItem.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                  className="bg-white rounded-3xl transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
                 >
-                  <div className="relative h-32 mb-3">
+                  <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
                     <Image
                       src={freeItem.image || "/placeholder.svg"}
                       alt={freeItem.name}
-                      fill
-                      className="object-contain"
+                      width={180}
+                      height={180}
+                      className="object-contain h-44 transition-transform duration-300 hover:scale-105"
                     />
                   </div>
-                  <h4 className="text-sm font-medium mb-2 text-gray-900">{freeItem.name}</h4>
+                  <h4 className="font-medium text-lg mb-3 text-gray-900">{freeItem.name}</h4>
                   <div className="flex items-center mb-3">
-                    <span className="text-green-600 font-semibold mr-3">FREE</span>
-                    <span className="text-xs text-gray-500 line-through">
-                      <SaudiRiyal amount={freeItem.originalPrice} />
+                    <span className="text-green-600 font-medium mr-3">FREE</span>
+                    <span className="text-xs text-gray-400 line-through">
+                      <SaudiRiyal amount={freeItem.originalPrice} size="sm" />
                     </span>
                   </div>
                   <Button
@@ -567,9 +577,9 @@ export default function CartPage() {
                         })
                       }
                     }}
-                    className="w-full bg-[#00D1FF] hover:bg-[#00bae0] text-white text-sm py-2 font-medium rounded-lg"
+                    className="w-full bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-medium rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                   >
-                    Add Free Item
+                    <Gift size={16} /> Add Free Item
                   </Button>
                 </div>
               ))}
@@ -580,7 +590,7 @@ export default function CartPage() {
         {savedItems.length > 0 && (
           <div className="bg-white rounded-lg p-6 border border-gray-200 mb-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Saved for Later ({savedItems.length})</h2>
+              <h2 className="text-lg font-medium text-gray-900">Saved for Later ({savedItems.length})</h2>
               <button
                 onClick={() => setShowSavedItems(!showSavedItems)}
                 className="text-sm text-blue-600 hover:text-blue-700 font-medium"
@@ -589,26 +599,32 @@ export default function CartPage() {
               </button>
             </div>
             {showSavedItems && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {savedItems.map((item, index) => (
                   <div
                     key={index}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                    className="bg-white rounded-3xl transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
                   >
-                    <div className="relative h-32 mb-3">
-                      <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-contain" />
+                    <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
+                      <Image 
+                        src={item.image || "/placeholder.svg"} 
+                        alt={item.name} 
+                        width={180}
+                        height={180}
+                        className="object-contain h-44 transition-transform duration-300 hover:scale-105" 
+                      />
                     </div>
-                    <h3 className="text-sm font-medium mb-2 text-gray-900">{item.name}</h3>
-                    <div className="mb-3">
-                      <span className="text-sm font-semibold text-gray-900">
-                        <SaudiRiyal amount={item.price} />
+                    <h3 className="font-medium text-lg mb-3 text-gray-900">{item.name}</h3>
+                    <div className="mb-4">
+                      <span className="font-normal text-lg text-gray-900">
+                        <SaudiRiyal amount={item.price} size="md" />
                       </span>
                     </div>
                     <Button
                       onClick={() => handleMoveToCart(item, index)}
-                      className="w-full bg-[#00D1FF] hover:bg-[#00bae0] text-white text-sm py-2 font-medium rounded-lg"
+                      className="w-full bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-medium rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                     >
-                      Move to Cart
+                      <ShoppingCart size={16} /> Move to Cart
                     </Button>
                   </div>
                 ))}
@@ -618,40 +634,55 @@ export default function CartPage() {
         )}
 
         <div className="bg-white rounded-lg p-6 border border-gray-200 mb-6">
-          <h2 className="text-lg font-semibold mb-6 text-gray-900">Items you may like</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <h2 className="text-lg font-medium mb-6 text-gray-900">Items you may like</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {recommended.map((item) => (
               <div
                 key={item.id}
-                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                className="bg-white rounded-3xl transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
               >
-                <div className="relative h-40 mb-4">
-                  <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-contain" />
-                </div>
-                <h3 className="text-sm font-medium mb-2 text-gray-900">{item.name}</h3>
-                <div className="flex items-center mb-2">
-                  <div className="flex text-yellow-400 text-sm">
+                                  <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
+                    <Image 
+                      src={item.image || "/placeholder.svg"} 
+                      alt={item.name} 
+                      width={180}
+                      height={180}
+                      className="object-contain h-44 transition-transform duration-300 hover:scale-105" 
+                    />
+                  </div>
+                <h3 className="font-medium text-lg mb-3 text-gray-900">{item.name}</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex text-yellow-400">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <span key={i}>★</span>
+                      <span key={i} className="text-base">★</span>
                     ))}
                   </div>
-                  <span className="text-xs text-gray-500 ml-2">({item.reviews} Reviews)</span>
+                  <span className="text-sm text-gray-600 font-medium">({item.reviews} Reviews)</span>
                 </div>
                 <div className="mb-4">
-                  <span className="text-sm font-semibold text-gray-900">
-                    <SaudiRiyal amount={item.price} />
-                  </span>
-                  {item.originalPrice && (
-                    <span className="text-xs text-gray-500 line-through ml-2">
-                      <SaudiRiyal amount={item.originalPrice} />
+                  {item.originalPrice ? (
+                    <div className="flex items-center gap-2">
+                      <span className="font-normal text-lg text-gray-900">
+                        <SaudiRiyal amount={item.price} size="md" />
+                      </span>
+                      <span className="text-xs text-gray-400 line-through">
+                        <SaudiRiyal amount={item.originalPrice} size="sm" />
+                      </span>
+                      <span className="bg-red-50 text-red-500 text-xs font-normal px-2 py-0.5 rounded-full">
+                        {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% OFF
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="font-normal text-lg text-gray-900">
+                      <SaudiRiyal amount={item.price} size="md" />
                     </span>
                   )}
                 </div>
                 <Button
                   onClick={() => handleAddRecommended(item)}
-                  className="bg-[#00D1FF] hover:bg-[#00bae0] text-white text-sm py-2 px-4 font-medium rounded-lg"
+                  className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-medium rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
                 >
-                  ADD
+                  <ShoppingCart size={16} /> ADD
                 </Button>
               </div>
             ))}
@@ -671,7 +702,7 @@ export default function CartPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <p className="text-base font-semibold mb-4 text-gray-900">Apply Coupon Code</p>
+            <p className="text-base font-medium mb-4 text-gray-900">Apply Coupon Code</p>
             <div className="flex space-x-3">
               <input
                 type="text"
@@ -701,7 +732,7 @@ export default function CartPage() {
           </div>
 
           <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <p className="text-base font-semibold mb-4 text-gray-900">Been referred by a friend?</p>
+            <p className="text-base font-medium mb-4 text-gray-900">Been referred by a friend?</p>
             <div className="flex space-x-3">
               <input
                 type="text"
@@ -716,7 +747,7 @@ export default function CartPage() {
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-6 text-gray-900">ORDER SUMMARY</h3>
+          <h3 className="text-lg font-medium mb-6 text-gray-900">ORDER SUMMARY</h3>
 
           {state.total >= 150 ? (
             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -762,8 +793,8 @@ export default function CartPage() {
               </div>
             </div>
             <div className="border-t border-gray-200 pt-3 flex justify-between items-center">
-              <div className="font-semibold text-lg text-gray-900">Total</div>
-              <div className="font-semibold text-xl text-gray-900">
+              <div className="font-medium text-lg text-gray-900">Total</div>
+              <div className="font-medium text-xl text-gray-900">
                 <SaudiRiyal amount={finalTotal} />
               </div>
             </div>
@@ -773,7 +804,7 @@ export default function CartPage() {
 
           <Button
             onClick={handleCheckout}
-            className="w-full bg-[#00D1FF] hover:bg-[#00bae0] text-white font-semibold py-4 text-base rounded-lg mb-6"
+            className="w-full bg-[#00D1FF] hover:bg-[#00bae0] text-white font-medium py-4 text-base rounded-lg mb-6"
           >
             Checkout • <SaudiRiyal amount={finalTotal} />
           </Button>
