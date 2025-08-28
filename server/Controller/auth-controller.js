@@ -334,14 +334,21 @@ const resetPassword = async (req, res) => {
     }
 };
 
+const Contact = require('../Models/contact-model');
+
 // Contact form submission
 const submitContact = async (req, res) => {
     try {
+        console.log('📧 Contact form submission received:', req.body);
+        
         const { name, email, message, phone, subject, userId } = req.body;
 
         if (!name || !email || !message) {
+            console.log('❌ Missing required fields:', { name: !!name, email: !!email, message: !!message });
             return res.status(400).json({ error: 'Name, email, and message are required.' });
         }
+
+        console.log('✅ Creating new contact with data:', { name, email, message, phone, subject, userId });
 
         const contact = new Contact({ 
             name, 
@@ -352,7 +359,10 @@ const submitContact = async (req, res) => {
             userId,
             status: 'new'
         });
+        
+        console.log('💾 Saving contact to database...');
         await contact.save();
+        console.log('✅ Contact saved successfully with ID:', contact._id);
 
         // In a real application, you would send an email notification here
         // to the admin and a confirmation email to the user
@@ -363,15 +373,14 @@ const submitContact = async (req, res) => {
             contactId: contact._id
         });
     } catch (err) {
-        console.error('Error in submitContact:', err);
+        console.error('❌ Error in submitContact:', err);
         res.status(500).json({ 
             success: false,
-            error: 'Internal server error.' 
+            error: 'Internal server error.',
+            details: err.message
         });
     }
 };
-
-const Contact = require('../Models/contact-model');
 
 // Test email functionality (for development/testing)
 const testEmail = async (req, res) => {

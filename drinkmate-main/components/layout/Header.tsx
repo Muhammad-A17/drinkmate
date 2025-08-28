@@ -29,6 +29,21 @@ export default function Header({ currentPage }: HeaderProps) {
     setIsAdminPage(pathname?.startsWith("/admin") || false)
   }, [pathname])
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (!target.closest('.shop-dropdown') && !target.closest('.shop-button')) {
+        setIsShopDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
   const toggleLanguage = () => {
     setLanguage(language === "EN" ? "AR" : "EN")
   }
@@ -60,9 +75,12 @@ export default function Header({ currentPage }: HeaderProps) {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-10">
-            <Link
-              href="/"
-              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group ${
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                router.push("/")
+              }}
+              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${
                 currentPage === "home" || !currentPage ? "text-slate-900" : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -70,13 +88,17 @@ export default function Header({ currentPage }: HeaderProps) {
               {(currentPage === "home" || !currentPage) && (
                 <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full"></span>
               )}
-            </Link>
+            </button>
             <div className="relative group">
               <button
-                onClick={() => setIsShopDropdownOpen(!isShopDropdownOpen)}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setIsShopDropdownOpen(!isShopDropdownOpen)
+                }}
                 onMouseEnter={() => setIsShopDropdownOpen(true)}
                 aria-label="Shop Menu"
-                className={`flex items-center text-sm font-semibold tracking-wide transition-all duration-300 relative group ${
+                className={`shop-button flex items-center text-sm font-semibold tracking-wide transition-all duration-300 relative group ${
                   currentPage === "shop" || currentPage?.startsWith("shop-")
                     ? "text-slate-900"
                     : "text-slate-600 hover:text-slate-900"
@@ -93,7 +115,7 @@ export default function Header({ currentPage }: HeaderProps) {
 
               {/* Dropdown Menu */}
               <div
-                className={`absolute left-0 mt-3 w-56 rounded-xl shadow-2xl bg-white/95 backdrop-blur-md ring-1 ring-slate-200 transition-all duration-300 ${
+                className={`shop-dropdown absolute left-0 mt-3 w-56 rounded-xl shadow-2xl bg-white/95 backdrop-blur-md ring-1 ring-slate-200 transition-all duration-300 ${
                   isShopDropdownOpen
                     ? "opacity-100 translate-y-0 scale-100"
                     : "opacity-0 -translate-y-4 scale-95 pointer-events-none"
@@ -104,30 +126,45 @@ export default function Header({ currentPage }: HeaderProps) {
                   <Link
                     href="/shop/sodamakers"
                     className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 border-l-2 border-transparent hover:border-blue-400"
-                    onClick={() => setIsShopDropdownOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsShopDropdownOpen(false)
+                      router.push("/shop/sodamakers")
+                    }}
                   >
                     Sodamakers
                   </Link>
                   <Link
                     href="/shop/flavor"
                     className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 border-l-2 border-transparent hover:border-blue-400"
-                    onClick={() => setIsShopDropdownOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsShopDropdownOpen(false)
+                      router.push("/shop/flavor")
+                    }}
                   >
                     Flavor
                   </Link>
                   <Link
                     href="/shop/accessories"
                     className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 border-l-2 border-transparent hover:border-blue-400"
-                    onClick={() => setIsShopDropdownOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsShopDropdownOpen(false)
+                      router.push("/shop/accessories")
+                    }}
                   >
                     Accessories
                   </Link>
                 </div>
               </div>
             </div>
-            <Link
-              href="/co2"
-              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group ${
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                router.push("/co2")
+              }}
+              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${
                 currentPage === "co2" ? "text-slate-900" : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -135,10 +172,13 @@ export default function Header({ currentPage }: HeaderProps) {
               {currentPage === "co2" && (
                 <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full"></span>
               )}
-            </Link>
-            <Link
-              href="/recipes"
-              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group ${
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                router.push("/recipes")
+              }}
+              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${
                 currentPage === "recipes" ? "text-slate-900" : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -146,10 +186,13 @@ export default function Header({ currentPage }: HeaderProps) {
               {currentPage === "recipes" && (
                 <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full"></span>
               )}
-            </Link>
-            <Link
-              href="/contact"
-              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group ${
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                router.push("/contact")
+              }}
+              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${
                 currentPage === "contact" ? "text-slate-900" : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -157,10 +200,13 @@ export default function Header({ currentPage }: HeaderProps) {
               {currentPage === "contact" && (
                 <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full"></span>
               )}
-            </Link>
-            <Link
-              href="/track-order"
-              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group ${
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                router.push("/track-order")
+              }}
+              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${
                 currentPage === "track-order" ? "text-slate-900" : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -168,7 +214,7 @@ export default function Header({ currentPage }: HeaderProps) {
               {currentPage === "track-order" && (
                 <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full"></span>
               )}
-            </Link>
+            </button>
           </nav>
 
           {/* Right Side Icons and Button */}
@@ -296,17 +342,20 @@ export default function Header({ currentPage }: HeaderProps) {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-slate-100 py-6 bg-white/95 backdrop-blur-md">
             <nav className="flex flex-col space-y-2">
-              <Link
-                href="/"
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 ${
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  setIsMobileMenuOpen(false)
+                  router.push("/")
+                }}
+                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${
                   currentPage === "home" || !currentPage
                     ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
-                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Home
-              </Link>
+              </button>
               <div className="space-y-1">
                 <button
                   className={`w-full text-left text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 ${
@@ -316,7 +365,9 @@ export default function Header({ currentPage }: HeaderProps) {
                   } flex items-center justify-between`}
                   onClick={(e) => {
                     e.preventDefault()
-                    setIsMobileMenuOpen(true)
+                    e.stopPropagation()
+                    // Toggle shop dropdown instead of keeping mobile menu open
+                    setIsShopDropdownOpen(!isShopDropdownOpen)
                   }}
                 >
                   <span>Shop</span>
@@ -328,70 +379,94 @@ export default function Header({ currentPage }: HeaderProps) {
                   <Link
                     href="/shop/sodamakers"
                     className="block text-sm font-medium text-slate-600 px-5 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsMobileMenuOpen(false)
+                      router.push("/shop/sodamakers")
+                    }}
                   >
                     Sodamakers
                   </Link>
                   <Link
                     href="/shop/flavor"
                     className="block text-sm font-medium text-slate-600 px-5 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsMobileMenuOpen(false)
+                      router.push("/shop/flavor")
+                    }}
                   >
                     Flavor
                   </Link>
                   <Link
                     href="/shop/accessories"
                     className="block text-sm font-medium text-slate-600 px-5 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsMobileMenuOpen(false)
+                      router.push("/shop/accessories")
+                    }}
                   >
                     Accessories
                   </Link>
                 </div>
               </div>
-              <Link
-                href="/co2"
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 ${
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  setIsMobileMenuOpen(false)
+                  router.push("/co2")
+                }}
+                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${
                   currentPage === "co2"
                     ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
-                onClick={() => setIsMobileMenuOpen(false)}
               >
                 CO2
-              </Link>
-              <Link
-                href="/recipes"
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 ${
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  setIsMobileMenuOpen(false)
+                  router.push("/recipes")
+                }}
+                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${
                   currentPage === "recipes"
                     ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
-                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Recipes
-              </Link>
-              <Link
-                href="/contact"
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 ${
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  setIsMobileMenuOpen(false)
+                  router.push("/contact")
+                }}
+                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${
                   currentPage === "contact"
                     ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
                     : "text-slate-900 hover:text-slate-900 hover:bg-slate-50"
                 }`}
-                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Contact Us
-              </Link>
-              <Link
-                href="/track-order"
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 ${
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  setIsMobileMenuOpen(false)
+                  router.push("/track-order")
+                }}
+                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${
                   currentPage === "track-order"
                     ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
-                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Track Order
-              </Link>
+              </button>
 
               {/* Auth links for mobile */}
               <div className="border-t border-slate-100 mt-4 pt-4">
