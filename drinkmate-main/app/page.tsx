@@ -284,12 +284,12 @@ export default function Home() {
             <div className="text-center px-6 py-8 bg-white/90 backdrop-blur-md rounded-2xl mx-2 shadow-2xl shadow-gray-200/30 mb-8 hover:shadow-3xl hover:bg-white/95 transition-all duration-500 transform hover:-translate-y-2 animate-fade-in-up border border-white/40">
               <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
                 <h1
-                  className={`text-2xl font-bold text-black leading-tight ${isRTL ? "font-cairo text-right" : "font-montserrat"} drop-shadow-sm animate-slide-in-up tracking-tight`}
+                  className={`text-2xl font-semibold text-gray-900 leading-tight ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-up tracking-tight`}
                 >
                   {t("home.hero.title")}
                 </h1>
                 <h2
-                  className={`text-lg text-gray-700 font-semibold ${isRTL ? "font-cairo text-right" : "font-montserrat"} opacity-90 animate-slide-in-up delay-200 tracking-wide`}
+                  className={`text-lg text-gray-600 font-medium ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-up delay-200 tracking-wide`}
                 >
                   {t("home.hero.subtitle")}
                 </h2>
@@ -327,12 +327,12 @@ export default function Home() {
               dir={isRTL ? "rtl" : "ltr"}
             >
               <h1
-                className={`text-3xl md:text-5xl lg:text-6xl font-bold text-black leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} drop-shadow-lg animate-slide-in-left tracking-tight`}
+                className={`text-3xl md:text-5xl lg:text-6xl font-semibold text-gray-900 leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-left tracking-tight`}
               >
                 {t("home.hero.title")}
               </h1>
               <h2
-                className={`text-lg md:text-2xl text-gray-700 font-semibold ${isRTL ? "font-cairo" : "font-montserrat"} opacity-90 animate-slide-in-left delay-200 tracking-wide`}
+                className={`text-lg md:text-2xl text-gray-600 font-medium ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-left delay-200 tracking-wide`}
               >
                 {t("home.hero.subtitle")}
               </h2>
@@ -379,7 +379,7 @@ export default function Home() {
             <div className="w-full md:w-[520px] h-auto md:h-[138px] flex flex-col justify-between text-center md:text-left">
               <div className="space-y-4 mb-4 md:mb-0">
                 <h2
-                  className={`text-2xl md:text-4xl font-semibold text-black leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight drop-shadow-sm`}
+                  className={`text-2xl md:text-4xl font-medium text-gray-800 leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} tracking-wide`}
                 >
                   {slide.headline}
                 </h2>
@@ -478,7 +478,7 @@ export default function Home() {
           {/* Header */}
           <div className="text-center mb-8 md:mb-12" dir={isRTL ? "rtl" : "ltr"}>
             <h2
-              className={`text-3xl md:text-4xl font-semibold text-black ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-tight drop-shadow-sm`}
+              className={`text-2xl md:text-3xl font-medium text-gray-800 ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-wide`}
             >
               {t("home.productCategories.title")}
             </h2>
@@ -496,7 +496,7 @@ export default function Home() {
                 {/* Multiple Machine Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="/images/02 - Soda Makers/soda-maker-group.png"
+                    src="/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
                     alt="Soda Makers"
                     width={180}
                     height={225}
@@ -505,7 +505,7 @@ export default function Home() {
                 </div>
               </div>
               <h3
-                className={`text-lg md:text-xl font-bold text-black ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide drop-shadow-sm`}
+                className={`text-lg md:text-xl font-semibold text-gray-800 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide`}
               >
                 {t("home.productCategories.sodaMakers")}
               </h3>
@@ -521,7 +521,7 @@ export default function Home() {
                 {/* Multiple CO2 Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="/images/03 - CO2/co2-group-cylinder.png"
+                    src="/images/co2-cylinder-single.png"
                     alt="CO2"
                     width={180}
                     height={225}
@@ -530,7 +530,7 @@ export default function Home() {
                 </div>
               </div>
               <h3
-                className={`text-lg md:text-xl font-bold text-black ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide drop-shadow-sm`}
+                className={`text-lg md:text-xl font-semibold text-gray-800 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide`}
               >
                 {t("home.productCategories.co2")}
               </h3>
@@ -546,7 +546,7 @@ export default function Home() {
                 {/* Multiple Flavor Images from Flavors Folder in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="/images/01 - Flavors/strawberry-group.png"
+                    src="/images/italian-strawberry-lemon-syrup.png"
                     alt="Premium Italian Flavors"
                     width={180}
                     height={225}
@@ -555,7 +555,7 @@ export default function Home() {
                 </div>
               </div>
               <h3
-                className={`text-lg md:text-xl font-bold text-black ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide drop-shadow-sm`}
+                className={`text-lg md:text-xl font-semibold text-gray-800 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide`}
               >
                 {t("home.productCategories.premiumItalianFlavors")}
               </h3>
@@ -571,7 +571,7 @@ export default function Home() {
                 {/* Multiple Accessory Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="/images/05 - Accessories-20250824T073107Z-1-001/05 - Accessories/empty-bottle-group.png"
+                    src="/images/05 - Accessories-20250824T073107Z-1-001/05 - Accessories\Black-Bottle---500-ML.png"
                     alt="Accessories"
                     width={180}
                     height={225}
@@ -580,7 +580,7 @@ export default function Home() {
                 </div>
               </div>
               <h3
-                className={`text-lg md:text-xl font-bold text-black ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide drop-shadow-sm`}
+                className={`text-lg md:text-xl font-semibold text-gray-800 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide`}
               >
                 {t("home.productCategories.accessories")}
               </h3>
@@ -603,7 +603,7 @@ export default function Home() {
               {/* Left Content */}
               <div className="space-y-6 md:space-y-8 max-w-lg animate-slide-in-left" dir={isRTL ? "rtl" : "ltr"}>
                 <h2
-                  className={`text-4xl md:text-6xl font-semibold text-black leading-tight ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-left delay-200 tracking-tight drop-shadow-lg`}
+                  className={`text-4xl md:text-6xl font-medium text-gray-800 leading-tight ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-left delay-200 tracking-wide`}
                 >
                   {t("home.megaOffer.title")}
                 </h2>
@@ -700,11 +700,11 @@ export default function Home() {
 
       <div className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40">
         {/* Container Card */}
-        <div className="max-w-full mx-auto bg-gradient-to-b from-white to-[#f3f3f3] rounded-2xl py-8 px-12 md:px-20 lg:px-24 relative overflow-hidden">
+        <div className="max-w-full mx-auto bg-white  rounded-2xl py-8 px-12 md:px-20 lg:px-24 relative overflow-hidden">
           <div className="flex flex-col lg:flex-row gap-8 items-start">
             {/* Left Side - Text Content */}
             <div className="lg:w-1/4 flex-shrink-0">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#12d6fa] leading-tight mb-6">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-[#12d6fa] leading-tight mb-6">
                 How does the
                 <br />
                 Drinkmate
@@ -712,7 +712,7 @@ export default function Home() {
                 OmniFizz work?
               </h2>
               <p className="text-lg md:text-xl text-gray-600">
-                Three simple steps that show you how to use the Drinkmate OmniFizz
+                Four simple steps that show you how to use the Drinkmate OmniFizz
               </p>
             </div>
 
@@ -721,7 +721,7 @@ export default function Home() {
               {steps.map((step, index) => (
                 <motion.div
                   key={step.id}
-                  className="flex flex-col items-center text-center"
+                  className="flex flex-col items-center text-center group"
                   initial={{ opacity: 0, y: 50 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.2, duration: 0.6 }}
@@ -742,8 +742,8 @@ export default function Home() {
                         priority={index < 2}
                         className="object-cover rounded-2xl shadow-lg"
                       />
-                      {/* Gradient and overlayed text */}
-                      <div className="absolute inset-x-0 bottom-0 p-4 rounded-b-2xl bg-gradient-to-t from-black/70 via-black/30 to-transparent">
+                      {/* Gradient and overlayed text - Hidden by default, shown on hover */}
+                      <div className="absolute inset-x-0 bottom-0 p-4 rounded-b-2xl bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <p className="text-white font-extrabold text-lg">{`Step ${step.id}: ${step.title}`}</p>
                         <p className="text-white/90 text-sm leading-snug">{step.description}</p>
                       </div>
@@ -997,14 +997,14 @@ export default function Home() {
               Don't just sparkle water
             </p>
           </div>
-          <h2 className="text-4xl md:text-6xl font-semibold bg-gradient-to-r from-black via-gray-800 to-black bg-clip-text text-transparent mb-4 drop-shadow-lg">
+          <h2 className="text-4xl md:text-6xl font-medium bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 bg-clip-text text-transparent mb-4">
             Sparkle Anything
           </h2>
           <div className="w-24 h-1 bg-[#12d6fa]  mx-auto rounded-full shadow-lg"></div>
         </div>
 
         <div
-          className="mx-auto bg-gradient-to-b from-white to-[#f3f3f3] rounded-2xl relative overflow-hidden"
+          className="mx-auto bg-white rounded-2xl relative overflow-hidden"
           style={{ height: "600px" }}
         >
           {/* Main Content with Background Image */}
@@ -1048,7 +1048,7 @@ export default function Home() {
                 />
               </div>
               <h3
-                className={`text-lg md:text-xl font-semibold text-black mt-6 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300`}
+                className={`text-lg md:text-xl font-medium text-gray-800 mt-6 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300`}
               >
                 {t("home.additionalSections.howToUse.title")}
               </h3>
@@ -1074,7 +1074,7 @@ export default function Home() {
                 />
               </div>
               <h3
-                className={`text-lg md:text-xl font-semibold text-black mt-6 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300`}
+                className={`text-lg md:text-xl font-medium text-gray-800 mt-6 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300`}
               >
                 {t("home.additionalSections.recipes.title")}
               </h3>
@@ -1100,7 +1100,7 @@ export default function Home() {
                 />
               </div>
               <h3
-                className={`text-lg md:text-xl font-semibold text-black mt-6 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300`}
+                className={`text-lg md:text-xl font-medium text-gray-800 mt-6 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300`}
               >
                 {t("home.additionalSections.premiumFlavors.title")}
               </h3>
@@ -1130,7 +1130,7 @@ export default function Home() {
               {t("home.environmental.subtitle")}
             </p>
             <h2
-              className={`text-3xl md:text-4xl font-semibold text-purple-400 ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up delay-200 tracking-tight leading-tight`}
+              className={`text-3xl md:text-4xl font-medium text-purple-500 ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up delay-200 tracking-wide leading-tight`}
             >
               {t("home.environmental.title")}
             </h2>
@@ -1153,7 +1153,7 @@ export default function Home() {
                 />
               </div>
               <h3
-                className={`text-base md:text-lg font-semibold text-gray-800 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
+                className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
               >
                 {t("home.environmental.plasticImpact")}
               </h3>
@@ -1174,7 +1174,7 @@ export default function Home() {
                 />
               </div>
               <h3
-                className={`text-base md:text-lg font-semibold text-gray-800 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
+                className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
               >
                 {t("home.environmental.naturalFlavors")}
               </h3>
@@ -1195,7 +1195,7 @@ export default function Home() {
                 />
               </div>
               <h3
-                className={`text-base md:text-lg font-semibold text-gray-800 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
+                className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
               >
                 {t("home.environmental.healthBenefits")}
               </h3>

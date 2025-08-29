@@ -117,6 +117,7 @@ export interface Translations {
       }
     },
     productCategories: {
+      title: string
       sodaMakers: string
       co2: string
       premiumItalianFlavors: string
@@ -1835,6 +1836,7 @@ export const translations: Record<Language, Translations> = {
         }
       },
       productCategories: {
+        title: "Our Product Categories",
         sodaMakers: "Soda Makers",
         co2: "CO2",
         premiumItalianFlavors: "Premium Italian Flavors",
@@ -3847,6 +3849,7 @@ export const translations: Record<Language, Translations> = {
         }
       },
       productCategories: {
+        title: "فئات منتجاتنا",
         sodaMakers: "صانعات الصودا",
         co2: "ثاني أكسيد الكربون",
         premiumItalianFlavors: "النكهات الإيطالية عالية الجودة",
