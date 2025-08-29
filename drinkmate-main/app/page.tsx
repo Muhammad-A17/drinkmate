@@ -379,7 +379,7 @@ export default function Home() {
             <div className="w-full md:w-[520px] h-auto md:h-[138px] flex flex-col justify-between text-center md:text-left">
               <div className="space-y-4 mb-4 md:mb-0">
                 <h2
-                  className={`text-2xl md:text-4xl font-bold text-black leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight drop-shadow-sm`}
+                  className={`text-2xl md:text-4xl font-semibold text-black leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight drop-shadow-sm`}
                 >
                   {slide.headline}
                 </h2>
@@ -478,7 +478,7 @@ export default function Home() {
           {/* Header */}
           <div className="text-center mb-8 md:mb-12" dir={isRTL ? "rtl" : "ltr"}>
             <h2
-              className={`text-3xl md:text-4xl font-bold text-black ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-tight drop-shadow-sm`}
+              className={`text-3xl md:text-4xl font-semibold text-black ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-tight drop-shadow-sm`}
             >
               {t("home.productCategories.title")}
             </h2>
@@ -603,7 +603,7 @@ export default function Home() {
               {/* Left Content */}
               <div className="space-y-6 md:space-y-8 max-w-lg animate-slide-in-left" dir={isRTL ? "rtl" : "ltr"}>
                 <h2
-                  className={`text-4xl md:text-6xl font-bold text-black leading-tight ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-left delay-200 tracking-tight drop-shadow-lg`}
+                  className={`text-4xl md:text-6xl font-semibold text-black leading-tight ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-left delay-200 tracking-tight drop-shadow-lg`}
                 >
                   {t("home.megaOffer.title")}
                 </h2>
@@ -851,7 +851,7 @@ export default function Home() {
                 </Button>
                 <Button
                   aria-label="Explore CO2 Subscriptions"
-                  className="bg-white text-gray-900 border border-gray-300 px-6 py-2 rounded-full font-semibold shadow-md hover:bg-gray-50 transition"
+                  className="bg-purple text-gray-900 border border-gray-300 px-6 py-2 rounded-full font-semibold shadow-md hover:bg-gray-50 transition"
                 >
                   Explore Subscriptions
                 </Button>
@@ -973,7 +973,7 @@ export default function Home() {
                 </Button>
                 <Button
                   aria-label="Explore CO2 Subscriptions"
-                  className="bg-white text-gray-900 border border-gray-300 px-8 py-3 rounded-full font-semibold shadow-md hover:bg-gray-50 transition"
+                  className="bg-purple text-gray-900 border border-gray-300 px-8 py-3 rounded-full font-semibold shadow-md hover:bg-gray-50 transition"
                 >
                   Explore Subscriptions
                 </Button>
@@ -992,15 +992,15 @@ export default function Home() {
       <section className="py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40">
         {/* Header */}
         <div className="text-center pt-12 mb-8">
-          <div className="inline-block bg-gradient-to-r from-[#12d6fa] via-[#0ea5e9] to-[#7c3aed] bg-clip-text">
-            <p className="text-lg md:text-xl font-medium mb-3 text-transparent bg-clip-text bg-gradient-to-r from-[#12d6fa] to-[#7c3aed]">
+          <div className="inline-block bg-[#12d6fa]  bg-clip-text">
+            <p className="text-lg md:text-xl font-medium mb-3 text-transparent bg-clip-text bg-[#12d6fa] ">
               Don't just sparkle water
             </p>
           </div>
-          <h2 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-black via-gray-800 to-black bg-clip-text text-transparent mb-4 drop-shadow-lg">
+          <h2 className="text-4xl md:text-6xl font-semibold bg-gradient-to-r from-black via-gray-800 to-black bg-clip-text text-transparent mb-4 drop-shadow-lg">
             Sparkle Anything
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-[#12d6fa] to-[#7c3aed] mx-auto rounded-full shadow-lg"></div>
+          <div className="w-24 h-1 bg-[#12d6fa]  mx-auto rounded-full shadow-lg"></div>
         </div>
 
         <div
@@ -1130,7 +1130,7 @@ export default function Home() {
               {t("home.environmental.subtitle")}
             </p>
             <h2
-              className={`text-3xl md:text-4xl font-bold text-purple-400 ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up delay-200 tracking-tight leading-tight`}
+              className={`text-3xl md:text-4xl font-semibold text-purple-400 ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up delay-200 tracking-tight leading-tight`}
             >
               {t("home.environmental.title")}
             </h2>

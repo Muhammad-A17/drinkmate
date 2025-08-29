@@ -313,7 +313,7 @@ export default function FlavorPage() {
               </>
             )}
           </div>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
             <div className="flex items-center gap-1">
               <span className="text-xl text-gray-900">
                 <SaudiRiyal amount={product.price} size="md" />
@@ -322,7 +322,7 @@ export default function FlavorPage() {
             <Button
               onClick={() => handleAddToCart(product)}
               disabled={isInCartStatus}
-              className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full px-6 py-2 h-10 text-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full w-full sm:w-auto justify-center px-4 sm:px-6 py-2 h-10 text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <ShoppingCart className="w-4 h-4" />
               {isInCartStatus ? "Added" : "Add to Cart"}

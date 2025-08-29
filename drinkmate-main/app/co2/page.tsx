@@ -216,21 +216,14 @@ export default function CO2() {
 
               {/* Right visual */}
               <div className="relative flex justify-center">
-                <div className="w-full max-w-sm h-[300px] bg-white rounded-2xl flex items-center justify-center overflow-hidden shadow-2xl">
-                  <div className="text-center">
-                    <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                      <svg className="w-12 h-12 text-[#12d6fa]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-                        />
-                      </svg>
-                    </div>
-                    <p className="text-lg font-semibold text-gray-700">CO2 Exchange</p>
-                    <p className="text-sm text-gray-500">Quick & Easy</p>
-                  </div>
+                <div className="w-full max-w-sm h-[300px] bg-white rounded-2xl flex items-center justify-center overflow-hidden">
+                  <Image
+                    src="/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
+                    alt="CO2 Exchange"
+                    width={220}
+                    height={220}
+                    className="object-contain"
+                  />
                 </div>
               </div>
             </div>

@@ -311,19 +311,19 @@ export default function CartPage() {
                   <div className="mb-4">
                     {item.originalPrice ? (
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-xl text-gray-900">
-                          <SaudiRiyal amount={item.price} size="lg" />
+                        <span className="font-medium text-md text-gray-900">
+                          <SaudiRiyal amount={item.price} size="md" />
                         </span>
-                        <span className="text-sm text-gray-500 line-through">
-                          <SaudiRiyal amount={item.originalPrice} size="sm" />
+                        <span className="text-xs text-gray-500 line-through">
+                          <SaudiRiyal amount={item.originalPrice} size="md" />
                         </span>
                         <span className="bg-red-50 text-red-500 text-xs font-normal px-2 py-0.5 rounded-full">
                           {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% OFF
                         </span>
                       </div>
                     ) : (
-                      <span className="font-normal text-lg text-gray-900">
-                        <SaudiRiyal amount={item.price} size="md" />
+                      <span className="font-normal text-sm text-gray-900">
+                        <SaudiRiyal amount={item.price} size="sm" />
                       </span>
                     )}
                   </div>

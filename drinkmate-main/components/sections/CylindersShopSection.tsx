@@ -1,5 +1,6 @@
 "use client"
 import { useState } from "react"
+import SaudiRiyal from "@/components/ui/SaudiRiyal"
 
 const cylinderServices = [
   {
@@ -82,8 +83,7 @@ export function CylindersShopSection() {
                         : "Buy a new cylinder just for"}
                   </p>
                   <div className="text-3xl font-bold text-black font-montserrat">
-                    {service.price}
-                    <span className="text-md">{service.currency}</span>
+                    <SaudiRiyal amount={parseFloat(service.price)} size="sm" />
                   </div>
                 </div>
 
