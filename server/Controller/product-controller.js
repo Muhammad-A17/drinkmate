@@ -212,6 +212,15 @@ exports.updateProduct = async (req, res) => {
             });
         }
         
+        // Auto-generate SKU if missing/empty on update
+        if (!req.body.sku || (typeof req.body.sku === 'string' && req.body.sku.trim() === '')) {
+            const base = (req.body.name || product.name || 'prod')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '')
+                .slice(0, 4);
+            req.body.sku = `${base}-${Date.now().toString().slice(-6)}`;
+        }
+
         // If name or SKU is being updated, check for duplicates
         if (req.body.name !== product.name || req.body.sku !== product.sku) {
             const existingProduct = await Product.findOne({

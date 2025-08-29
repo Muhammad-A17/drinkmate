@@ -464,7 +464,6 @@ export default function ProductForm({
                       value={formData.sku}
                       onChange={handleChange}
                       placeholder="Auto-generated if empty"
-                      required
                     />
                   </div>
                 </div>

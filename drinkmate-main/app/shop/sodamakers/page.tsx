@@ -96,28 +96,25 @@ export default function SodamakersPage() {
         console.log("Formatted bundles:", formattedBundles)
         setBundles(formattedBundles)
 
-        // Fetch all soda maker products (machines category)
-        const allProductsResponse = await shopAPI.getProducts({
-          limit: 50,
+        // Find the Soda Makers category slug, then fetch products for that category directly
+        const categoriesResp = await shopAPI.getCategories()
+        const sodaMakersCat = (categoriesResp.categories || []).find((c: any) => {
+          const name = (c.name || '').toLowerCase()
+          const slug = (c.slug || '').toLowerCase()
+          return name.includes('soda') || name.includes('maker') || slug.includes('soda') || slug.includes('maker')
         })
+        const sodaSlug = sodaMakersCat?.slug || 'sodamakers'
 
-        console.log("API Response:", allProductsResponse)
+        const byCategoryResp = await shopAPI.getProductsByCategory(sodaSlug, { limit: 100 })
+        console.log('Soda Makers category:', sodaSlug, 'Products count:', byCategoryResp.products?.length)
 
-        // Filter products by category name (since we don't have category ID)
-        const allProducts = allProductsResponse.products || []
+        const allProducts = byCategoryResp.products || []
 
-        console.log("All Products:", allProducts)
-
-        // Filter soda maker products (by category or name)
-        const sodaMakerProducts = allProducts.filter(
-          (product: any) =>
-            product.category === "sodamakers" ||
-            product.category === "machines" ||
-            product.name.toLowerCase().includes("soda") ||
-            product.name.toLowerCase().includes("drinkmate") ||
-            product.name.toLowerCase().includes("omnifizz") ||
-            product.name.toLowerCase().includes("luxe"),
-        )
+        // These are already scoped to Soda Makers category; still keep a name-based safety filter
+        const sodaMakerProducts = allProducts.filter((product: any) => {
+          const name = (product.name || '').toLowerCase()
+          return name.includes('soda') || name.includes('drinkmate') || name.includes('omnifizz') || name.includes('luxe') || true
+        })
 
         console.log("Soda Maker Products:", sodaMakerProducts)
 
@@ -131,17 +128,21 @@ export default function SodamakersPage() {
         console.log("OmniFizz Products:", omnifizzProducts)
 
         // Format OmniFizz products
-        const formattedOmnifizz = omnifizzProducts.slice(0, 4).map((product: any) => ({
+        const pickImage = (imgs: any): string => {
+          if (!imgs || imgs.length === 0) return "/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
+          const first = imgs[0]
+          if (typeof first === 'string') return first
+          return (imgs.find((img: any) => img.isPrimary)?.url) || first.url || "/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
+        }
+
+        const formattedOmnifizz = omnifizzProducts.map((product: any) => ({
           _id: product._id,
           id: product._id,
           slug: product.slug,
           name: product.name,
           price: product.price,
           originalPrice: product.originalPrice,
-          image:
-            product.images && product.images.length > 0
-              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-              : "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+          image: pickImage(product.images),
           category: "machines",
           rating: product.averageRating || 4.7,
           reviews: product.reviewCount || 350,
@@ -159,17 +160,14 @@ export default function SodamakersPage() {
         )
 
         // Format Luxe products
-        const formattedLuxe = luxeProducts.slice(0, 1).map((product: any) => ({
+        const formattedLuxe = luxeProducts.map((product: any) => ({
           _id: product._id,
           id: product._id,
           slug: product.slug,
           name: product.name,
           price: product.price,
           originalPrice: product.originalPrice,
-          image:
-            product.images && product.images.length > 0
-              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-              : "/images/02 - Soda Makers/Banner-Luxe-Machine.png",
+          image: pickImage(product.images) || "/images/02 - Soda Makers/Banner-Luxe-Machine.png",
           category: "machines",
           rating: product.averageRating || 4.9,
           reviews: product.reviewCount || 450,
@@ -183,17 +181,14 @@ export default function SodamakersPage() {
         const bestSellerProducts = sodaMakerProducts.filter((product: any) => product.isBestSeller === true)
 
         // Format Best Seller products
-        const formattedBestSellers = bestSellerProducts.slice(0, 3).map((product: any) => ({
+        const formattedBestSellers = bestSellerProducts.map((product: any) => ({
           _id: product._id,
           id: product._id,
           slug: product.slug,
           name: product.name,
           price: product.price,
           originalPrice: product.originalPrice,
-          image:
-            product.images && product.images.length > 0
-              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-              : "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+          image: pickImage(product.images),
           category: "machines",
           rating: product.averageRating || 4.8,
           reviews: product.reviewCount || 400,
