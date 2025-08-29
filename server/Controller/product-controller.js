@@ -17,7 +17,13 @@ exports.getAllProducts = async (req, res) => {
         if (req.query.category) {
             const category = await Category.findOne({ slug: req.query.category });
             if (category) {
-                filter.category = category._id;
+                // Support products where category is stored as ObjectId, stringified id, slug, or name
+                filter.$or = [
+                    { category: category._id },
+                    { category: category._id.toString() },
+                    { category: category.slug },
+                    { category: category.name }
+                ];
             }
         }
         
@@ -334,8 +340,13 @@ exports.getProductsByCategory = async (req, res) => {
         
         // Get products in this category
         const products = await Product.find({ 
-            category: category._id,
-            isActive: true
+            isActive: true,
+            $or: [
+                { category: category._id },
+                { category: category._id.toString() },
+                { category: category.slug },
+                { category: category.name }
+            ]
         })
         .select('name slug price originalPrice images averageRating reviewCount shortDescription')
         .skip(skip)
@@ -345,8 +356,13 @@ exports.getProductsByCategory = async (req, res) => {
         
         // Get total count for pagination
         const totalProducts = await Product.countDocuments({ 
-            category: category._id,
-            isActive: true
+            isActive: true,
+            $or: [
+                { category: category._id },
+                { category: category._id.toString() },
+                { category: category.slug },
+                { category: category.name }
+            ]
         });
         
         // Calculate total pages
