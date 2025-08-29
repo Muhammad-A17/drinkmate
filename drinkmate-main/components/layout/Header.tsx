@@ -69,6 +69,7 @@ export default function Header({ currentPage }: HeaderProps) {
               width={120}
               height={40}
               className="h-7 sm:h-8 md:h-10 w-auto filter drop-shadow-sm"
+              style={{ width: 'auto' }}
               priority
             />
           </Link>

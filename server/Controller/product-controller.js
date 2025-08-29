@@ -348,7 +348,7 @@ exports.getProductsByCategory = async (req, res) => {
                 { category: category.name }
             ]
         })
-        .select('name slug price originalPrice images averageRating reviewCount shortDescription')
+        .select('name slug price originalPrice images averageRating reviewCount shortDescription subcategory')
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 })

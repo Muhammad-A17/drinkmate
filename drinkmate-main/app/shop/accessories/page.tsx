@@ -15,12 +15,14 @@ import SaudiRiyal from "@/components/ui/SaudiRiyal"
 interface Product {
   _id: string
   id?: number
+  slug?: string
   name: string
   price: number
   originalPrice?: number
   discount?: number
   image: string
   category: string
+  subcategory?: string
   rating: number
   reviews: number
   description?: string
@@ -50,8 +52,8 @@ export default function AccessoriesPage() {
 
   // State for products and bundles
   const [bundles, setBundles] = useState<Bundle[]>([])
-  const [accessoriesProducts, setAccessoriesProducts] = useState<Product[]>([])
-  const [bottleProducts, setBottleProducts] = useState<Product[]>([])
+  const [allAccessories, setAllAccessories] = useState<Product[]>([])
+  const [subcategorySections, setSubcategorySections] = useState<Array<{ _id: string; name: string; products: Product[] }>>([])
 
   // Fetch products and bundles from API
   useEffect(() => {
@@ -106,97 +108,56 @@ export default function AccessoriesPage() {
 
         console.log("All products response:", allProductsResponse)
 
-        // Filter products by category
-        const allProducts = allProductsResponse.products || []
+        // Instead of filtering locally, fetch by category using slug (ensures subcategory field present)
+        const byCategoryResp = await shopAPI.getProductsByCategory('accessories', { limit: 100 })
+        const accessoriesProducts = byCategoryResp.products || []
 
-        // Debug: Log first few products to see their structure
-        if (allProducts.length > 0) {
-          console.log("Sample product structure:", {
-            first: allProducts[0],
-            category: allProducts[0].category,
-            categoryType: typeof allProducts[0].category,
-          })
+        // Helper to pick first/primary image
+        const pickImage = (imgs: any): string => {
+          if (!imgs || imgs.length === 0) return "/images/empty-drinkmate-bottle.png"
+          const first = imgs[0]
+          if (typeof first === 'string') return first
+          return (imgs.find((img: any) => img.isPrimary)?.url) || first.url || "/images/empty-drinkmate-bottle.png"
         }
 
-        let accessoriesProducts
-        if (accessoriesCategory) {
-          // Filter by specific Accessories category
-          accessoriesProducts = allProducts.filter((product: any) => {
-            // Handle both populated category objects and category IDs
-            if (product.category && typeof product.category === "object") {
-              // Category is populated (has name, slug, etc.)
-              return (
-                product.category._id === accessoriesCategory._id ||
-                product.category.name === "Accessories" ||
-                product.category.slug === "accessories"
-              )
-            } else if (typeof product.category === "string") {
-              // Category is just an ID string
-              return product.category === accessoriesCategory._id
-            }
-            return false
-          })
-        } else {
-          // Fallback: show all products if we can't determine categories
-          console.log("No Accessories category found, showing all products as fallback")
-          accessoriesProducts = allProducts
-        }
-
-        console.log("Accessories products found:", accessoriesProducts.length)
-        console.log(
-          "All categories available:",
-          categoriesResponse.categories?.map((cat: any) => ({ name: cat.name, slug: cat.slug, _id: cat._id })),
-        )
-        console.log("Filtered accessories products:", accessoriesProducts)
-
-        // Format accessories products
+        // Format accessories products and capture subcategory
         const formattedAccessories = accessoriesProducts.map((product: any) => ({
           _id: product._id,
           id: product._id,
+          slug: product.slug,
           name: product.name,
           price: product.price,
           originalPrice: product.originalPrice,
-          image:
-            product.images && product.images.length > 0
-              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-              : "/images/empty-drinkmate-bottle.png",
+          image: pickImage(product.images),
           category: "accessories",
+          subcategory: (typeof product.subcategory === 'string' ? product.subcategory : product.subcategory?._id) || product.subcategory,
           rating: product.averageRating || 5,
           reviews: product.reviewCount || 300,
           description: product.shortDescription,
           images: product.images,
         }))
 
-        setAccessoriesProducts(formattedAccessories)
+        setAllAccessories(formattedAccessories)
 
-        // Filter by subcategory for bottle products
-        const bottleProducts = accessoriesProducts.filter(
-          (product: any) =>
-            product.subcategory === "bottles" ||
-            product.name.toLowerCase().includes("bottle") ||
-            product.name.toLowerCase().includes("500ml") ||
-            product.name.toLowerCase().includes("1l"),
-        )
-
-        // Format bottle products
-        const formattedBottles = bottleProducts.map((product: any) => ({
-          _id: product._id,
-          id: product._id,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          image:
-            product.images && product.images.length > 0
-              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-              : "/images/empty-drinkmate-bottle.png",
-          category: "accessories",
-          rating: product.averageRating || 5,
-          reviews: product.reviewCount || 280,
-          description: product.shortDescription,
-          images: product.images,
-        }))
-
-        setBottleProducts(formattedBottles)
+        // Build sections by subcategory
+        const subs = (accessoriesCategory?.subcategories || []) as Array<{ _id: string; name: string }>
+        const bySubId: Record<string, Product[]> = {}
+        for (const p of formattedAccessories) {
+          const sid = p.subcategory || ''
+          if (!bySubId[sid]) bySubId[sid] = []
+          bySubId[sid].push(p)
+        }
+        const sections: Array<{ _id: string; name: string; products: Product[] }> = []
+        for (const sc of subs) {
+          sections.push({ _id: sc._id, name: sc.name, products: (bySubId[sc._id] || []) })
+        }
+        const otherProducts = Object.entries(bySubId)
+          .filter(([sid]) => !subs.find(s => s._id === sid))
+          .flatMap(([_, arr]) => arr)
+        if (otherProducts.length > 0) {
+          sections.push({ _id: 'others', name: 'Other Accessories', products: otherProducts })
+        }
+        setSubcategorySections(sections)
       } catch (error) {
         console.error("Error fetching products:", error)
         setError("Failed to load products. Please try again later.")
@@ -231,15 +192,17 @@ export default function AccessoriesPage() {
           },
         ])
 
-        setAccessoriesProducts([
+        setAllAccessories([
           {
             _id: "501",
             id: 501,
+            slug: "500ml-bottle-black",
             name: "500ml Bottle - Black",
             price: 42.99,
             originalPrice: 49.99,
             image: "/images/empty-drinkmate-bottle.png",
             category: "accessories",
+            subcategory: undefined,
             rating: 5,
             reviews: 320,
             description: "BPA-free carbonating bottle for your Drinkmate",
@@ -247,43 +210,19 @@ export default function AccessoriesPage() {
           {
             _id: "502",
             id: 502,
+            slug: "1l-bottle-black",
             name: "1L Bottle - Black",
             price: 75.0,
             originalPrice: 85.0,
             image: "/images/empty-drinkmate-bottle.png",
             category: "accessories",
+            subcategory: undefined,
             rating: 5,
             reviews: 280,
             description: "Compact BPA-free carbonating bottle",
           },
         ])
-
-        setBottleProducts([
-          {
-            _id: "503",
-            id: 503,
-            name: "500ml Bottle - Black",
-            price: 42.99,
-            originalPrice: 49.99,
-            image: "/images/empty-drinkmate-bottle.png",
-            category: "accessories",
-            rating: 5,
-            reviews: 150,
-            description: "BPA-free carbonating bottle for your Drinkmate",
-          },
-          {
-            _id: "504",
-            id: 504,
-            name: "500ml Bottle - Black",
-            price: 30.0,
-            originalPrice: 35.0,
-            image: "/images/empty-drinkmate-bottle.png",
-            category: "accessories",
-            rating: 5,
-            reviews: 190,
-            description: "BPA-free carbonating bottle for your Drinkmate",
-          },
-        ])
+        setSubcategorySections([])
       } finally {
         setIsLoading(false)
       }
@@ -483,67 +422,30 @@ export default function AccessoriesPage() {
               </div>
             )}
 
-            {/* Accessories Section */}
-            <div className="mb-16">
-              <h2 className="text-2xl font-medium mb-6 text-gray-900">Accessories</h2>
-              {accessoriesProducts.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {accessoriesProducts.map((product) => renderProductCard(product))}
-                </div>
-              ) : (
-                <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-inner">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
+            {/* Subcategory Sections (Parent-wise display) */}
+            {subcategorySections.length > 0 && subcategorySections.map((section) => (
+              <div key={section._id} className="mb-16">
+                <h2 className="text-2xl font-medium mb-6 text-gray-900">{section.name}</h2>
+                {section.products.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                    {section.products.map((product) => renderProductCard(product))}
                   </div>
-                  <h3 className="text-lg text-gray-900 mb-2">No Accessories Available</h3>
-                  <p className="text-gray-500 mb-4">We're working on adding accessories to our collection.</p>
-                  <Button
-                    onClick={() => router.push("/admin/products")}
-                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-                  >
-                    Add Products (Admin)
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Shop Bottles Section */}
-            <div className="mb-16">
-              <h2 className="text-2xl font-medium mb-6 text-gray-900">Shop Bottles</h2>
-              {bottleProducts.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {bottleProducts.map((product) => renderProductCard(product))}
-                </div>
-              ) : (
-                <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-inner">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
+                ) : (
+                  <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-inner">
+                    <div className="text-gray-400 mb-4">
+                      <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg text-gray-900 mb-2">No products in this subcategory</h3>
+                    <p className="text-gray-500 mb-4">We're working on adding more products.</p>
+                    <Button onClick={() => router.push("/admin/products")} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white">
+                      Add Products (Admin)
+                    </Button>
                   </div>
-                  <h3 className="text-lg text-gray-900 mb-2">No Bottles Available</h3>
-                  <p className="text-gray-500 mb-4">We're working on adding bottles to our collection.</p>
-                  <Button
-                    onClick={() => router.push("/admin/products")}
-                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-                  >
-                    Add Products (Admin)
-                  </Button>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            ))}
           </>
         )}
       </div>

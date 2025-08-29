@@ -15,11 +15,11 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000, // 15 second timeout
+  timeout: 30000, // 30 second timeout (helps with Render cold starts)
 });
 
 // Helper function to implement retry mechanism with caching
-const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = 3, delay = 1000): Promise<any> => {
+const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = 4, delay = 1500): Promise<any> => {
   // Check cache first if cacheKey is provided
   if (cacheKey && apiCache.has(cacheKey)) {
     const cachedData = apiCache.get(cacheKey);
@@ -78,7 +78,7 @@ const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxR
       }
       
       // Wait before retrying - exponential backoff
-      const waitTime = Math.floor(delay * Math.pow(2, retries - 1));
+      const waitTime = Math.min(8000, Math.floor(delay * Math.pow(2, retries - 1)));
       // Use a type assertion to avoid TypeScript error
       await new Promise<void>(resolve => {
         const timeoutId = setTimeout(resolve, waitTime);
@@ -121,6 +121,10 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Convert network timeouts to a friendlier message
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      error.message = 'Network timeout. Please try again in a moment.';
+    }
     // Handle unauthorized errors (401)
     if (error.response && error.response.status === 401) {
       // Clear token and redirect to login if needed

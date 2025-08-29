@@ -22,6 +22,7 @@ interface Product {
   discount?: number
   image: string
   category: string
+  subcategory?: string
   rating: number
   reviews: number
   color?: string
@@ -57,9 +58,8 @@ export default function SodamakersPage() {
   ])
 
   const [bundles, setBundles] = useState<Bundle[]>([])
-  const [omnifizzMakers, setOmnifizzMakers] = useState<Product[]>([])
-  const [luxeMakers, setLuxeMakers] = useState<Product[]>([])
-  const [bestSellerMakers, setBestSellerMakers] = useState<Product[]>([])
+  const [allMakers, setAllMakers] = useState<Product[]>([])
+  const [subcategorySections, setSubcategorySections] = useState<Array<{ _id: string; name: string; products: Product[] }>>([])
 
   // Fetch products and bundles from API
   useEffect(() => {
@@ -98,7 +98,8 @@ export default function SodamakersPage() {
 
         // Find the Soda Makers category slug, then fetch products for that category directly
         const categoriesResp = await shopAPI.getCategories()
-        const sodaMakersCat = (categoriesResp.categories || []).find((c: any) => {
+        const categoriesWithSubs = categoriesResp.categories || []
+        const sodaMakersCat = categoriesWithSubs.find((c: any) => {
           const name = (c.name || '').toLowerCase()
           const slug = (c.slug || '').toLowerCase()
           return name.includes('soda') || name.includes('maker') || slug.includes('soda') || slug.includes('maker')
@@ -135,7 +136,7 @@ export default function SodamakersPage() {
           return (imgs.find((img: any) => img.isPrimary)?.url) || first.url || "/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
         }
 
-        const formattedOmnifizz = omnifizzProducts.map((product: any) => ({
+        const formattedAll = sodaMakerProducts.map((product: any) => ({
           _id: product._id,
           id: product._id,
           slug: product.slug,
@@ -144,65 +145,42 @@ export default function SodamakersPage() {
           originalPrice: product.originalPrice,
           image: pickImage(product.images),
           category: "machines",
+          subcategory: (typeof product.subcategory === 'string' ? product.subcategory : product.subcategory?._id) || product.subcategory,
           rating: product.averageRating || 4.7,
           reviews: product.reviewCount || 350,
           color: product.colors && product.colors.length > 0 ? product.colors[0].name : undefined,
           images: product.images,
         }))
+        setAllMakers(formattedAll)
 
-        setOmnifizzMakers(formattedOmnifizz)
-
-        // Filter Luxe products
-        const luxeProducts = sodaMakerProducts.filter(
-          (product: any) =>
-            product.name.toLowerCase().includes("luxe") ||
-            (product.subcategory && product.subcategory.toLowerCase().includes("luxe")),
-        )
-
-        // Format Luxe products
-        const formattedLuxe = luxeProducts.map((product: any) => ({
-          _id: product._id,
-          id: product._id,
-          slug: product.slug,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          image: pickImage(product.images) || "/images/02 - Soda Makers/Banner-Luxe-Machine.png",
-          category: "machines",
-          rating: product.averageRating || 4.9,
-          reviews: product.reviewCount || 450,
-          color: product.colors && product.colors.length > 0 ? product.colors[0].name : "Stainless Steel",
-          images: product.images,
-        }))
-
-        setLuxeMakers(formattedLuxe)
-
-        // Filter Best Seller products
-        const bestSellerProducts = sodaMakerProducts.filter((product: any) => product.isBestSeller === true)
-
-        // Format Best Seller products
-        const formattedBestSellers = bestSellerProducts.map((product: any) => ({
-          _id: product._id,
-          id: product._id,
-          slug: product.slug,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          image: pickImage(product.images),
-          category: "machines",
-          rating: product.averageRating || 4.8,
-          reviews: product.reviewCount || 400,
-          color: product.colors && product.colors.length > 0 ? product.colors[0].name : undefined,
-          images: product.images,
-        }))
-
-        setBestSellerMakers(formattedBestSellers)
+        // Build sections by subcategory (parent-wise display)
+        const subs = (sodaMakersCat?.subcategories || []) as Array<{ _id: string; name: string }>
+        const sections: Array<{ _id: string; name: string; products: Product[] }> = []
+        const bySubId: Record<string, Product[]> = {}
+        for (const p of formattedAll) {
+          const sid = p.subcategory || ''
+          if (!bySubId[sid]) bySubId[sid] = []
+          bySubId[sid].push(p)
+        }
+        // Add known subcategories in category order
+        for (const sc of subs) {
+          sections.push({ _id: sc._id, name: sc.name, products: (bySubId[sc._id] || []) })
+        }
+        // Find products without a known subcategory in this category
+        const otherProducts = Object.entries(bySubId)
+          .filter(([sid]) => !subs.find(s => s._id === sid))
+          .flatMap(([_, arr]) => arr)
+        if (otherProducts.length > 0) {
+          sections.push({ _id: 'others', name: 'Other Models', products: otherProducts })
+        }
+        setSubcategorySections(sections)
       } catch (error) {
         console.error("Error fetching products:", error)
         setError("Failed to load products. Please try again later.")
 
         // Fallback to static data if API fails
-        setOmnifizzMakers([
+        // Fallback examples (not grouped)
+        setAllMakers([
           {
             _id: "201",
             id: 201,
@@ -212,6 +190,7 @@ export default function SodamakersPage() {
             originalPrice: 699.99,
             image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
             category: "machines",
+            subcategory: undefined,
             rating: 4.9,
             reviews: 450,
             color: "Black",
@@ -225,29 +204,13 @@ export default function SodamakersPage() {
             originalPrice: 699.99,
             image: "/images/02 - Soda Makers/Artic-Blue-Machine---Front.png",
             category: "machines",
+            subcategory: undefined,
             rating: 4.8,
             reviews: 380,
             color: "Blue",
           },
         ])
-
-        setLuxeMakers([
-          {
-            _id: "301",
-            id: 301,
-            slug: "luxe-soda-maker-stainless-steel",
-            name: "Luxe Soda Maker - Stainless Steel",
-            price: 799.99,
-            originalPrice: 999.99,
-            image: "/images/02 - Soda Makers/Banner-Luxe-Machine.png",
-            category: "machines",
-            rating: 4.9,
-            reviews: 450,
-            color: "Stainless Steel",
-          },
-        ])
-
-        setBestSellerMakers([])
+        setSubcategorySections([])
         setBundles([])
       } finally {
         setIsLoading(false)
@@ -501,100 +464,39 @@ export default function SodamakersPage() {
               </div>
             )}
 
-            {/* OmniFizz Soda Makers Section */}
-            <div className="mb-16">
-              <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">OmniFizz Soda Makers</h2>
-              {omnifizzMakers.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {omnifizzMakers.map((product) => renderProductCard(product))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
+            {/* Subcategory Sections (Parent-wise display) */}
+            {subcategorySections.length > 0 && subcategorySections.map((section) => (
+              <div key={section._id} className="mb-16">
+                <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">{section.name}</h2>
+                {section.products.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                    {section.products.map((product) => renderProductCard(product))}
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No OmniFizz Soda Makers Available</h3>
-                  <p className="text-gray-500 mb-4">We're working on adding OmniFizz soda makers to our collection.</p>
-                  <Button
-                    onClick={() => router.push("/admin/products")}
-                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-                  >
-                    Add Products (Admin)
-                  </Button>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <div className="text-gray-400 mb-4">
+                      <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No products in this subcategory</h3>
+                    <Button onClick={() => router.push("/admin/products")} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white">
+                      Add Products (Admin)
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
 
-            {/* Luxe Soda Makers Section */}
-            <div className="mb-16">
-              <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">Luxe Soda Makers</h2>
-              {luxeMakers.length > 0 ? (
+            {/* All Soda Makers (fallback to show everything in category) */}
+            {allMakers.length > 0 && (
+              <div className="mb-16">
+                <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">All Soda Makers</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {luxeMakers.map((product) => renderProductCard(product))}
+                  {allMakers.map((product) => renderProductCard(product))}
                 </div>
-              ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Luxe Soda Makers Available</h3>
-                  <p className="text-gray-500 mb-4">We're working on adding Luxe soda makers to our collection.</p>
-                  <Button
-                    onClick={() => router.push("/admin/products")}
-                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-                  >
-                    Add Products (Admin)
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Best Seller Soda Makers Section */}
-            <div className="mb-16">
-              <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">Best Seller Soda Makers</h2>
-              {bestSellerMakers.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {bestSellerMakers.map((product) => renderProductCard(product))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Best Seller Soda Makers Available</h3>
-                  <p className="text-gray-500 mb-4">
-                    We're working on adding best seller soda makers to our collection.
-                  </p>
-                  <Button
-                    onClick={() => router.push("/admin/products")}
-                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-                  >
-                    Add Products (Admin)
-                  </Button>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </>
         )}
       </div>

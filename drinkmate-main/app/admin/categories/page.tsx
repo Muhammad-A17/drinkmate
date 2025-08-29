@@ -25,6 +25,7 @@ interface Category {
   color: string;
   isActive: boolean;
   sortOrder: number;
+  parentCategory: string | null;
   productCount: number;
   bundleCount: number;
   createdAt: string;
@@ -41,7 +42,7 @@ interface Subcategory {
   color: string;
   isActive: boolean;
   sortOrder: number;
-  category: string;
+  category: string | { _id: string; name: string; slug: string };
   productCount: number;
   bundleCount: number;
   createdAt: string;
@@ -61,7 +62,8 @@ export default function AdminCategoriesPage() {
     image: '',
     icon: '',
     color: '#12d6fa',
-    sortOrder: 0
+    sortOrder: 0,
+    parentCategory: '' as string | ''
   });
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -105,11 +107,15 @@ export default function AdminCategoriesPage() {
     e.preventDefault();
     
     try {
+      const payload = {
+        ...categoryForm,
+        parentCategory: categoryForm.parentCategory ? categoryForm.parentCategory : null,
+      };
       if (editingCategory) {
-        await adminAPI.updateCategory(editingCategory._id, categoryForm);
+        await adminAPI.updateCategory(editingCategory._id, payload);
         toast.success('Category updated successfully');
       } else {
-        await adminAPI.createCategory(categoryForm);
+        await adminAPI.createCategory(payload);
         toast.success('Category created successfully');
       }
       
@@ -194,7 +200,8 @@ export default function AdminCategoriesPage() {
       image: '',
       icon: '',
       color: '#12d6fa',
-      sortOrder: 0
+      sortOrder: 0,
+      parentCategory: ''
     });
     setEditingCategory(null);
     setIsCategoryDialogOpen(false);
@@ -221,7 +228,8 @@ export default function AdminCategoriesPage() {
       image: category.image,
       icon: category.icon,
       color: category.color,
-      sortOrder: category.sortOrder
+      sortOrder: category.sortOrder,
+      parentCategory: category.parentCategory || ''
     });
     setEditingCategory(category);
     setIsCategoryDialogOpen(true);
@@ -235,7 +243,7 @@ export default function AdminCategoriesPage() {
       icon: subcategory.icon,
       color: subcategory.color,
       sortOrder: subcategory.sortOrder,
-      category: subcategory.category
+      category: typeof subcategory.category === 'string' ? subcategory.category : subcategory.category?._id || ''
     });
     setEditingSubcategory(subcategory);
     setIsSubcategoryDialogOpen(true);
@@ -344,6 +352,12 @@ export default function AdminCategoriesPage() {
                       </Badge>
                       <Badge variant="outline">Order: {category.sortOrder}</Badge>
                     </div>
+                    <div className="mt-3 pt-3 border-t">
+                      <p className="text-xs text-gray-500">Parent Category:</p>
+                      <Badge variant="outline" className="text-xs">
+                        {categories.find(c => c._id === category.parentCategory)?.name || 'None'}
+                      </Badge>
+                    </div>
                     {category.icon && (
                       <div className="mt-3 pt-3 border-t">
                         <p className="text-xs text-gray-500 mb-2">Icon: {category.icon}</p>
@@ -416,7 +430,13 @@ export default function AdminCategoriesPage() {
                     <div className="mt-3 pt-3 border-t">
                       <p className="text-xs text-gray-500">Parent Category:</p>
                       <Badge variant="outline" className="text-xs">
-                        {categories.find(c => c._id === subcategory.category)?.name || 'Unknown'}
+                        {
+                          (
+                            typeof subcategory.category === 'string'
+                              ? categories.find(c => c._id === subcategory.category)?.name
+                              : subcategory.category?.name
+                          ) || 'Unknown'
+                        }
                       </Badge>
                     </div>
                   </CardContent>
@@ -460,6 +480,27 @@ export default function AdminCategoriesPage() {
                   placeholder="Category description"
                   rows={3}
                 />
+              </div>
+              <div>
+                <Label htmlFor="categoryParent">Parent Category</Label>
+                <Select
+                  value={categoryForm.parentCategory || ''}
+                  onValueChange={(value) => setCategoryForm({ ...categoryForm, parentCategory: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {categories
+                      .filter(c => !editingCategory || c._id !== editingCategory._id)
+                      .map((category) => (
+                        <SelectItem key={category._id} value={category._id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

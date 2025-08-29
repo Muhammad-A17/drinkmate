@@ -15,12 +15,14 @@ import SaudiRiyal from "@/components/ui/SaudiRiyal"
 interface Product {
   _id: string
   id?: number
+  slug?: string
   name: string
   price: number
   originalPrice?: number
   discount?: number
   image: string
   category: string
+  subcategory?: string
   rating: number
   reviews: number
   description?: string
@@ -50,9 +52,8 @@ export default function FlavorPage() {
 
   // State for products and bundles
   const [bundles, setBundles] = useState<Bundle[]>([])
-  const [flavorProducts, setFlavorProducts] = useState<Product[]>([])
-  const [premiumSyrups, setPremiumSyrups] = useState<Product[]>([])
-  const [shopSyrups, setShopSyrups] = useState<Product[]>([])
+  const [allFlavors, setAllFlavors] = useState<Product[]>([])
+  const [subcategorySections, setSubcategorySections] = useState<Array<{ _id: string; name: string; products: Product[] }>>([])
 
   // Define fetch function
   async function fetchProducts() {
@@ -86,110 +87,82 @@ export default function FlavorPage() {
 
       setBundles(formattedBundles)
 
-      // Fetch all products and filter by category
-      const allProductsResponse = await shopAPI.getProducts({
-        limit: 50,
+      // Fetch categories and find Flavors category
+      const categoriesResp = await shopAPI.getCategories()
+      const categoriesWithSubs = categoriesResp.categories || []
+      const flavorsCat = categoriesWithSubs.find((c: any) => {
+        const name = (c.name || '').toLowerCase()
+        const slug = (c.slug || '').toLowerCase()
+        return name.includes('flavor') || slug.includes('flavor')
       })
+      const flavorSlug = flavorsCat?.slug || 'flavor'
 
-      console.log("All products response:", allProductsResponse)
+      // Fetch products by category (returns subcategory field)
+      const byCategoryResp = await shopAPI.getProductsByCategory(flavorSlug, { limit: 100 })
+      const flavorProducts = byCategoryResp.products || []
 
-      // Filter products by category
-      const allProducts = allProductsResponse.products || []
-      const flavorProducts = allProducts.filter(
-        (product: any) => product.category === "flavors" || product.category === "flavor",
-      )
+      // Helper to pick first/primary image
+      const pickImage = (imgs: any): string => {
+        if (!imgs || imgs.length === 0) return "/images/01 - Flavors/Strawberry-Lemon-Flavor.png"
+        const first = imgs[0]
+        if (typeof first === 'string') return first
+        return (imgs.find((img: any) => img.isPrimary)?.url) || first.url || "/images/01 - Flavors/Strawberry-Lemon-Flavor.png"
+      }
 
-      console.log("Flavor products found:", flavorProducts.length)
-
-      // Format flavor products
+      // Format products and capture subcategory
       const formattedFlavors = flavorProducts.map((product: any) => ({
         _id: product._id,
         id: product._id,
+        slug: product.slug,
         name: product.name,
         price: product.price,
         originalPrice: product.originalPrice,
-        image:
-          product.images && product.images.length > 0
-            ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-            : "/images/01 - Flavors/Strawberry-Lemon-Flavor.png",
+        image: pickImage(product.images),
         category: "flavors",
+        subcategory: (typeof product.subcategory === 'string' ? product.subcategory : product.subcategory?._id) || product.subcategory,
         rating: product.averageRating || 5,
         reviews: product.reviewCount || 300,
         description: product.shortDescription,
         images: product.images,
       }))
 
-      setFlavorProducts(formattedFlavors)
+      setAllFlavors(formattedFlavors)
 
-      // Filter by subcategory for premium syrups
-      const premiumSyrups = flavorProducts.filter(
-        (product: any) =>
-          product.subcategory === "premium" ||
-          product.name.toLowerCase().includes("premium") ||
-          product.name.toLowerCase().includes("italian"),
-      )
-
-      // Format premium syrups
-      const formattedPremium = premiumSyrups.map((product: any) => ({
-        _id: product._id,
-        id: product._id,
-        name: product.name,
-        price: product.price,
-        originalPrice: product.originalPrice,
-        image:
-          product.images && product.images.length > 0
-            ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-            : "/images/01 - Flavors/Cola-Flavor.png",
-        category: "flavors",
-        rating: product.averageRating || 5,
-        reviews: product.reviewCount || 280,
-        description: product.shortDescription,
-        images: product.images,
-      }))
-
-      setPremiumSyrups(formattedPremium)
-
-      // Filter by subcategory for shop syrups
-      const shopSyrups = flavorProducts.filter(
-        (product: any) =>
-          product.subcategory === "standard" ||
-          !product.name.toLowerCase().includes("premium") ||
-          !product.name.toLowerCase().includes("italian"),
-      )
-
-      // Format shop syrups
-      const formattedSyrups = shopSyrups.map((product: any) => ({
-        _id: product._id,
-        id: product._id,
-        name: product.name,
-        price: product.price,
-        originalPrice: product.originalPrice,
-        image:
-          product.images && product.images.length > 0
-            ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-            : "/images/01 - Flavors/Mojito-Mocktails.png",
-        category: "flavors",
-        rating: product.averageRating || 5,
-        reviews: product.reviewCount || 350,
-        description: product.shortDescription,
-        images: product.images,
-      }))
-
-      setShopSyrups(formattedSyrups)
+      // Build sections by subcategory
+      const subs = (flavorsCat?.subcategories || []) as Array<{ _id: string; name: string }>
+      const bySubId: Record<string, Product[]> = {}
+      for (const p of formattedFlavors) {
+        const sid = p.subcategory || ''
+        if (!bySubId[sid]) bySubId[sid] = []
+        bySubId[sid].push(p)
+      }
+      const sections: Array<{ _id: string; name: string; products: Product[] }> = []
+      for (const sc of subs) {
+        sections.push({ _id: sc._id, name: sc.name, products: (bySubId[sc._id] || []) })
+      }
+      const otherProducts = Object.entries(bySubId)
+        .filter(([sid]) => !subs.find(s => s._id === sid))
+        .flatMap(([_, arr]) => arr)
+      if (otherProducts.length > 0) {
+        sections.push({ _id: 'others', name: 'Other Flavors', products: otherProducts })
+      }
+      setSubcategorySections(sections)
     } catch (error) {
       console.error("Error fetching products:", error)
       setError("Failed to load products. Please try again later.")
 
       // Fallback to static data if API fails
-      setFlavorProducts([
+      setAllFlavors([
         {
           _id: "401",
           id: 401,
+          slug: "italian-strawberry-lemon",
           name: "Italian Strawberry Lemon",
           price: 49.99,
           originalPrice: 59.99,
           image: "/images/01 - Flavors/Strawberry-Lemon-Flavor.png",
           category: "flavors",
+          subcategory: undefined,
           rating: 5,
           reviews: 320,
           description: "Natural premium Italian flavor syrup",
@@ -197,11 +170,13 @@ export default function FlavorPage() {
         {
           _id: "402",
           id: 402,
+          slug: "italian-cola",
           name: "Italian Cola",
           price: 49.99,
           originalPrice: 59.99,
           image: "/images/01 - Flavors/Cola-Flavor.png",
           category: "flavors",
+          subcategory: undefined,
           rating: 5,
           reviews: 280,
           description: "Classic cola flavor for your carbonated drinks",
@@ -209,11 +184,13 @@ export default function FlavorPage() {
         {
           _id: "403",
           id: 403,
+          slug: "mojito-mocktail",
           name: "Italian Mojito Mocktail",
           price: 49.99,
           originalPrice: 59.99,
           image: "/images/01 - Flavors/Mojito-Mocktails.png",
           category: "flavors",
+          subcategory: undefined,
           rating: 5,
           reviews: 350,
           description: "Refreshing mojito flavor without the alcohol",
@@ -221,19 +198,19 @@ export default function FlavorPage() {
         {
           _id: "404",
           id: 404,
+          slug: "italian-strawberry-lemon-2",
           name: "Italian Strawberry Lemon",
           price: 49.99,
           originalPrice: 59.99,
           image: "/images/01 - Flavors/Strawberry-Lemon-Flavor.png",
           category: "flavors",
+          subcategory: undefined,
           rating: 5,
           reviews: 290,
           description: "Natural premium Italian flavor syrup",
         },
       ])
-
-      setPremiumSyrups([])
-      setShopSyrups([])
+      setSubcategorySections([])
       setBundles([])
     } finally {
       setIsLoading(false)
@@ -450,77 +427,29 @@ export default function FlavorPage() {
               </div>
             )}
 
-            {/* Premium Italian Syrups Section */}
-            <div className="mb-16">
-              <h2 className="text-xl font-medium mb-6 text-gray-900">Premium Italian Syrups</h2>
-              {premiumSyrups.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {premiumSyrups.map((product) => renderProductCard(product))}
-                </div>
-              ) : flavorProducts.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {flavorProducts.slice(0, 4).map((product) => renderProductCard(product))}
-                </div>
-              ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-2xl shadow-inner">
-                  <div className="text-gray-400 mb-6">
-                    <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
+            {/* Subcategory Sections (Parent-wise display) */}
+            {subcategorySections.length > 0 && subcategorySections.map((section) => (
+              <div key={section._id} className="mb-16">
+                <h2 className="text-xl font-medium mb-6 text-gray-900">{section.name}</h2>
+                {section.products.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                    {section.products.map((product) => renderProductCard(product))}
                   </div>
-                  <h3 className="text-xl font-medium text-gray-900 mb-3">No Premium Syrups Available</h3>
-                  <p className="text-gray-600 mb-6">
-                    We're working on adding premium Italian syrups to our collection.
-                  </p>
-                  <Button
-                    onClick={() => router.push("/admin/products")}
-                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
-                  >
-                    Add Products (Admin)
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Shop Syrups Section */}
-            <div className="mb-16">
-              <h2 className="text-xl font-medium mb-6 text-gray-900">Shop Syrups</h2>
-              {shopSyrups.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {shopSyrups.map((product) => renderProductCard(product))}
-                </div>
-              ) : flavorProducts.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {flavorProducts.slice(4, 8).map((product) => renderProductCard(product))}
-                </div>
-              ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-2xl shadow-inner">
-                  <div className="text-gray-400 mb-6">
-                    <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
+                ) : (
+                  <div className="text-center py-16 bg-gray-50 rounded-2xl shadow-inner">
+                    <div className="text-gray-400 mb-6">
+                      <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-medium text-gray-900 mb-3">No products in this subcategory</h3>
+                    <Button onClick={() => router.push("/admin/products")} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                      Add Products (Admin)
+                    </Button>
                   </div>
-                  <h3 className="text-xl font-medium text-gray-900 mb-3">No Shop Syrups Available</h3>
-                  <p className="text-gray-600 mb-6">We're working on adding shop syrups to our collection.</p>
-                  <Button
-                    onClick={() => router.push("/admin/products")}
-                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
-                  >
-                    Add Products (Admin)
-                  </Button>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            ))}
           </>
         )}
       </div>
