@@ -115,7 +115,7 @@ drinkmate/
 ## 🛠️ Tech Stack
 
 ### Frontend
-- ⚛️ React (Vite)  
+- ⚛️ Next js 
 - 🎨 TailwindCSS  
 - 🔄 Axios (API calls)  
 
@@ -161,3 +161,4 @@ You are free to use, modify, and distribute it.
 🚀 Passionate Software Engineer | 💡 Focused on MERN, ML & AI  
 📍 Lahore, Pakistan  
 🔗 [GitHub Profile](https://github.com/faizanhassan)  
+
