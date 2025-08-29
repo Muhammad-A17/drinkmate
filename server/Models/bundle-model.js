@@ -145,6 +145,9 @@ BundleSchema.index({
     description: 'text'
 });
 
+// Compound indexes for frequent filters/sorts
+BundleSchema.index({ isActive: 1, category: 1, createdAt: -1 });
+
 // Pre-save hook to generate slug if not provided
 BundleSchema.pre('save', function(next) {
     if (!this.slug) {

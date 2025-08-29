@@ -2,6 +2,25 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+// Optional performance/security middleware
+let compression;
+let helmet;
+let morgan;
+try {
+  compression = require('compression');
+} catch (e) {
+  console.log('compression module not installed; skipping gzip. Run: npm i compression');
+}
+try {
+  helmet = require('helmet');
+} catch (e) {
+  console.log('helmet module not installed; skipping security headers. Run: npm i helmet');
+}
+try {
+  morgan = require('morgan');
+} catch (e) {
+  console.log('morgan module not installed; skipping request logger. Run: npm i morgan');
+}
 require('dotenv').config({ path: './.env' });
 
 const { connect } = require('./Utils/db');
@@ -17,6 +36,19 @@ const categoryRouter = require('./Router/category-router');
 const co2Router = require('./Router/co2-router');
 const refillRouter = require('./Router/refill-router');
 const app = express();
+
+// Strong ETag for better caching/validation
+app.set('etag', 'strong');
+
+// Enable gzip compression if available
+if (compression) {
+  app.use(compression({ level: 6 }));
+}
+
+// Secure headers (if available)
+if (helmet) {
+  app.use(helmet());
+}
 
 // Configure CORS to allow requests from the frontend
 app.use(cors({
@@ -63,15 +95,76 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Request logging middleware
+// Request logging middleware (dev only)
+if (((process.env.NODE_ENV || 'development') !== 'production') && morgan) {
+  app.use(morgan('tiny'));
+}
+
+// Lightweight Cache-Control for GET requests
 app.use((req, res, next) => {
-  console.log(`📡 ${req.method} ${req.path} - ${new Date().toISOString()}`);
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log('📦 Request Body:', req.body);
+  if (req.method === 'GET') {
+    const longTtlPaths = [
+      '/shop/categories',
+      '/blog/posts',
+      '/testimonials',
+      '/co2/cylinders'
+    ];
+    const isLong = longTtlPaths.some((p) => req.path.startsWith(p));
+    const maxAge = isLong ? 300 : 30; // seconds
+    res.set('Cache-Control', `public, max-age=${maxAge}, stale-while-revalidate=${Math.min(maxAge, 60)}`);
   }
-  if (req.query && Object.keys(req.query).length > 0) {
-    console.log('🔍 Query Params:', req.query);
+  next();
+});
+
+// Simple in-memory response cache for hot GET endpoints
+const responseCache = new Map();
+const CACHE_MAX = 100; // entries
+const cacheablePrefixes = [
+  '/shop/products',
+  '/shop/bundles',
+  '/shop/categories',
+  '/blog/posts',
+  '/co2/cylinders',
+  '/testimonials'
+];
+
+function setCache(key, value, ttlMs) {
+  // Evict oldest if needed
+  if (responseCache.size >= CACHE_MAX) {
+    const firstKey = responseCache.keys().next().value;
+    if (firstKey) responseCache.delete(firstKey);
   }
+  responseCache.set(key, { expiresAt: Date.now() + ttlMs, value });
+}
+
+function getCache(key) {
+  const entry = responseCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    responseCache.delete(key);
+    return null;
+  }
+  return entry.value;
+}
+
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next();
+  if (!cacheablePrefixes.some((p) => req.path.startsWith(p))) return next();
+
+  // TTL based on path
+  const ttlMs = req.path.startsWith('/shop/categories') ? 120000 : 20000; // 120s for categories, 20s for lists
+  const key = req.originalUrl;
+  const cached = getCache(key);
+  if (cached) {
+    res.set('X-Cache', 'HIT');
+    return res.json(cached);
+  }
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    try { setCache(key, body, ttlMs); } catch (_) {}
+    res.set('X-Cache', 'MISS');
+    return originalJson(body);
+  };
   next();
 });
 
@@ -278,8 +371,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler for undefined routes
-app.use('*', (req, res) => {
+// 404 handler for undefined routes (catch-all middleware)
+app.use((req, res) => {
   console.log(`❌ 404 - Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
     success: false,

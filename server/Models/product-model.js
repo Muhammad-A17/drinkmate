@@ -218,6 +218,11 @@ ProductSchema.index({
     'specifications.value': 'text'
 });
 
+// Compound indexes for frequent filters/sorts
+ProductSchema.index({ isActive: 1, category: 1, createdAt: -1 });
+ProductSchema.index({ isActive: 1, price: 1 });
+ProductSchema.index({ isActive: 1, averageRating: -1 });
+
 // Pre-save hook to generate slug if not provided
 ProductSchema.pre('save', function(next) {
     if (!this.slug) {

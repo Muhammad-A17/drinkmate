@@ -77,10 +77,12 @@ exports.getAllProducts = async (req, res) => {
         
         // Execute query with pagination
         const products = await Product.find(filter)
+            .select('name slug price originalPrice images averageRating reviewCount category shortDescription')
             .populate('category', 'name slug')
             .sort(sort)
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .lean();
             
         // Get total count for pagination
         const totalProducts = await Product.countDocuments(filter);
@@ -326,9 +328,11 @@ exports.getProductsByCategory = async (req, res) => {
             category: category._id,
             isActive: true
         })
+        .select('name slug price originalPrice images averageRating reviewCount shortDescription')
         .skip(skip)
         .limit(limit)
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .lean();
         
         // Get total count for pagination
         const totalProducts = await Product.countDocuments({ 
@@ -383,11 +387,13 @@ exports.getBundles = async (req, res) => {
         
         // Execute query with pagination
         const bundles = await Bundle.find(filter)
+            .select('name slug price originalPrice images averageRating reviewCount isFeatured badge category')
             .populate('category', 'name slug')
             .populate('items.product', 'name images')
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .lean();
             
         // Get total count for pagination
         const totalBundles = await Bundle.countDocuments(filter);
