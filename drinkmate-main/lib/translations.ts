@@ -1757,14 +1757,14 @@ export const translations: Record<Language, Translations> = {
       },
       refill: {
         title: "REFILL MORE. SAVE MORE.",
-        description: "Now refill 4 cylinders all together for the price of 55 SAR each cylinder.",
+        description: "Now refill 4 cylinders all together for the price of 55 each cylinder.",
         buttonText: "Refill Now",
         offerText: "*Offer valid for whole year*",
         carbonatesUpto: "Carbonates upto",
         liters: "60",
         litersOfDrink: "Liters of drink",
         slide2: {
-          headline: "GET ENERGY DRINK & COLA FLAVOR FOR 79 SAR",
+          headline: "GET ENERGY DRINK & COLA FLAVOR FOR 79",
           description: "Beat the summer heat with our best sellers.",
           buttonText: "Refill Now"
         },
@@ -1817,7 +1817,7 @@ export const translations: Record<Language, Translations> = {
       carousel: {
         slide1: {
           headline: "REFILL MORE. SAVE MORE.",
-          description: "Now refill 4 cylinders all together for the price of 55 SAR each cylinder.",
+          description: "Now refill 4 cylinders all together for the price of 55 each cylinder.",
           buttonText: "Refill Now",
           offerText: "*Offer valid for whole year*",
           carbonatesUpto: "Carbonates upto",
@@ -1825,7 +1825,7 @@ export const translations: Record<Language, Translations> = {
           litersOfDrink: "Liters of drink"
         },
         slide2: {
-          headline: "GET ENERGY DRINK & COLA FLAVOR FOR 79 SAR",
+          headline: "GET ENERGY DRINK & COLA FLAVOR FOR 79",
           description: "Beat the summer heat with our best sellers.",
           buttonText: "Refill Now"
         },
@@ -3037,7 +3037,7 @@ export const translations: Record<Language, Translations> = {
           title: "Payment Terms",
           description: "Payment is required at the time of order placement.",
           terms: [
-            "All prices are in SAR",
+            "All prices are in Saudi Riyal",
             "Payment methods accepted: Credit cards, bank transfer",
             "Orders are processed after payment confirmation",
             "Refunds processed within 5-7 business days"
@@ -3047,7 +3047,7 @@ export const translations: Record<Language, Translations> = {
           title: "Shipping Policy",
           description: "We offer various shipping options to meet your needs.",
           policies: [
-            "Free shipping on orders above 150 SAR",
+            "Free shipping on orders above 150",
             "Standard delivery: 3-5 business days",
             "Express delivery: 1-2 business days",
             "Local pickup available in Riyadh"
@@ -3112,13 +3112,13 @@ export const translations: Record<Language, Translations> = {
           accountSecurity: "Maintain account security"
         },
         paymentDetails: {
-          sarPrices: "All prices are in SAR",
+          sarPrices: "All prices are in Saudi Riyal",
           paymentMethods: "Payment methods accepted: Credit cards, bank transfer",
           orderProcessing: "Orders are processed after payment confirmation",
           refundTiming: "Refunds processed within 5-7 business days"
         },
         shippingDetails: {
-          freeShipping: "Free shipping on orders above 150 SAR",
+          freeShipping: "Free shipping on orders above 150",
           standardDelivery: "Standard delivery: 3-5 business days",
           expressDelivery: "Express delivery: 1-2 business days",
           localPickup: "Local pickup available in Riyadh"
@@ -3237,14 +3237,14 @@ export const translations: Record<Language, Translations> = {
           title: "Single Cylinder",
           description: "Perfect for individual use",
           capacity: "60 liters",
-          price: "99 SAR",
+          price: "99",
           lifespan: "2-3 months",
           orderNow: "Order Now"
         },
         exchangeProgram: {
           title: "Exchange Program",
           description: "Return empty, get full",
-          exchangeFee: "55 SAR",
+          exchangeFee: "55",
           convenience: "Hassle-free",
           ecoFriendly: "Eco-friendly",
           exchangeNow: "Exchange Now"
@@ -4928,7 +4928,7 @@ export const translations: Record<Language, Translations> = {
           refundTiming: "المبالغ المستردة تتم معالجتها خلال 5-7 أيام عمل"
         },
         shippingDetails: {
-          freeShipping: "شحن مجاني للطلبات فوق 150 ريال",
+          freeShipping: "شحن مجاني للطلبات فوق 150",
           standardDelivery: "التوصيل القياسي: 3-5 أيام عمل",
           expressDelivery: "التوصيل السريع: 1-2 يوم عمل",
           localPickup: "الاستلام المحلي متاح في الرياض"
@@ -5047,14 +5047,14 @@ export const translations: Record<Language, Translations> = {
           title: "أسطوانة واحدة",
           description: "مثالية للاستخدام الفردي",
           capacity: "60 لتر",
-          price: "99 ريال",
+          price: "99",
           lifespan: "2-3 أشهر",
           orderNow: "اطلب الآن"
         },
         exchangeProgram: {
           title: "برنامج التبادل",
           description: "أرجع الفارغة واحصل على ممتلئة",
-          exchangeFee: "55 ريال",
+          exchangeFee: "55",
           convenience: "بدون متاعب",
           ecoFriendly: "صديق للبيئة",
           exchangeNow: "تبادل الآن"

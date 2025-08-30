@@ -496,7 +496,7 @@ export default function Home() {
                 {/* Multiple Machine Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561291/Zoomed_In_Machines_uqufys.png"
                     alt="Soda Makers"
                     width={180}
                     height={225}
@@ -521,7 +521,7 @@ export default function Home() {
                 {/* Multiple CO2 Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="/images/co2-cylinder-single.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/CO2_Zoomed_fwlyev.png"
                     alt="CO2"
                     width={180}
                     height={225}
@@ -546,7 +546,7 @@ export default function Home() {
                 {/* Multiple Flavor Images from Flavors Folder in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="/images/italian-strawberry-lemon-syrup.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561291/Zoomed_In_Flavor_yiy4ca.png"
                     alt="Premium Italian Flavors"
                     width={180}
                     height={225}
@@ -571,7 +571,7 @@ export default function Home() {
                 {/* Multiple Accessory Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="/images/05 - Accessories-20250824T073107Z-1-001/05 - Accessories\Black-Bottle---500-ML.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561289/Accessories_Zoomed_aarhge.png"
                     alt="Accessories"
                     width={180}
                     height={225}
@@ -768,28 +768,16 @@ export default function Home() {
           <div className="xl:hidden flex flex-col items-center text-center px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 py-12 bg-white">
             {/* Image Container */}
             <div className="relative w-full h-[350px] sm:h-[400px] md:h-[450px] mb-0 overflow-visible">
+              {/* Background Image */}
               <Image
                 src="/images/food-grade-co2-text.png"
                 alt="Food Grade CO2"
                 fill
-                className="object-contain opacity-90"
+                className="object-contain opacity-90 z-0"
               />
 
-              {/* Advanced popup animation for CO₂ image */}
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0, y: 20 }}
-                animate={{
-                  scale: [0.8, 1.05, 1],
-                  opacity: [0, 1, 1],
-                  y: [20, -5, 0],
-                }}
-                transition={{
-                  duration: 1.2,
-                  ease: "easeOut",
-                  times: [0, 0.7, 1],
-                }}
-                className="absolute inset-0"
-              >
+              {/* Video Animation - Positioned above background */}
+              <div className="absolute inset-0 z-10">
                 <motion.div
                   animate={{
                     y: [0, -8, 0, -4, 0],
@@ -803,9 +791,21 @@ export default function Home() {
                   }}
                   className="w-full h-full"
                 >
-                  <Image src="/videos/cylinder-anim.png" alt="CO2 Cylinders" fill priority className="object-contain" />
+                  <video 
+                    src="https://res.cloudinary.com/dw2h8hejn/video/upload/v1756559849/Cylinders_Animation_hw9gdc.webm" 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline
+                    preload="auto"
+                    className="object-contain w-full h-full"
+                    style={{ width: '100%', height: '100%' }}
+                  >
+                    <source src="https://res.cloudinary.com/dw2h8hejn/video/upload/v1756559849/Cylinders_Animation_hw9gdc.webm" type="video/webm" />
+                    Your browser does not support the video tag.
+                  </video>
                 </motion.div>
-              </motion.div>
+              </div>
 
               {/* Badge with animation */}
               <motion.div
@@ -887,24 +887,30 @@ export default function Home() {
               >
                 <motion.div
                   animate={{
-                    y: [0, -10, 0, -5, 0],
+                    y: [0, -8, 0, -4, 0],
                     scale: [1, 1.02, 1, 1.01, 1],
                   }}
                   transition={{
-                    duration: 7,
+                    duration: 6,
                     ease: "easeInOut",
                     repeat: Number.POSITIVE_INFINITY,
                     repeatType: "reverse",
                   }}
                   className="w-full h-full"
                 >
-                  <Image
-                    src="/videos/cylinder-anim.png"
-                    alt="CO2 Cylinders"
-                    fill
-                    priority
-                    className="object-contain rounded-[20px]"
-                  />
+                  <video 
+                    src="https://res.cloudinary.com/dw2h8hejn/video/upload/v1756559849/Cylinders_Animation_hw9gdc.webm" 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline
+                    preload="auto"
+                    className="object-contain w-full h-full"
+                    style={{ width: '100%', height: '100%' }}
+                  >
+                    <source src="https://res.cloudinary.com/dw2h8hejn/video/upload/v1756559849/Cylinders_Animation_hw9gdc.webm" type="video/webm" />
+                    Your browser does not support the video tag.
+                  </video>
                 </motion.div>
               </motion.div>
             </div>

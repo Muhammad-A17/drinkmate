@@ -120,23 +120,7 @@ export default function Contact() {
               {t("contact.description")}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8 animate-slide-in-up delay-400">
-              <Button
-                onClick={() => scrollToSection(formRef)}
-                className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-8 py-3 text-lg font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105 flex items-center gap-2 rounded-xl"
-              >
-                <MessageCircle className="w-5 h-5" />
-                Send Message
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => window.open("tel:+966501234567")}
-                className="border-2 border-[#12d6fa] text-[#12d6fa] hover:bg-[#12d6fa] hover:text-white px-8 py-3 text-lg font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105 flex items-center gap-2 rounded-xl"
-              >
-                <Phone className="w-5 h-5" />
-                Call Now
-              </Button>
-            </div>
+         
           </div>
         </div>
       </section>

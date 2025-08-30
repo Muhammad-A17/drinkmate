@@ -62,6 +62,7 @@
   font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
   font-size: 1em;
   line-height: 1;
+  position: relative;
 }
 
 /* Fallback for when the custom font is not loaded */
@@ -74,22 +75,91 @@
 /* Global utility classes for Saudi Riyal */
 .currency-riyal {
   font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
+  font-size: 0.7em !important;
+  display: inline-block;
+  vertical-align: baseline;
+  position: relative;
+  top: -0.1em;
+  margin-left: 0.1em;
+  font-weight: normal;
+  opacity: 0.9;
+  line-height: 1;
 }
 
 /* Responsive font sizes for different contexts */
 .riyal-symbol-sm {
   font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
   font-size: 0.875em;
+  position: relative;
+}
+
+.riyal-symbol-sm .currency-riyal {
+  font-size: 0.6em !important;
+  top: -0.08em;
 }
 
 .riyal-symbol-lg {
   font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
   font-size: 1.25em;
+  position: relative;
+}
+
+.riyal-symbol-lg .currency-riyal {
+  font-size: 0.75em !important;
+  top: -0.12em;
 }
 
 .riyal-symbol-xl {
   font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
   font-size: 1.5em;
+  position: relative;
+}
+
+.riyal-symbol-xl .currency-riyal {
+  font-size: 0.8em !important;
+  top: -0.15em;
+}
+
+/* Ensure consistent appearance across all price displays */
+.price-display,
+.product-price,
+.cart-price,
+.admin-price {
+  position: relative;
+}
+
+.price-display .currency-riyal,
+.product-price .currency-riyal,
+.cart-price .currency-riyal,
+.admin-price .currency-riyal {
+  font-size: 0.7em !important;
+  vertical-align: baseline;
+  position: relative;
+  top: -0.1em;
+  line-height: 1;
+}
+
+/* Responsive currency symbol sizing for mobile devices */
+@media (max-width: 768px) {
+  .currency-riyal {
+    font-size: 0.65em !important;
+    top: -0.05em;
+  }
+  
+  .riyal-symbol-sm .currency-riyal {
+    font-size: 0.55em !important;
+    top: -0.06em;
+  }
+  
+  .riyal-symbol-lg .currency-riyal {
+    font-size: 0.7em !important;
+    top: -0.1em;
+  }
+  
+  .riyal-symbol-xl .currency-riyal {
+    font-size: 0.75em !important;
+    top: -0.12em;
+  }
 }
 
 /* RTL Support */

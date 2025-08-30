@@ -354,7 +354,7 @@ export default function CartPage() {
                     }}
                     className="w-full bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-medium rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                   >
-                    <ShoppingCart size={16} /> Add to Cart
+                    <ShoppingCart size={20} /> Add to Cart
                   </Button>
                 </div>
               ))}
@@ -377,14 +377,14 @@ export default function CartPage() {
               <h1 className="text-2xl font-medium text-gray-900 mb-2">Your Cart</h1>
               {state.total >= 150 ? (
                 <div className="flex items-center text-sm text-green-600 font-medium">
-                  <CheckCircle className="w-4 h-4 mr-2" />
+                  <CheckCircle className="w-5 h-5 mr-2" />
                   <span>
                     Only <SaudiRiyal amount={150 - state.total} /> away from Free shipping
                   </span>
                 </div>
               ) : (
                 <div className="flex items-center text-sm text-gray-600">
-                  <Truck className="w-4 h-4 mr-2" />
+                  <Truck className="w-5 h-5 mr-2" />
                   <span>
                     Only <SaudiRiyal amount={150 - state.total} /> away from Free shipping
                   </span>
@@ -403,7 +403,7 @@ export default function CartPage() {
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center text-sm text-gray-500">
-                <LockIcon className="w-4 h-4 mr-1" />
+                <LockIcon className="w-5 h-5 mr-1" />
                 <span>Secure Checkout</span>
               </div>
             </div>
@@ -573,13 +573,13 @@ export default function CartPage() {
                       } else {
                         toast.success(`${freeItem.name} added to cart`, {
                           duration: 3000,
-                          icon: <Gift className="h-5 w-5" />,
+                          icon: <Gift size={20} />,
                         })
                       }
                     }}
                     className="w-full bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-medium rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                   >
-                    <Gift size={16} /> Add Free Item
+                    <Gift size={20} /> Add Free Item
                   </Button>
                 </div>
               ))}
@@ -624,7 +624,7 @@ export default function CartPage() {
                       onClick={() => handleMoveToCart(item, index)}
                       className="w-full bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-medium rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
                     >
-                      <ShoppingCart size={16} /> Move to Cart
+                      <ShoppingCart size={20} /> Move to Cart
                     </Button>
                   </div>
                 ))}
@@ -682,7 +682,7 @@ export default function CartPage() {
                   onClick={() => handleAddRecommended(item)}
                   className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-medium rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
                 >
-                  <ShoppingCart size={16} /> ADD
+                  <ShoppingCart size={20} /> ADD
                 </Button>
               </div>
             ))}
@@ -811,48 +811,48 @@ export default function CartPage() {
 
           <div>
             <p className="text-xs text-gray-500 text-center mb-3 font-medium">CHECKOUT WITH</p>
-            <div className="flex flex-wrap justify-center items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex flex-wrap justify-center items-center gap-5 p-5 bg-gray-50 rounded-lg border border-gray-200">
               <Image
                 src="/images/payment-logos/Mada Logo Vector.svg"
                 alt="Mada"
-                width={32}
-                height={20}
-                className="object-contain h-5 opacity-70"
+                width={64}
+                height={40}
+                className="object-contain h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
               />
               <Image
                 src="/images/payment-logos/visa.png"
                 alt="Visa"
-                width={32}
-                height={20}
-                className="object-contain h-5 opacity-70"
+                width={64}
+                height={40}
+                className="object-contain h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
               />
               <Image
                 src="/images/payment-logos/mastercard.png"
                 alt="Mastercard"
-                width={32}
-                height={20}
-                className="object-contain h-5 opacity-70"
+                width={64}
+                height={40}
+                className="object-contain h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
               />
               <Image
                 src="/images/payment-logos/american-express.png"
                 alt="American Express"
-                width={32}
-                height={20}
-                className="object-contain h-5 opacity-70"
+                width={64}
+                height={40}
+                className="object-contain h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
               />
               <Image
                 src="/images/payment-logos/apple-pay.png"
                 alt="Apple Pay"
-                width={32}
-                height={20}
-                className="object-contain h-5 opacity-70"
+                width={64}
+                height={40}
+                className="object-contain h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
               />
               <Image
                 src="/images/payment-logos/google-pay.png"
                 alt="Google Pay"
-                width={32}
-                height={20}
-                className="object-contain h-5 opacity-70"
+                width={64}
+                height={40}
+                className="object-contain h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
               />
             </div>
           </div>

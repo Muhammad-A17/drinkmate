@@ -50,7 +50,7 @@ const SaudiRiyal: React.FC<SaudiRiyalProps> = ({
   return (
     <span className={`${sizeClass} ${className}`}>
       {formattedAmount}
-      {showSymbol && <span className="currency-riyal">&#xea;</span>}
+      {showSymbol && <span className="currency-riyal" style={{ fontSize: '0.7em' }}>&#xea;</span>}
     </span>
   );
 };
