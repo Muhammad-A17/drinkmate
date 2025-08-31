@@ -106,7 +106,7 @@ export default function Contact() {
   return (
     <PageLayout currentPage="contact">
       {/* Hero Section with Quick Actions */}
-      <section className="py-8 md:py-16 bg-gradient-to-b from-white to-[#f3f3f3] animate-fade-in-up">
+      <section className="py-8 md:py-16 bg-white animate-fade-in-up">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center space-y-4 md:space-y-6">
             <h1
@@ -147,7 +147,7 @@ export default function Contact() {
               <p className="text-xs md:text-sm text-gray-500 font-medium">Available 24/7</p>
             </div>
 
-            <div className="text-center p-6 md:p-8 rounded-2xl bg-gradient-to-br from-white via-[#f8f9fa] to-[#f3f3f3] shadow-xl animate-fade-in-up delay-200 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
+            <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl animate-fade-in-up delay-200 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
               <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#a8f387] to-[#96e075] rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
                 <Mail className="w-6 h-6 md:w-8 md:h-8 text-white" />
               </div>
@@ -185,7 +185,7 @@ export default function Contact() {
 
           {showAllMethods && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 animate-fade-in-up">
-              <div className="text-center p-6 md:p-8 rounded-2xl bg-gradient-to-br from-white via-[#f8f9fa] to-[#f3f3f3] shadow-xl group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
+              <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
                   <MapPin className="w-6 h-6 md:w-8 md:h-8 text-white" />
                 </div>
@@ -209,7 +209,7 @@ export default function Contact() {
                 </p>
               </div>
 
-              <div className="text-center p-6 md:p-8 rounded-2xl bg-gradient-to-br from-white via-[#f8f9fa] to-[#f3f3f3] shadow-xl group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
+              <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
                   <Phone className="w-6 h-6 md:w-8 md:h-8 text-white" />
                 </div>
@@ -227,7 +227,7 @@ export default function Contact() {
                 <p className="text-xs md:text-sm text-gray-500 font-medium">{t("contact.phoneSupport.hours")}</p>
               </div>
 
-              <div className="text-center p-6 md:p-8 rounded-2xl bg-gradient-to-br from-white via-[#f8f9fa] to-[#f3f3f3] shadow-xl group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
+              <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#a8f387] to-[#96e075] rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
                   <Mail className="w-6 h-6 md:w-8 md:h-8 text-white" />
                 </div>
@@ -250,7 +250,7 @@ export default function Contact() {
       </section>
 
       {/* Contact Form */}
-      <section ref={formRef} className="py-8 md:py-16 bg-[#f3f3f3] animate-fade-in-up">
+      <section ref={formRef} className="py-8 md:py-16 bg-white animate-fade-in-up">
         <div className="max-w-4xl mx-auto px-4">
           <div className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl border border-gray-100">
             <div className="text-center mb-6 md:mb-8">
@@ -477,7 +477,7 @@ export default function Contact() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            <div className="bg-gradient-to-br from-[#f3f3f3] to-[#e8e8e8] rounded-2xl p-6 md:p-8 shadow-xl border border-gray-200 hover:shadow-2xl transition-all duration-300 hover:transform hover:-translate-y-1">
+            <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xl border border-gray-200 hover:shadow-2xl transition-all duration-300 hover:transform hover:-translate-y-1">
               <div className="flex items-center mb-4">
                 <MapPin className="w-6 h-6 text-[#12d6fa] mr-3" />
                 <h3
@@ -501,7 +501,7 @@ export default function Contact() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-[#f3f3f3] to-[#e8e8e8] rounded-2xl p-6 md:p-8 shadow-xl border border-gray-200 hover:shadow-2xl transition-all duration-300 hover:transform hover:-translate-y-1">
+            <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xl border border-gray-200 hover:shadow-2xl transition-all duration-300 hover:transform hover:-translate-y-1">
               <div className="flex items-center mb-4">
                 <MapPin className="w-6 h-6 text-[#a8f387] mr-3" />
                 <h3

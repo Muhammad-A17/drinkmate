@@ -1624,6 +1624,10 @@ export interface Translations {
       grape: string
       simple: string
     }
+    allRecipes: {
+      title: string
+      description: string
+    }
     recipeCard: {
       reviews: string
       ingredients: string
@@ -2488,6 +2492,10 @@ export const translations: Record<Language, Translations> = {
         reviews: "reviews",
         ingredients: "ingredients",
         viewRecipe: "View Recipe"
+      },
+      allRecipes: {
+        title: "All Recipes",
+        description: "Discover our complete collection of delicious drink recipes"
       },
       newsletter: {
         title: "Get New Recipes Weekly",
@@ -5375,6 +5383,10 @@ export const translations: Record<Language, Translations> = {
         reviews: "تقييمات",
         ingredients: "مكونات",
         viewRecipe: "عرض الوصفة"
+      },
+      allRecipes: {
+        title: "جميع الوصفات",
+        description: "اكتشف مجموعتنا الكاملة من وصفات المشروبات اللذيذة"
       },
       newsletter: {
         title: "احصل على وصفات جديدة أسبوعياً",
