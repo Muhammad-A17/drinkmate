@@ -35,7 +35,7 @@ export default function Banner() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] text-white text-center py-2 sm:py-3 text-xs sm:text-sm flex items-center justify-center shadow-lg" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] text-white text-center py-2 sm:py-3 text-xs sm:text-sm flex items-center justify-center shadow-lg ${isRTL ? 'font-cairo' : 'font-montserrat'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex items-center justify-center space-x-2 sm:space-x-3">
         <span className={`${isRTL ? 'font-noto-arabic' : 'font-noto-sans'} line-clamp-1 font-medium`}>{currentBanner.text}</span>
         {currentBanner.code && (

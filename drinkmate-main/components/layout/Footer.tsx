@@ -108,7 +108,7 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-gray-100 py-12" dir={isHydrated && isRTL ? 'rtl' : 'ltr'}>
+    <footer className={`bg-gray-100 py-12 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`} dir={isHydrated && isRTL ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto px-4">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">

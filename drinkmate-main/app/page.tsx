@@ -365,7 +365,7 @@ export default function Home() {
 
       {/* Refill Section */}
       <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
-        <div className="w-full bg-gradient-to-br from-[#f8fafc] via-[#f3f3f3] to-[#f1f5f9] rounded-3xl relative min-h-[300px] md:h-[250px] flex items-center justify-between px-10 md:px-16 lg:px-20 xl:px-24 shadow-2xl shadow-gray-200/40 backdrop-blur-sm border border-white/30">
+        <div className="w-full bg-white rounded-3xl relative min-h-[300px] md:h-[250px] flex items-center justify-between px-10 md:px-16 lg:px-20 xl:px-24 shadow-2xl shadow-gray-200/40 backdrop-blur-sm border border-white/30">
           {/* Left Navigation Button */}
           <Button
             className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-gray-300/50 bg-white/90 backdrop-blur-md text-gray-700 shadow-xl z-10 hover:bg-white hover:border-gray-400 hover:shadow-2xl transition-all duration-300 transform hover:scale-110"
