@@ -3,11 +3,10 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
-import { Star, Loader2, ShoppingCart } from "lucide-react"
+import { Star, Loader2 } from "lucide-react"
 import { shopAPI } from "@/lib/api"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 
@@ -22,7 +21,6 @@ interface Product {
   discount?: number
   image: string
   category: string
-  subcategory?: string
   rating: number
   reviews: number
   color?: string
@@ -45,7 +43,6 @@ interface Bundle {
 }
 
 export default function SodamakersPage() {
-  const router = useRouter()
   const { addItem, isInCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -58,8 +55,9 @@ export default function SodamakersPage() {
   ])
 
   const [bundles, setBundles] = useState<Bundle[]>([])
-  const [allMakers, setAllMakers] = useState<Product[]>([])
-  const [subcategorySections, setSubcategorySections] = useState<Array<{ _id: string; name: string; products: Product[] }>>([])
+  const [omnifizzMakers, setOmnifizzMakers] = useState<Product[]>([])
+  const [luxeMakers, setLuxeMakers] = useState<Product[]>([])
+  const [bestSellerMakers, setBestSellerMakers] = useState<Product[]>([])
 
   // Fetch products and bundles from API
   useEffect(() => {
@@ -96,26 +94,28 @@ export default function SodamakersPage() {
         console.log("Formatted bundles:", formattedBundles)
         setBundles(formattedBundles)
 
-        // Find the Soda Makers category slug, then fetch products for that category directly
-        const categoriesResp = await shopAPI.getCategories()
-        const categoriesWithSubs = categoriesResp.categories || []
-        const sodaMakersCat = categoriesWithSubs.find((c: any) => {
-          const name = (c.name || '').toLowerCase()
-          const slug = (c.slug || '').toLowerCase()
-          return name.includes('soda') || name.includes('maker') || slug.includes('soda') || slug.includes('maker')
+        // Fetch all soda maker products (machines category)
+        const allProductsResponse = await shopAPI.getProducts({
+          limit: 50,
         })
-        const sodaSlug = sodaMakersCat?.slug || 'sodamakers'
 
-        const byCategoryResp = await shopAPI.getProductsByCategory(sodaSlug, { limit: 100 })
-        console.log('Soda Makers category:', sodaSlug, 'Products count:', byCategoryResp.products?.length)
+        console.log("API Response:", allProductsResponse)
 
-        const allProducts = byCategoryResp.products || []
+        // Filter products by category name (since we don't have category ID)
+        const allProducts = allProductsResponse.products || []
 
-        // These are already scoped to Soda Makers category; still keep a name-based safety filter
-        const sodaMakerProducts = allProducts.filter((product: any) => {
-          const name = (product.name || '').toLowerCase()
-          return name.includes('soda') || name.includes('drinkmate') || name.includes('omnifizz') || name.includes('luxe') || true
-        })
+        console.log("All Products:", allProducts)
+
+        // Filter soda maker products (by category or name)
+        const sodaMakerProducts = allProducts.filter(
+          (product: any) =>
+            product.category === "sodamakers" ||
+            product.category === "machines" ||
+            product.name.toLowerCase().includes("soda") ||
+            product.name.toLowerCase().includes("drinkmate") ||
+            product.name.toLowerCase().includes("omnifizz") ||
+            product.name.toLowerCase().includes("luxe"),
+        )
 
         console.log("Soda Maker Products:", sodaMakerProducts)
 
@@ -129,58 +129,83 @@ export default function SodamakersPage() {
         console.log("OmniFizz Products:", omnifizzProducts)
 
         // Format OmniFizz products
-        const pickImage = (imgs: any): string => {
-          if (!imgs || imgs.length === 0) return "/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
-          const first = imgs[0]
-          if (typeof first === 'string') return first
-          return (imgs.find((img: any) => img.isPrimary)?.url) || first.url || "/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
-        }
-
-        const formattedAll = sodaMakerProducts.map((product: any) => ({
+        const formattedOmnifizz = omnifizzProducts.slice(0, 4).map((product: any) => ({
           _id: product._id,
           id: product._id,
           slug: product.slug,
           name: product.name,
           price: product.price,
           originalPrice: product.originalPrice,
-          image: pickImage(product.images),
+          image:
+            product.images && product.images.length > 0
+              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
+              : "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
           category: "machines",
-          subcategory: (typeof product.subcategory === 'string' ? product.subcategory : product.subcategory?._id) || product.subcategory,
           rating: product.averageRating || 4.7,
           reviews: product.reviewCount || 350,
           color: product.colors && product.colors.length > 0 ? product.colors[0].name : undefined,
           images: product.images,
         }))
-        setAllMakers(formattedAll)
 
-        // Build sections by subcategory (parent-wise display)
-        const subs = (sodaMakersCat?.subcategories || []) as Array<{ _id: string; name: string }>
-        const sections: Array<{ _id: string; name: string; products: Product[] }> = []
-        const bySubId: Record<string, Product[]> = {}
-        for (const p of formattedAll) {
-          const sid = p.subcategory || ''
-          if (!bySubId[sid]) bySubId[sid] = []
-          bySubId[sid].push(p)
-        }
-        // Add known subcategories in category order
-        for (const sc of subs) {
-          sections.push({ _id: sc._id, name: sc.name, products: (bySubId[sc._id] || []) })
-        }
-        // Find products without a known subcategory in this category
-        const otherProducts = Object.entries(bySubId)
-          .filter(([sid]) => !subs.find(s => s._id === sid))
-          .flatMap(([_, arr]) => arr)
-        if (otherProducts.length > 0) {
-          sections.push({ _id: 'others', name: 'Other Models', products: otherProducts })
-        }
-        setSubcategorySections(sections)
+        setOmnifizzMakers(formattedOmnifizz)
+
+        // Filter Luxe products
+        const luxeProducts = sodaMakerProducts.filter(
+          (product: any) =>
+            product.name.toLowerCase().includes("luxe") ||
+            (product.subcategory && product.subcategory.toLowerCase().includes("luxe")),
+        )
+
+        // Format Luxe products
+        const formattedLuxe = luxeProducts.slice(0, 1).map((product: any) => ({
+          _id: product._id,
+          id: product._id,
+          slug: product.slug,
+          name: product.name,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          image:
+            product.images && product.images.length > 0
+              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
+              : "/images/02 - Soda Makers/Banner-Luxe-Machine.png",
+          category: "machines",
+          rating: product.averageRating || 4.9,
+          reviews: product.reviewCount || 450,
+          color: product.colors && product.colors.length > 0 ? product.colors[0].name : "Stainless Steel",
+          images: product.images,
+        }))
+
+        setLuxeMakers(formattedLuxe)
+
+        // Filter Best Seller products
+        const bestSellerProducts = sodaMakerProducts.filter((product: any) => product.isBestSeller === true)
+
+        // Format Best Seller products
+        const formattedBestSellers = bestSellerProducts.slice(0, 3).map((product: any) => ({
+          _id: product._id,
+          id: product._id,
+          slug: product.slug,
+          name: product.name,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          image:
+            product.images && product.images.length > 0
+              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
+              : "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+          category: "machines",
+          rating: product.averageRating || 4.8,
+          reviews: product.reviewCount || 400,
+          color: product.colors && product.colors.length > 0 ? product.colors[0].name : undefined,
+          images: product.images,
+        }))
+
+        setBestSellerMakers(formattedBestSellers)
       } catch (error) {
         console.error("Error fetching products:", error)
         setError("Failed to load products. Please try again later.")
 
         // Fallback to static data if API fails
-        // Fallback examples (not grouped)
-        setAllMakers([
+        setOmnifizzMakers([
           {
             _id: "201",
             id: 201,
@@ -190,7 +215,6 @@ export default function SodamakersPage() {
             originalPrice: 699.99,
             image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
             category: "machines",
-            subcategory: undefined,
             rating: 4.9,
             reviews: 450,
             color: "Black",
@@ -204,13 +228,29 @@ export default function SodamakersPage() {
             originalPrice: 699.99,
             image: "/images/02 - Soda Makers/Artic-Blue-Machine---Front.png",
             category: "machines",
-            subcategory: undefined,
             rating: 4.8,
             reviews: 380,
             color: "Blue",
           },
         ])
-        setSubcategorySections([])
+
+        setLuxeMakers([
+          {
+            _id: "301",
+            id: 301,
+            slug: "luxe-soda-maker-stainless-steel",
+            name: "Luxe Soda Maker - Stainless Steel",
+            price: 799.99,
+            originalPrice: 999.99,
+            image: "/images/02 - Soda Makers/Banner-Luxe-Machine.png",
+            category: "machines",
+            rating: 4.9,
+            reviews: 450,
+            color: "Stainless Steel",
+          },
+        ])
+
+        setBestSellerMakers([])
         setBundles([])
       } finally {
         setIsLoading(false)
@@ -256,9 +296,9 @@ export default function SodamakersPage() {
     return (
       <div
         key={product._id}
-        className="bg-white rounded-3xl p-6 flex flex-col border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1 transition-all duration-300"
+        className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 flex flex-col border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
       >
-        <Link href={`/shop/sodamakers/${(product as any).slug || product._id}`} className="block">
+        <Link href={`/shop/sodamakers/${product._id}`} className="block">
           <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
             <Image
               src={product.image || "/placeholder.svg"}
@@ -268,39 +308,40 @@ export default function SodamakersPage() {
               className="object-contain h-44 transition-transform duration-300 hover:scale-105"
             />
           </div>
-          <h3 className="text-xl mb-3 hover:text-[#12d6fa] transition-colors leading-tight">{product.name}</h3>
+          <h3 className="font-bold text-xl mb-3 hover:text-[#12d6fa] transition-colors leading-tight">
+            {product.name}
+          </h3>
         </Link>
-        <div className="flex items-center gap-3 mb-4">
-          {renderStars(product.rating)}
-          <span className="text-sm text-gray-600">({product.reviews} Reviews)</span>
-        </div>
         <div className="mt-auto">
           <div className="flex items-center gap-2 mb-2">
             {product.originalPrice && (
               <>
-                <span className="text-gray-500 text-sm line-through">
+                <span className="text-gray-500 text-sm line-through font-medium">
                   <SaudiRiyal amount={product.originalPrice} size="sm" />
                 </span>
-                <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">
+                <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
                   {discountPercentage}% OFF
                 </span>
               </>
             )}
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-1">
-              <span className="text-xl text-gray-900">
-                <SaudiRiyal amount={product.price} size="md" />
+              <span className="font-bold text-2xl text-gray-900">
+                <SaudiRiyal amount={product.price} size="lg" />
               </span>
             </div>
             <Button
               onClick={() => handleAddToCart(product)}
               disabled={isInCartStatus}
-              className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full w-full sm:w-auto justify-center px-4 sm:px-6 py-2 h-10 text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-bold rounded-full px-8 py-2 h-10 text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ShoppingCart className="w-4 h-4" />
-              {isInCartStatus ? "Added" : "Add to Cart"}
+              {isInCartStatus ? "ADDED" : "BUY"}
             </Button>
+          </div>
+          <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
+            {renderStars(product.rating)}
+            <span className="text-sm text-gray-600 font-medium">({product.reviews} Reviews)</span>
           </div>
         </div>
       </div>
@@ -310,7 +351,7 @@ export default function SodamakersPage() {
   return (
     <PageLayout currentPage="shop-sodamakers">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-medium mb-12 text-gray-900 tracking-tight">Explore Our Soda Makers</h1>
+        <h1 className="text-4xl font-bold mb-12 text-gray-900 tracking-tight">Explore Our Soda Makers</h1>
 
         {/* Error message */}
         {error && (
@@ -345,9 +386,9 @@ export default function SodamakersPage() {
           <>
             {/* Top categories section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-              <div className="bg-gradient-to-br from-[#fac334] to-[#f0b429] rounded-3xl p-8 flex flex-col justify-between h-72 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="bg-[#fec603] rounded-3xl p-8 flex flex-col justify-between h-72 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                 <div>
-                  <h2 className="text-3xl mb-3 text-gray-900">OmniFizz Soda Makers</h2>
+                  <h2 className="text-3xl font-bold mb-3 text-gray-900">OmniFizz Soda Makers</h2>
                   <p className="text-gray-800 text-lg font-medium">Premium carbonation for all beverages</p>
                 </div>
                 <Image
@@ -358,9 +399,9 @@ export default function SodamakersPage() {
                   className="self-end transition-transform duration-300 hover:scale-105"
                 />
               </div>
-              <div className="bg-gradient-to-br from-black to-gray-800 rounded-3xl p-8 flex flex-col justify-between h-72 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="bg-black rounded-3xl p-8 flex flex-col justify-between h-72 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
                 <div>
-                  <h2 className="text-3xl mb-3 text-white">Luxe Soda Makers</h2>
+                  <h2 className="text-3xl font-bold mb-3 text-white">Luxe Soda Makers</h2>
                   <p className="text-gray-300 text-lg font-medium">Luxurious and elegant carbonation experience</p>
                 </div>
                 <Image
@@ -376,12 +417,12 @@ export default function SodamakersPage() {
             {/* Bundles & Promotions Section */}
             {bundles.length > 0 ? (
               <div className="mb-16">
-                <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">Bundles & Promotions</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Bundles & Promotions</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                   {bundles.map((bundle) => (
                     <div
                       key={bundle._id}
-                      className="bg-white rounded-3xl p-6 flex flex-col relative border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1 transition-all duration-300"
+                      className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 flex flex-col relative border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
                     >
                       <Link href={`/shop/sodamakers/bundles/${bundle.slug}`} className="block">
                         <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
@@ -393,23 +434,19 @@ export default function SodamakersPage() {
                             className="object-contain h-44 transition-transform duration-300 hover:scale-105"
                           />
                         </div>
-                        <h3 className="text-xl mb-2 hover:text-[#12d6fa] transition-colors leading-tight">
+                        <h3 className="font-bold text-xl mb-2 hover:text-[#12d6fa] transition-colors leading-tight">
                           {bundle.name}
                         </h3>
                       </Link>
-                      <div className="flex items-center gap-3 mb-4">
-                        {renderStars(bundle.rating)}
-                        <span className="text-sm text-gray-600">({bundle.reviews} Reviews)</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-4">{bundle.description}</p>
+                      <p className="text-sm text-gray-600 mb-4 font-medium">{bundle.description}</p>
                       <div className="mt-auto">
                         <div className="flex items-center gap-2 mb-2">
                           {bundle.originalPrice && (
                             <>
-                              <span className="text-gray-500 text-sm line-through">
+                              <span className="text-gray-500 text-sm line-through font-medium">
                                 <SaudiRiyal amount={bundle.originalPrice} size="sm" />
                               </span>
-                              <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">
+                              <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
                                 {Math.round(((bundle.originalPrice - bundle.price) / bundle.originalPrice) * 100)}% OFF
                               </span>
                             </>
@@ -417,21 +454,24 @@ export default function SodamakersPage() {
                         </div>
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-1">
-                            <span className="text-xl text-gray-900">
-                              <SaudiRiyal amount={bundle.price} size="md" />
+                            <span className="font-bold text-2xl text-gray-900">
+                              <SaudiRiyal amount={bundle.price} size="lg" />
                             </span>
                           </div>
                           <Button
-                            onClick={() => router.push(`/shop/sodamakers/bundles/${bundle.slug}`)}
-                            className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full px-6 py-2 h-10 text-sm transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+                            onClick={() => (window.location.href = `/shop/sodamakers/bundles/${bundle.slug}`)}
+                            className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-bold rounded-full px-8 py-2 h-10 text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                           >
-                            <ShoppingCart className="w-4 h-4" />
-                            View Bundle
+                            BUY
                           </Button>
+                        </div>
+                        <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
+                          {renderStars(bundle.rating)}
+                          <span className="text-sm text-gray-600 font-medium">({bundle.reviews} Reviews)</span>
                         </div>
                       </div>
                       {bundle.badge && (
-                        <div className="absolute top-4 right-4 bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] text-black text-xs px-3 py-2 rounded-full">
+                        <div className="absolute top-4 right-4 bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] text-black text-xs font-bold px-3 py-2 rounded-full shadow-lg">
                           {bundle.badge}
                         </div>
                       )}
@@ -441,7 +481,7 @@ export default function SodamakersPage() {
               </div>
             ) : (
               <div className="mb-16">
-                <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">Bundles & Promotions</h2>
+                <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Bundles & Promotions</h2>
                 <div className="text-center py-12 bg-gray-50 rounded-lg">
                   <div className="text-gray-400 mb-4">
                     <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -464,39 +504,100 @@ export default function SodamakersPage() {
               </div>
             )}
 
-            {/* Subcategory Sections (Parent-wise display) */}
-            {subcategorySections.length > 0 && subcategorySections.map((section) => (
-              <div key={section._id} className="mb-16">
-                <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">{section.name}</h2>
-                {section.products.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                    {section.products.map((product) => renderProductCard(product))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <div className="text-gray-400 mb-4">
-                      <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No products in this subcategory</h3>
-                    <Button onClick={() => router.push("/admin/products")} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white">
-                      Add Products (Admin)
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* All Soda Makers (fallback to show everything in category) */}
-            {allMakers.length > 0 && (
-              <div className="mb-16">
-                <h2 className="text-3xl mb-8 text-gray-900 tracking-tight">All Soda Makers</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {allMakers.map((product) => renderProductCard(product))}
+            {/* OmniFizz Soda Makers Section */}
+            <div className="mb-16">
+              <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">OmniFizz Soda Makers</h2>
+              {omnifizzMakers.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                  {omnifizzMakers.map((product) => renderProductCard(product))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                  <div className="text-gray-400 mb-4">
+                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No OmniFizz Soda Makers Available</h3>
+                  <p className="text-gray-500 mb-4">We're working on adding OmniFizz soda makers to our collection.</p>
+                  <Button
+                    onClick={() => (window.location.href = "/admin/products")}
+                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
+                  >
+                    Add Products (Admin)
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Luxe Soda Makers Section */}
+            <div className="mb-16">
+              <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Luxe Soda Makers</h2>
+              {luxeMakers.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                  {luxeMakers.map((product) => renderProductCard(product))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                  <div className="text-gray-400 mb-4">
+                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Luxe Soda Makers Available</h3>
+                  <p className="text-gray-500 mb-4">We're working on adding Luxe soda makers to our collection.</p>
+                  <Button
+                    onClick={() => (window.location.href = "/admin/products")}
+                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
+                  >
+                    Add Products (Admin)
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Best Seller Soda Makers Section */}
+            <div className="mb-16">
+              <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Best Seller Soda Makers</h2>
+              {bestSellerMakers.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                  {bestSellerMakers.map((product) => renderProductCard(product))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                  <div className="text-gray-400 mb-4">
+                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Best Seller Soda Makers Available</h3>
+                  <p className="text-gray-500 mb-4">
+                    We're working on adding best seller soda makers to our collection.
+                  </p>
+                  <Button
+                    onClick={() => (window.location.href = "/admin/products")}
+                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
+                  >
+                    Add Products (Admin)
+                  </Button>
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
