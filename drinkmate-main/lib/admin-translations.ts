@@ -749,6 +749,8 @@ export const adminTranslations: Record<Language, AdminTranslations> = {
       payment: {
         title: "إعدادات الدفع",
         methods: "طرق الدفع",
+        urways: "أوروايز",
+        tapPayment: "تاب باي",
         creditCard: "بطاقة ائتمان",
         applePay: "آبل باي",
         cashOnDelivery: "الدفع عند الاستلام",

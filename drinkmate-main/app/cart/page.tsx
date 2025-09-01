@@ -114,11 +114,7 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     if (state.items.length > 0) {
-      // Navigate to checkout page (you can implement this later)
-      toast.info("Checkout functionality coming soon!", {
-        duration: 3000,
-        icon: <AlertCircle className="h-5 w-5" />,
-      })
+      router.push("/checkout")
     }
   }
 

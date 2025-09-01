@@ -114,8 +114,20 @@ const co2OrderSchema = new mongoose.Schema({
   // Payment information
   paymentMethod: {
     type: String,
-    enum: ['credit_card', 'debit_card', 'bank_transfer', 'paypal', 'cash_on_delivery'],
+    enum: ['urways', 'tap_payment', 'credit_card', 'debit_card', 'bank_transfer', 'paypal', 'cash_on_delivery'],
     required: true
+  },
+  deliveryOption: {
+    type: String,
+    enum: ['standard', 'express', 'economy'],
+    default: 'standard'
+  },
+  cardDetails: {
+    cardNumber: String,
+    cardholderName: String,
+    expiryMonth: String,
+    expiryYear: String,
+    cvv: String
   },
   paymentStatus: {
     type: String,

@@ -97,8 +97,20 @@ const OrderSchema = new Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['credit_card', 'debit_card', 'apple_pay', 'google_pay', 'samsung_pay', 'bank_transfer', 'cash_on_delivery'],
+        enum: ['urways', 'tap_payment', 'credit_card', 'debit_card', 'apple_pay', 'google_pay', 'samsung_pay', 'bank_transfer', 'cash_on_delivery'],
         required: true
+    },
+    deliveryOption: {
+        type: String,
+        enum: ['standard', 'express', 'economy'],
+        default: 'standard'
+    },
+    cardDetails: {
+        cardNumber: String,
+        cardholderName: String,
+        expiryMonth: String,
+        expiryYear: String,
+        cvv: String
     },
     paymentDetails: {
         transactionId: String,

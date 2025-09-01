@@ -363,6 +363,8 @@ export default function SettingsPage() {
                         <SelectValue placeholder="Select provider" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="urways">Urways</SelectItem>
+                        <SelectItem value="tap">Tap Payment</SelectItem>
                         <SelectItem value="stripe">Stripe</SelectItem>
                         <SelectItem value="paypal">PayPal</SelectItem>
                         <SelectItem value="mada">Mada</SelectItem>
