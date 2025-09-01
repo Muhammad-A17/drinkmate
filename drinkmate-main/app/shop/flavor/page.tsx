@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
-import { Star, Loader2, ShoppingCart } from "lucide-react"
+import { Star, Loader2, ShoppingCart, Filter, ChevronDown } from "lucide-react"
 import { shopAPI } from "@/lib/api"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 
@@ -27,6 +27,10 @@ interface Product {
   reviews: number
   description?: string
   images?: Array<{ url: string; alt: string; isPrimary: boolean }>
+  flavorType?: string
+  isOnPromotion?: boolean
+  isBundled?: boolean
+  createdAt?: string
 }
 
 interface Bundle {
@@ -44,16 +48,37 @@ interface Bundle {
   category?: string
 }
 
+// Filter and sort options
+const filterOptions = [
+  { value: "all", label: "All Flavors" },
+  { value: "italian", label: "Italian Flavors" },
+  { value: "natural", label: "Natural Flavors" },
+  { value: "energy", label: "Energy Flavors" },
+  { value: "promotion", label: "On Promotion" },
+  { value: "bundled", label: "Bundled Items" },
+]
+
+const sortOptions = [
+  { value: "popularity", label: "Popularity" },
+  { value: "price-high-low", label: "Price High to Low" },
+  { value: "price-low-high", label: "Price Low to High" },
+  { value: "latest", label: "Latest Arrivals" },
+]
+
 export default function FlavorPage() {
   const router = useRouter()
   const { addItem, isInCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
 
-  // State for products and bundles
-  const [bundles, setBundles] = useState<Bundle[]>([])
+  // Filter and sort state
+  const [selectedFilter, setSelectedFilter] = useState("all")
+  const [selectedSort, setSelectedSort] = useState("popularity")
+  const [showFilters, setShowFilters] = useState(false)
+
+  // State for all products
   const [allFlavors, setAllFlavors] = useState<Product[]>([])
-  const [subcategorySections, setSubcategorySections] = useState<Array<{ _id: string; name: string; products: Product[] }>>([])
+  const [bundles, setBundles] = useState<Bundle[]>([])
 
   // Define fetch function
   async function fetchProducts() {
@@ -109,50 +134,49 @@ export default function FlavorPage() {
         return (imgs.find((img: any) => img.isPrimary)?.url) || first.url || "/images/01 - Flavors/Strawberry-Lemon-Flavor.png"
       }
 
-      // Format products and capture subcategory
-      const formattedFlavors = flavorProducts.map((product: any) => ({
-        _id: product._id,
-        id: product._id,
-        slug: product.slug,
-        name: product.name,
-        price: product.price,
-        originalPrice: product.originalPrice,
-        image: pickImage(product.images),
-        category: "flavors",
-        subcategory: (typeof product.subcategory === 'string' ? product.subcategory : product.subcategory?._id) || product.subcategory,
-        rating: product.averageRating || 5,
-        reviews: product.reviewCount || 300,
-        description: product.shortDescription,
-        images: product.images,
-      }))
+      // Format products and add flavor type classification
+      const formattedFlavors = flavorProducts.map((product: any) => {
+        // Determine flavor type based on name or subcategory
+        let flavorType = "italian" // default
+        const name = product.name.toLowerCase()
+        const subcategory = (product.subcategory?.name || "").toLowerCase()
+        
+        if (name.includes("natural") || subcategory.includes("natural")) {
+          flavorType = "natural"
+        } else if (name.includes("energy") || subcategory.includes("energy")) {
+          flavorType = "energy"
+        } else if (name.includes("italian") || subcategory.includes("italian")) {
+          flavorType = "italian"
+        }
+
+        return {
+          _id: product._id,
+          id: product._id,
+          slug: product.slug,
+          name: product.name,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          image: pickImage(product.images),
+          category: "flavors",
+          subcategory: (typeof product.subcategory === 'string' ? product.subcategory : product.subcategory?._id) || product.subcategory,
+          rating: product.averageRating || 5,
+          reviews: product.reviewCount || 300,
+          description: product.shortDescription,
+          images: product.images,
+          flavorType,
+          isOnPromotion: product.originalPrice && product.originalPrice > product.price,
+          isBundled: false, // Individual products are not bundled
+          createdAt: product.createdAt,
+        }
+      })
 
       setAllFlavors(formattedFlavors)
-
-      // Build sections by subcategory
-      const subs = (flavorsCat?.subcategories || []) as Array<{ _id: string; name: string }>
-      const bySubId: Record<string, Product[]> = {}
-      for (const p of formattedFlavors) {
-        const sid = p.subcategory || ''
-        if (!bySubId[sid]) bySubId[sid] = []
-        bySubId[sid].push(p)
-      }
-      const sections: Array<{ _id: string; name: string; products: Product[] }> = []
-      for (const sc of subs) {
-        sections.push({ _id: sc._id, name: sc.name, products: (bySubId[sc._id] || []) })
-      }
-      const otherProducts = Object.entries(bySubId)
-        .filter(([sid]) => !subs.find(s => s._id === sid))
-        .flatMap(([_, arr]) => arr)
-      if (otherProducts.length > 0) {
-        sections.push({ _id: 'others', name: 'Other Flavors', products: otherProducts })
-      }
-      setSubcategorySections(sections)
     } catch (error) {
       console.error("Error fetching products:", error)
       setError("Failed to load products. Please try again later.")
 
       // Fallback to static data if API fails
-      setAllFlavors([
+      const fallbackFlavors = [
         {
           _id: "401",
           id: 401,
@@ -166,6 +190,10 @@ export default function FlavorPage() {
           rating: 5,
           reviews: 320,
           description: "Natural premium Italian flavor syrup",
+          flavorType: "italian",
+          isOnPromotion: true,
+          isBundled: false,
+          createdAt: "2024-01-01",
         },
         {
           _id: "402",
@@ -180,6 +208,10 @@ export default function FlavorPage() {
           rating: 5,
           reviews: 280,
           description: "Classic cola flavor for your carbonated drinks",
+          flavorType: "italian",
+          isOnPromotion: true,
+          isBundled: false,
+          createdAt: "2024-01-02",
         },
         {
           _id: "403",
@@ -194,23 +226,14 @@ export default function FlavorPage() {
           rating: 5,
           reviews: 350,
           description: "Refreshing mojito flavor without the alcohol",
+          flavorType: "italian",
+          isOnPromotion: true,
+          isBundled: false,
+          createdAt: "2024-01-03",
         },
-        {
-          _id: "404",
-          id: 404,
-          slug: "italian-strawberry-lemon-2",
-          name: "Italian Strawberry Lemon",
-          price: 49.99,
-          originalPrice: 59.99,
-          image: "/images/01 - Flavors/Strawberry-Lemon-Flavor.png",
-          category: "flavors",
-          subcategory: undefined,
-          rating: 5,
-          reviews: 290,
-          description: "Natural premium Italian flavor syrup",
-        },
-      ])
-      setSubcategorySections([])
+      ]
+
+      setAllFlavors(fallbackFlavors)
       setBundles([])
     } finally {
       setIsLoading(false)
@@ -220,7 +243,53 @@ export default function FlavorPage() {
   // Fetch products on component mount
   useEffect(() => {
     fetchProducts()
-  }, []) // Empty dependency array means this effect runs once on mount
+  }, [])
+
+  // Filter and sort products
+  const getFilteredAndSortedProducts = () => {
+    let filteredProducts = [...allFlavors]
+
+    // Apply filter
+    if (selectedFilter !== "all") {
+      switch (selectedFilter) {
+        case "italian":
+          filteredProducts = filteredProducts.filter(product => product.flavorType === "italian")
+          break
+        case "natural":
+          filteredProducts = filteredProducts.filter(product => product.flavorType === "natural")
+          break
+        case "energy":
+          filteredProducts = filteredProducts.filter(product => product.flavorType === "energy")
+          break
+        case "promotion":
+          filteredProducts = filteredProducts.filter(product => product.isOnPromotion)
+          break
+        case "bundled":
+          filteredProducts = filteredProducts.filter(product => product.isBundled)
+          break
+      }
+    }
+
+    // Apply sort
+    switch (selectedSort) {
+      case "popularity":
+        filteredProducts.sort((a, b) => b.rating - a.rating)
+        break
+      case "price-high-low":
+        filteredProducts.sort((a, b) => b.price - a.price)
+        break
+      case "price-low-high":
+        filteredProducts.sort((a, b) => a.price - b.price)
+        break
+      case "latest":
+        filteredProducts.sort((a, b) => new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime())
+        break
+      default:
+        filteredProducts.sort((a, b) => b.rating - a.rating)
+    }
+
+    return filteredProducts
+  }
 
   function handleAddToCart(product: Product) {
     addItem({
@@ -268,6 +337,11 @@ export default function FlavorPage() {
               height={180}
               className="object-contain h-44 transition-transform duration-300 hover:scale-105"
             />
+            {product.isOnPromotion && (
+              <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                {discountPercentage}% OFF
+              </div>
+            )}
           </div>
           <h3 className="text-xl mb-3 hover:text-[#12d6fa] transition-colors leading-tight">{product.name}</h3>
         </Link>
@@ -283,9 +357,6 @@ export default function FlavorPage() {
               <>
                 <span className="text-gray-500 text-sm line-through">
                   <SaudiRiyal amount={product.originalPrice} size="sm" />
-                </span>
-                <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">
-                  {discountPercentage}% OFF
                 </span>
               </>
             )}
@@ -310,11 +381,11 @@ export default function FlavorPage() {
     )
   }
 
+  const filteredProducts = getFilteredAndSortedProducts()
+
   return (
     <PageLayout currentPage="shop-flavor">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-medium mb-8 text-gray-900">Explore Our Premium Italian Syrups</h1>
-
         {/* Hero section - Flavor Banner */}
         <div className="w-full h-[570px] md:h-[350px] mb-12 relative overflow-hidden rounded-2xl shadow-lg">
           {/* Desktop Banner */}
@@ -345,111 +416,131 @@ export default function FlavorPage() {
           />
         </div>
 
+        <h1 className="text-4xl font-bold mb-8 text-gray-900 tracking-tight">Flavors</h1>
+
         {/* Error message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl mb-8 shadow-sm">
-            {error}
+          <div className="bg-red-50 border-l-4 border-red-400 text-red-700 px-6 py-4 rounded-lg mb-8 shadow-sm">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="font-medium">{error}</p>
+              </div>
+            </div>
           </div>
         )}
 
+        {/* Filter Bar */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* Mobile filter toggle */}
+            <div className="lg:hidden">
+              <Button
+                onClick={() => setShowFilters(!showFilters)}
+                variant="outline"
+                className="w-full flex items-center justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  <Filter className="w-4 h-4" />
+                  Filters
+                </span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
+              </Button>
+            </div>
+
+            {/* Desktop filters */}
+            <div className={`${showFilters ? "block" : "hidden"} lg:block space-y-4 lg:space-y-0 lg:flex lg:items-center lg:gap-8`}>
+              {/* Filter Dropdown */}
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium text-gray-700">Filters</label>
+                <select
+                  value={selectedFilter}
+                  onChange={(e) => setSelectedFilter(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] bg-white"
+                >
+                  {filterOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Sort Filter */}
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium text-gray-700">Sort By</label>
+                <select
+                  value={selectedSort}
+                  onChange={(e) => setSelectedSort(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] bg-white"
+                >
+                  {sortOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Results count */}
+            <div className="text-sm text-gray-600">
+              {filteredProducts.length} {filteredProducts.length === 1 ? "product" : "products"} found
+            </div>
+          </div>
+        </div>
+
         {/* Loading state */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="h-12 w-12 animate-spin text-[#12d6fa] mb-4" />
-            <p className="text-gray-600 font-medium">Loading premium products...</p>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="relative">
+              <Loader2 className="h-16 w-16 animate-spin text-[#12d6fa] mb-6" />
+              <div className="absolute inset-0 h-16 w-16 rounded-full border-4 border-[#12d6fa]/20"></div>
+            </div>
+            <p className="text-gray-600 text-lg font-medium">Loading premium products...</p>
           </div>
         ) : (
           <>
-            {/* Bundles & Promotions Section */}
-            {bundles.length > 0 && (
-              <div className="mb-16">
-                <h2 className="text-xl font-medium mb-6 text-gray-900">Bundles & Promotions</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {bundles.map((bundle) => (
-                    <div
-                      key={bundle._id}
-                      className="bg-white rounded-3xl transition-all duration-300 p-6 flex flex-col border border-gray-100 hover:border-gray-200 relative transform hover:-translate-y-1"
-                    >
-                      <Link href={`/shop/flavor/bundles/${bundle.slug}`} className="block">
-                        <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
-                          <Image
-                            src={bundle.image || "/placeholder.svg"}
-                            alt={bundle.name}
-                            width={180}
-                            height={180}
-                            className="object-contain h-44 transition-transform duration-300 hover:scale-105"
-                          />
-                        </div>
-                        <h3 className="font-medium text-lg mb-3 line-clamp-2 text-gray-900 hover:text-[#12d6fa] transition-colors">
-                          {bundle.name}
-                        </h3>
-                      </Link>
-                      <div className="mt-auto">
-                        <p className="text-sm text-gray-600 mb-4">{bundle.description}</p>
-                        <div className="flex items-center gap-2 mb-2">
-                          {bundle.originalPrice && (
-                            <>
-                              <span className="text-gray-500 text-sm line-through">
-                                <SaudiRiyal amount={bundle.originalPrice} size="sm" />
-                              </span>
-                              <span className="bg-red-50 text-red-500 text-xs font-normal px-2 py-0.5 rounded-full">
-                                {Math.round(((bundle.originalPrice - bundle.price) / bundle.originalPrice) * 100)}% OFF
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium text-xl text-gray-900">
-                              <SaudiRiyal amount={bundle.price} size="lg" />
-                            </span>
-                          </div>
-                          <Button
-                            onClick={() => router.push(`/shop/flavor/bundles/${bundle.slug}`)}
-                            className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full px-8 py-2 h-10 text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                          >
-                            BUY
-                          </Button>
-                        </div>
-                        <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-                          {renderStars(bundle.rating)}
-                          <span className="text-sm text-gray-600">({bundle.reviews} Reviews)</span>
-                        </div>
-                      </div>
-                      {bundle.badge && (
-                        <div className="absolute top-4 right-4 bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] text-black text-xs px-3 py-2 rounded-full shadow-lg">
-                          {bundle.badge}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+            {/* Products Grid */}
+            {filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                {filteredProducts.map((product) => renderProductCard(product))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <div className="text-gray-400 mb-4">
+                  <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
+                  </svg>
                 </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Products Found</h3>
+                <p className="text-gray-500 mb-4">
+                  No products match your current filters. Try adjusting your selection.
+                </p>
+                <Button
+                  onClick={() => {
+                    setSelectedFilter("all")
+                    setSelectedSort("popularity")
+                  }}
+                  className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
+                >
+                  Clear Filters
+                </Button>
               </div>
             )}
-
-            {/* Subcategory Sections (Parent-wise display) */}
-            {subcategorySections.length > 0 && subcategorySections.map((section) => (
-              <div key={section._id} className="mb-16">
-                <h2 className="text-xl font-medium mb-6 text-gray-900">{section.name}</h2>
-                {section.products.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                    {section.products.map((product) => renderProductCard(product))}
-                  </div>
-                ) : (
-                  <div className="text-center py-16 bg-gray-50 rounded-2xl shadow-inner">
-                    <div className="text-gray-400 mb-6">
-                      <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-medium text-gray-900 mb-3">No products in this subcategory</h3>
-                    <Button onClick={() => router.push("/admin/products")} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
-                      Add Products (Admin)
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
           </>
         )}
       </div>
