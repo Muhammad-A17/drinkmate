@@ -8,6 +8,9 @@ import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
 import { toast } from "sonner"
 
+// Force dynamic rendering for this page since it uses search params
+export const dynamic = 'force-dynamic'
+
 // Component that uses search params - needs to be wrapped in Suspense
 function PaymentSuccessContent() {
   const router = useRouter()
