@@ -47,10 +47,12 @@ interface Bundle {
 }
 
 // Filter and sort options
-const machineTypeOptions = [
-  { value: "all", label: "All" },
+const filterOptions = [
+  { value: "all", label: "All Products" },
   { value: "omnifizz", label: "Omni-Fizz Soda Maker" },
   { value: "luxe", label: "Luxe Soda Maker" },
+  { value: "promotion", label: "On Promotion" },
+  { value: "bundled", label: "Bundled Items" },
 ]
 
 const sortOptions = [
@@ -58,8 +60,6 @@ const sortOptions = [
   { value: "price-high-low", label: "Price High to Low" },
   { value: "price-low-high", label: "Price Low to High" },
   { value: "latest", label: "Latest Arrivals" },
-  { value: "promotion", label: "On Promotion" },
-  { value: "bundled", label: "Bundled Items" },
 ]
 
 export default function SodamakersPage() {
@@ -68,7 +68,7 @@ export default function SodamakersPage() {
   const [error, setError] = useState("")
 
   // Filter and sort state
-  const [selectedMachineType, setSelectedMachineType] = useState("all")
+  const [selectedFilter, setSelectedFilter] = useState("all")
   const [selectedSort, setSelectedSort] = useState("popularity")
   const [showFilters, setShowFilters] = useState(false)
 
@@ -241,9 +241,22 @@ export default function SodamakersPage() {
   const getFilteredAndSortedProducts = () => {
     let filteredProducts = [...allProducts]
 
-    // Apply machine type filter
-    if (selectedMachineType !== "all") {
-      filteredProducts = filteredProducts.filter(product => product.machineType === selectedMachineType)
+    // Apply filter
+    if (selectedFilter !== "all") {
+      switch (selectedFilter) {
+        case "omnifizz":
+          filteredProducts = filteredProducts.filter(product => product.machineType === "omnifizz")
+          break
+        case "luxe":
+          filteredProducts = filteredProducts.filter(product => product.machineType === "luxe")
+          break
+        case "promotion":
+          filteredProducts = filteredProducts.filter(product => product.isOnPromotion)
+          break
+        case "bundled":
+          filteredProducts = filteredProducts.filter(product => product.isBundled)
+          break
+      }
     }
 
     // Apply sort
@@ -259,12 +272,6 @@ export default function SodamakersPage() {
         break
       case "latest":
         filteredProducts.sort((a, b) => new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime())
-        break
-      case "promotion":
-        filteredProducts = filteredProducts.filter(product => product.isOnPromotion)
-        break
-      case "bundled":
-        filteredProducts = filteredProducts.filter(product => product.isBundled)
         break
       default:
         filteredProducts.sort((a, b) => b.rating - a.rating)
@@ -368,6 +375,36 @@ export default function SodamakersPage() {
   return (
     <PageLayout currentPage="shop-sodamakers">
       <div className="container mx-auto px-4 py-8">
+        {/* Top categories section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          <div className="bg-[#fec603] rounded-3xl p-8 flex flex-col justify-between h-72 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+            <div>
+              <h2 className="text-3xl font-bold mb-3 text-gray-900">OmniFizz Soda Makers</h2>
+              <p className="text-gray-800 text-lg font-medium">Premium carbonation for all beverages</p>
+            </div>
+            <Image
+              src="/images/02 - Soda Makers/Banner-Omni-Fiz.png"
+              alt="OmniFizz Soda Maker"
+              width={220}
+              height={220}
+              className="self-end transition-transform duration-300 hover:scale-105"
+            />
+          </div>
+          <div className="bg-black rounded-3xl p-8 flex flex-col justify-between h-72 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+            <div>
+              <h2 className="text-3xl font-bold mb-3 text-white">Luxe Soda Makers</h2>
+              <p className="text-gray-300 text-lg font-medium">Luxurious and elegant carbonation experience</p>
+            </div>
+            <Image
+              src="/images/02 - Soda Makers/Banner-Luxe-Machine.png"
+              alt="Luxe Soda Maker"
+              width={220}
+              height={220}
+              className="self-end transition-transform duration-300 hover:scale-105"
+            />
+          </div>
+        </div>
+
         <h1 className="text-4xl font-bold mb-8 text-gray-900 tracking-tight">Soda Makers</h1>
 
         {/* Error message */}
@@ -408,45 +445,40 @@ export default function SodamakersPage() {
               </Button>
             </div>
 
-            {/* Desktop filters */}
-            <div className={`${showFilters ? "block" : "hidden"} lg:block space-y-4 lg:space-y-0 lg:flex lg:items-center lg:gap-8`}>
-              {/* Machine Type Filter */}
-              <div className="flex flex-col space-y-2">
-                <label className="text-sm font-medium text-gray-700">Machine Type</label>
-                <div className="flex flex-wrap gap-2">
-                  {machineTypeOptions.map((option) => (
-                    <Button
-                      key={option.value}
-                      onClick={() => setSelectedMachineType(option.value)}
-                      variant={selectedMachineType === option.value ? "default" : "outline"}
-                      className={`text-sm px-4 py-2 rounded-full transition-all ${
-                        selectedMachineType === option.value
-                          ? "bg-[#12d6fa] text-white border-[#12d6fa]"
-                          : "bg-white text-gray-700 border-gray-300 hover:border-[#12d6fa] hover:text-[#12d6fa]"
-                      }`}
-                    >
-                      {option.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+                         {/* Desktop filters */}
+             <div className={`${showFilters ? "block" : "hidden"} lg:block space-y-4 lg:space-y-0 lg:flex lg:items-center lg:gap-8`}>
+               {/* Filter Dropdown */}
+               <div className="flex flex-col space-y-2">
+                 <label className="text-sm font-medium text-gray-700">Filters</label>
+                 <select
+                   value={selectedFilter}
+                   onChange={(e) => setSelectedFilter(e.target.value)}
+                   className="px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] bg-white"
+                 >
+                   {filterOptions.map((option) => (
+                     <option key={option.value} value={option.value}>
+                       {option.label}
+                     </option>
+                   ))}
+                 </select>
+               </div>
 
-              {/* Sort Filter */}
-              <div className="flex flex-col space-y-2">
-                <label className="text-sm font-medium text-gray-700">Sort By</label>
-                <select
-                  value={selectedSort}
-                  onChange={(e) => setSelectedSort(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] bg-white"
-                >
-                  {sortOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+               {/* Sort Filter */}
+               <div className="flex flex-col space-y-2">
+                 <label className="text-sm font-medium text-gray-700">Sort By</label>
+                 <select
+                   value={selectedSort}
+                   onChange={(e) => setSelectedSort(e.target.value)}
+                   className="px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] bg-white"
+                 >
+                   {sortOptions.map((option) => (
+                     <option key={option.value} value={option.value}>
+                       {option.label}
+                     </option>
+                   ))}
+                 </select>
+               </div>
+             </div>
 
             {/* Results count */}
             <div className="text-sm text-gray-600">
@@ -487,15 +519,15 @@ export default function SodamakersPage() {
                 <p className="text-gray-500 mb-4">
                   No products match your current filters. Try adjusting your selection.
                 </p>
-                <Button
-                  onClick={() => {
-                    setSelectedMachineType("all")
-                    setSelectedSort("popularity")
-                  }}
-                  className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-                >
-                  Clear Filters
-                </Button>
+                                 <Button
+                   onClick={() => {
+                     setSelectedFilter("all")
+                     setSelectedSort("popularity")
+                   }}
+                   className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
+                 >
+                   Clear Filters
+                 </Button>
               </div>
             )}
           </>
