@@ -75,7 +75,7 @@ UserSchema.methods.generateAuthToken = function () {
     const token = jwt.sign(
         { id: this._id, isAdmin: this.isAdmin },
         process.env.JWT_SECRET || 'default_dev_secret',
-        { expiresIn: '1h' }
+        { expiresIn: '2d' }
     );
     return token;
 };

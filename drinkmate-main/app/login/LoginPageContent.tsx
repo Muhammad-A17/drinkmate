@@ -233,10 +233,16 @@ export default function LoginPageContent() {
                     />
                     <button 
                       type="button"
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      {showPassword ? 'Hide' : 'Show'}
+                      <Image
+                        src={showPassword ? "/images/miscellaneous/hide.png" : "/images/miscellaneous/view.png"}
+                        alt={showPassword ? "Hide password" : "Show password"}
+                        width={20}
+                        height={20}
+                        className="opacity-70 hover:opacity-100 transition-opacity"
+                      />
                     </button>
                   </div>
                 </div>
@@ -269,26 +275,6 @@ export default function LoginPageContent() {
                 </Button>
               </div>
             </form>
-            
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Or continue with</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" className="border-gray-300 hover:bg-gray-50 transition-colors">
-                <span className="mr-2">G</span>
-                Google
-              </Button>
-              <Button variant="outline" className="border-gray-300 hover:bg-gray-50 transition-colors">
-                <span className="mr-2">F</span>
-                Facebook
-              </Button>
-            </div>
           </CardContent>
           <CardFooter className="flex flex-col border-t border-gray-200 pt-6">
             <div className="text-center text-sm text-gray-600">

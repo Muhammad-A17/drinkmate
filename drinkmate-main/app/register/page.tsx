@@ -409,26 +409,6 @@ export default function RegisterPage() {
                 </Button>
               </div>
             </form>
-            
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Or sign up with</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" className="border-gray-300 hover:bg-gray-50 transition-colors">
-                <Image src="/images/google-icon.png" alt="Google" width={20} height={20} className="mr-2" />
-                Google
-              </Button>
-              <Button variant="outline" className="border-gray-300 hover:bg-gray-50 transition-colors">
-                <Image src="/images/facebook-icon.png" alt="Facebook" width={20} height={20} className="mr-2" />
-                Facebook
-              </Button>
-            </div>
           </CardContent>
           <CardFooter className="flex flex-col border-t border-gray-200 pt-6">
             <div className="text-center text-sm text-gray-600">

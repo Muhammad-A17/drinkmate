@@ -21,3 +21,38 @@ echo.
 echo Starting server...
 cd server
 npm start
+echo.
+echo Waiting for server to be ready...
+echo Checking if server is running...
+
+:wait_loop
+echo Checking frontend server...
+curl -s http://localhost:3001 >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    echo Frontend server is ready!
+    goto open_browser
+) else (
+    echo Frontend server not ready yet, waiting...
+    ping -n 3 127.0.0.1 >nul
+    goto wait_loop
+)
+
+:open_browser
+echo Attempting to open in Brave browser...
+if exist "C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe" (
+    start "" "C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe" "http://localhost:3001"
+    echo Website opened in Brave browser!
+) else if exist "C:\Program Files (x86)\BraveSoftware\Brave-Browser\Application\brave.exe" (
+    start "" "C:\Program Files (x86)\BraveSoftware\Brave-Browser\Application\brave.exe" "http://localhost:3001"
+    echo Website opened in Brave browser!
+) else if exist "%LOCALAPPDATA%\BraveSoftware\Brave-Browser\Application\brave.exe" (
+    start "" "%LOCALAPPDATA%\BraveSoftware\Brave-Browser\Application\brave.exe" "http://localhost:3001"
+    echo Website opened in Brave browser!
+) else (
+    echo Brave browser not found in common locations.
+    echo Please open http://localhost:3001 manually in your preferred browser.
+    start "" "http://localhost:3001"
+)
+echo.
+echo If the website doesn't load, wait a bit longer and refresh the page.
+pause
