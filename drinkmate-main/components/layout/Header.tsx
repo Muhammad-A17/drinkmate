@@ -58,7 +58,7 @@ export default function Header({ currentPage }: HeaderProps) {
   }
 
   return (
-    <header className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50 transition-all duration-300">
+    <header className={`bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50 transition-all duration-300 ${isRTL ? 'font-cairo' : 'font-montserrat'}`}>
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}

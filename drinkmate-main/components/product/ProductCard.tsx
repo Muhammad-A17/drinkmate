@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslation } from "@/lib/translation-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, compact = false }: ProductCardProps) {
   const { addItem, isInCart } = useCart();
+  const { isRTL } = useTranslation();
   
   const productUrl = `/shop/${product.slug || product._id}`;
   const productImage = product.images && product.images.length > 0 
@@ -52,7 +54,7 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
   };
 
   return (
-    <Card className="group overflow-hidden border-gray-200 hover:border-[#12d6fa] transition-colors h-full shadow-sm hover:shadow-md">
+    <Card className={`group overflow-hidden border-gray-200 hover:border-[#12d6fa] transition-colors h-full shadow-sm hover:shadow-md ${isRTL ? 'font-cairo' : 'font-montserrat'}`}>
       <Link href={productUrl} className="block h-full">
         <div className="relative aspect-square bg-gray-100 overflow-hidden">
           <Image

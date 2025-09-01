@@ -88,28 +88,28 @@ export default function Home() {
       id: 1,
       title: "Fill",
       description: "Fill the bottle with your desired beverage.",
-      img: "/images/step/step 1.webp",
+      img: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756658099/step_1_vmvmii.webp",
       alt: "Step 1: Fill Bottle",
     },
     {
       id: 2,
       title: "Fizz",
       description: "Press the button to carbonate your drink.",
-      img: "/images/step/step 2.webp",
+      img: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756658098/step_2_bati86.webp",
       alt: "Step 2: Carbonate Drink",
     },
     {
       id: 3,
       title: "Flip",
       description: "Open the valve on the Fizz Infuser to release the pressure.",
-      img: "/images/step/step 3.webp",
+      img: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756658099/step_3_m5ambz.webp",
       alt: "Step 3: Flip to Release Pressure",
     },
     {
       id: 4,
       title: "Enjoy!",
       description: "Fill into a glass and enjoy the drink.",
-      img: "/images/step/step 4.webp", // 👉 Add this image to your public/images
+      img: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756658098/step_4_nbagci.webp", // 👉 Add this image to your public/images
       alt: "Step 4: Enjoy Drink",
     },
   ]
@@ -131,9 +131,9 @@ export default function Home() {
   const rightColumnStartX = 656
 
   const baseMachines = [
-    { id: "red", src: "/images/drinkmate-machine-red.png", alt: "Drinkmate OmniFizz Red" },
-    { id: "cyan", src: "/images/drinkmate-machine-blue.png", alt: "Drinkmate OmniFizz Blue" },
-    { id: "black", src: "/images/drinkmate-machine-black-small.png", alt: "Drinkmate OmniFizz Black" },
+    { id: "red", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657901/drinkmate-machine-red_lkj7c9.png", alt: "Drinkmate OmniFizz Red" },
+    { id: "cyan", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657904/drinkmate-machine-blue_fs1bk8.png", alt: "Drinkmate OmniFizz Blue" },
+    { id: "black", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657900/drinkmate-machine-black-small_mztxfb.png", alt: "Drinkmate OmniFizz Black" },
   ]
 
   const machineStyles = {
@@ -365,7 +365,7 @@ export default function Home() {
 
       {/* Refill Section */}
       <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
-        <div className="w-full bg-gradient-to-br from-[#f8fafc] via-[#f3f3f3] to-[#f1f5f9] rounded-3xl relative min-h-[300px] md:h-[250px] flex items-center justify-between px-10 md:px-16 lg:px-20 xl:px-24 shadow-2xl shadow-gray-200/40 backdrop-blur-sm border border-white/30">
+        <div className="w-full bg-white rounded-3xl relative min-h-[300px] md:h-[250px] flex items-center justify-between px-10 md:px-16 lg:px-20 xl:px-24 shadow-2xl shadow-gray-200/40 backdrop-blur-sm border border-white/30">
           {/* Left Navigation Button */}
           <Button
             className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-gray-300/50 bg-white/90 backdrop-blur-md text-gray-700 shadow-xl z-10 hover:bg-white hover:border-gray-400 hover:shadow-2xl transition-all duration-300 transform hover:scale-110"
@@ -496,7 +496,7 @@ export default function Home() {
                 {/* Multiple Machine Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561291/Zoomed_In_Machines_uqufys.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/Machines_y2di07.png"
                     alt="Soda Makers"
                     width={180}
                     height={225}
@@ -521,7 +521,7 @@ export default function Home() {
                 {/* Multiple CO2 Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/CO2_Zoomed_fwlyev.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/CO2_bodgrh.png"
                     alt="CO2"
                     width={180}
                     height={225}
@@ -546,7 +546,7 @@ export default function Home() {
                 {/* Multiple Flavor Images from Flavors Folder in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561291/Zoomed_In_Flavor_yiy4ca.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/Flavor__ecscmb.png"
                     alt="Premium Italian Flavors"
                     width={180}
                     height={225}
@@ -571,7 +571,7 @@ export default function Home() {
                 {/* Multiple Accessory Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561289/Accessories_Zoomed_aarhge.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561289/Accessories_ea0rwx.png"
                     alt="Accessories"
                     width={180}
                     height={225}
@@ -770,7 +770,7 @@ export default function Home() {
             <div className="relative w-full h-[350px] sm:h-[400px] md:h-[450px] mb-0 overflow-visible">
               {/* Background Image */}
               <Image
-                src="/images/food-grade-co2-text.png"
+                src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657662/food-grade-co2-text_rhokge.png"
                 alt="Food Grade CO2"
                 fill
                 className="object-contain opacity-90 z-0"
@@ -864,7 +864,7 @@ export default function Home() {
             {/* Background Images */}
             <div className="absolute inset-0 z-0">
               <Image
-                src="/images/food-grade-co2-text.png"
+                src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657662/food-grade-co2-text_rhokge.png"
                 alt="Food Grade CO2"
                 fill
                 className="object-cover opacity-90 rounded-[20px]"
@@ -1015,7 +1015,7 @@ export default function Home() {
         >
           {/* Main Content with Background Image */}
           <Image
-            src="/images/flavor-section-background.png"
+            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657780/flavor-section-background_ehd2eh.png"
             alt="Italian Flavors and Cherry Cola Bottle"
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 1200px"

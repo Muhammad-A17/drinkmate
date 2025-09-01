@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/lib/auth-context";
+import { useTranslation } from "@/lib/translation-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +30,7 @@ export default function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, isAuthenticated } = useAuth();
+  const { isRTL } = useTranslation();
   
   // Safely get search params
   useEffect(() => {
@@ -149,7 +151,7 @@ export default function LoginPageContent() {
   return (
     <PageLayout currentPage="login">
       <div className="container max-w-md mx-auto py-12 px-4">
-        <Card className="border-[#12d6fa]/20 shadow-lg">
+        <Card className={`border-[#12d6fa]/20 shadow-lg ${isRTL ? 'font-cairo' : 'font-montserrat'}`}>
           <CardHeader className="space-y-2 pb-6">
             <div className="mx-auto mb-2">
               <Image 

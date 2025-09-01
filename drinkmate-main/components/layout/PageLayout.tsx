@@ -33,12 +33,12 @@ export default function PageLayout({ children, currentPage }: PageLayoutProps) {
   
   return (
     <div 
-      className="min-h-screen bg-white"
+      className={`min-h-screen bg-white ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}
       dir={isHydrated && isRTL ? 'rtl' : 'ltr'}
     >
       <Banner />
       <Header currentPage={currentPage} />
-      <main className={`${isHydrated && isRTL ? 'font-noto-arabic' : 'font-geist'} max-w-[1920px] mx-auto`}>
+      <main className={`max-w-[1920px] mx-auto`}>
         {children}
       </main>
       <Footer />
