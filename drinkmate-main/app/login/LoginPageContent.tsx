@@ -2,6 +2,7 @@
 
 // Login page with enhanced UI and font configuration
 // Last updated: September 1, 2025
+// Added multilingual support with Cairo/Montserrat fonts
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
