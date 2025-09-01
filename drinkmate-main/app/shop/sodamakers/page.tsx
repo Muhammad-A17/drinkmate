@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
-import { Star, Loader2 } from "lucide-react"
+import { Star, Loader2, Filter, ChevronDown } from "lucide-react"
 import { shopAPI } from "@/lib/api"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 
@@ -26,6 +26,10 @@ interface Product {
   color?: string
   description?: string
   images?: Array<{ url: string; alt: string; isPrimary: boolean }>
+  machineType?: string
+  isOnPromotion?: boolean
+  isBundled?: boolean
+  createdAt?: string
 }
 
 interface Bundle {
@@ -42,22 +46,35 @@ interface Bundle {
   badge?: string
 }
 
+// Filter and sort options
+const machineTypeOptions = [
+  { value: "all", label: "All" },
+  { value: "omnifizz", label: "Omni-Fizz Soda Maker" },
+  { value: "luxe", label: "Luxe Soda Maker" },
+]
+
+const sortOptions = [
+  { value: "popularity", label: "Popularity" },
+  { value: "price-high-low", label: "Price High to Low" },
+  { value: "price-low-high", label: "Price Low to High" },
+  { value: "latest", label: "Latest Arrivals" },
+  { value: "promotion", label: "On Promotion" },
+  { value: "bundled", label: "Bundled Items" },
+]
+
 export default function SodamakersPage() {
   const { addItem, isInCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
 
-  // State for products and bundles
-  const [categories, setCategories] = useState([
-    { id: "omnifizz", name: "OmniFizz Soda Makers", description: "Premium carbonation for all beverages" },
-    { id: "luxe", name: "Luxe Soda Makers", description: "Luxurious and elegant carbonation experience" },
-    { id: "best-seller", name: "Best Seller Soda Makers", description: "Our most popular carbonation machines" },
-  ])
+  // Filter and sort state
+  const [selectedMachineType, setSelectedMachineType] = useState("all")
+  const [selectedSort, setSelectedSort] = useState("popularity")
+  const [showFilters, setShowFilters] = useState(false)
 
+  // State for all products
+  const [allProducts, setAllProducts] = useState<Product[]>([])
   const [bundles, setBundles] = useState<Bundle[]>([])
-  const [omnifizzMakers, setOmnifizzMakers] = useState<Product[]>([])
-  const [luxeMakers, setLuxeMakers] = useState<Product[]>([])
-  const [bestSellerMakers, setBestSellerMakers] = useState<Product[]>([])
 
   // Fetch products and bundles from API
   useEffect(() => {
@@ -67,7 +84,7 @@ export default function SodamakersPage() {
 
         // Fetch bundles
         const bundlesResponse = await shopAPI.getBundles({
-          limit: 20, // Get more bundles to see what's available
+          limit: 20,
         })
 
         console.log("Bundles API Response:", bundlesResponse)
@@ -83,7 +100,7 @@ export default function SodamakersPage() {
           originalPrice: bundle.originalPrice,
           image:
             bundle.images && bundle.images.length > 0
-              ? bundle.images[0] // Backend sends array of strings, not objects
+              ? bundle.images[0]
               : "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png",
           description: bundle.description || "Premium kit with machine and accessories",
           rating: bundle.averageRating || 4.5,
@@ -94,118 +111,69 @@ export default function SodamakersPage() {
         console.log("Formatted bundles:", formattedBundles)
         setBundles(formattedBundles)
 
-        // Fetch all soda maker products (machines category)
+        // Fetch all soda maker products
         const allProductsResponse = await shopAPI.getProducts({
           limit: 50,
         })
 
         console.log("API Response:", allProductsResponse)
 
-        // Filter products by category name (since we don't have category ID)
+        // Filter products by category name
         const allProducts = allProductsResponse.products || []
 
         console.log("All Products:", allProducts)
 
-        // Filter soda maker products (by category or name)
-        const sodaMakerProducts = allProducts.filter(
-          (product: any) =>
-            product.category === "sodamakers" ||
-            product.category === "machines" ||
-            product.name.toLowerCase().includes("soda") ||
-            product.name.toLowerCase().includes("drinkmate") ||
-            product.name.toLowerCase().includes("omnifizz") ||
-            product.name.toLowerCase().includes("luxe"),
-        )
+        // Filter soda maker products and add machine type classification
+        const sodaMakerProducts = allProducts
+          .filter(
+            (product: any) =>
+              product.category === "sodamakers" ||
+              product.category === "machines" ||
+              product.name.toLowerCase().includes("soda") ||
+              product.name.toLowerCase().includes("drinkmate") ||
+              product.name.toLowerCase().includes("omnifizz") ||
+              product.name.toLowerCase().includes("luxe"),
+          )
+          .map((product: any) => {
+            // Determine machine type
+            let machineType = "omnifizz" // default
+            if (product.name.toLowerCase().includes("luxe")) {
+              machineType = "luxe"
+            } else if (product.name.toLowerCase().includes("omnifizz")) {
+              machineType = "omnifizz"
+            }
 
-        console.log("Soda Maker Products:", sodaMakerProducts)
+            return {
+              _id: product._id,
+              id: product._id,
+              slug: product.slug,
+              name: product.name,
+              price: product.price,
+              originalPrice: product.originalPrice,
+              image:
+                product.images && product.images.length > 0
+                  ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
+                  : "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+              category: "machines",
+              rating: product.averageRating || 4.7,
+              reviews: product.reviewCount || 350,
+              color: product.colors && product.colors.length > 0 ? product.colors[0].name : undefined,
+              images: product.images,
+              machineType,
+              isOnPromotion: product.originalPrice && product.originalPrice > product.price,
+              isBundled: false, // Individual products are not bundled
+              createdAt: product.createdAt,
+            }
+          })
 
-        // Filter OmniFizz products (by name or subcategory)
-        const omnifizzProducts = sodaMakerProducts.filter(
-          (product: any) =>
-            product.name.toLowerCase().includes("omnifizz") ||
-            (product.subcategory && product.subcategory.toLowerCase().includes("omnifizz")),
-        )
-
-        console.log("OmniFizz Products:", omnifizzProducts)
-
-        // Format OmniFizz products
-        const formattedOmnifizz = omnifizzProducts.slice(0, 4).map((product: any) => ({
-          _id: product._id,
-          id: product._id,
-          slug: product.slug,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          image:
-            product.images && product.images.length > 0
-              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-              : "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
-          category: "machines",
-          rating: product.averageRating || 4.7,
-          reviews: product.reviewCount || 350,
-          color: product.colors && product.colors.length > 0 ? product.colors[0].name : undefined,
-          images: product.images,
-        }))
-
-        setOmnifizzMakers(formattedOmnifizz)
-
-        // Filter Luxe products
-        const luxeProducts = sodaMakerProducts.filter(
-          (product: any) =>
-            product.name.toLowerCase().includes("luxe") ||
-            (product.subcategory && product.subcategory.toLowerCase().includes("luxe")),
-        )
-
-        // Format Luxe products
-        const formattedLuxe = luxeProducts.slice(0, 1).map((product: any) => ({
-          _id: product._id,
-          id: product._id,
-          slug: product.slug,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          image:
-            product.images && product.images.length > 0
-              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-              : "/images/02 - Soda Makers/Banner-Luxe-Machine.png",
-          category: "machines",
-          rating: product.averageRating || 4.9,
-          reviews: product.reviewCount || 450,
-          color: product.colors && product.colors.length > 0 ? product.colors[0].name : "Stainless Steel",
-          images: product.images,
-        }))
-
-        setLuxeMakers(formattedLuxe)
-
-        // Filter Best Seller products
-        const bestSellerProducts = sodaMakerProducts.filter((product: any) => product.isBestSeller === true)
-
-        // Format Best Seller products
-        const formattedBestSellers = bestSellerProducts.slice(0, 3).map((product: any) => ({
-          _id: product._id,
-          id: product._id,
-          slug: product.slug,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          image:
-            product.images && product.images.length > 0
-              ? product.images.find((img: any) => img.isPrimary)?.url || product.images[0].url
-              : "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
-          category: "machines",
-          rating: product.averageRating || 4.8,
-          reviews: product.reviewCount || 400,
-          color: product.colors && product.colors.length > 0 ? product.colors[0].name : undefined,
-          images: product.images,
-        }))
-
-        setBestSellerMakers(formattedBestSellers)
+        console.log("Soda Maker Products with machine types:", sodaMakerProducts)
+        setAllProducts(sodaMakerProducts)
       } catch (error) {
         console.error("Error fetching products:", error)
         setError("Failed to load products. Please try again later.")
 
         // Fallback to static data if API fails
-        setOmnifizzMakers([
+        const fallbackProducts = [
           {
             _id: "201",
             id: 201,
@@ -218,6 +186,10 @@ export default function SodamakersPage() {
             rating: 4.9,
             reviews: 450,
             color: "Black",
+            machineType: "omnifizz",
+            isOnPromotion: true,
+            isBundled: false,
+            createdAt: "2024-01-01",
           },
           {
             _id: "202",
@@ -231,10 +203,11 @@ export default function SodamakersPage() {
             rating: 4.8,
             reviews: 380,
             color: "Blue",
+            machineType: "omnifizz",
+            isOnPromotion: true,
+            isBundled: false,
+            createdAt: "2024-01-02",
           },
-        ])
-
-        setLuxeMakers([
           {
             _id: "301",
             id: 301,
@@ -247,10 +220,14 @@ export default function SodamakersPage() {
             rating: 4.9,
             reviews: 450,
             color: "Stainless Steel",
+            machineType: "luxe",
+            isOnPromotion: true,
+            isBundled: false,
+            createdAt: "2024-01-03",
           },
-        ])
+        ]
 
-        setBestSellerMakers([])
+        setAllProducts(fallbackProducts)
         setBundles([])
       } finally {
         setIsLoading(false)
@@ -259,6 +236,42 @@ export default function SodamakersPage() {
 
     fetchProducts()
   }, [])
+
+  // Filter and sort products
+  const getFilteredAndSortedProducts = () => {
+    let filteredProducts = [...allProducts]
+
+    // Apply machine type filter
+    if (selectedMachineType !== "all") {
+      filteredProducts = filteredProducts.filter(product => product.machineType === selectedMachineType)
+    }
+
+    // Apply sort
+    switch (selectedSort) {
+      case "popularity":
+        filteredProducts.sort((a, b) => b.rating - a.rating)
+        break
+      case "price-high-low":
+        filteredProducts.sort((a, b) => b.price - a.price)
+        break
+      case "price-low-high":
+        filteredProducts.sort((a, b) => a.price - b.price)
+        break
+      case "latest":
+        filteredProducts.sort((a, b) => new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime())
+        break
+      case "promotion":
+        filteredProducts = filteredProducts.filter(product => product.isOnPromotion)
+        break
+      case "bundled":
+        filteredProducts = filteredProducts.filter(product => product.isBundled)
+        break
+      default:
+        filteredProducts.sort((a, b) => b.rating - a.rating)
+    }
+
+    return filteredProducts
+  }
 
   const handleAddToCart = (product: Product) => {
     addItem({
@@ -307,6 +320,11 @@ export default function SodamakersPage() {
               height={180}
               className="object-contain h-44 transition-transform duration-300 hover:scale-105"
             />
+            {product.isOnPromotion && (
+              <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                {discountPercentage}% OFF
+              </div>
+            )}
           </div>
           <h3 className="font-bold text-xl mb-3 hover:text-[#12d6fa] transition-colors leading-tight">
             {product.name}
@@ -318,9 +336,6 @@ export default function SodamakersPage() {
               <>
                 <span className="text-gray-500 text-sm line-through font-medium">
                   <SaudiRiyal amount={product.originalPrice} size="sm" />
-                </span>
-                <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
-                  {discountPercentage}% OFF
                 </span>
               </>
             )}
@@ -348,10 +363,12 @@ export default function SodamakersPage() {
     )
   }
 
+  const filteredProducts = getFilteredAndSortedProducts()
+
   return (
     <PageLayout currentPage="shop-sodamakers">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-12 text-gray-900 tracking-tight">Explore Our Soda Makers</h1>
+        <h1 className="text-4xl font-bold mb-8 text-gray-900 tracking-tight">Soda Makers</h1>
 
         {/* Error message */}
         {error && (
@@ -373,6 +390,71 @@ export default function SodamakersPage() {
           </div>
         )}
 
+        {/* Filter Bar */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* Mobile filter toggle */}
+            <div className="lg:hidden">
+              <Button
+                onClick={() => setShowFilters(!showFilters)}
+                variant="outline"
+                className="w-full flex items-center justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  <Filter className="w-4 h-4" />
+                  Filters
+                </span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
+              </Button>
+            </div>
+
+            {/* Desktop filters */}
+            <div className={`${showFilters ? "block" : "hidden"} lg:block space-y-4 lg:space-y-0 lg:flex lg:items-center lg:gap-8`}>
+              {/* Machine Type Filter */}
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium text-gray-700">Machine Type</label>
+                <div className="flex flex-wrap gap-2">
+                  {machineTypeOptions.map((option) => (
+                    <Button
+                      key={option.value}
+                      onClick={() => setSelectedMachineType(option.value)}
+                      variant={selectedMachineType === option.value ? "default" : "outline"}
+                      className={`text-sm px-4 py-2 rounded-full transition-all ${
+                        selectedMachineType === option.value
+                          ? "bg-[#12d6fa] text-white border-[#12d6fa]"
+                          : "bg-white text-gray-700 border-gray-300 hover:border-[#12d6fa] hover:text-[#12d6fa]"
+                      }`}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sort Filter */}
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium text-gray-700">Sort By</label>
+                <select
+                  value={selectedSort}
+                  onChange={(e) => setSelectedSort(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] bg-white"
+                >
+                  {sortOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Results count */}
+            <div className="text-sm text-gray-600">
+              {filteredProducts.length} {filteredProducts.length === 1 ? "product" : "products"} found
+            </div>
+          </div>
+        </div>
+
         {/* Loading state */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
@@ -384,220 +466,38 @@ export default function SodamakersPage() {
           </div>
         ) : (
           <>
-            {/* Top categories section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-              <div className="bg-[#fec603] rounded-3xl p-8 flex flex-col justify-between h-72 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
-                <div>
-                  <h2 className="text-3xl font-bold mb-3 text-gray-900">OmniFizz Soda Makers</h2>
-                  <p className="text-gray-800 text-lg font-medium">Premium carbonation for all beverages</p>
-                </div>
-                <Image
-                  src="/images/02 - Soda Makers/Banner-Omni-Fiz.png"
-                  alt="OmniFizz Soda Maker"
-                  width={220}
-                  height={220}
-                  className="self-end transition-transform duration-300 hover:scale-105"
-                />
-              </div>
-              <div className="bg-black rounded-3xl p-8 flex flex-col justify-between h-72 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
-                <div>
-                  <h2 className="text-3xl font-bold mb-3 text-white">Luxe Soda Makers</h2>
-                  <p className="text-gray-300 text-lg font-medium">Luxurious and elegant carbonation experience</p>
-                </div>
-                <Image
-                  src="/images/02 - Soda Makers/Banner-Luxe-Machine.png"
-                  alt="Luxe Soda Maker"
-                  width={220}
-                  height={220}
-                  className="self-end transition-transform duration-300 hover:scale-105"
-                />
-              </div>
-            </div>
-
-            {/* Bundles & Promotions Section */}
-            {bundles.length > 0 ? (
-              <div className="mb-16">
-                <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Bundles & Promotions</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-                  {bundles.map((bundle) => (
-                    <div
-                      key={bundle._id}
-                      className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 flex flex-col relative border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
-                    >
-                      <Link href={`/shop/sodamakers/bundles/${bundle.slug}`} className="block">
-                        <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
-                          <Image
-                            src={bundle.image || "/placeholder.svg"}
-                            alt={bundle.name}
-                            width={180}
-                            height={180}
-                            className="object-contain h-44 transition-transform duration-300 hover:scale-105"
-                          />
-                        </div>
-                        <h3 className="font-bold text-xl mb-2 hover:text-[#12d6fa] transition-colors leading-tight">
-                          {bundle.name}
-                        </h3>
-                      </Link>
-                      <p className="text-sm text-gray-600 mb-4 font-medium">{bundle.description}</p>
-                      <div className="mt-auto">
-                        <div className="flex items-center gap-2 mb-2">
-                          {bundle.originalPrice && (
-                            <>
-                              <span className="text-gray-500 text-sm line-through font-medium">
-                                <SaudiRiyal amount={bundle.originalPrice} size="sm" />
-                              </span>
-                              <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
-                                {Math.round(((bundle.originalPrice - bundle.price) / bundle.originalPrice) * 100)}% OFF
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-1">
-                            <span className="font-bold text-2xl text-gray-900">
-                              <SaudiRiyal amount={bundle.price} size="lg" />
-                            </span>
-                          </div>
-                          <Button
-                            onClick={() => (window.location.href = `/shop/sodamakers/bundles/${bundle.slug}`)}
-                            className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-bold rounded-full px-8 py-2 h-10 text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                          >
-                            BUY
-                          </Button>
-                        </div>
-                        <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-                          {renderStars(bundle.rating)}
-                          <span className="text-sm text-gray-600 font-medium">({bundle.reviews} Reviews)</span>
-                        </div>
-                      </div>
-                      {bundle.badge && (
-                        <div className="absolute top-4 right-4 bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] text-black text-xs font-bold px-3 py-2 rounded-full shadow-lg">
-                          {bundle.badge}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+            {/* Products Grid */}
+            {filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                {filteredProducts.map((product) => renderProductCard(product))}
               </div>
             ) : (
-              <div className="mb-16">
-                <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Bundles & Promotions</h2>
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Bundles Available</h3>
-                  <p className="text-gray-500 mb-4">We're working on adding bundles to our collection.</p>
-                  <div className="text-xs text-gray-400 space-y-1">
-                    <p>Debug Info:</p>
-                    <p>Bundles count: {bundles.length}</p>
-                    <p>Check browser console for API response</p>
-                  </div>
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <div className="text-gray-400 mb-4">
+                  <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
+                  </svg>
                 </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Products Found</h3>
+                <p className="text-gray-500 mb-4">
+                  No products match your current filters. Try adjusting your selection.
+                </p>
+                <Button
+                  onClick={() => {
+                    setSelectedMachineType("all")
+                    setSelectedSort("popularity")
+                  }}
+                  className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
+                >
+                  Clear Filters
+                </Button>
               </div>
             )}
-
-            {/* OmniFizz Soda Makers Section */}
-            <div className="mb-16">
-              <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">OmniFizz Soda Makers</h2>
-              {omnifizzMakers.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-                  {omnifizzMakers.map((product) => renderProductCard(product))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No OmniFizz Soda Makers Available</h3>
-                  <p className="text-gray-500 mb-4">We're working on adding OmniFizz soda makers to our collection.</p>
-                  <Button
-                    onClick={() => (window.location.href = "/admin/products")}
-                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-                  >
-                    Add Products (Admin)
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Luxe Soda Makers Section */}
-            <div className="mb-16">
-              <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Luxe Soda Makers</h2>
-              {luxeMakers.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-                  {luxeMakers.map((product) => renderProductCard(product))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Luxe Soda Makers Available</h3>
-                  <p className="text-gray-500 mb-4">We're working on adding Luxe soda makers to our collection.</p>
-                  <Button
-                    onClick={() => (window.location.href = "/admin/products")}
-                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-                  >
-                    Add Products (Admin)
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Best Seller Soda Makers Section */}
-            <div className="mb-16">
-              <h2 className="text-3xl font-bold mb-8 text-gray-900 tracking-tight">Best Seller Soda Makers</h2>
-              {bestSellerMakers.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-                  {bestSellerMakers.map((product) => renderProductCard(product))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Best Seller Soda Makers Available</h3>
-                  <p className="text-gray-500 mb-4">
-                    We're working on adding best seller soda makers to our collection.
-                  </p>
-                  <Button
-                    onClick={() => (window.location.href = "/admin/products")}
-                    className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-                  >
-                    Add Products (Admin)
-                  </Button>
-                </div>
-              )}
-            </div>
           </>
         )}
       </div>
