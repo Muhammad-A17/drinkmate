@@ -35,7 +35,7 @@ interface Product {
 
 interface Bundle {
   _id: string
-  id?: number
+  id?: string | number
   slug: string
   name: string
   price: number
@@ -240,7 +240,7 @@ export default function SodamakersPage() {
     fetchProducts()
   }, []) // Empty dependency array means this effect runs once on mount
 
-  function handleAddToCart(product: Product) {
+  function handleAddToCart(product: Product | Bundle) {
     addItem({
       id: product._id,
       name: product.name,
@@ -446,7 +446,7 @@ export default function SodamakersPage() {
                           <Button
                             onClick={() => handleAddToCart({
                               _id: bundle._id,
-                              id: bundle._id,
+                              id: bundle.id || bundle._id,
                               slug: bundle.slug,
                               name: bundle.name,
                               price: bundle.price,
