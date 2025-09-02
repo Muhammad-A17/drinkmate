@@ -643,7 +643,7 @@ exports.getAllOrders = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, trackingNumber, trackingUrl, carrier, estimatedDeliveryDate } = req.body;
+        const { status, shippingStatus, trackingNumber, trackingUrl, carrier, estimatedDeliveryDate } = req.body;
         
         const order = await Order.findById(id);
         
@@ -655,7 +655,8 @@ exports.updateOrderStatus = async (req, res) => {
         }
         
         // Update order fields
-        order.status = status || order.status;
+        if (status) order.status = status;
+        if (shippingStatus) order.shippingStatus = shippingStatus;
         
         if (trackingNumber) order.trackingNumber = trackingNumber;
         if (trackingUrl) order.trackingUrl = trackingUrl;

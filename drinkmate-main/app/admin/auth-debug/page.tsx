@@ -32,7 +32,8 @@ export default function AuthDebugPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/co2/cylinders', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
+      const response = await fetch(`${API_URL}/api/co2/cylinders`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

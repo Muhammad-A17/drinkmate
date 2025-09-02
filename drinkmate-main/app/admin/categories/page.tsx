@@ -312,6 +312,7 @@ export default function AdminCategoriesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => openCategoryEdit(category)}
+                          title="Edit Category"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -320,6 +321,7 @@ export default function AdminCategoriesPage() {
                           size="sm"
                           onClick={() => handleToggleCategoryStatus(category._id)}
                           className={category.isActive ? 'text-green-600' : 'text-red-600'}
+                          title={category.isActive ? "Hide Category" : "Show Category"}
                         >
                           {category.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                         </Button>
@@ -328,6 +330,7 @@ export default function AdminCategoriesPage() {
                           size="sm"
                           onClick={() => handleDeleteCategory(category._id)}
                           className="text-red-600 hover:text-red-700"
+                          title="Delete Category"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -387,6 +390,7 @@ export default function AdminCategoriesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => openSubcategoryEdit(subcategory)}
+                          title="Edit Subcategory"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -395,6 +399,7 @@ export default function AdminCategoriesPage() {
                           size="sm"
                           onClick={() => handleToggleSubcategoryStatus(subcategory._id)}
                           className={subcategory.isActive ? 'text-green-600' : 'text-red-600'}
+                          title={subcategory.isActive ? "Hide Subcategory" : "Show Subcategory"}
                         >
                           {subcategory.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                         </Button>
@@ -403,6 +408,7 @@ export default function AdminCategoriesPage() {
                           size="sm"
                           onClick={() => handleDeleteSubcategory(subcategory._id)}
                           className="text-red-600 hover:text-red-700"
+                          title="Delete Subcategory"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

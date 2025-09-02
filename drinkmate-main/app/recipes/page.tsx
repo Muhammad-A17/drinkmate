@@ -535,7 +535,7 @@ export default function Recipes() {
     <PageLayout currentPage="recipes">
       <div dir={isRTL ? "rtl" : "ltr"}>
         {/* Hero Section */}
-        <section className="py-16 bg-white  animate-fade-in-up">
+        <section className="py-16 bg-gray-50  animate-fade-in-up">
           <div className="max-w-7xl mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">

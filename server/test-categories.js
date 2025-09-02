@@ -10,7 +10,7 @@ async function testCategoriesAPI() {
     
     // Test 2: Check categories endpoint without auth
     try {
-      const categoriesResponse = await fetch('http://localhost:3000/api/admin/categories');
+      const categoriesResponse = await fetch('http://localhost:3000/admin/categories');
       console.log('📡 Categories endpoint response (no auth):', categoriesResponse.status);
       
       if (categoriesResponse.status === 401) {
@@ -22,7 +22,7 @@ async function testCategoriesAPI() {
     
     // Test 3: Check if create-default-categories endpoint exists
     try {
-      const createResponse = await fetch('http://localhost:3000/api/admin/create-default-categories', {
+      const createResponse = await fetch('http://localhost:3000/admin/create-default-categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -485,6 +485,7 @@ export default function CO2CylindersPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleEdit(cylinder)}
+                          title="Edit Cylinder"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -492,6 +493,7 @@ export default function CO2CylindersPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleDelete(cylinder._id)}
+                          title="Delete Cylinder"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

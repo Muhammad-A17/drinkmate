@@ -450,6 +450,7 @@ export default function TestimonialsPage() {
                             size="sm"
                             onClick={() => handleEdit(testimonial)}
                             className="h-8 px-3"
+                            title="Edit Testimonial"
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
@@ -460,6 +461,7 @@ export default function TestimonialsPage() {
                               size="sm"
                               onClick={() => handleApprove(testimonial._id)}
                               className="h-8 px-3 text-green-600 hover:text-green-700 hover:bg-green-50"
+                              title="Approve Testimonial"
                             >
                               <CheckCircle className="h-4 w-4 mr-1" />
                               Approve
@@ -470,6 +472,7 @@ export default function TestimonialsPage() {
                             size="sm"
                             onClick={() => handleDelete(testimonial._id)}
                             className="h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Delete Testimonial"
                           >
                             <Trash2 className="h-4 w-4 mr-1" />
                             Delete

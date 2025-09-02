@@ -182,43 +182,15 @@ export default function ProductForm({
     try {
       console.log(`🚀 ProductForm: Creating default categories${forceReset ? ' (force reset)' : ''}...`)
       
-      // Get auth token
-      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-      if (!token) {
-        console.error('No auth token found')
-        return
-      }
-      
-      const url = forceReset 
-        ? 'http://localhost:3000/api/admin/create-default-categories?forceReset=true'
-        : 'http://localhost:3000/api/admin/create-default-categories';
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      const data = await response.json()
+      const data = await adminAPI.createDefaultCategories(forceReset)
       console.log('📡 ProductForm: Create categories response:', data)
       
       if (data.success) {
         // Refresh categories after creation
         setHasAttemptedCategoryCreation(false) // Reset flag for future use
         await fetchCategories()
-      } else if (response.status === 400 && data.message === 'Categories already exist') {
-        // Categories already exist, this is not an error - just refresh to get them
-        console.log('ℹ️ Categories already exist, refreshing...')
-        setHasAttemptedCategoryCreation(false) // Reset flag since we know categories exist
-        await fetchCategories()
       } else {
         console.error('API Error:', data)
-        // Don't show error to user for "already exist" case
-        if (response.status !== 400 || data.message !== 'Categories already exist') {
-          console.error('Unexpected error creating categories:', data)
-        }
         // Reset flag on error so we can try again
         setHasAttemptedCategoryCreation(false)
       }

@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import AdminLayout from "@/components/layout/AdminLayout"
+import AdminActionBar, { AdminActions } from "@/components/admin/AdminActionBar"
+import AdminTable, { CellRenderers, TableColumn, ContextTableAction } from "@/components/admin/AdminTable"
+import { ActionPresets } from "@/components/admin/AdminContextActions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -54,6 +57,8 @@ import {
   Eye,
   Edit,
   Trash2,
+  CheckCircle,
+  XCircle,
   Loader2
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -67,6 +72,7 @@ import { toast } from "sonner"
 // Define User interface
 interface User {
   _id: string;
+  name?: string;
   username: string;
   email: string;
   isAdmin: boolean;
@@ -95,15 +101,18 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(10)
   const [isAddUserOpen, setIsAddUserOpen] = useState(false)
   const [isEditUserOpen, setIsEditUserOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [isBulkActionOpen, setIsBulkActionOpen] = useState(false)
   const [isViewUserOpen, setIsViewUserOpen] = useState(false)
+  
+  // Add missing pagination states
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
   
   const router = useRouter()
 
@@ -285,17 +294,17 @@ export default function UsersPage() {
     }
   }
 
-  // Handle edit user
-  const handleEditUser = (user: User) => {
-    setSelectedUser(user)
-    setIsEditUserOpen(true)
-  }
+  // Handle edit user (remove duplicate)
+  // const handleEditUser = (user: User) => {
+  //   setSelectedUser(user)
+  //   setIsEditUserOpen(true)
+  // }
 
-  // Handle view user
-  const handleViewUser = (user: User) => {
-    setSelectedUser(user)
-    setIsViewUserOpen(true)
-  }
+  // Handle view user (remove duplicate)
+  // const handleViewUser = (user: User) => {
+  //   setSelectedUser(user)
+  //   setIsViewUserOpen(true)
+  // }
 
   // Handle form submission for adding user
   const handleAddUser = async (formData: UserFormData) => {
@@ -510,16 +519,16 @@ export default function UsersPage() {
   }
 
   // Handle bulk status update
-  const handleBulkStatusUpdate = async (newStatus: 'active' | 'inactive' | 'blocked') => {
+  const handleBulkStatusUpdate = async (ids: string[], newStatus: 'active' | 'inactive' | 'blocked') => {
     try {
       setIsSubmitting(true)
       // This would call API endpoints to update multiple users
       // For now, we'll update locally
       setUsers(users.map(user => 
-        selectedUsers.includes(user._id) ? { ...user, status: newStatus } : user
+        ids.includes(user._id) ? { ...user, status: newStatus } : user
       ))
       setSelectedUsers([])
-      toast.success(`${selectedUsers.length} users status updated to ${newStatus}`)
+      toast.success(`${ids.length} users status updated to ${newStatus}`)
     } catch (error: any) {
       console.error("Error updating users status:", error)
       toast.error("Failed to update users status")
@@ -528,18 +537,245 @@ export default function UsersPage() {
     }
   }
 
+  // Individual user actions
+  const handleViewUser = (userId: string) => {
+    const user = users.find(u => u._id === userId)
+    if (user) {
+      setSelectedUser(user)
+      setIsViewUserOpen(true)
+    }
+  }
+
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user)
+    setIsEditUserOpen(true)
+  }
+
+  const handleActivateUser = async (userId: string) => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'
+      const response = await fetch(`${API_URL}/api/users/${userId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'active' })
+      })
+      
+      if (response.ok) {
+        setUsers(users.map(user => 
+          user._id === userId ? { ...user, status: 'active' } : user
+        ))
+        toast.success("User activated successfully")
+      } else {
+        throw new Error('Failed to activate user')
+      }
+    } catch (error) {
+      console.error('Error activating user:', error)
+      toast.error("Failed to activate user")
+    }
+  }
+
+  const handleDeactivateUser = async (userId: string) => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'
+      const response = await fetch(`${API_URL}/api/users/${userId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'inactive' })
+      })
+      
+      if (response.ok) {
+        setUsers(users.map(user => 
+          user._id === userId ? { ...user, status: 'inactive' } : user
+        ))
+        toast.success("User deactivated successfully")
+      } else {
+        throw new Error('Failed to deactivate user')
+      }
+    } catch (error) {
+      console.error('Error deactivating user:', error)
+      toast.error("Failed to deactivate user")
+    }
+  }
+
+  const handleBlockUser = async (userId: string) => {
+    const user = users.find(u => u._id === userId)
+    if (!confirm(`Are you sure you want to block ${user?.name || user?.username}?`)) return
+    
+    try {
+      setUsers(users.map(user => 
+        user._id === userId ? { ...user, status: 'blocked' } : user
+      ))
+      toast.success("User blocked successfully")
+    } catch (error) {
+      toast.error("Failed to block user")
+    }
+  }
+
+  const handleUnblockUser = async (userId: string) => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'
+      const response = await fetch(`${API_URL}/api/users/${userId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'active' })
+      })
+      
+      if (response.ok) {
+        setUsers(users.map(user => 
+          user._id === userId ? { ...user, status: 'active' } : user
+        ))
+        toast.success("User unblocked successfully")
+      } else {
+        throw new Error('Failed to unblock user')
+      }
+    } catch (error) {
+      console.error('Error unblocking user:', error)
+      toast.error("Failed to unblock user")
+    }
+  }
+
+  const handleExportUsers = () => {
+    // Convert users data to CSV
+    const csvData = users.map(user => ({
+      Name: user.name || user.username,
+      Email: user.email,
+      Role: user.isAdmin ? 'admin' : 'user',
+      Status: user.status,
+      'Joined Date': new Date(user.createdAt).toLocaleDateString(),
+      'Last Login': user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'
+    }))
+    
+    const csvContent = [
+      Object.keys(csvData[0]).join(','),
+      ...csvData.map(row => Object.values(row).join(','))
+    ].join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'users-export.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+    
+    toast.success("Users exported successfully")
+  }
+
+  // Define table columns
+  const columns: TableColumn<User>[] = [
+    {
+      key: "name",
+      label: "User",
+      sortable: true,
+      render: (value, row) => (
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+            <User className="h-4 w-4" />
+          </div>
+                  <div>
+          <div className="font-medium">{value || row.username}</div>
+          <div className="text-sm text-muted-foreground">{row.email}</div>
+        </div>
+        </div>
+      )
+    },
+    {
+      key: "role",
+      label: "Role",
+      render: (value, row) => (
+        <Badge variant={row.isAdmin ? 'default' : 'secondary'}>
+          {row.isAdmin ? 'admin' : 'user'}
+        </Badge>
+      )
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: CellRenderers.status
+    },
+    {
+      key: "createdAt",
+      label: "Joined",
+      render: CellRenderers.date,
+      width: "120px"
+    },
+    {
+      key: "lastLogin",
+      label: "Last Login",
+      render: (value) => value ? CellRenderers.date(value) : "Never",
+      width: "120px"
+    }
+  ]
+
+  // Context-aware actions for users
+  const contextActions: ContextTableAction<User>[] = [
+    ActionPresets.users.view((user) => handleViewUser(user._id)),
+    ActionPresets.users.edit((user) => handleEditUser(user)),
+    ActionPresets.users.activate((user) => handleActivateUser(user._id)),
+    ActionPresets.users.deactivate((user) => handleDeactivateUser(user._id)),
+    ActionPresets.users.block((user) => handleBlockUser(user._id)),
+    ActionPresets.users.unblock((user) => handleUnblockUser(user._id)),
+    ActionPresets.users.delete((user) => handleDeleteUser(user._id))
+  ]
+
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">User Management</h1>
-        <Button 
-          className="bg-[#12d6fa] hover:bg-[#0fb8d9]"
-          onClick={() => setIsAddUserOpen(true)}
-        >
-          <UserPlus className="mr-2 h-4 w-4" />
-          Add User
-        </Button>
-      </div>
+      {/* Header with standardized actions */}
+      <AdminActionBar
+        title="User Management"
+        description="Manage user accounts, permissions, and access control"
+        totalItems={users.length}
+        filteredItems={filteredUsers.length}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search users..."
+        primaryActions={[
+          AdminActions.addNew("Add User", () => setIsAddUserOpen(true))
+        ]}
+        secondaryActions={[
+          AdminActions.refresh(() => fetchUsers()),
+          AdminActions.export(() => handleExportUsers()),
+          {
+            id: "invite-users",
+            label: "Send Invites",
+            icon: <Mail className="h-4 w-4 mr-2" />,
+            onClick: () => toast.info("Bulk invite functionality"),
+            variant: "outline"
+          }
+        ]}
+        selectedItems={selectedUsers}
+        onSelectionChange={setSelectedUsers}
+        bulkActions={[
+          {
+            id: "bulk-activate",
+            label: "Activate Selected",
+            icon: <CheckCircle className="h-4 w-4 mr-2" />,
+            onClick: (ids) => handleBulkStatusUpdate(ids, 'active'),
+            variant: "default"
+          },
+          {
+            id: "bulk-deactivate", 
+            label: "Deactivate Selected",
+            icon: <XCircle className="h-4 w-4 mr-2" />,
+            onClick: (ids) => handleBulkStatusUpdate(ids, 'inactive'),
+            variant: "outline"
+          },
+          {
+            id: "bulk-block",
+            label: "Block Selected", 
+            icon: <UserX className="h-4 w-4 mr-2" />,
+            onClick: (ids) => handleBulkStatusUpdate(ids, 'blocked'),
+            variant: "destructive"
+          },
+          AdminActions.bulkDelete(handleBulkDelete)
+        ]}
+      />
 
       {/* User Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -632,7 +868,7 @@ export default function UsersPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleBulkStatusUpdate('active')}
+                  onClick={() => handleBulkStatusUpdate(selectedUsers, 'active')}
                   disabled={isSubmitting}
                   className="text-green-600 hover:text-green-700 hover:bg-green-50"
                 >
@@ -642,7 +878,7 @@ export default function UsersPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleBulkStatusUpdate('blocked')}
+                  onClick={() => handleBulkStatusUpdate(selectedUsers, 'blocked')}
                   disabled={isSubmitting}
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
@@ -730,33 +966,75 @@ export default function UsersPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
+                      <div className="flex gap-1 justify-end">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleViewUser(user)}
-                          className="h-8 px-3"
+                          onClick={() => handleViewUser(user._id)}
+                          className="h-8 px-2"
+                          title="View Profile"
                         >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
+                          <Eye className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleEditUser(user)}
-                          className="h-8 px-3"
+                          className="h-8 px-2"
+                          title="Edit User"
                         >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
+                          <Edit className="h-4 w-4" />
                         </Button>
+                        {user.status === 'active' ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeactivateUser(user._id)}
+                            className="h-8 px-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                            title="Deactivate User"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleActivateUser(user._id)}
+                            className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            title="Activate User"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {user.status === 'blocked' ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleUnblockUser(user._id)}
+                            className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            title="Unblock User"
+                          >
+                            <UserCheck className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleBlockUser(user._id)}
+                            className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Block User"
+                          >
+                            <UserX className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleDeleteUser(user._id)}
-                          className="h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          title="Delete User"
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>

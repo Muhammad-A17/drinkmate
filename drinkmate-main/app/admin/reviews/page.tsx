@@ -1,335 +1,308 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Star, CheckCircle, XCircle, Clock, User, Package } from "lucide-react"
-import { adminAPI } from "@/lib/api"
-import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
+import { useReviews } from "@/hooks/use-reviews"
+import ReviewHeader from "@/components/admin/reviews/ReviewHeader"
+import AdvancedFilters from "@/components/admin/reviews/AdvancedFilters"
+import ReviewAnalytics from "@/components/admin/reviews/ReviewAnalytics"
+import ReviewCard from "@/components/admin/reviews/ReviewCard"
+import ReviewDialogs from "@/components/admin/reviews/ReviewDialogs"
 import AdminLayout from "@/components/layout/AdminLayout"
+import type { 
+  Review, 
+  ReviewFilters, 
+  CreateReviewForm,
+  ResponseTemplate,
+  ModerationSettings
+} from "@/lib/types/review"
 
-interface Review {
-  _id: string
-  user: {
-    _id: string
-    username: string
-    avatar?: string
-  }
-  product?: {
-    _id: string
-    name: string
-  }
-  bundle?: {
-    _id: string
-    name: string
-  }
-  rating: number
-  title?: string
-  comment: string
-  status: 'pending' | 'approved' | 'rejected'
-  createdAt: string
-  isVerifiedPurchase: boolean
-}
+export default function ReviewsPage() {
+  const {
+    reviews,
+    products,
+    users,
+    isLoading,
+    selectedReviews,
+    setSelectedReviews,
+    handleStatusUpdate,
+    handleBulkAction,
+    handleCreateReview,
+    handleAdminResponse,
+    handleBulkImport,
+    generateReport,
+    handleModerationSettings,
+    getAnalytics
+  } = useReviews()
 
-export default function AdminReviewsPage() {
-  const [reviews, setReviews] = useState<Review[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState("pending")
+  // UI State
+  const [activeTab, setActiveTab] = useState("all")
+  const [showCreateReview, setShowCreateReview] = useState(false)
+  const [showReviewDetails, setShowReviewDetails] = useState(false)
+  const [showAdminResponse, setShowAdminResponse] = useState(false)
+  const [showTemplates, setShowTemplates] = useState(false)
+  const [showBulkImport, setShowBulkImport] = useState(false)
+  const [showModeration, setShowModeration] = useState(false)
+  const [showWorkflow, setShowWorkflow] = useState(false)
+  const [showReports, setShowReports] = useState(false)
+  const [showAnalytics, setShowAnalytics] = useState(false)
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null)
+  const [responseReview, setResponseReview] = useState<Review | null>(null)
 
-  useEffect(() => {
-    fetchReviews()
-  }, [])
-
-  const fetchReviews = async () => {
-    try {
-      setIsLoading(true)
-      const response = await adminAPI.getReviews()
-      if (response.success) {
-        setReviews(response.reviews)
-      }
-    } catch (error) {
-      console.error("Error fetching reviews:", error)
-      toast.error("Failed to fetch reviews")
-    } finally {
-      setIsLoading(false)
+  // Filters State
+  const [filters, setFilters] = useState<ReviewFilters>({
+    rating: "all",
+    verified: "all",
+    product: "all",
+    user: "all",
+    dateRange: {
+      from: "",
+      to: ""
     }
-  }
+  })
 
-  const handleStatusUpdate = async (reviewId: string, status: 'approved' | 'rejected') => {
-    try {
-      const response = await adminAPI.updateReviewStatus(reviewId, status)
-      if (response.success) {
-        toast.success(`Review ${status} successfully`)
-        fetchReviews() // Refresh the list
-      } else {
-        throw new Error(response.message || "Failed to update review")
-      }
-    } catch (error: any) {
-      console.error("Error updating review:", error)
-      toast.error(error.message || "Failed to update review")
+  // Filtered and sorted reviews
+  const filteredReviews = useMemo(() => {
+    let filtered = reviews
+
+    // Tab filtering
+    if (activeTab !== "all") {
+      filtered = filtered.filter(review => review.status === activeTab)
     }
-  }
 
-  const renderStars = (rating: number) => {
-    const stars = []
-    for (let i = 0; i < 5; i++) {
-      stars.push(
-        <Star
-          key={i}
-          className={`w-4 h-4 ${
-            i < Math.floor(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-          }`}
-        />
+    // Advanced filters
+    if (filters.rating !== "all") {
+      filtered = filtered.filter(review => review.rating.toString() === filters.rating)
+    }
+    if (filters.verified !== "all") {
+      filtered = filtered.filter(review => 
+        filters.verified === "verified" ? review.isVerifiedPurchase : !review.isVerifiedPurchase
       )
     }
-    return <div className="flex">{stars}</div>
-  }
+    if (filters.product !== "all") {
+      filtered = filtered.filter(review => 
+        review.product?._id === filters.product || review.bundle?._id === filters.product
+      )
+    }
+    if (filters.user !== "all") {
+      filtered = filtered.filter(review => review.user._id === filters.user)
+    }
+    if (filters.dateRange.from) {
+      filtered = filtered.filter(review => new Date(review.createdAt) >= new Date(filters.dateRange.from))
+    }
+    if (filters.dateRange.to) {
+      filtered = filtered.filter(review => new Date(review.createdAt) <= new Date(filters.dateRange.to))
+    }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Pending</Badge>
-      case 'approved':
-        return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>
-      case 'rejected':
-        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+    return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }, [reviews, activeTab, filters])
+
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedReviews(filteredReviews.map(review => review._id))
+    } else {
+      setSelectedReviews([])
     }
   }
 
-  const getItemType = (review: Review) => {
-    if (review.product) {
-      return (
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Package className="w-4 h-4" />
-          <span>Product: {review.product.name}</span>
-        </div>
-      )
-    } else if (review.bundle) {
-      return (
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Package className="w-4 h-4" />
-          <span>Bundle: {review.bundle.name}</span>
-        </div>
-      )
+  const handleSelectReview = (reviewId: string, selected: boolean) => {
+    if (selected) {
+      setSelectedReviews([...selectedReviews, reviewId])
+    } else {
+      setSelectedReviews(selectedReviews.filter(id => id !== reviewId))
     }
-    return null
   }
 
-  const filteredReviews = reviews.filter(review => review.status === activeTab)
+  // Dialog handlers
+  const handleViewDetails = (review: Review) => {
+    setSelectedReview(review)
+    setShowReviewDetails(true)
+  }
+
+  const handleAddResponse = (review: Review) => {
+    setResponseReview(review)
+    setShowAdminResponse(true)
+  }
+
+  const handleTemplateSelect = (template: ResponseTemplate) => {
+    // Template selection is handled in the dialog component
+  }
+
+  // Analytics
+  const analytics = getAnalytics()
+
+  // Tab counts
+  const tabCounts = {
+    all: reviews.length,
+    pending: reviews.filter(r => r.status === "pending").length,
+    approved: reviews.filter(r => r.status === "approved").length,
+    rejected: reviews.filter(r => r.status === "rejected").length,
+    flagged: reviews.filter(r => r.flagged).length
+  }
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Review Management</h1>
-          <p className="text-gray-600">Manage product and bundle reviews</p>
-        </div>
+      <div className="container mx-auto p-6">
+        <ReviewHeader
+        onCreateReview={() => setShowCreateReview(true)}
+        onBulkImport={() => setShowBulkImport(true)}
+        onShowTemplates={() => setShowTemplates(true)}
+        onShowModeration={() => setShowModeration(true)}
+        onShowWorkflow={() => setShowWorkflow(true)}
+        onShowReports={() => setShowReports(true)}
+        onToggleAnalytics={() => setShowAnalytics(!showAnalytics)}
+        onToggleFilters={() => setShowAdvancedFilters(!showAdvancedFilters)}
+        onExport={() => {/* TODO: Implement export */}}
+        showAnalytics={showAnalytics}
+        showAdvancedFilters={showAdvancedFilters}
+      />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+      {showAnalytics && <ReviewAnalytics analytics={analytics} />}
+
+      {showAdvancedFilters && (
+        <AdvancedFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          products={products}
+          users={users}
+        />
+      )}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="all">
+              All Reviews
+              <Badge variant="secondary" className="ml-2">{tabCounts.all}</Badge>
+            </TabsTrigger>
             <TabsTrigger value="pending">
-              Pending ({reviews.filter(r => r.status === 'pending').length})
+              Pending
+              <Badge variant="secondary" className="ml-2">{tabCounts.pending}</Badge>
             </TabsTrigger>
             <TabsTrigger value="approved">
-              Approved ({reviews.filter(r => r.status === 'approved').length})
+              Approved
+              <Badge variant="secondary" className="ml-2">{tabCounts.approved}</Badge>
             </TabsTrigger>
             <TabsTrigger value="rejected">
-              Rejected ({reviews.filter(r => r.status === 'rejected').length})
+              Rejected
+              <Badge variant="secondary" className="ml-2">{tabCounts.rejected}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="flagged">
+              Flagged
+              <Badge variant="secondary" className="ml-2">{tabCounts.flagged}</Badge>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="pending" className="mt-6">
-            <div className="grid gap-6">
-              {filteredReviews.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-8">
-                    <p className="text-gray-500">No pending reviews</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                filteredReviews.map((review) => (
-                  <Card key={review._id}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] flex items-center justify-center text-white font-semibold">
-                            {review.user.username.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
+          {selectedReviews.length > 0 && (
                             <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{review.user.username}</h3>
-                              {getStatusBadge(review.status)}
+              <span className="text-sm text-gray-600">
+                {selectedReviews.length} selected
+              </span>
+                              <Button
+                                size="sm"
+                variant="outline"
+                onClick={() => handleBulkAction("approve")}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                variant="outline"
+                onClick={() => handleBulkAction("reject")}
+                              >
+                                Reject
+                              </Button>
+                          <Button
+                            size="sm"
+                variant="destructive"
+                onClick={() => handleBulkAction("delete")}
+              >
+                Delete
+                          </Button>
+                        </div>
+                          )}
+                        </div>
+
+        <TabsContent value={activeTab} className="space-y-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading reviews...</p>
                             </div>
-                            <p className="text-sm text-gray-500">
-                              {new Date(review.createdAt).toLocaleDateString()}
-                            </p>
                           </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => handleStatusUpdate(review._id, 'approved')}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Approve
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleStatusUpdate(review._id, 'rejected')}
-                          >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            Reject
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          {renderStars(review.rating)}
-                          <span className="text-sm font-medium">{review.rating}.0</span>
-                        </div>
-                        
-                        {review.title && (
-                          <h4 className="font-medium">{review.title}</h4>
-                        )}
-                        
-                        <p className="text-gray-700">{review.comment}</p>
-                        
-                        {getItemType(review)}
-                        
-                        {review.isVerifiedPurchase && (
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Verified Purchase
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+          ) : filteredReviews.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No reviews found</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Try adjusting your filters or create a new review
+              </p>
             </div>
-          </TabsContent>
+          ) : (
+            <div className="space-y-4">
+              {/* Select All */}
+              <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-lg">
+                <Checkbox
+                  checked={selectedReviews.length === filteredReviews.length && filteredReviews.length > 0}
+                  onCheckedChange={handleSelectAll}
+                />
+                <span className="text-sm font-medium">
+                  Select all {filteredReviews.length} reviews
+                </span>
+              </div>
 
-          <TabsContent value="approved" className="mt-6">
-            <div className="grid gap-6">
-              {filteredReviews.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-8">
-                    <p className="text-gray-500">No approved reviews</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                filteredReviews.map((review) => (
-                  <Card key={review._id}>
-                    <CardHeader>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] flex items-center justify-center text-white font-semibold">
-                          {review.user.username.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold">{review.user.username}</h3>
-                            {getStatusBadge(review.status)}
-                          </div>
-                          <p className="text-sm text-gray-500">
-                            {new Date(review.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          {renderStars(review.rating)}
-                          <span className="text-sm font-medium">{review.rating}.0</span>
-                        </div>
-                        
-                        {review.title && (
-                          <h4 className="font-medium">{review.title}</h4>
-                        )}
-                        
-                        <p className="text-gray-700">{review.comment}</p>
-                        
-                        {getItemType(review)}
-                        
-                        {review.isVerifiedPurchase && (
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                            <CheckCircle className="w-3 h-4 mr-1" />
-                            Verified Purchase
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+              {/* Review Cards */}
+              {filteredReviews.map((review) => (
+                <ReviewCard
+                  key={review._id}
+                  review={review}
+                  isSelected={selectedReviews.includes(review._id)}
+                  activeTab={activeTab}
+                  onSelectionChange={handleSelectReview}
+                  onStatusUpdate={handleStatusUpdate}
+                  onViewDetails={handleViewDetails}
+                  onAddResponse={handleAddResponse}
+                />
+              ))}
             </div>
-          </TabsContent>
+          )}
+        </TabsContent>
+      </Tabs>
 
-          <TabsContent value="rejected" className="mt-6">
-            <div className="grid gap-6">
-              {filteredReviews.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-8">
-                    <p className="text-gray-500">No rejected reviews</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                filteredReviews.map((review) => (
-                  <Card key={review._id}>
-                    <CardHeader>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] flex items-center justify-center text-white font-semibold">
-                          {review.user.username.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold">{review.user.username}</h3>
-                            {getStatusBadge(review.status)}
-                          </div>
-                          <p className="text-sm text-gray-500">
-                            {new Date(review.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          {renderStars(review.rating)}
-                          <span className="text-sm font-medium">{review.rating}.0</span>
-                        </div>
-                        
-                        {review.title && (
-                          <h4 className="font-medium">{review.title}</h4>
-                        )}
-                        
-                        <p className="text-gray-700">{review.comment}</p>
-                        
-                        {getItemType(review)}
-                        
-                        {review.isVerifiedPurchase && (
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                            <CheckCircle className="w-3 h-4 mr-1" />
-                            Verified Purchase
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+      {/* Dialogs */}
+      <ReviewDialogs
+        showCreateReview={showCreateReview}
+        onCreateReviewClose={() => setShowCreateReview(false)}
+        onCreateReviewSubmit={handleCreateReview}
+        products={products}
+        users={users}
+        showReviewDetails={showReviewDetails}
+        onReviewDetailsClose={() => setShowReviewDetails(false)}
+        selectedReview={selectedReview}
+        showAdminResponse={showAdminResponse}
+        onAdminResponseClose={() => setShowAdminResponse(false)}
+        onAdminResponseSubmit={handleAdminResponse}
+        responseReview={responseReview}
+        showTemplates={showTemplates}
+        onTemplatesClose={() => setShowTemplates(false)}
+        onTemplateSelect={handleTemplateSelect}
+        showBulkImport={showBulkImport}
+        onBulkImportClose={() => setShowBulkImport(false)}
+        onBulkImportSubmit={handleBulkImport}
+        showModeration={showModeration}
+        onModerationClose={() => setShowModeration(false)}
+        onModerationSubmit={handleModerationSettings}
+        showWorkflow={showWorkflow}
+        onWorkflowClose={() => setShowWorkflow(false)}
+        showReports={showReports}
+        onReportsClose={() => setShowReports(false)}
+                onGenerateReport={generateReport}
+      />
       </div>
     </AdminLayout>
   )

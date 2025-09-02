@@ -122,7 +122,8 @@ export default function CO2OrdersPage() {
         return
       }
 
-      const response = await fetch('http://localhost:3000/api/co2/orders', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
+      const response = await fetch(`${API_URL}/api/co2/orders`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -157,7 +158,8 @@ export default function CO2OrdersPage() {
         return
       }
 
-      const response = await fetch(`http://localhost:3000/api/co2/orders/${orderId}/status`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
+      const response = await fetch(`${API_URL}/api/co2/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -188,7 +190,8 @@ export default function CO2OrdersPage() {
         return
       }
 
-      const response = await fetch(`http://localhost:3000/api/co2/orders/${orderId}/pickup`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
+      const response = await fetch(`${API_URL}/api/co2/orders/${orderId}/pickup`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -217,7 +220,8 @@ export default function CO2OrdersPage() {
         return
       }
 
-      const response = await fetch(`http://localhost:3000/api/co2/orders/${orderId}/delivery`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
+      const response = await fetch(`${API_URL}/api/co2/orders/${orderId}/delivery`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

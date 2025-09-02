@@ -51,6 +51,7 @@ import {
 import { shopAPI } from "@/lib/api"
 import { toast } from "sonner"
 import { adminAPI } from "@/lib/api"
+import AdminActionBar, { AdminActions } from "@/components/admin/AdminActionBar"
 import CloudinaryImageUpload from "@/components/ui/cloudinary-image-upload"
 
 interface Category {
@@ -227,38 +228,13 @@ export default function BundlesPage() {
     try {
       console.log(`🚀 Creating default categories${forceReset ? ' (force reset)' : ''}...`)
       
-      // Get auth token
-      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-      if (!token) {
-        toast.error('Please log in first to create categories')
-        return
-      }
-      
-      const url = forceReset 
-        ? 'http://localhost:3000/api/admin/create-default-categories?forceReset=true'
-        : 'http://localhost:3000/api/admin/create-default-categories';
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      const data = await response.json()
+      const data = await adminAPI.createDefaultCategories(forceReset)
       console.log('📡 Create categories response:', data)
       
       if (data.success) {
         toast.success('Default categories created successfully!')
         // Refresh categories after creation
         setHasAttemptedCategoryCreation(false) // Reset flag for future use
-        await fetchCategories()
-      } else if (response.status === 400 && data.message === 'Categories already exist') {
-        // Categories already exist, this is not an error - just refresh to get them
-        console.log('ℹ️ Categories already exist, refreshing...')
-        toast.info('Categories already exist, loading them...')
-        setHasAttemptedCategoryCreation(false) // Reset flag since we know categories exist
         await fetchCategories()
       } else {
         toast.error(data.message || 'Failed to create default categories')
@@ -920,51 +896,45 @@ export default function BundlesPage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Bundle Management</h1>
-            <p className="text-muted-foreground">
-              Create and manage product bundles with categories and subcategories
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline"
-              onClick={() => setIsCategoriesDialogOpen(true)}
-            >
-              <Tag className="h-4 w-4 mr-2" />
-              Manage Categories
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={fetchCategories}
-            >
-              🔄 Refresh Categories
-            </Button>
-                         <Button 
-               variant="outline"
-               onClick={() => createDefaultCategories()}
-               className="bg-green-600 hover:bg-green-700 text-white"
-             >
-               🚀 Create Default Categories
-             </Button>
-             <Button 
-               variant="outline"
-               onClick={() => createDefaultCategories(true)}
-               className="bg-red-600 hover:bg-red-700 text-white"
-             >
-               🔄 Force Reset & Create Defaults
-             </Button>
-            <Button 
-              onClick={() => setIsDialogOpen(true)}
-              className="bg-[#12d6fa] hover:bg-[#0fb8d9]"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Bundle
-            </Button>
-          </div>
-        </div>
+        {/* Header with standardized actions */}
+        <AdminActionBar
+          title="Bundle Management"
+          description="Create and manage product bundles with categories and subcategories"
+          totalItems={bundles.length}
+          filteredItems={filteredBundles.length}
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Search bundles..."
+          primaryActions={[
+            AdminActions.addNew("Add Bundle", () => setIsDialogOpen(true))
+          ]}
+          secondaryActions={[
+            {
+              id: "manage-categories",
+              label: "Manage Categories", 
+              icon: <Tag className="h-4 w-4 mr-2" />,
+              onClick: () => setIsCategoriesDialogOpen(true),
+              variant: "outline"
+            },
+            AdminActions.refresh(fetchCategories),
+            {
+              id: "create-defaults",
+              label: "Create Default Categories",
+              icon: <span className="mr-2">🚀</span>,
+              onClick: () => createDefaultCategories(),
+              variant: "outline",
+              className: "bg-green-600 hover:bg-green-700 text-white"
+            },
+            {
+              id: "force-reset",
+              label: "Force Reset & Create Defaults", 
+              icon: <span className="mr-2">🔄</span>,
+              onClick: () => createDefaultCategories(true),
+              variant: "outline",
+              className: "bg-red-600 hover:bg-red-700 text-white"
+            }
+          ]}
+        />
 
         {/* Filters */}
         <Card>
@@ -1133,6 +1103,7 @@ export default function BundlesPage() {
                             size="sm"
                             onClick={() => handleView(bundle)}
                             className="h-8 px-3"
+                            title="View Bundle"
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             View
@@ -1142,6 +1113,7 @@ export default function BundlesPage() {
                             size="sm"
                             onClick={() => handleEdit(bundle)}
                             className="h-8 px-3"
+                            title="Edit Bundle"
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
@@ -1151,6 +1123,7 @@ export default function BundlesPage() {
                             size="sm"
                             onClick={() => handleDelete(bundle._id)}
                             className="h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Delete Bundle"
                           >
                             <Trash2 className="h-4 w-4 mr-1" />
                             Delete
@@ -1620,6 +1593,7 @@ export default function BundlesPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => openEditCategory(category)}
+                            title="Edit Category"
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
@@ -1639,6 +1613,7 @@ export default function BundlesPage() {
                             variant="destructive"
                             size="sm"
                             onClick={() => handleDeleteCategory(category._id)}
+                            title="Delete Category"
                           >
                             <Trash2 className="h-4 w-4 mr-1" />
                             Delete
@@ -1673,6 +1648,7 @@ export default function BundlesPage() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => openEditSubcategory(subcategory)}
+                                    title="Edit Subcategory"
                                   >
                                     <Edit className="h-3 w-3" />
                                   </Button>
@@ -1680,6 +1656,7 @@ export default function BundlesPage() {
                                     variant="destructive"
                                     size="sm"
                                     onClick={() => handleDeleteSubcategory(category._id, subcategory._id)}
+                                    title="Delete Subcategory"
                                   >
                                     <Trash2 className="h-3 w-3" />
                                   </Button>

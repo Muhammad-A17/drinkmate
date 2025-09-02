@@ -1,571 +1,1102 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/auth-context"
-import { useAdminTranslation } from "@/lib/use-admin-translation"
+import { useState, useEffect, useMemo, useCallback, ReactNode } from "react"
 import AdminLayout from "@/components/layout/AdminLayout"
+import AdminActionBar, { AdminActions } from "@/components/admin/AdminActionBar"
+import AdminTable, { CellRenderers, type TableColumn, type ContextTableAction } from "@/components/admin/AdminTable"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import { Input } from "@/components/ui/input"
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table"
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { 
-  Search, 
-  MoreHorizontal,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  FileText,
-  Eye,
-  Truck,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  Calendar,
-  CreditCard,
-  MapPin
-} from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import { 
+  Package,
+  DollarSign,
+  Clock,
+  CheckCircle,
+  TrendingUp,
+  Trash2,
+  Filter,
+  Download,
+  MapPin,
+  CreditCard,
+  Truck,
+  Mail,
+  Eye,
+  Edit,
+  XCircle,
+  Ship,
+  RefreshCw,
+  ArrowLeftRight,
+  Split,
+  RotateCw,
+  RotateCcw,
+  Plus,
+  Loader2
+} from "lucide-react"
 
-// Define Order interface
-interface OrderItem {
-  name: string;
-  quantity: number;
-  price: number;
-  image?: string;
+type OrderStatus = "pending" | "processing" | "confirmed" | "shipped" | "delivered" | "cancelled"
+type PaymentStatus = "unpaid" | "paid" | "partial" | "refunded"
+type ShippingStatus = "pending" | "processing" | "shipped" | "delivered"
+
+interface NewOrderForm {
+  customerName: string
+  customerEmail: string
+  customerPhone: string
+  totalAmount: string
+  paymentMethod: string
+  shippingMethod: string
+  status: OrderStatus
+  paymentStatus: PaymentStatus
+  shippingStatus: ShippingStatus
+  street: string
+  city: string
+  state: string
+  zipCode: string
+  country: string
+  notes: string
 }
 
 interface Order {
-  _id: string;
-  orderNumber: string;
-  user: {
-    _id: string;
-    username: string;
-    email: string;
-  };
-  items: OrderItem[];
-  shippingAddress: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    address1: string;
-    city: string;
-    state: string;
-    postalCode: string;
-  };
-  paymentMethod: string;
-  deliveryOption: string;
-  cardDetails?: {
-    cardNumber: string;
-    cardholderName: string;
-    expiryMonth: string;
-    expiryYear: string;
-    cvv: string;
-  };
-  subtotal: number;
-  shippingCost: number;
-  tax: number;
-  total: number;
-  status: string;
-  paymentStatus: string;
-  createdAt: string;
-  updatedAt: string;
+  _id: string
+  orderNumber: string
+  customerName: string
+  customerEmail: string
+  customerPhone?: string
+  orderDate: string
+  items: number
+  totalAmount: number
+  status: OrderStatus
+  paymentStatus: PaymentStatus
+  paymentMethod: string
+  shippingMethod: string
+  shippingStatus: ShippingStatus
+  shippingAddress?: {
+    street: string
+    city: string
+    state: string
+    zipCode: string
+    country: string
+  }
+  trackingNumber?: string
+  notes?: string
+}
+
+interface OrderFilters {
+  status: string
+  paymentStatus: string
+  shippingStatus: string
+  paymentMethod: string
+  dateFrom: string
+  dateTo: string
 }
 
 export default function OrdersPage() {
-  const { t } = useAdminTranslation()
-  const { user } = useAuth()
-  const router = useRouter()
-  
   const [orders, setOrders] = useState<Order[]>([])
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [paymentFilter, setPaymentFilter] = useState("all")
+  const [selectedItems, setSelectedItems] = useState<string[]>([])
+  const [selectedRows, setSelectedRows] = useState<string[]>([])
+  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
+  const [processingOrders, setProcessingOrders] = useState(false)
+  const [cancellingOrders, setCancellingOrders] = useState(false)
+
+  const [filters, setFilters] = useState<OrderFilters>({
+    status: "all",
+    paymentStatus: "all",
+    shippingStatus: "all",
+    paymentMethod: "all",
+    dateFrom: "",
+    dateTo: "",
+  })
+  const [showFilters, setShowFilters] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [showOrderDetails, setShowOrderDetails] = useState(false)
+
+  // Stats
+  const [orderStats, setOrderStats] = useState({
+    total: 0,
+    pending: 0,
+    processing: 0,
+    delivered: 0,
+    revenue: 0,
+    avgOrderValue: 0,
+  })
+
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalOrders, setTotalOrders] = useState(0)
-  const [itemsPerPage] = useState(10)
-  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
+  const [pageSize, setPageSize] = useState(10)
+  
+  // Memoized pagination calculations for performance
+  const paginationData = useMemo(() => {
+    const totalPages = Math.ceil(filteredOrders.length / pageSize)
+    const startIndex = (currentPage - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    const paginatedOrders = filteredOrders.slice(startIndex, endIndex)
+    return { totalPages, startIndex, endIndex, paginatedOrders }
+  }, [filteredOrders, currentPage, pageSize])
+  
+  const { totalPages, paginatedOrders } = paginationData
+
+  const [showCreateOrder, setShowCreateOrder] = useState(false)
+  const [showEditOrder, setShowEditOrder] = useState(false)
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null)
+  const [orderForm, setOrderForm] = useState<NewOrderForm>({
+    customerName: "",
+    customerEmail: "",
+    customerPhone: "",
+    totalAmount: "",
+    paymentMethod: "Credit Card",
+    shippingMethod: "Standard (Aramex)",
+    status: "pending",
+    paymentStatus: "unpaid",
+    shippingStatus: "pending",
+    street: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "Saudi Arabia",
+    notes: "",
+  })
 
   useEffect(() => {
-    // Wait for authentication to complete
-    if (user === undefined) return
-    
-    // Check if user is authenticated and is admin
-    if (!user || !user.isAdmin) {
-      console.log('User not authenticated or not admin:', { user, isAdmin: user?.isAdmin })
-      router.push('/login')
-      return
-    }
-    
-    // User is authenticated and is admin, fetch data
     fetchOrders()
-  }, [user, router, currentPage, statusFilter, paymentFilter])
+  }, [])
+
+  useEffect(() => {
+    let filtered = orders
+
+    // Text search
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(
+        (order) =>
+          order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.trackingNumber?.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    }
+
+    // Status filters
+    if (filters.status !== "all") {
+      filtered = filtered.filter((order) => order.status === filters.status)
+    }
+    if (filters.paymentStatus !== "all") {
+      filtered = filtered.filter((order) => order.paymentStatus === filters.paymentStatus)
+    }
+    if (filters.shippingStatus !== "all") {
+      filtered = filtered.filter((order) => order.shippingStatus === filters.shippingStatus)
+    }
+    if (filters.paymentMethod !== "all") {
+      filtered = filtered.filter((order) => order.paymentMethod === filters.paymentMethod)
+    }
+
+    // Date range filter
+    if (filters.dateFrom) {
+      filtered = filtered.filter((order) => new Date(order.orderDate) >= new Date(filters.dateFrom))
+    }
+    if (filters.dateTo) {
+      filtered = filtered.filter((order) => new Date(order.orderDate) <= new Date(filters.dateTo))
+    }
+
+    setFilteredOrders(filtered)
+    setCurrentPage(1)
+  }, [orders, searchTerm, filters])
 
   const fetchOrders = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
+      toast.info("Loading orders...");
       
-      // For now, use mock data while backend is being set up
+      // Try to fetch from API
+      try {
+        const { orderAPI } = await import('@/lib/api');
+        const response = await orderAPI.getAllOrders();
+        
+        if (response.success && response.orders) {
+          setOrders(response.orders);
+          // Update stats
+          setOrderStats({
+            total: response.orders.length,
+            pending: response.orders.filter((o: Order) => o.status === 'pending').length,
+            processing: response.orders.filter((o: Order) => o.status === 'processing').length,
+            delivered: response.orders.filter((o: Order) => o.status === 'delivered').length,
+            revenue: response.orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0),
+            avgOrderValue: response.orders.length ? 
+              response.orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0) / response.orders.length : 0
+          });
+          setLoading(false);
+          toast.success(`Loaded ${response.orders.length} orders successfully`);
+          return;
+        }
+      } catch (error) {
+        console.error('Error fetching from API:', error);
+        toast.error("Failed to load orders from API");
+        // Fall back to mock data
+      }
+      
+      // Mock data as fallback
+      toast.info("Using demo data since API is unavailable");
       const mockOrders: Order[] = [
         {
           _id: "1",
           orderNumber: "ORD-001",
-          user: {
-            _id: "user1",
-            username: "ahmed_alfarsi",
-            email: "ahmed@example.com"
-          },
-          items: [
-            { name: "OmniFizz Soda Maker", quantity: 1, price: 399 },
-            { name: "Strawberry Lemon Flavor", quantity: 2, price: 49 },
-            { name: "CO2 Cylinder", quantity: 1, price: 89 }
-          ],
-          shippingAddress: {
-            firstName: "Ahmed",
-            lastName: "Al-Farsi",
-            email: "ahmed@example.com",
-            phone: "+966501234567",
-            address1: "123 King Fahd Road",
-            city: "Riyadh",
-            state: "Riyadh",
-            postalCode: "12345"
-          },
-          paymentMethod: "urways",
-          deliveryOption: "standard",
-          cardDetails: {
-            cardNumber: "4111111111111111",
-            cardholderName: "Ahmed Al-Farsi",
-            expiryMonth: "12",
-            expiryYear: "2025",
-            cvv: "123"
-          },
-          subtotal: 586,
-          shippingCost: 50,
-          tax: 58.6,
-          total: 694.6,
+          customerName: "Ahmed Al-Farsi",
+          customerEmail: "ahmed@example.com",
+          customerPhone: "+966501234567",
+          orderDate: "2024-01-15",
+          items: 3,
+          totalAmount: 694.6,
           status: "processing",
           paymentStatus: "paid",
-          createdAt: "2024-01-15T10:30:00Z",
-          updatedAt: "2024-01-15T10:30:00Z"
+          paymentMethod: "Urways",
+          shippingMethod: "Standard (Aramex)",
+          shippingStatus: "processing",
+          trackingNumber: "ARX123456789",
+          shippingAddress: {
+            street: "123 King Fahd Road",
+            city: "Riyadh",
+            state: "Riyadh Province",
+            zipCode: "11564",
+            country: "Saudi Arabia",
+          },
+          notes: "Customer requested expedited processing",
         },
         {
           _id: "2",
           orderNumber: "ORD-002",
-          user: {
-            _id: "user2",
-            username: "sara_alqahtani",
-            email: "sara@example.com"
-          },
-          items: [
-            { name: "Drinkmate Luxe", quantity: 1, price: 599 }
-          ],
-          shippingAddress: {
-            firstName: "Sara",
-            lastName: "Al-Qahtani",
-            email: "sara@example.com",
-            phone: "+966507654321",
-            address1: "456 Prince Sultan Street",
-            city: "Jeddah",
-            state: "Makkah",
-            postalCode: "54321"
-          },
-          paymentMethod: "tap_payment",
-          deliveryOption: "express",
-          subtotal: 599,
-          shippingCost: 75,
-          tax: 59.9,
-          total: 733.9,
+          customerName: "Sara Al-Qahtani",
+          customerEmail: "sara@example.com",
+          customerPhone: "+966507654321",
+          orderDate: "2024-01-14",
+          items: 1,
+          totalAmount: 733.9,
           status: "shipped",
           paymentStatus: "paid",
-          createdAt: "2024-01-14T15:45:00Z",
-          updatedAt: "2024-01-15T09:20:00Z"
+          paymentMethod: "Tap Payment",
+          shippingMethod: "Express (Aramex)",
+          shippingStatus: "shipped",
+          trackingNumber: "ARX987654321",
+          shippingAddress: {
+            street: "456 Prince Mohammed Bin Abdulaziz Road",
+            city: "Jeddah",
+            state: "Makkah Province",
+            zipCode: "21589",
+            country: "Saudi Arabia",
+          },
         },
         {
           _id: "3",
           orderNumber: "ORD-003",
-          user: {
-            _id: "user3",
-            username: "mohammed_otaibi",
-            email: "mohammed@example.com"
-          },
-          items: [
-            { name: "Cola Flavor", quantity: 2, price: 39 },
-            { name: "Black Bottle 500ml", quantity: 1, price: 79 }
-          ],
+          customerName: "Mohammed Al-Otaibi",
+          customerEmail: "mohammed@example.com",
+          customerPhone: "+966551234567",
+          orderDate: "2024-01-16",
+          items: 2,
+          totalAmount: 197.7,
+          status: "pending",
+          paymentStatus: "paid",
+          paymentMethod: "Cash on Delivery",
+          shippingMethod: "Economy (Aramex)",
+          shippingStatus: "pending",
           shippingAddress: {
-            firstName: "Mohammed",
-            lastName: "Al-Otaibi",
-            email: "mohammed@example.com",
-            phone: "+966509876543",
-            address1: "789 Al Olaya Street",
+            street: "789 Al-Madinah Road",
             city: "Dammam",
             state: "Eastern Province",
-            postalCode: "67890"
+            zipCode: "31952",
+            country: "Saudi Arabia",
           },
-          paymentMethod: "cash_on_delivery",
-          deliveryOption: "economy",
-          subtotal: 157,
-          shippingCost: 25,
-          tax: 15.7,
-          total: 197.7,
-          status: "pending",
-          paymentStatus: "pending",
-          createdAt: "2024-01-16T08:15:00Z",
-          updatedAt: "2024-01-16T08:15:00Z"
-        }
+        },
+        {
+          _id: "4",
+          orderNumber: "ORD-004",
+          customerName: "Fatima Al-Zahra",
+          customerEmail: "fatima@example.com",
+          customerPhone: "+966509876543",
+          orderDate: "2024-01-17",
+          items: 4,
+          totalAmount: 1299.99,
+          status: "delivered",
+          paymentStatus: "paid",
+          paymentMethod: "Credit Card",
+          shippingMethod: "Express (Aramex)",
+          shippingStatus: "delivered",
+          trackingNumber: "ARX456789123",
+          shippingAddress: {
+            street: "321 Olaya Street",
+            city: "Riyadh",
+            state: "Riyadh Province",
+            zipCode: "11433",
+            country: "Saudi Arabia",
+          },
+        },
+        {
+          _id: "5",
+          orderNumber: "ORD-005",
+          customerName: "Omar Al-Hassan",
+          customerEmail: "omar@example.com",
+          customerPhone: "+966556789012",
+          orderDate: "2024-01-13",
+          items: 1,
+          totalAmount: 299.99,
+          status: "cancelled",
+          paymentStatus: "refunded",
+          paymentMethod: "PayPal",
+          shippingMethod: "Standard (Aramex)",
+          shippingStatus: "pending",
+          notes: "Customer requested cancellation due to change of mind",
+        },
       ]
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500))
+      setOrders(mockOrders)
 
-      // Filter mock data based on current filters
-      let filteredMockOrders = mockOrders
-
-      if (statusFilter && statusFilter !== 'all') {
-        filteredMockOrders = filteredMockOrders.filter(order => order.status === statusFilter)
+      const stats = {
+        total: mockOrders.length,
+        pending: mockOrders.filter((o) => o.status === "pending").length,
+        processing: mockOrders.filter((o) => o.status === "processing").length,
+        delivered: mockOrders.filter((o) => o.status === "delivered").length,
+        revenue: mockOrders.reduce((sum, o) => sum + (o.paymentStatus === "paid" ? o.totalAmount : 0), 0),
+        avgOrderValue:
+          mockOrders.length > 0 ? mockOrders.reduce((sum, o) => sum + o.totalAmount, 0) / mockOrders.length : 0,
       }
-
-      if (paymentFilter && paymentFilter !== 'all') {
-        filteredMockOrders = filteredMockOrders.filter(order => order.paymentStatus === paymentFilter)
-      }
-
-      if (searchTerm) {
-        filteredMockOrders = filteredMockOrders.filter(order => 
-          order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.shippingAddress.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.shippingAddress.lastName.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      }
-
-      // Pagination
-      const startIndex = (currentPage - 1) * itemsPerPage
-      const endIndex = startIndex + itemsPerPage
-      const paginatedOrders = filteredMockOrders.slice(startIndex, endIndex)
-
-      setOrders(paginatedOrders)
-      setTotalOrders(filteredMockOrders.length)
-      setTotalPages(Math.ceil(filteredMockOrders.length / itemsPerPage))
-
-      // Uncomment this when backend is ready:
-      /*
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: itemsPerPage.toString()
-      })
-      
-      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter)
-      if (paymentFilter && paymentFilter !== 'all') params.append('paymentStatus', paymentFilter)
-      if (searchTerm) params.append('search', searchTerm)
-
-      const response = await fetch(`/api/checkout/admin/orders?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch orders')
-      }
-
-      const data = await response.json()
-      
-      if (data.success) {
-        setOrders(data.orders)
-        setTotalPages(data.totalPages)
-        setTotalOrders(data.totalOrders)
-      } else {
-        toast.error(data.message || 'Failed to fetch orders')
-      }
-      */
+      setOrderStats(stats)
     } catch (error) {
-      console.error('Error fetching orders:', error)
-      toast.error('Failed to fetch orders')
+      console.error("Error fetching orders:", error)
+      toast.error("Failed to fetch orders")
     } finally {
       setLoading(false)
+      console.log("Order data load complete")
     }
   }
 
-  // Filter orders based on search term
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
-      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.shippingAddress.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.shippingAddress.lastName.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    return matchesSearch
-  })
+  const handleCreateOrder = () => {
+    setOrderForm({
+      customerName: "",
+      customerEmail: "",
+      customerPhone: "",
+      totalAmount: "",
+      paymentMethod: "Credit Card",
+      shippingMethod: "Standard (Aramex)",
+      status: "pending",
+      paymentStatus: "unpaid",
+      shippingStatus: "pending",
+      street: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "Saudi Arabia",
+      notes: "",
+    })
+    setShowCreateOrder(true)
+  }
 
-  // Handle page change
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber)
-
-  // Update order status
-  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+  const handleSubmitCreateOrder = async () => {
     try {
-      setUpdatingOrderId(orderId)
-      
-      // For now, simulate status update with mock data
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      setOrders(prevOrders => 
-        prevOrders.map(order => 
-          order._id === orderId 
-            ? { ...order, status: newStatus, updatedAt: new Date().toISOString() }
-            : order
-        )
-      )
-      
-      toast.success(`Order status updated to ${newStatus}`)
+      if (!orderForm.customerName || !orderForm.customerEmail || !orderForm.totalAmount) {
+        toast.error("Please fill in all required fields")
+        return
+      }
 
-      // Uncomment this when backend is ready:
-      /*
-      const response = await fetch(`/api/checkout/admin/orders/${orderId}/status`, {
-        method: 'PUT',
+      const newOrder: Order = {
+        _id: Date.now().toString(),
+        orderNumber: `ORD-${String(orders.length + 1).padStart(3, "0")}`,
+        customerName: orderForm.customerName,
+        customerEmail: orderForm.customerEmail,
+        customerPhone: orderForm.customerPhone,
+        orderDate: new Date().toISOString().split("T")[0],
+        items: 1,
+        totalAmount: Number.parseFloat(orderForm.totalAmount),
+        status: orderForm.status,
+        paymentStatus: orderForm.paymentStatus,
+        paymentMethod: orderForm.paymentMethod,
+        shippingMethod: orderForm.shippingMethod,
+        shippingStatus: orderForm.shippingStatus,
+        shippingAddress: {
+          street: orderForm.street,
+          city: orderForm.city,
+          state: orderForm.state,
+          zipCode: orderForm.zipCode,
+          country: orderForm.country,
+        },
+        notes: orderForm.notes,
+      }
+
+      setOrders((prev) => [newOrder, ...prev])
+      setShowCreateOrder(false)
+      toast.success(`Order ${newOrder.orderNumber} created successfully`)
+    } catch (error) {
+      toast.error("Failed to create order")
+    }
+  }
+
+  const handleEditOrder = (order: Order) => {
+    setEditingOrder(order)
+    setOrderForm({
+      customerName: order.customerName,
+      customerEmail: order.customerEmail,
+      customerPhone: order.customerPhone || "",
+      totalAmount: order.totalAmount.toString(),
+      paymentMethod: order.paymentMethod,
+      shippingMethod: order.shippingMethod,
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      shippingStatus: order.shippingStatus || "pending",
+      street: order.shippingAddress?.street || "",
+      city: order.shippingAddress?.city || "",
+      state: order.shippingAddress?.state || "",
+      zipCode: order.shippingAddress?.zipCode || "",
+      country: order.shippingAddress?.country || "Saudi Arabia",
+      notes: order.notes || "",
+    })
+    setShowEditOrder(true)
+  }
+
+  const handleSubmitEditOrder = async () => {
+    try {
+      if (!editingOrder) return
+
+      const updatedOrder: Order = {
+        ...editingOrder,
+        customerName: orderForm.customerName,
+        customerEmail: orderForm.customerEmail,
+        customerPhone: orderForm.customerPhone,
+        totalAmount: Number.parseFloat(orderForm.totalAmount),
+        status: orderForm.status,
+        paymentStatus: orderForm.paymentStatus,
+        paymentMethod: orderForm.paymentMethod,
+        shippingMethod: orderForm.shippingMethod,
+        shippingStatus: orderForm.shippingStatus,
+        shippingAddress: {
+          street: orderForm.street,
+          city: orderForm.city,
+          state: orderForm.state,
+          zipCode: orderForm.zipCode,
+          country: orderForm.country,
+        },
+        notes: orderForm.notes,
+      }
+
+      setOrders((prev) => prev.map((o) => (o._id === editingOrder._id ? updatedOrder : o)))
+      setShowEditOrder(false)
+      setEditingOrder(null)
+      toast.success(`Order ${updatedOrder.orderNumber} updated successfully`)
+    } catch (error) {
+      toast.error("Failed to update order")
+    }
+  }
+
+  const handleDeleteOrder = async (order: Order) => {
+    if (!confirm(`Are you sure you want to delete order ${order.orderNumber}? This action cannot be undone.`)) return
+
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'
+      const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ status: newStatus })
+        }
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to update order status')
-      }
-
-      const data = await response.json()
       
-      if (data.success) {
-        toast.success('Order status updated successfully')
-        fetchOrders() // Refresh the orders list
+      if (response.ok) {
+        setOrders((prev) => prev.filter((o) => o._id !== order._id))
+        toast.success(`Order ${order.orderNumber} deleted successfully`)
       } else {
-        toast.error(data.message || 'Failed to update order status')
+        throw new Error('Failed to delete order')
       }
-      */
     } catch (error) {
-      console.error('Error updating order status:', error)
-      toast.error('Failed to update order status')
+      console.error('Error deleting order:', error)
+      toast.error("Failed to delete order")
+    }
+  }
+
+  const handleUpdateStatus = async (order: Order, newStatus: Order["status"]) => {
+    try {
+      const updatedOrder = { ...order, status: newStatus }
+
+      // Auto-update shipping status based on order status
+      if (newStatus === "processing") {
+        updatedOrder.shippingStatus = "processing"
+      } else if (newStatus === "shipped") {
+        updatedOrder.shippingStatus = "shipped"
+        if (!updatedOrder.trackingNumber) {
+          updatedOrder.trackingNumber = `ARX${Math.random().toString().substr(2, 9)}`
+        }
+      } else if (newStatus === "delivered") {
+        updatedOrder.shippingStatus = "delivered"
+      }
+
+      setOrders((prev) => prev.map((o) => (o._id === order._id ? updatedOrder : o)))
+      toast.success(`Order ${order.orderNumber} status updated to ${newStatus}`)
+    } catch (error) {
+      toast.error("Failed to update order status")
+    }
+  }
+
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrder(order)
+    setShowOrderDetails(true)
+  }
+
+  const handleProcessOrder = async (order: Order) => {
+    try {
+      // Set loading state for this specific order action
+      setActionLoading(prev => ({...prev, [`process-${order._id}`]: true}));
+      
+      const { orderAPI } = await import('@/lib/api');
+      const response = await orderAPI.updateOrderStatus(order._id, { 
+        status: 'processing', 
+        shippingStatus: 'processing' 
+      });
+      
+      if (response.success) {
+        setOrders((prev) =>
+          prev.map((o) =>
+            o._id === order._id ? { ...o, status: "processing" as const, shippingStatus: "processing" as const } : o,
+          ),
+        )
+        toast.success(`Order ${order.orderNumber} is being processed`)
+      } else {
+        toast.error(response.message || 'Failed to process order')
+      }
+    } catch (error) {
+      console.error('Error processing order:', error)
+      toast.error("Failed to process order")
     } finally {
-      setUpdatingOrderId(null)
+      // Clear loading state
+      setActionLoading(prev => ({...prev, [`process-${order._id}`]: false}));
     }
   }
 
-  // Get status badge color
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'processing':
-        return 'bg-blue-100 text-blue-800'
-      case 'shipped':
-        return 'bg-purple-100 text-purple-800'
-      case 'delivered':
-        return 'bg-green-100 text-green-800'
-      case 'cancelled':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+  const handleShipOrder = async (order: Order) => {
+    try {
+      // Set loading state for this specific order action
+      setActionLoading(prev => ({...prev, [`ship-${order._id}`]: true}));
+      
+      const trackingNumber = `ARX${Math.random().toString().substr(2, 9)}`
+      const { orderAPI } = await import('@/lib/api');
+      const response = await orderAPI.updateOrderStatus(order._id, { 
+        status: 'shipped', 
+        shippingStatus: 'shipped', 
+        trackingNumber 
+      });
+      
+      if (response.success) {
+        setOrders((prev) =>
+          prev.map((o) =>
+            o._id === order._id
+              ? {
+                  ...o,
+                  status: "shipped" as const,
+                  shippingStatus: "shipped" as const,
+                  trackingNumber,
+                }
+              : o,
+          ),
+        )
+        toast.success(`Order ${order.orderNumber} has been shipped. Tracking: ${trackingNumber}`)
+      } else {
+        toast.error(response.message || 'Failed to ship order')
+      }
+    } catch (error) {
+      console.error('Error shipping order:', error)
+      toast.error("Failed to ship order")
+    } finally {
+      // Clear loading state
+      setActionLoading(prev => ({...prev, [`ship-${order._id}`]: false}));
     }
   }
 
-  // Get payment status badge color
-  const getPaymentStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-green-100 text-green-800'
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'failed':
-        return 'bg-red-100 text-red-800'
-      case 'refunded':
-        return 'bg-orange-100 text-orange-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+  const handleDeliverOrder = async (order: Order) => {
+    try {
+      const { orderAPI } = await import('@/lib/api');
+      const response = await orderAPI.updateOrderStatus(order._id, { 
+        status: 'delivered', 
+        shippingStatus: 'delivered' 
+      });
+      
+      if (response.success) {
+        setOrders((prev) =>
+          prev.map((o) =>
+            o._id === order._id ? { ...o, status: "delivered" as const, shippingStatus: "delivered" as const } : o,
+          ),
+        )
+        toast.success(`Order ${order.orderNumber} has been delivered`)
+      } else {
+        throw new Error('Failed to mark as delivered')
+      }
+    } catch (error) {
+      console.error('Error delivering order:', error)
+      toast.error("Failed to mark as delivered")
     }
   }
 
-  // Get payment method display name
-  const getPaymentMethodDisplay = (method: string) => {
-    switch (method) {
-      case 'urways':
-        return 'Urways'
-      case 'tap_payment':
-        return 'Tap Payment'
-      case 'credit_card':
-        return 'Credit Card'
-      case 'debit_card':
-        return 'Debit Card'
-      case 'cash_on_delivery':
-        return 'Cash on Delivery'
-      default:
-        return method
+  const handleCancelOrder = async (order: Order) => {
+    if (!confirm(`Are you sure you want to cancel order ${order.orderNumber}?`)) return
+
+    try {
+      const { orderAPI } = await import('@/lib/api');
+      const response = await orderAPI.updateOrderStatus(order._id, { 
+        status: 'cancelled'
+      });
+      
+      if (response.success) {
+        setOrders((prev) => prev.map((o) => (o._id === order._id ? { ...o, status: "cancelled" as const } : o)))
+        toast.success(`Order ${order.orderNumber} has been cancelled`)
+      } else {
+        throw new Error('Failed to cancel order')
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error)
+      toast.error("Failed to cancel order")
     }
   }
 
-  // Get delivery option display name
-  const getDeliveryOptionDisplay = (option: string) => {
-    switch (option) {
-      case 'standard':
-        return 'Standard (Aramex)'
-      case 'express':
-        return 'Express (Aramex)'
-      case 'economy':
-        return 'Economy (Aramex)'
-      default:
-        return option
+  const handleRefundOrder = async (order: Order) => {
+    if (!confirm(`Are you sure you want to refund order ${order.orderNumber}?`)) return
+
+    try {
+      const { orderAPI } = await import('@/lib/api');
+      const response = await orderAPI.updateOrderStatus(order._id, { 
+        status: 'cancelled',
+        paymentStatus: 'refunded'
+      });
+      
+      if (response.success) {
+        setOrders((prev) =>
+          prev.map((o) =>
+            o._id === order._id ? { ...o, paymentStatus: "refunded" as const, status: "cancelled" as const } : o,
+          ),
+        )
+        toast.success(`Order ${order.orderNumber} has been refunded`)
+      } else {
+        throw new Error('Failed to refund order')
+      }
+    } catch (error) {
+      console.error('Error refunding order:', error)
+      toast.error("Failed to refund order")
     }
   }
 
-  if (loading) {
-    return (
-      <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#12d6fa]"></div>
+  const handleBulkCancel = async () => {
+    if (!confirm(`Cancel ${selectedRows.length} orders?`)) return
+    
+    try {
+      setCancellingOrders(true)
+      const { orderAPI } = await import('@/lib/api');
+      const promises = selectedRows.map(id => 
+        orderAPI.updateOrderStatus(id, { status: 'cancelled' })
+      );
+      
+      await Promise.all(promises);
+      
+      setOrders((prev) => prev.map((o) => (selectedRows.includes(o._id) ? { ...o, status: "cancelled" as const } : o)))
+      toast.success(`${selectedRows.length} orders cancelled`)
+      setSelectedItems([])
+      setSelectedRows([])
+    } catch (error) {
+      console.error('Error cancelling orders in bulk:', error)
+      toast.error("Failed to cancel orders")
+    } finally {
+      setCancellingOrders(false)
+    }
+  }
+
+  const handleBulkProcess = async () => {
+    try {
+      setProcessingOrders(true)
+      const { orderAPI } = await import('@/lib/api');
+      const promises = selectedRows.map(id => 
+        orderAPI.updateOrderStatus(id, { status: 'processing' })
+      );
+      
+      await Promise.all(promises);
+      
+      setOrders((prev) =>
+        prev.map((o) =>
+          selectedRows.includes(o._id) ? { ...o, status: "processing" as const, shippingStatus: "processing" as const } : o,
+        ),
+      )
+      toast.success(`${selectedRows.length} orders are being processed`)
+      setSelectedItems([])
+      setSelectedRows([])
+    } catch (error) {
+      console.error('Error processing orders in bulk:', error)
+      toast.error("Failed to process orders")
+    } finally {
+      setProcessingOrders(false)
+    }
+  }
+
+  const handleExportOrders = () => {
+    try {
+      const csvContent = [
+        [
+          "Order Number",
+          "Customer",
+          "Email",
+          "Date",
+          "Items",
+          "Total",
+          "Status",
+          "Payment Status",
+          "Shipping Method",
+        ].join(","),
+        ...filteredOrders.map((order) =>
+          [
+            order.orderNumber,
+            order.customerName,
+            order.customerEmail,
+            order.orderDate,
+            order.items,
+            order.totalAmount,
+            order.status,
+            order.paymentStatus,
+            order.shippingMethod,
+          ].join(","),
+        ),
+      ].join("\n")
+
+      const blob = new Blob([csvContent], { type: "text/csv" })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `orders-${new Date().toISOString().split("T")[0]}.csv`
+      a.click()
+      window.URL.revokeObjectURL(url)
+
+      toast.success("Orders exported successfully")
+    } catch (error) {
+      toast.error("Failed to export orders")
+    }
+  }
+
+  const resetFilters = () => {
+    setFilters({
+      status: "all",
+      paymentStatus: "all",
+      shippingStatus: "all",
+      paymentMethod: "all",
+      dateFrom: "",
+      dateTo: "",
+    })
+    setSearchTerm("")
+    toast.info("Filters reset")
+  }
+
+  // Table columns
+  const columns: TableColumn<Order>[] = [
+    {
+      key: "orderNumber",
+      label: "Order",
+      sortable: true,
+      render: (value, row) => (
+          <div>
+          <div
+            className="font-medium text-blue-600 cursor-pointer hover:underline"
+            onClick={() => handleViewOrder(row)}
+          >
+            {value}
+          </div>
+          {row.trackingNumber && <div className="text-xs text-muted-foreground">Track: {row.trackingNumber}</div>}
+          </div>
+      ),
+    },
+    {
+      key: "customerName",
+      label: "Customer",
+      render: (value, row) => (
+        <div>
+          <div className="font-medium">{value}</div>
+          <div className="text-xs text-muted-foreground">{row.customerEmail}</div>
+          {row.customerPhone && <div className="text-xs text-muted-foreground">{row.customerPhone}</div>}
         </div>
-      </AdminLayout>
-    )
-  }
+      ),
+    },
+    {
+      key: "orderDate",
+      label: "Date",
+      render: CellRenderers.date,
+      width: "120px",
+    },
+    {
+      key: "items",
+      label: "Items",
+      render: (value) => `${value} item${value !== 1 ? "s" : ""}`,
+    },
+    {
+      key: "totalAmount",
+      label: "Total",
+      render: (value) => CellRenderers.currency(value, "SAR"),
+    },
+    {
+      key: "paymentStatus",
+      label: "Payment",
+      render: (value, row) => (
+        <div>
+          <Badge variant={value === "paid" ? "default" : value === "refunded" ? "secondary" : "destructive"}>
+            {value}
+          </Badge>
+          <div className="text-xs text-muted-foreground mt-1">{row.paymentMethod}</div>
+        </div>
+      ),
+    },
+    {
+      key: "shippingMethod",
+      label: "Shipping",
+      render: (value, row) => (
+        <div>
+          <div className="text-sm">{value}</div>
+          <Badge variant="outline" className="text-xs mt-1">
+            {row.shippingStatus}
+          </Badge>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: CellRenderers.status,
+    },
+  ]
+
+  // Define type-safe context actions
+  const contextActions: ContextTableAction<Order>[] = [
+    {
+      id: "view",
+      label: "View Details",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: handleViewOrder,
+      condition: () => true,
+      priority: 1
+    },
+    {
+      id: "edit",
+      label: "Edit Order",
+      icon: <Edit className="h-4 w-4" />,
+      onClick: handleEditOrder,
+      condition: () => true,
+      priority: 2
+    },
+    {
+      id: "process",
+      label: "Process Order",
+      icon: <Clock className="h-4 w-4" />,
+      onClick: (order) => {
+        if (actionLoading[`process-${order._id}`]) return;
+        handleProcessOrder(order);
+      },
+      condition: (order) => (order.status === "pending" || order.status === "confirmed") && !actionLoading[`process-${order._id}`],
+      variant: "default",
+      className: "bg-blue-600 hover:bg-blue-700 text-white",
+      priority: 3
+    },
+    {
+      id: "ship",
+      label: "Mark Shipped",
+      icon: <Ship className="h-4 w-4" />,
+      onClick: handleShipOrder,
+      condition: (order) => order.status === "processing" || order.status === "confirmed",
+      variant: "default",
+      className: "bg-green-600 hover:bg-green-700 text-white",
+      priority: 4
+    },
+    {
+      id: "deliver",
+      label: "Mark Delivered",
+      icon: <Truck className="h-4 w-4" />,
+      onClick: handleDeliverOrder,
+      condition: (order) => order.status === "shipped",
+      variant: "default",
+      className: "bg-purple-600 hover:bg-purple-700 text-white",
+      priority: 5
+    },
+    {
+      id: "cancel",
+      label: "Cancel Order",
+      icon: <XCircle className="h-4 w-4" />,
+      onClick: handleCancelOrder,
+      condition: (order) => ["pending", "processing", "confirmed"].includes(order.status),
+      variant: "destructive",
+      priority: 8
+    },
+    {
+      id: "refund",
+      label: "Refund Order",
+      icon: <ArrowLeftRight className="h-4 w-4" />,
+      onClick: handleRefundOrder,
+      condition: (order) => order.paymentStatus === "paid" && ["delivered", "cancelled"].includes(order.status),
+      variant: "destructive",
+      priority: 9
+    },
+    {
+      id: "delete",
+      label: "Delete Order",
+      icon: <Trash2 className="h-4 w-4" />,
+      onClick: handleDeleteOrder,
+      condition: () => true,
+      variant: "destructive",
+      priority: 10
+    }
+  ]
 
   return (
     <AdminLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{t('orders.title')}</h1>
-            <p className="text-gray-600 mt-1">
-              Manage and track all customer orders
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Export Orders
-            </Button>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalOrders}</div>
+              <div className="text-2xl font-bold">{orderStats.total}</div>
+              <p className="text-xs text-muted-foreground">
+                {filteredOrders.length !== orderStats.total && `${filteredOrders.length} filtered`}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <Clock className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{orderStats.pending}</div>
+              <p className="text-xs text-muted-foreground">Awaiting processing</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Processing</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <TrendingUp className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {orders.filter(o => o.status === 'processing').length}
-              </div>
+              <div className="text-2xl font-bold">{orderStats.processing}</div>
+              <p className="text-xs text-muted-foreground">Being prepared</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Shipped</CardTitle>
-              <Truck className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {orders.filter(o => o.status === 'shipped').length}
-              </div>
+              <div className="text-2xl font-bold">{CellRenderers.currency(orderStats.revenue, "SAR")}</div>
+              <p className="text-xs text-muted-foreground">Total paid orders</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Avg Order</CardTitle>
+              <TrendingUp className="h-4 w-4 text-purple-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {orders.filter(o => o.status === 'delivered').length}
-              </div>
+              <div className="text-2xl font-bold">{CellRenderers.currency(orderStats.avgOrderValue, "SAR")}</div>
+              <p className="text-xs text-muted-foreground">Average order value</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Filters */}
+        {/* Header with Actions */}
+        <AdminActionBar
+          title="Orders Management"
+          description="Manage customer orders, track shipments, and process payments"
+          // Search
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Search orders, customers, tracking..."
+          // Statistics
+          totalItems={orders.length}
+          filteredItems={filteredOrders.length}
+          // Primary actions
+          primaryActions={[AdminActions.addNew("Create Order", handleCreateOrder)]}
+          secondaryActions={[
+            {
+              id: "refresh",
+              label: loading ? "Refreshing..." : "Refresh",
+              icon: loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />,
+              onClick: fetchOrders,
+              variant: "outline",
+              disabled: loading
+            },
+            {
+              id: "export",
+              label: "Export CSV",
+              icon: <Download className="h-4 w-4 mr-2" />,
+              onClick: handleExportOrders,
+              variant: "outline",
+            },
+            {
+              id: "filters",
+              label: showFilters ? "Hide Filters" : "Show Filters",
+              icon: <Filter className="h-4 w-4 mr-2" />,
+              onClick: () => setShowFilters(!showFilters),
+              variant: "outline",
+            },
+            {
+              id: "print-labels",
+              label: "Print Labels",
+              icon: <Package className="h-4 w-4 mr-2" />,
+              onClick: () => toast.info("Print labels functionality"),
+              variant: "outline",
+            },
+          ]}
+          // Bulk actions
+          selectedItems={selectedItems}
+          onSelectionChange={setSelectedItems}
+          bulkActions={[
+            {
+              id: "bulk-process",
+              label: processingOrders ? "Processing..." : "Process Selected",
+              icon: processingOrders ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />,
+              onClick: handleBulkProcess,
+              variant: "default",
+              disabled: processingOrders || selectedRows.length === 0
+            },
+            {
+              id: "bulk-cancel",
+              label: cancellingOrders ? "Cancelling..." : "Cancel Selected",
+              icon: cancellingOrders ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />,
+              onClick: handleBulkCancel,
+              variant: "destructive",
+              disabled: cancellingOrders || selectedRows.length === 0
+            },
+          ]}
+        />
+
+        {showFilters && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="w-5 h-5" />
-              Filters
-            </CardTitle>
+              <CardTitle className="text-lg">Advanced Filters</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
               <div>
-                <label className="text-sm font-medium">Search</label>
-                <div className="relative mt-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search orders..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Status</label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="mt-1">
+                  <Label htmlFor="status-filter">Order Status</Label>
+                  <Select
+                    value={filters.status}
+                    onValueChange={(value) => setFilters((prev) => ({ ...prev, status: value }))}
+                    name="status-filter"
+                    aria-label="Filter by order status"
+                  >
+                    <SelectTrigger id="status-filter">
                     <SelectValue placeholder="All statuses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All statuses</SelectItem>
+                      <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="confirmed">Confirmed</SelectItem>
                     <SelectItem value="shipped">Shipped</SelectItem>
                     <SelectItem value="delivered">Delivered</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -574,274 +1105,791 @@ export default function OrdersPage() {
               </div>
               
               <div>
-                <label className="text-sm font-medium">Payment Status</label>
-                <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                  <SelectTrigger className="mt-1">
+                  <Label htmlFor="payment-filter">Payment Status</Label>
+                  <Select
+                    value={filters.paymentStatus}
+                    onValueChange={(value) => setFilters((prev) => ({ ...prev, paymentStatus: value }))}
+                    name="payment-filter"
+                    aria-label="Filter by payment status"
+                  >
+                    <SelectTrigger id="payment-filter">
                     <SelectValue placeholder="All payments" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All payments</SelectItem>
+                      <SelectItem value="all">All Payments</SelectItem>
                     <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
+                      <SelectItem value="unpaid">Unpaid</SelectItem>
+                      <SelectItem value="partial">Partial</SelectItem>
                     <SelectItem value="refunded">Refunded</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
-              <div className="flex items-end">
-                <Button 
-                  onClick={fetchOrders}
-                  className="w-full"
-                >
-                  Apply Filters
+                <div>
+                  <Label htmlFor="shipping-filter">Shipping Status</Label>
+                  <Select
+                    value={filters.shippingStatus}
+                    onValueChange={(value) => setFilters((prev) => ({ ...prev, shippingStatus: value }))}
+                    name="shipping-filter"
+                    aria-label="Filter by shipping status"
+                  >
+                    <SelectTrigger id="shipping-filter">
+                      <SelectValue placeholder="All shipping" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Shipping</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="shipped">Shipped</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="payment-method-filter">Payment Method</Label>
+                  <Select
+                    value={filters.paymentMethod}
+                    onValueChange={(value) => setFilters((prev) => ({ ...prev, paymentMethod: value }))}
+                    name="payment-method-filter"
+                    aria-label="Filter by payment method"
+                  >
+                    <SelectTrigger id="payment-method-filter">
+                      <SelectValue placeholder="All methods" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Methods</SelectItem>
+                      <SelectItem value="Credit Card">Credit Card</SelectItem>
+                      <SelectItem value="Urways">Urways</SelectItem>
+                      <SelectItem value="Tap Payment">Tap Payment</SelectItem>
+                      <SelectItem value="PayPal">PayPal</SelectItem>
+                      <SelectItem value="Cash on Delivery">Cash on Delivery</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="date-from">Date From</Label>
+                  <Input
+                    id="date-from"
+                    type="date"
+                    value={filters.dateFrom}
+                    onChange={(e) => setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="date-to">Date To</Label>
+                  <Input
+                    id="date-to"
+                    type="date"
+                    value={filters.dateTo}
+                    onChange={(e) => setFilters((prev) => ({ ...prev, dateTo: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-4">
+                <Button onClick={resetFilters} variant="outline">
+                  Reset Filters
+                </Button>
+                <div className="text-sm text-muted-foreground flex items-center">
+                  Showing {filteredOrders.length} of {orders.length} orders
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        )}
+
+        {/* Orders Table */}
+        <div className="relative">
+          {loading && (
+            <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+              <div className="flex flex-col items-center">
+                <Loader2 className="h-10 w-10 animate-spin text-primary mb-2" />
+                <p className="text-sm text-gray-600">Loading orders...</p>
+              </div>
+            </div>
+          )}
+          <AdminTable
+            data={paginatedOrders}
+            columns={columns}
+          // Selection
+          selectable={true}
+          selectedRows={selectedRows}
+          onSelectionChange={setSelectedRows}
+          getRowId={(row) => row._id}
+          // Context-aware actions
+          contextActions={contextActions}
+          actionMode="buttons"
+          // Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={filteredOrders.length}
+          onPageChange={setCurrentPage}
+          // States
+          loading={loading}
+          emptyMessage="No orders found. Orders will appear here once customers make purchases."
+        />
+
+        <Dialog open={showOrderDetails} onOpenChange={setShowOrderDetails}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Order Details - {selectedOrder?.orderNumber}
+              </DialogTitle>
+            </DialogHeader>
+
+            {selectedOrder && (
+              <div className="space-y-6">
+                {/* Order Status */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Badge variant={selectedOrder.status === "delivered" ? "default" : "secondary"} className="text-sm">
+                      {selectedOrder.status.toUpperCase()}
+                    </Badge>
+                    <Badge
+                      variant={selectedOrder.paymentStatus === "paid" ? "default" : "destructive"}
+                      className="text-sm"
+                    >
+                      {selectedOrder.paymentStatus.toUpperCase()}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Order Date: {new Date(selectedOrder.orderDate).toLocaleDateString()}
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Customer Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        Customer Information
+                      </CardTitle>
+          </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div>
+                        <strong>Name:</strong> {selectedOrder.customerName}
+              </div>
+                          <div>
+                        <strong>Email:</strong> {selectedOrder.customerEmail}
+                            </div>
+                      {selectedOrder.customerPhone && (
+                        <div>
+                          <strong>Phone:</strong> {selectedOrder.customerPhone}
+                            </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Shipping Information */}
+                  {selectedOrder.shippingAddress && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Shipping Address
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div>{selectedOrder.shippingAddress.street}</div>
+                        <div>
+                          {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state}
+                          </div>
+                        <div>{selectedOrder.shippingAddress.zipCode}</div>
+                        <div>{selectedOrder.shippingAddress.country}</div>
+                      </CardContent>
+                    </Card>
+                  )}
+                          </div>
+
+                {/* Payment & Shipping Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        Payment Details
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div>
+                        <strong>Method:</strong> {selectedOrder.paymentMethod}
+                      </div>
+                      <div>
+                        <strong>Status:</strong>
+                        <Badge
+                          variant={selectedOrder.paymentStatus === "paid" ? "default" : "destructive"}
+                          className="ml-2"
+                        >
+                          {selectedOrder.paymentStatus}
+                            </Badge>
+                            </div>
+                      <div>
+                        <strong>Total Amount:</strong> {CellRenderers.currency(selectedOrder.totalAmount, "SAR")}
+                          </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Truck className="h-4 w-4" />
+                        Shipping Details
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div>
+                        <strong>Method:</strong> {selectedOrder.shippingMethod}
+                          </div>
+                      <div>
+                        <strong>Status:</strong>
+                        <Badge variant="outline" className="ml-2">
+                          {selectedOrder.shippingStatus}
+                          </Badge>
+                      </div>
+                      {selectedOrder.trackingNumber && (
+                        <div>
+                          <strong>Tracking:</strong> {selectedOrder.trackingNumber}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Order Items */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Order Items</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Order items details would be displayed here</p>
+                      <p className="text-sm">Total: {selectedOrder.items} items</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Notes */}
+                {selectedOrder.notes && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Notes</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm">{selectedOrder.notes}</p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-4">
+                              <Button
+                    onClick={() => handleProcessOrder(selectedOrder)}
+                    disabled={selectedOrder.status !== "pending"}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Process Order
+                              </Button>
+                              <Button
+                    onClick={() => handleShipOrder(selectedOrder)}
+                    disabled={selectedOrder.status !== "processing"}
+                                variant="outline"
+                  >
+                    <Truck className="h-4 w-4 mr-2" />
+                    Ship Order
+                              </Button>
+                              <Button
+                    onClick={() => handleDeliverOrder(selectedOrder)}
+                    disabled={selectedOrder.status !== "shipped"}
+                                variant="outline"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Mark Delivered
+                              </Button>
+                                  <Button 
+                    onClick={() => handleCancelOrder(selectedOrder)}
+                    disabled={selectedOrder.status === "delivered" || selectedOrder.status === "cancelled"}
+                    variant="destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Cancel Order
+                                </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Create Order Dialog */}
+        <Dialog open={showCreateOrder} onOpenChange={setShowCreateOrder}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                Create New Order
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* Customer Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Customer Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="customerName">Customer Name *</Label>
+                      <Input
+                        id="customerName"
+                        value={orderForm.customerName}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, customerName: e.target.value }))}
+                        placeholder="Enter customer name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="customerEmail">Email *</Label>
+                      <Input
+                        id="customerEmail"
+                        type="email"
+                        value={orderForm.customerEmail}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, customerEmail: e.target.value }))}
+                        placeholder="Enter email address"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="customerPhone">Phone Number</Label>
+                    <Input
+                      id="customerPhone"
+                      value={orderForm.customerPhone}
+                      onChange={(e) => setOrderForm((prev) => ({ ...prev, customerPhone: e.target.value }))}
+                      placeholder="+966501234567"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Order Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Order Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="totalAmount">Total Amount (SAR) *</Label>
+                      <Input
+                        id="totalAmount"
+                        type="number"
+                        step="0.01"
+                        value={orderForm.totalAmount}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, totalAmount: e.target.value }))}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="paymentMethod">Payment Method</Label>
+                      <select
+                        id="paymentMethod"
+                        name="paymentMethod"
+                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground"
+                        value={orderForm.paymentMethod}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, paymentMethod: e.target.value }))}
+                        aria-label="Select payment method"
+                      >
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Urways">Urways</option>
+                        <option value="Tap Payment">Tap Payment</option>
+                        <option value="PayPal">PayPal</option>
+                        <option value="Cash on Delivery">Cash on Delivery</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="status">Order Status</Label>
+                      <select
+                        id="status"
+                        name="status"
+                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground"
+                        value={orderForm.status}
+                        onChange={(e) =>
+                          setOrderForm((prev) => ({ ...prev, status: e.target.value as OrderStatus }))
+                        }
+                        aria-label="Select order status"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="paymentStatus">Payment Status</Label>
+                      <select
+                        id="paymentStatus"
+                        name="paymentStatus"
+                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground"
+                        value={orderForm.paymentStatus}
+                        onChange={(e) =>
+                          setOrderForm((prev) => ({ ...prev, paymentStatus: e.target.value as PaymentStatus }))
+                        }
+                        aria-label="Select payment status"
+                      >
+                        <option value="unpaid">Unpaid</option>
+                        <option value="paid">Paid</option>
+                        <option value="partial">Partial</option>
+                        <option value="refunded">Refunded</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="shippingMethod">Shipping Method</Label>
+                      <select
+                        id="shippingMethod"
+                        name="shippingMethod"
+                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground"
+                        value={orderForm.shippingMethod}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, shippingMethod: e.target.value }))}
+                        aria-label="Select shipping method"
+                      >
+                        <option value="Standard (Aramex)">Standard (Aramex)</option>
+                        <option value="Express (Aramex)">Express (Aramex)</option>
+                        <option value="Economy (Aramex)">Economy (Aramex)</option>
+                      </select>
+                          </div>
+              </div>
+          </CardContent>
+        </Card>
+
+              {/* Shipping Address */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Shipping Address</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="street">Street Address</Label>
+                    <Input
+                      id="street"
+                      value={orderForm.street}
+                      onChange={(e) => setOrderForm((prev) => ({ ...prev, street: e.target.value }))}
+                      placeholder="Enter street address"
+                    />
+            </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="city">City</Label>
+                      <Input
+                        id="city"
+                        value={orderForm.city}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, city: e.target.value }))}
+                        placeholder="Enter city"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="state">State/Province</Label>
+                      <Input
+                        id="state"
+                        value={orderForm.state}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, state: e.target.value }))}
+                        placeholder="Enter state or province"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="zipCode">ZIP Code</Label>
+                      <Input
+                        id="zipCode"
+                        value={orderForm.zipCode}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, zipCode: e.target.value }))}
+                        placeholder="Enter ZIP code"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="country">Country</Label>
+                      <Input
+                        id="country"
+                        value={orderForm.country}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, country: e.target.value }))}
+                        placeholder="Enter country"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Notes */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={orderForm.notes}
+                    onChange={(e) => setOrderForm((prev) => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Add any notes about this order..."
+                    rows={3}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-4">
+                <Button onClick={handleSubmitCreateOrder}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Order
+              </Button>
+                <Button variant="outline" onClick={() => setShowCreateOrder(false)}>
+                  Cancel
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </DialogContent>
+        </Dialog>
 
-        {/* Orders Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Orders ({filteredOrders.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {filteredOrders.length === 0 ? (
-              <div className="text-center py-8">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No orders found</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order #</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Payment</TableHead>
-                      <TableHead>Delivery</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredOrders.map((order) => (
-                      <TableRow key={order._id}>
-                        <TableCell className="font-medium">
-                          {order.orderNumber}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">
-                              {order.shippingAddress.firstName} {order.shippingAddress.lastName}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {order.user.email}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(order.createdAt), 'MMM dd, yyyy')}
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <SaudiRiyal amount={order.total} />
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <Badge className={getPaymentStatusBadgeColor(order.paymentStatus)}>
-                              {order.paymentStatus}
-                            </Badge>
-                            <div className="text-xs text-gray-500 flex items-center gap-1">
-                              <CreditCard className="w-3 h-3" />
-                              {getPaymentMethodDisplay(order.paymentMethod)}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-xs text-gray-500 flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {getDeliveryOptionDisplay(order.deliveryOption)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusBadgeColor(order.status)}>
-                            {order.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {/* Quick Action Buttons */}
-                            {order.status === 'pending' && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => updateOrderStatus(order._id, 'processing')}
-                                disabled={updatingOrderId === order._id}
-                                className="h-6 px-2 text-xs"
-                              >
-                                {updatingOrderId === order._id ? (
-                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-[#12d6fa]"></div>
-                                ) : (
-                                  'Process'
-                                )}
-                              </Button>
-                            )}
-                            {order.status === 'processing' && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => updateOrderStatus(order._id, 'shipped')}
-                                disabled={updatingOrderId === order._id}
-                                className="h-6 px-2 text-xs"
-                              >
-                                {updatingOrderId === order._id ? (
-                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-[#12d6fa]"></div>
-                                ) : (
-                                  'Ship'
-                                )}
-                              </Button>
-                            )}
-                            {order.status === 'shipped' && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => updateOrderStatus(order._id, 'delivered')}
-                                disabled={updatingOrderId === order._id}
-                                className="h-6 px-2 text-xs"
-                              >
-                                {updatingOrderId === order._id ? (
-                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-[#12d6fa]"></div>
-                                ) : (
-                                  'Deliver'
-                                )}
-                              </Button>
-                            )}
-                            
-                                                          {/* Dropdown Menu */}
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    className="h-8 w-8 p-0"
-                                    disabled={updatingOrderId === order._id}
-                                  >
-                                  {updatingOrderId === order._id ? (
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#12d6fa]"></div>
-                                  ) : (
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48">
-                                <DropdownMenuItem onClick={() => router.push(`/admin/orders/${order._id}`)}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Details
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => updateOrderStatus(order._id, 'processing')}
-                                  disabled={updatingOrderId === order._id || order.status === 'processing'}
-                                  className={order.status === 'processing' ? 'opacity-50 cursor-not-allowed' : ''}
-                                >
-                                  <Clock className="mr-2 h-4 w-4" />
-                                  Mark as Processing
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => updateOrderStatus(order._id, 'shipped')}
-                                  disabled={updatingOrderId === order._id || order.status === 'shipped'}
-                                  className={order.status === 'shipped' ? 'opacity-50 cursor-not-allowed' : ''}
-                                >
-                                  <Truck className="mr-2 h-4 w-4" />
-                                  Mark as Shipped
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => updateOrderStatus(order._id, 'delivered')}
-                                  disabled={updatingOrderId === order._id || order.status === 'delivered'}
-                                  className={order.status === 'delivered' ? 'opacity-50 cursor-not-allowed' : ''}
-                                >
-                                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                                  Mark as Delivered
-                                </DropdownMenuItem>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem 
-                                      disabled={updatingOrderId === order._id || order.status === 'cancelled'}
-                                      className={order.status === 'cancelled' ? 'opacity-50 cursor-not-allowed' : ''}
-                                    >
-                                      <XCircle className="mr-2 h-4 w-4" />
-                                      Cancel Order
-                                    </DropdownMenuItem>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Cancel Order</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        Are you sure you want to cancel order #{order.orderNumber}? This action cannot be undone.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>No, keep order</AlertDialogCancel>
-                                      <AlertDialogAction 
-                                        onClick={() => updateOrderStatus(order._id, 'cancelled')}
-                                        className="bg-red-600 hover:bg-red-700"
-                                      >
-                                        Yes, cancel order
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Edit Order Dialog */}
+        <Dialog open={showEditOrder} onOpenChange={setShowEditOrder}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Edit className="h-5 w-5" />
+                Edit Order - {editingOrder?.orderNumber}
+              </DialogTitle>
+            </DialogHeader>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalOrders)} of {totalOrders} results
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => paginate(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Previous
-              </Button>
-              <div className="text-sm">
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+            <div className="space-y-6">
+              {/* Customer Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Customer Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit-customerName">Customer Name *</Label>
+                      <Input
+                        id="edit-customerName"
+                        value={orderForm.customerName}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, customerName: e.target.value }))}
+                        placeholder="Enter customer name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-customerEmail">Email *</Label>
+                      <Input
+                        id="edit-customerEmail"
+                        type="email"
+                        value={orderForm.customerEmail}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, customerEmail: e.target.value }))}
+                        placeholder="Enter email address"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-customerPhone">Phone Number</Label>
+                    <Input
+                      id="edit-customerPhone"
+                      value={orderForm.customerPhone}
+                      onChange={(e) => setOrderForm((prev) => ({ ...prev, customerPhone: e.target.value }))}
+                      placeholder="+966501234567"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Order Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Order Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit-totalAmount">Total Amount (SAR) *</Label>
+                      <Input
+                        id="edit-totalAmount"
+                        type="number"
+                        step="0.01"
+                        value={orderForm.totalAmount}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, totalAmount: e.target.value }))}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-paymentMethod">Payment Method</Label>
+                      <select
+                        id="edit-paymentMethod"
+                        name="edit-paymentMethod"
+                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground"
+                        value={orderForm.paymentMethod}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, paymentMethod: e.target.value }))}
+                        aria-label="Select payment method"
+                      >
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Urways">Urways</option>
+                        <option value="Tap Payment">Tap Payment</option>
+                        <option value="PayPal">PayPal</option>
+                        
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="edit-status">Order Status</Label>
+                      <select
+                        id="edit-status"
+                        name="edit-status"
+                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground"
+                        value={orderForm.status}
+                        onChange={(e) =>
+                          setOrderForm((prev) => ({ ...prev, status: e.target.value as OrderStatus }))
+                        }
+                        aria-label="Select order status"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-paymentStatus">Payment Status</Label>
+                      <select
+                        id="edit-paymentStatus"
+                        name="edit-paymentStatus"
+                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground"
+                        value={orderForm.paymentStatus}
+                        onChange={(e) =>
+                          setOrderForm((prev) => ({ ...prev, paymentStatus: e.target.value as PaymentStatus }))
+                        }
+                        aria-label="Select payment status"
+                      >
+                        <option value="unpaid">Unpaid</option>
+                        <option value="paid">Paid</option>
+                        <option value="partial">Partial</option>
+                        <option value="refunded">Refunded</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-shippingMethod">Shipping Method</Label>
+                      <select
+                        id="edit-shippingMethod"
+                        name="edit-shippingMethod"
+                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground"
+                        value={orderForm.shippingMethod}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, shippingMethod: e.target.value }))}
+                        aria-label="Select shipping method"
+                      >
+                        <option value="Standard (Aramex)">Standard (Aramex)</option>
+                        <option value="Express (Aramex)">Express (Aramex)</option>
+                        <option value="Economy (Aramex)">Economy (Aramex)</option>
+                      </select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Shipping Address */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Shipping Address</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="edit-street">Street Address</Label>
+                    <Input
+                      id="edit-street"
+                      value={orderForm.street}
+                      onChange={(e) => setOrderForm((prev) => ({ ...prev, street: e.target.value }))}
+                      placeholder="Enter street address"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit-city">City</Label>
+                      <Input
+                        id="edit-city"
+                        value={orderForm.city}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, city: e.target.value }))}
+                        placeholder="Enter city"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-state">State/Province</Label>
+                      <Input
+                        id="edit-state"
+                        value={orderForm.state}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, state: e.target.value }))}
+                        placeholder="Enter state or province"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit-zipCode">ZIP Code</Label>
+                      <Input
+                        id="edit-zipCode"
+                        value={orderForm.zipCode}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, zipCode: e.target.value }))}
+                        placeholder="Enter ZIP code"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-country">Country</Label>
+                      <Input
+                        id="edit-country"
+                        value={orderForm.country}
+                        onChange={(e) => setOrderForm((prev) => ({ ...prev, country: e.target.value }))}
+                        placeholder="Enter country"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Notes */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={orderForm.notes}
+                    onChange={(e) => setOrderForm((prev) => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Add any notes about this order..."
+                    rows={3}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-4">
+                <Button onClick={handleSubmitEditOrder}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Update Order
+                </Button>
+                <Button variant="outline" onClick={() => setShowEditOrder(false)}>
+                  Cancel
+                </Button>
             </div>
           </div>
-        )}
+          </DialogContent>
+        </Dialog>
+      </div>
       </div>
     </AdminLayout>
   )

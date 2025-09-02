@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { SafeImage } from "@/components/ui/safe-image"
 import AdminLayout from "@/components/layout/AdminLayout"
@@ -147,35 +147,39 @@ export default function ProductsPage() {
           map[cat._id] = cat.name
         })
         setCategoryMap(map)
-        console.log('Category map created:', map)
+        // Category map created successfully
       }
     } catch (error) {
-      console.error('Error fetching categories:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error fetching categories:', error)
+      }
     }
   }
 
   const fetchProducts = async () => {
     try {
       setIsLoading(true)
-      console.log('Fetching products...')
+      // Fetching products...
       const response = await shopAPI.getProducts({ limit: 100 })
-      console.log('API Response:', response)
       if (response.success) {
-        console.log('Fetched products:', response.products)
         setProducts(response.products || [])
       } else {
-        console.error('Failed to fetch products:', response)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to fetch products:', response)
+        }
         toast({
-          title: "Error",
-          description: "Failed to fetch products",
+          title: "Failed to Load Products",
+          description: response.message || "Unable to retrieve products from the server. Please try again.",
           variant: "destructive"
         })
       }
     } catch (error) {
-      console.error('Error fetching products:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error fetching products:', error)
+      }
       toast({
-        title: "Error",
-        description: "Failed to fetch products from server",
+        title: "Connection Error",
+        description: "Unable to connect to the server. Please check your internet connection and try again.",
         variant: "destructive"
       })
     } finally {
@@ -327,17 +331,25 @@ export default function ProductsPage() {
     }
   }
 
-  // Filter products based on search term and category
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter && categoryFilter !== "all" ? product.category === categoryFilter : true
-    return matchesSearch && matchesCategory
-  })
+  // Filter products based on search term and category - memoized for performance
+  const filteredProducts = useMemo(() => {
+    const searchLower = searchTerm.toLowerCase()
+    return products.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchLower)
+      const matchesCategory = categoryFilter && categoryFilter !== "all" ? product.category === categoryFilter : true
+      return matchesSearch && matchesCategory
+    })
+  }, [products, searchTerm, categoryFilter])
 
-  // Calculate pagination
-  const indexOfLastItem = currentPage * itemsPerPage
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem)
+  // Calculate pagination - memoized for performance
+  const paginationData = useMemo(() => {
+    const indexOfLastItem = currentPage * itemsPerPage
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage
+    const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem)
+    return { indexOfLastItem, indexOfFirstItem, currentItems }
+  }, [currentPage, itemsPerPage, filteredProducts])
+
+  const { indexOfLastItem, indexOfFirstItem, currentItems } = paginationData
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
 
   // Handle page change
@@ -492,6 +504,7 @@ export default function ProductsPage() {
                                 setIsViewProductOpen(true)
                               }}
                               className="h-8 px-3"
+                              title="View Product"
                             >
                               <Eye className="h-4 w-4 mr-1" />
                               View
@@ -504,6 +517,7 @@ export default function ProductsPage() {
                                 setEditingProduct(product)
                               }}
                               className="h-8 px-3"
+                              title="Edit Product"
                             >
                               <Edit className="h-4 w-4 mr-1" />
                               Edit
@@ -518,6 +532,7 @@ export default function ProductsPage() {
                                 }
                               }}
                               className="h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              title="Delete Product"
                             >
                               <Trash2 className="h-4 w-4 mr-1" />
                               Delete

@@ -375,6 +375,7 @@ export default function BlogPage() {
                             size="sm"
                             onClick={() => handleEdit(post)}
                             className="h-8 px-3"
+                            title="Edit Post"
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
@@ -384,6 +385,7 @@ export default function BlogPage() {
                             size="sm"
                             onClick={() => handleDelete(post._id)}
                             className="h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Delete Post"
                           >
                             <Trash2 className="h-4 w-4 mr-1" />
                             Delete

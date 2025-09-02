@@ -25,7 +25,7 @@ const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxR
     const cachedData = apiCache.get(cacheKey);
     if (cachedData.timestamp > Date.now() - CACHE_TTL) {
       if (process.env.NODE_ENV === 'development') {
-        console.log(`Cache hit for ${cacheKey}`);
+        // Cache hit - no logging needed in production
       }
       return cachedData.data;
     } else {
@@ -46,7 +46,7 @@ const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxR
         timestamp: Date.now()
       });
       if (process.env.NODE_ENV === 'development') {
-        console.log(`Cached data for ${cacheKey}`);
+        // Data cached successfully
       }
     }
     
@@ -87,7 +87,7 @@ const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxR
       
       // Log retry attempt
       if (process.env.NODE_ENV === 'development') {
-        console.log(`Retrying API call (${retries}/${maxRetries})...`);
+        // Retrying API call
       }
     }
   }
@@ -115,7 +115,7 @@ api.interceptors.response.use(
     if (process.env.NODE_ENV === 'development') {
       const contentEncoding = response.headers['content-encoding'];
       if (contentEncoding) {
-        console.log(`Response compressed with: ${contentEncoding}`);
+        // Response compressed successfully
       }
     }
     return response;
@@ -148,7 +148,10 @@ api.interceptors.response.use(
     }
     
     // Log all API errors for debugging
-    console.error('API Error:', error.response?.data || error.message);
+    // Log API errors for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.error('API Error:', error.response?.data || error.message);
+    }
     
     return Promise.reject(error);
   }
@@ -161,7 +164,9 @@ export const authAPI = {
       const response = await api.post('/auth/login', { email, password });
       return response.data;
     } catch (error: any) {
-      console.error('Login error:', error.response?.data || error.message);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Login error:', error.response?.data || error.message);
+      }
       throw error;
     }
   },
@@ -171,7 +176,9 @@ export const authAPI = {
       const response = await api.post('/auth/register', { username, email, password });
       return response.data;
     } catch (error: any) {
-      console.error('Registration error:', error.response?.data || error.message);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Registration error:', error.response?.data || error.message);
+      }
       throw error;
     }
   },
@@ -181,7 +188,9 @@ export const authAPI = {
       const response = await api.post('/auth/forgot-password', { email });
       return response.data;
     } catch (error: any) {
-      console.error('Forgot password error:', error.response?.data || error.message);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Forgot password error:', error.response?.data || error.message);
+      }
       throw error;
     }
   },
@@ -191,7 +200,9 @@ export const authAPI = {
       const response = await api.post('/auth/reset-password', { token, password });
       return response.data;
     } catch (error: any) {
-      console.error('Reset password error:', error.response?.data || error.message);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Reset password error:', error.response?.data || error.message);
+      }
       throw error;
     }
   },
@@ -200,20 +211,22 @@ export const authAPI = {
     return retryRequest(async () => {
       try {
         if (process.env.NODE_ENV === 'development') {
-          console.log('Attempting to verify token with API URL:', API_URL);
+          // Verifying token
         }
         const response = await api.get('/auth/verify');
         if (process.env.NODE_ENV === 'development') {
-          console.log('Token verification successful');
+          // Token verification successful
         }
         return response.data;
       } catch (error: any) {
-        console.error('Token verification failed:', {
-          status: error.response?.status,
-          data: error.response?.data,
-          message: error.message,
-          url: `${API_URL}/auth/verify`
-        });
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Token verification failed:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            message: error.message,
+            url: `${API_URL}/auth/verify`
+          });
+        }
         throw error;
       }
     }, undefined, 3, 1500); // 3 retries with 1.5s initial delay
@@ -248,17 +261,17 @@ export const shopAPI = {
     
     return retryRequest(async () => {
       if (process.env.NODE_ENV === 'development') {
-        console.log('Fetching product with flexible method for:', idOrSlug);
+        // Fetching product with flexible method
       }
       // Heuristic: 24 hex chars -> likely a Mongo ObjectId
       const isObjectId = /^[a-f0-9]{24}$/i.test(idOrSlug);
       try {
         if (process.env.NODE_ENV === 'development') {
-          console.log('Trying direct product endpoint:', `/shop/products/${idOrSlug}`);
+          // Trying direct product endpoint
         }
         const direct = await api.get(`/shop/products/${idOrSlug}`);
         if (process.env.NODE_ENV === 'development') {
-          console.log('Direct product fetch successful');
+          // Direct product fetch successful
         }
         return direct.data;
       } catch (err: any) {
@@ -276,11 +289,11 @@ export const shopAPI = {
         // Fallback to slug endpoint
         try {
           if (process.env.NODE_ENV === 'development') {
-            console.log('Trying slug product endpoint:', `/shop/products/slug/${idOrSlug}`);
+            // Trying slug product endpoint
           }
           const bySlug = await api.get(`/shop/products/slug/${idOrSlug}`);
           if (process.env.NODE_ENV === 'development') {
-            console.log('Slug product fetch successful');
+            // Slug product fetch successful
           }
           return bySlug.data;
         } catch (slugErr: any) {
@@ -349,16 +362,16 @@ export const shopAPI = {
     
     return retryRequest(async () => {
       if (process.env.NODE_ENV === 'development') {
-        console.log('Fetching bundle with flexible method for:', idOrSlug);
+        // Fetching bundle with flexible method
       }
       const isObjectId = /^[a-f0-9]{24}$/i.test(idOrSlug);
       try {
         if (process.env.NODE_ENV === 'development') {
-          console.log('Trying direct bundle endpoint:', `/shop/bundles/${idOrSlug}`);
+          // Trying direct bundle endpoint
         }
         const direct = await api.get(`/shop/bundles/${idOrSlug}`);
         if (process.env.NODE_ENV === 'development') {
-          console.log('Direct bundle fetch successful');
+          // Direct bundle fetch successful
         }
         return direct.data;
       } catch (err: any) {
@@ -373,11 +386,11 @@ export const shopAPI = {
         }
         try {
           if (process.env.NODE_ENV === 'development') {
-            console.log('Trying slug bundle endpoint:', `/shop/bundles/slug/${idOrSlug}`);
+            // Trying slug bundle endpoint
           }
           const bySlug = await api.get(`/shop/bundles/slug/${idOrSlug}`);
           if (process.env.NODE_ENV === 'development') {
-            console.log('Slug bundle fetch successful');
+            // Slug bundle fetch successful
           }
           return bySlug.data;
         } catch (slugErr: any) {
@@ -598,6 +611,62 @@ export const orderAPI = {
   validateCoupon: async (code: string, cartTotal: number) => {
     const response = await api.post('/checkout/validate-coupon', { code, cartTotal });
     return response.data;
+  },
+
+  // Admin order methods
+  // Get all orders (admin)
+  getAllOrders: async (params = {}) => {
+    const token = getAuthToken();
+    const response = await api.get('/admin/orders', { 
+      params,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+    });
+    return response.data;
+  },
+
+  // Update order status (admin)
+  updateOrderStatus: async (orderId: string, statusData: any) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        return {
+          success: false,
+          message: 'Authentication required'
+        };
+      }
+
+      const response = await api.put(`/admin/orders/${orderId}/status`, statusData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Update order status error:', error.response?.data || error.message);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to update order status',
+        error: error.message
+      };
+    }
+  },
+
+  // Delete order (admin)
+  deleteOrder: async (orderId: string) => {
+    try {
+      const token = getAuthToken();
+      const response = await api.delete(`/admin/orders/${orderId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Delete order error:', error.response?.data || error.message);
+      throw error;
+    }
   }
 };
 
@@ -895,6 +964,26 @@ export const adminAPI = {
     return response.data;
   },
 
+  deleteReview: async (reviewId: string) => {
+    const token = getAuthToken();
+    const response = await api.delete(`/admin/reviews/${reviewId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  addAdminResponse: async (reviewId: string, response: string) => {
+    const token = getAuthToken();
+    const apiResponse = await api.post(`/admin/reviews/${reviewId}/response`, { response }, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return apiResponse.data;
+  },
+
   // Category management
   getCategories: async () => {
     const token = getAuthToken();
@@ -929,6 +1018,19 @@ export const adminAPI = {
   deleteCategory: async (categoryId: string) => {
     const token = getAuthToken();
     const response = await api.delete(`/admin/categories/${categoryId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  // Create default categories (development helper)
+  createDefaultCategories: async (forceReset: boolean = false) => {
+    const token = getAuthToken();
+    const url = `/admin/create-default-categories${forceReset ? '?forceReset=true' : ''}`;
+    
+    const response = await api.post(url, {}, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
