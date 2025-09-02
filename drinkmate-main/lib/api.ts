@@ -755,37 +755,37 @@ export const contactAPI = {
   
   // Get all contacts (admin only)
   getAllContacts: async (params = {}) => {
-    const response = await api.get('/contact/contacts', { params });
+    const response = await api.get('/contact/admin/contacts', { params });
     return response.data;
   },
   
   // Get contact by ID (admin only)
   getContactById: async (id: string) => {
-    const response = await api.get(`/contact/contacts/${id}`);
+    const response = await api.get(`/contact/admin/contacts/${id}`);
     return response.data;
   },
   
   // Update contact status (admin only)
   updateContactStatus: async (id: string, updateData: any) => {
-    const response = await api.put(`/contact/contacts/${id}/status`, updateData);
+    const response = await api.put(`/contact/admin/contacts/${id}/status`, updateData);
     return response.data;
   },
   
   // Add contact response (admin only)
   addContactResponse: async (id: string, responseData: any) => {
-    const response = await api.post(`/contact/contacts/${id}/response`, responseData);
+    const response = await api.post(`/contact/admin/contacts/${id}/response`, responseData);
     return response.data;
   },
   
   // Delete contact (admin only)
   deleteContact: async (id: string) => {
-    const response = await api.delete(`/contact/contacts/${id}`);
+    const response = await api.delete(`/contact/admin/contacts/${id}`);
     return response.data;
   },
   
   // Get contact statistics (admin only)
   getContactStats: async () => {
-    const response = await api.get('/contact/stats');
+    const response = await api.get('/contact/admin/stats');
     return response.data;
   }
 };
