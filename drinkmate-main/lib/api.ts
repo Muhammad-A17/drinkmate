@@ -230,6 +230,54 @@ export const authAPI = {
         throw error;
       }
     }, undefined, 3, 1500); // 3 retries with 1.5s initial delay
+  },
+
+  // Profile management
+  getProfile: async () => {
+    return retryRequest(async () => {
+      try {
+        const response = await api.get('/auth/profile');
+        return response.data;
+      } catch (error: any) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Get profile error:', error.response?.data || error.message);
+        }
+        throw error;
+      }
+    });
+  },
+
+  updateProfile: async (profileData: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    username?: string;
+    email?: string;
+  }) => {
+    try {
+      const response = await api.put('/auth/profile', profileData);
+      return response.data;
+    } catch (error: any) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Update profile error:', error.response?.data || error.message);
+      }
+      throw error;
+    }
+  },
+
+  changePassword: async (passwordData: {
+    currentPassword: string;
+    newPassword: string;
+  }) => {
+    try {
+      const response = await api.post('/auth/change-password', passwordData);
+      return response.data;
+    } catch (error: any) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Change password error:', error.response?.data || error.message);
+      }
+      throw error;
+    }
   }
 };
 

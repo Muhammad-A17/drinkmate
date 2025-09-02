@@ -14,4 +14,9 @@ router.post('/contact', authController.submitContact);
 router.post('/test-email', authController.testEmail);
 router.post('/test-welcome-email', authController.testWelcomeEmail);
 
+// Profile routes (require authentication)
+router.get('/profile', authMiddleware, authController.getUserProfile);
+router.put('/profile', authMiddleware, authController.updateUserProfile);
+router.post('/change-password', authMiddleware, authController.changePassword);
+
 module.exports = router;

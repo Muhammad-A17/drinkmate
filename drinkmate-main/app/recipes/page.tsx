@@ -2,10 +2,11 @@
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Clock, Star, Heart, Utensils, Search, X } from "lucide-react"
+import { Clock, Star, Heart, Utensils, Search, X, Download } from "lucide-react"
 import { useState } from "react"
 import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
+import { useRecipeRotation, formatTimeRemaining } from "@/hooks/use-recipe-rotation"
 
 export default function Recipes() {
   const { t, isRTL, language } = useTranslation()
@@ -427,6 +428,88 @@ export default function Recipes() {
       image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
       tags: ["cucumber", "sparkler", "refreshing", "light"],
     },
+    {
+      id: 19,
+      category: "cocktails",
+      url: "#",
+      title: "Tropical Sunset Spritzer",
+      ingredients: ["2 oz Coconut Rum", "1 oz Pineapple Juice", "1 oz Orange Juice", "1/2 oz Grenadine", "Club Soda"],
+      instructions: [
+        "Combine rum, pineapple juice, and orange juice in a shaker with ice",
+        "Shake well and strain into Drinkmate carbonation bottle",
+        "Add sparkle and pour into glass over ice",
+        "Slowly pour grenadine to create sunset effect",
+        "Top with club soda and garnish with pineapple wedge",
+      ],
+      isFeatured: false,
+      difficulty: "Intermediate",
+      time: "8 min",
+      rating: 4.7,
+      reviews: 92,
+      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      tags: ["tropical", "sunset", "rum", "colorful"],
+    },
+    {
+      id: 20,
+      category: "mocktails",
+      url: "#",
+      title: "Berry Blast Fizz",
+      ingredients: ["Mixed berries (strawberries, blueberries, raspberries)", "Honey", "Lemon juice", "Water"],
+      instructions: [
+        "Muddle fresh berries with honey and lemon juice",
+        "Add water and mix well",
+        "Pour into Drinkmate and carbonate",
+        "Serve over ice with fresh berry garnish",
+      ],
+      isFeatured: false,
+      difficulty: "Easy",
+      time: "6 min",
+      rating: 4.8,
+      reviews: 134,
+      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      tags: ["berry", "fizz", "natural", "sweet"],
+    },
+    {
+      id: 21,
+      category: "infused",
+      url: "#",
+      title: "Mint Lemonade Sparkler",
+      ingredients: ["Fresh mint leaves", "Lemon juice", "Sugar or honey", "Water"],
+      instructions: [
+        "Muddle mint leaves with sugar or honey",
+        "Add lemon juice and water",
+        "Let infuse for 5 minutes",
+        "Pour into Drinkmate and carbonate",
+        "Serve with fresh mint garnish",
+      ],
+      isFeatured: false,
+      difficulty: "Easy",
+      time: "7 min",
+      rating: 4.5,
+      reviews: 67,
+      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      tags: ["mint", "lemonade", "refreshing", "herbal"],
+    },
+    {
+      id: 22,
+      category: "cocktails",
+      url: "#",
+      title: "Ginger Lime Fizz",
+      ingredients: ["2 oz Gin", "1 oz Fresh lime juice", "1 oz Ginger syrup", "Soda water"],
+      instructions: [
+        "Combine gin, lime juice, and ginger syrup in a shaker",
+        "Shake with ice and strain into Drinkmate",
+        "Add sparkle and pour into glass",
+        "Top with soda water and garnish with lime wheel",
+      ],
+      isFeatured: false,
+      difficulty: "Intermediate",
+      time: "9 min",
+      rating: 4.6,
+      reviews: 89,
+      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      tags: ["ginger", "lime", "gin", "spicy"],
+    },
   ]
 
   // Dynamic categories based on real data
@@ -437,7 +520,9 @@ export default function Recipes() {
     { name: "infused", count: recipesData.filter((r) => r.category === "infused").length },
   ]
 
-  const featuredRecipe = recipesData.find((recipe) => recipe.isFeatured)
+  // Use dynamic recipe rotation for the featured recipe
+  const { currentRecipe: dynamicRecipe, timeUntilNext, isRotating } = useRecipeRotation(recipesData, 10)
+  const featuredRecipe = dynamicRecipe || recipesData.find((recipe) => recipe.isFeatured)
 
   const baseFiltered =
     selectedCategory === "all" ? recipesData : recipesData.filter((recipe) => recipe.category === selectedCategory)
@@ -510,6 +595,42 @@ export default function Recipes() {
     alert("Recipe submitted successfully! Thank you for sharing!")
   }
 
+  const downloadRecipe = (recipe: any) => {
+    // Create recipe content
+    const recipeContent = `
+${recipe.title}
+${'='.repeat(recipe.title.length)}
+
+Difficulty: ${recipe.difficulty}
+Prep Time: ${recipe.time}
+Servings: 1-2
+Rating: ${recipe.rating}/5 (${recipe.reviews} reviews)
+
+INGREDIENTS:
+${recipe.ingredients.map((ingredient: string, index: number) => `${index + 1}. ${ingredient}`).join('\n')}
+
+INSTRUCTIONS:
+${recipe.instructions.map((instruction: string, index: number) => `${index + 1}. ${instruction}`).join('\n')}
+
+TAGS: ${recipe.tags.join(', ')}
+
+---
+Recipe from Drinkmate
+Generated on ${new Date().toLocaleDateString()}
+    `.trim()
+
+    // Create and download file
+    const blob = new Blob([recipeContent], { type: 'text/plain' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${recipe.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_recipe.txt`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }
+
   const addIngredient = () => {
     setNewRecipe(prev => ({
       ...prev,
@@ -535,19 +656,31 @@ export default function Recipes() {
     <PageLayout currentPage="recipes">
       <div dir={isRTL ? "rtl" : "ltr"}>
         {/* Hero Section */}
-        <section className="py-16 bg-gray-50  animate-fade-in-up">
-          <div className="max-w-7xl mx-auto px-4">
+        <section className="relative py-16 bg-gray-50 animate-fade-in-up overflow-hidden">
+          {/* Background Image with Overlay */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/images/recipes-hero-bg.jpg"
+              alt="Recipes Background"
+              fill
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-black/50"></div>
+          </div>
+          
+          <div className="relative z-10 max-w-7xl mx-auto px-4">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">
                 <h1
-                  className={`text-5xl font-bold text-black leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-left`}
+                  className={`text-5xl font-bold text-white leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-left`}
                 >
                   {t("recipes.hero.title")}
                   <br />
                   <span className="text-[#12d6fa]">{t("recipes.hero.subtitle")}</span>
                 </h1>
                 <p
-                  className={`text-xl text-gray-600 leading-relaxed ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-left delay-200`}
+                  className={`text-xl text-gray-200 leading-relaxed ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-left delay-200`}
                 >
                   {t("recipes.hero.description")}
                 </p>
@@ -575,14 +708,34 @@ export default function Recipes() {
         {featuredRecipe && (
           <section className="py-16 bg-white animate-fade-in-up">
             <div className="max-w-7xl mx-auto px-4">
-              <div className="bg-white rounded-3xl p-12 shadow-lg">
+              <div className={`bg-white rounded-3xl p-12 shadow-lg transition-all duration-500 ${isRotating ? 'scale-105 shadow-2xl' : ''}`}>
                 <div className="text-center mb-8">
                   <div className="inline-flex items-center space-x-2 bg-yellow-400 text-black px-4 py-2 rounded-full text-sm font-semibold mb-4 animate-slide-in-up">
                     <Star className="w-4 h-4 fill-current" />
                     <span className={isRTL ? "font-cairo" : "font-montserrat"}>{t("recipes.featuredRecipe.recipeOfTheWeek")}</span>
                   </div>
+                  
+                  {/* Rotation Timer */}
+                  <div className="inline-flex items-center space-x-2 bg-[#12d6fa] text-white px-4 py-2 rounded-full text-sm font-semibold mb-4 animate-slide-in-up delay-100">
+                    <Clock className={`w-4 h-4 ${isRotating ? 'animate-spin' : ''}`} />
+                    <span className={isRTL ? "font-cairo" : "font-montserrat"}>
+                      Next recipe in: {formatTimeRemaining(timeUntilNext)}
+                    </span>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="w-full max-w-md mx-auto mb-4">
+                    <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="bg-[#12d6fa] h-full transition-all duration-1000 ease-linear"
+                        style={{ 
+                          width: `${((10 * 60 * 1000 - timeUntilNext) / (10 * 60 * 1000)) * 100}%` 
+                        }}
+                      ></div>
+                    </div>
+                  </div>
                   <h2
-                    className={`text-4xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up delay-200`}
+                    className={`text-4xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up delay-200 transition-all duration-300 ${isRotating ? 'text-[#12d6fa]' : ''}`}
                   >
                     {featuredRecipe.title}
                   </h2>
@@ -658,9 +811,10 @@ export default function Recipes() {
 
                     <div className="flex space-x-3">
                       <Button
-                        onClick={() => alert("Recipe saved to favorites!")}
+                        onClick={() => downloadRecipe(featuredRecipe)}
                         className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-6 py-3"
                       >
+                        <Download className="w-4 h-4 mr-2" />
                         <span className={isRTL ? "font-cairo" : "font-montserrat"}>{t("recipes.featuredRecipe.saveRecipe")}</span>
                       </Button>
                       <Button
@@ -840,11 +994,12 @@ export default function Recipes() {
                         </span>
                       </Button>
                       <Button
-                        onClick={() => alert(`Added ${recipe.title} to favorites!`)}
+                        onClick={() => downloadRecipe(recipe)}
                         variant="outline"
                         className="px-4 border-gray-300"
+                        title="Download Recipe"
                       >
-                        <Heart className="w-4 h-4" />
+                        <Download className="w-4 h-4" />
                       </Button>
                     </div>
 

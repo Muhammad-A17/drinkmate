@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -113,11 +114,29 @@ export default function TrackOrderPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Track Your Order</h1>
-          <p className="text-gray-600">Enter your order number and email to track your order status</p>
+      {/* Hero Section with Background */}
+      <section className="relative py-16 bg-gray-50 overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/track-order-hero-bg.jpg"
+            alt="Track Order Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/50"></div>
         </div>
+        
+        <div className="relative z-10 max-w-4xl mx-auto px-4">
+          <div className="text-center space-y-6">
+            <h1 className="text-5xl font-bold text-white leading-tight tracking-tight">Track Your Order</h1>
+            <p className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed">Enter your order number and email to track your order status</p>
+          </div>
+        </div>
+      </section>
+
+      <div className="max-w-4xl mx-auto px-4 py-8">
 
         {/* Track Order Form */}
         <Card className="mb-8">

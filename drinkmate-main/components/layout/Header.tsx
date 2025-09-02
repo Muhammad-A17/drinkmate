@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ShoppingCart, User, Menu, X, ChevronDown, LogOut } from "lucide-react"
+import { ShoppingCart, User, Menu, X, ChevronDown, LogOut, Star, TrendingUp, Sparkles, ArrowRight } from "lucide-react"
 import { useTranslation } from "@/lib/translation-context"
 import { useState, useEffect } from "react"
 import { useCart } from "@/lib/cart-context"
@@ -75,19 +75,19 @@ export default function Header({ currentPage }: HeaderProps) {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-10">
+          <nav className={`hidden md:flex items-center ${isRTL ? "space-x-reverse space-x-10" : "space-x-10"}`}>
             <button
               onClick={(e) => {
                 e.preventDefault()
                 router.push("/")
               }}
-              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${
+              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${isRTL ? "font-cairo px-2" : "font-montserrat px-2"} ${
                 currentPage === "home" || !currentPage ? "text-slate-900" : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Home
+              {t("header.home")}
               {(currentPage === "home" || !currentPage) && (
-                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full"></span>
+                <span className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}></span>
               )}
             </button>
             <div className="relative group">
@@ -99,18 +99,18 @@ export default function Header({ currentPage }: HeaderProps) {
                 }}
                 onMouseEnter={() => setIsShopDropdownOpen(true)}
                 aria-label="Shop Menu"
-                className={`shop-button flex items-center text-sm font-semibold tracking-wide transition-all duration-300 relative group ${
+                className={`shop-button flex items-center text-sm font-semibold tracking-wide transition-all duration-300 relative group ${isRTL ? "font-cairo px-2" : "font-montserrat px-2"} ${
                   currentPage === "shop" || currentPage?.startsWith("shop-")
                     ? "text-slate-900"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Shop
+                {t("header.shop")}
                 <ChevronDown
-                  className={`ml-1 w-4 h-4 transition-all duration-300 ${isShopDropdownOpen ? "rotate-180" : ""}`}
+                  className={`${isRTL ? "mr-1" : "ml-1"} w-4 h-4 transition-all duration-300 ${isShopDropdownOpen ? "rotate-180" : ""}`}
                 />
                 {(currentPage === "shop" || currentPage?.startsWith("shop-")) && (
-                  <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full"></span>
+                  <span className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}></span>
                 )}
               </button>
 
@@ -126,36 +126,57 @@ export default function Header({ currentPage }: HeaderProps) {
                 <div className="py-2">
                   <Link
                     href="/shop/sodamakers"
-                    className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 border-l-2 border-transparent hover:border-blue-400"
+                    className={`flex items-center px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 border-l-2 border-transparent hover:border-blue-400 ${isRTL ? "font-cairo" : "font-montserrat"}`}
                     onClick={(e) => {
                       e.preventDefault()
                       setIsShopDropdownOpen(false)
                       router.push("/shop/sodamakers")
                     }}
                   >
-                    Sodamakers
+                    <Image
+                      src="/images/02 - Soda Makers/Artic-Blue-Machine---Front.png"
+                      alt="Soda Makers"
+                      width={24}
+                      height={24}
+                      className={`object-contain ${isRTL ? "ml-3" : "mr-3"} flex-shrink-0`}
+                    />
+                    {t("header.sodamakers")}
                   </Link>
                   <Link
                     href="/shop/flavor"
-                    className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 border-l-2 border-transparent hover:border-blue-400"
+                    className={`flex items-center px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 border-l-2 border-transparent hover:border-blue-400 ${isRTL ? "font-cairo" : "font-montserrat"}`}
                     onClick={(e) => {
                       e.preventDefault()
                       setIsShopDropdownOpen(false)
                       router.push("/shop/flavor")
                     }}
                   >
-                    Flavor
+                    <Image
+                      src="/images/01 - Flavors/Strawberry-Lemon-Flavor.png"
+                      alt="Flavors"
+                      width={24}
+                      height={24}
+                      className={`object-contain ${isRTL ? "ml-3" : "mr-3"} flex-shrink-0`}
+                    />
+                    {t("header.flavor")}
                   </Link>
                   <Link
                     href="/shop/accessories"
-                    className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 border-l-2 border-transparent hover:border-blue-400"
+                    className={`flex items-center px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 border-l-2 border-transparent hover:border-blue-400 ${isRTL ? "font-cairo" : "font-montserrat"}`}
                     onClick={(e) => {
                       e.preventDefault()
                       setIsShopDropdownOpen(false)
                       router.push("/shop/accessories")
                     }}
                   >
-                    Accessories
+                    <Image
+                      src="/images/05 - Accessories-20250824T073107Z-1-001/05 - Accessories/Black-Bottle---500-ML.png"
+                      alt="Accessories"
+                      width={24}
+                      height={24}
+                      className={`object-contain ${isRTL ? "ml-3" : "mr-3"} flex-shrink-0`}
+                    />
+                    {t("header.accessories")}
                   </Link>
                 </div>
               </div>
@@ -165,13 +186,13 @@ export default function Header({ currentPage }: HeaderProps) {
                 e.preventDefault()
                 router.push("/co2")
               }}
-              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${
+              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${isRTL ? "font-cairo px-2" : "font-montserrat px-2"} ${
                 currentPage === "co2" ? "text-slate-900" : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              CO2
+              {t("header.co2")}
               {currentPage === "co2" && (
-                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full"></span>
+                <span className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}></span>
               )}
             </button>
             <button
@@ -179,13 +200,13 @@ export default function Header({ currentPage }: HeaderProps) {
                 e.preventDefault()
                 router.push("/recipes")
               }}
-              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${
+              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${isRTL ? "font-cairo px-2" : "font-montserrat px-2"} ${
                 currentPage === "recipes" ? "text-slate-900" : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Recipes
+              {t("header.recipes")}
               {currentPage === "recipes" && (
-                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full"></span>
+                <span className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}></span>
               )}
             </button>
             <button
@@ -193,13 +214,13 @@ export default function Header({ currentPage }: HeaderProps) {
                 e.preventDefault()
                 router.push("/contact")
               }}
-              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${
+              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${isRTL ? "font-cairo px-2" : "font-montserrat px-2"} ${
                 currentPage === "contact" ? "text-slate-900" : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Contact Us
+              {t("header.contactUs")}
               {currentPage === "contact" && (
-                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full"></span>
+                <span className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}></span>
               )}
             </button>
             <button
@@ -207,13 +228,13 @@ export default function Header({ currentPage }: HeaderProps) {
                 e.preventDefault()
                 router.push("/track-order")
               }}
-              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${
+              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${isRTL ? "font-cairo px-2" : "font-montserrat px-2"} ${
                 currentPage === "track-order" ? "text-slate-900" : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Track Order
+              {t("header.trackOrder")}
               {currentPage === "track-order" && (
-                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full"></span>
+                <span className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}></span>
               )}
             </button>
           </nav>
@@ -271,6 +292,17 @@ export default function Header({ currentPage }: HeaderProps) {
                           Signed in as <span className="font-semibold text-slate-900">{user?.username}</span>
                         </div>
 
+                        <Link
+                          href="/profile"
+                          className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                        >
+                          <div className="flex items-center">
+                            <User className="w-4 h-4 mr-3" />
+                            My Profile
+                          </div>
+                        </Link>
+
                         {user?.isAdmin && (
                           <Link
                             href="/admin"
@@ -317,10 +349,10 @@ export default function Header({ currentPage }: HeaderProps) {
             {!isAdminPage && (
               <Button
                 onClick={() => router.push("/refill-cylinder")}
-                className="bg-[#a8f387] hover:bg-[#96e075] text-slate-900 font-semibold px-3 sm:px-4 md:px-8 py-2 sm:py-2.5 rounded-full transition-all duration-300 hover:shadow-lg hover:scale-105 text-xs md:text-sm "
+                className={`bg-[#a8f387] hover:bg-[#96e075] text-slate-900 font-semibold px-3 sm:px-4 md:px-8 py-2 sm:py-2.5 rounded-full transition-all duration-300 hover:shadow-lg hover:scale-105 text-xs md:text-sm ${isRTL ? "font-cairo" : "font-montserrat"}`}
               >
-                <span className="hidden sm:inline">Refill Cylinder</span>
-                <span className="sm:hidden">Refill</span>
+                <span className="hidden sm:inline">{t("header.refillCylinder")}</span>
+                <span className="sm:hidden">{t("header.refill")}</span>
               </Button>
             )}
 
@@ -349,17 +381,17 @@ export default function Header({ currentPage }: HeaderProps) {
                   setIsMobileMenuOpen(false)
                   router.push("/")
                 }}
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${
+                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
                   currentPage === "home" || !currentPage
                     ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
-                Home
+                {t("header.home")}
               </button>
               <div className="space-y-1">
                 <button
-                  className={`w-full text-left text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 ${
+                  className={`w-full text-left text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 ${isRTL ? "font-cairo" : "font-montserrat"} ${
                     currentPage === "shop" || currentPage?.startsWith("shop-")
                       ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -371,7 +403,7 @@ export default function Header({ currentPage }: HeaderProps) {
                     setIsShopDropdownOpen(!isShopDropdownOpen)
                   }}
                 >
-                  <span>Shop</span>
+                  <span>{t("header.shop")}</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
 
@@ -379,36 +411,57 @@ export default function Header({ currentPage }: HeaderProps) {
                 <div className="pl-6 space-y-1">
                   <Link
                     href="/shop/sodamakers"
-                    className="block text-sm font-medium text-slate-600 px-5 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+                    className={`flex items-center text-sm font-medium text-slate-600 px-5 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 ${isRTL ? "font-cairo" : "font-montserrat"}`}
                     onClick={(e) => {
                       e.preventDefault()
                       setIsMobileMenuOpen(false)
                       router.push("/shop/sodamakers")
                     }}
                   >
-                    Sodamakers
+                    <Image
+                      src="/images/02 - Soda Makers/Artic-Blue-Machine---Front.png"
+                      alt="Soda Makers"
+                      width={20}
+                      height={20}
+                      className={`object-contain ${isRTL ? "ml-2" : "mr-2"} flex-shrink-0`}
+                    />
+                    {t("header.sodamakers")}
                   </Link>
                   <Link
                     href="/shop/flavor"
-                    className="block text-sm font-medium text-slate-600 px-5 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+                    className={`flex items-center text-sm font-medium text-slate-600 px-5 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 ${isRTL ? "font-cairo" : "font-montserrat"}`}
                     onClick={(e) => {
                       e.preventDefault()
                       setIsMobileMenuOpen(false)
                       router.push("/shop/flavor")
                     }}
                   >
-                    Flavor
+                    <Image
+                      src="/images/01 - Flavors/Strawberry-Lemon-Flavor.png"
+                      alt="Flavors"
+                      width={20}
+                      height={20}
+                      className={`object-contain ${isRTL ? "ml-2" : "mr-2"} flex-shrink-0`}
+                    />
+                    {t("header.flavor")}
                   </Link>
                   <Link
                     href="/shop/accessories"
-                    className="block text-sm font-medium text-slate-600 px-5 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+                    className={`flex items-center text-sm font-medium text-slate-600 px-5 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 ${isRTL ? "font-cairo" : "font-montserrat"}`}
                     onClick={(e) => {
                       e.preventDefault()
                       setIsMobileMenuOpen(false)
                       router.push("/shop/accessories")
                     }}
                   >
-                    Accessories
+                    <Image
+                      src="/images/05 - Accessories-20250824T073107Z-1-001/05 - Accessories/Black-Bottle---500-ML.png"
+                      alt="Accessories"
+                      width={20}
+                      height={20}
+                      className={`object-contain ${isRTL ? "ml-2" : "mr-2"} flex-shrink-0`}
+                    />
+                    {t("header.accessories")}
                   </Link>
                 </div>
               </div>
@@ -418,13 +471,13 @@ export default function Header({ currentPage }: HeaderProps) {
                   setIsMobileMenuOpen(false)
                   router.push("/co2")
                 }}
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${
+                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
                   currentPage === "co2"
                     ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
-                CO2
+                {t("header.co2")}
               </button>
               <button
                 onClick={(e) => {
@@ -432,13 +485,13 @@ export default function Header({ currentPage }: HeaderProps) {
                   setIsMobileMenuOpen(false)
                   router.push("/recipes")
                 }}
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${
+                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
                   currentPage === "recipes"
                     ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
-                Recipes
+                {t("header.recipes")}
               </button>
               <button
                 onClick={(e) => {
@@ -446,13 +499,13 @@ export default function Header({ currentPage }: HeaderProps) {
                   setIsMobileMenuOpen(false)
                   router.push("/contact")
                 }}
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${
+                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
                   currentPage === "contact"
                     ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
-                    : "text-slate-900 hover:text-slate-900 hover:bg-slate-50"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
-                Contact Us
+                {t("header.contactUs")}
               </button>
               <button
                 onClick={(e) => {
@@ -460,13 +513,13 @@ export default function Header({ currentPage }: HeaderProps) {
                   setIsMobileMenuOpen(false)
                   router.push("/track-order")
                 }}
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${
+                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
                   currentPage === "track-order"
                     ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
-                Track Order
+                {t("header.trackOrder")}
               </button>
 
               {/* Auth links for mobile */}
@@ -476,6 +529,14 @@ export default function Header({ currentPage }: HeaderProps) {
                     <div className="px-5 py-3 text-sm font-semibold text-slate-700 bg-slate-50 rounded-lg mb-2">
                       Signed in as <span className="font-bold text-slate-900">{user?.username}</span>
                     </div>
+
+                    <Link
+                      href="/profile"
+                      className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-all duration-200"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      My Profile
+                    </Link>
 
                     {user?.isAdmin && (
                       <Link

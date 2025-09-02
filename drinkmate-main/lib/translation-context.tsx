@@ -32,11 +32,16 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
 
   // Initialize language from localStorage after hydration
   useEffect(() => {
-    const saved = localStorage.getItem('drinkmate-language')
-    if (saved === 'EN' || saved === 'AR') {
-      setLanguage(saved)
-    }
-    setIsHydrated(true)
+    // Use requestAnimationFrame to ensure this runs after the initial render
+    const timer = requestAnimationFrame(() => {
+      const saved = localStorage.getItem('drinkmate-language')
+      if (saved === 'EN' || saved === 'AR') {
+        setLanguage(saved)
+      }
+      setIsHydrated(true)
+    })
+    
+    return () => cancelAnimationFrame(timer)
   }, [])
 
   const isRTL = language === 'AR'

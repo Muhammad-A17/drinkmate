@@ -92,13 +92,25 @@ export default function CO2() {
   return (
     <PageLayout currentPage="co2">
       {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#f3f3f3]">
-        <div className="max-w-7xl mx-auto px-4">
+      <section className="relative py-16 bg-gradient-to-b from-white to-[#f3f3f3] overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/co2-hero-bg.jpg"
+            alt="CO2 Cylinders Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/50"></div>
+        </div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4">
           <div className="text-center space-y-6">
-            <h1 className="text-5xl font-bold text-black leading-tight tracking-tight font-montserrat">
+            <h1 className="text-5xl font-bold text-white leading-tight tracking-tight font-montserrat">
               Refill / Exchange Cylinders
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-noto-sans">
+            <p className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed font-noto-sans">
               Never let your sparkling run out with our fast and amazing refill / exchange service.
             </p>
           </div>

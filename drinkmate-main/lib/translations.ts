@@ -3,7 +3,11 @@ export type Language = 'EN' | 'AR';
 export interface Translations {
   // Header & Navigation
   header: {
+    home: string
     shop: string
+    sodamakers: string
+    flavor: string
+    accessories: string
     co2: string
     recipes: string
     contactUs: string
@@ -133,8 +137,32 @@ export interface Translations {
     howItWorks: {
       title: string
       subtitle: string
+      description: string
+      steps: {
+        step1: {
+          title: string
+          description: string
+          alt: string
+        }
+        step2: {
+          title: string
+          description: string
+          alt: string
+        }
+        step3: {
+          title: string
+          description: string
+          alt: string
+        }
+        step4: {
+          title: string
+          description: string
+          alt: string
+        }
+      }
     },
     co2Section: {
+      title: string
       litersOfDrinks: string
       description: string
       descriptionAr: string
@@ -859,6 +887,83 @@ export interface Translations {
     }
   }
   
+  // Profile
+  profile: {
+    hero: {
+      title: string
+      description: string
+    }
+    tabs: {
+      profile: string
+      orders: string
+      security: string
+    }
+    personalInfo: {
+      title: string
+      description: string
+      firstName: string
+      lastName: string
+      username: string
+      email: string
+      phone: string
+      firstNamePlaceholder: string
+      lastNamePlaceholder: string
+      usernamePlaceholder: string
+      emailPlaceholder: string
+      phonePlaceholder: string
+      memberSince: string
+      lastLogin: string
+      edit: string
+      cancel: string
+      save: string
+      saving: string
+    }
+    orders: {
+      title: string
+      description: string
+      noOrders: string
+      noOrdersDescription: string
+      startShopping: string
+      orderNumber: string
+      status: string
+      total: string
+      date: string
+      items: string
+      shippingAddress: string
+      loading: string
+    }
+    security: {
+      changePassword: {
+        title: string
+        description: string
+        currentPassword: string
+        newPassword: string
+        confirmPassword: string
+        currentPasswordPlaceholder: string
+        newPasswordPlaceholder: string
+        confirmPasswordPlaceholder: string
+        update: string
+        updating: string
+      }
+      accountActions: {
+        title: string
+        description: string
+        signOut: string
+      }
+    }
+    messages: {
+      profileUpdated: string
+      passwordChanged: string
+      passwordsNotMatch: string
+      passwordTooShort: string
+      currentPasswordIncorrect: string
+      loadingProfile: string
+      failedToLoadOrders: string
+      failedToUpdateProfile: string
+      failedToChangePassword: string
+    }
+  }
+  
   // Track Order
   trackOrder: {
     hero: {
@@ -1490,16 +1595,20 @@ export interface Translations {
     }
     information: {
       title: string
-      supportHelp: string
-      trackOrder: string
-      drinkRecipes: string
-      blogNews: string
+      support: string
+      reprintReturnLabel: string
+      legalTerms: string
       privacyPolicy: string
-      termsOfService: string
+      cookiePolicy: string
+      drinkmateRecipe: string
+      blogs: string
+    }
+    more: {
+      title: string
+      trackOrder: string
     }
     newsletter: {
       title: string
-      description: string
       emailPlaceholder: string
       subscribeButton: string
       disclaimer: string
@@ -1508,13 +1617,12 @@ export interface Translations {
       followUs: string
     }
     payment: {
-      securePayment: string
+      title: string
     }
     delivery: {
-      fastDelivery: string
+      title: string
     }
     copyright: string
-    cookiePolicy: string
   }
   
   // Recipes
@@ -1730,7 +1838,11 @@ export interface Translations {
 export const translations: Record<Language, Translations> = {
   EN: {
     header: {
+      home: "Home",
       shop: "Shop",
+      sodamakers: "Sodamakers",
+      flavor: "Flavor",
+      accessories: "Accessories",
       co2: "CO2",
       recipes: "Recipes",
       contactUs: "Contact Us",
@@ -1740,11 +1852,11 @@ export const translations: Record<Language, Translations> = {
     },
     banner: {
       messages: {
-          freeDelivery: "🚚 Free delivery on orders above 150 ﷼",
-          colaFlavors: "🥤 Get 3 cola flavors just for 149 ﷼ use code COLA44",
-          firstOrderDiscount: "🎉 Get 5% off on your first order with us code NEW25",
-          megaOffer: "⚡ Drinkmate OmniFizz starting from 599 ﷼",
-          cylinderRefill: "🔄 CO2 cylinder refill from 65 ﷼"
+        freeDelivery: "🚚 Free delivery on orders above 150 ﷼",
+        colaFlavors: "🥤 Get 3 cola flavors just for 149 ﷼ use code COLA44",
+        firstOrderDiscount: "🎉 Get 5% off on your first order with us code NEW25",
+        megaOffer: "⚡ Drinkmate OmniFizz starting from 599 ﷼",
+        cylinderRefill: "🔄 CO2 cylinder refill from 65 ﷼"
       },
       codes: {
         cola44: "Cola44",
@@ -1855,11 +1967,35 @@ export const translations: Record<Language, Translations> = {
       },
       howItWorks: {
         title: "How does the Drinkmate OmniFizz work?",
-        subtitle: "Three simple steps that show you how to use the Drinkmate OmniFizz"
+        subtitle: "Four simple steps that show you how to use the Drinkmate OmniFizz",
+        description: "Four simple steps that show you how to use the Drinkmate OmniFizz",
+        steps: {
+          step1: {
+            title: "Fill",
+            description: "Fill the bottle with your desired beverage.",
+            alt: "Step 1: Fill Bottle"
+          },
+          step2: {
+            title: "Fizz",
+            description: "Press the button to carbonate your drink.",
+            alt: "Step 2: Carbonate Drink"
+          },
+          step3: {
+            title: "Flip",
+            description: "Open the valve on the Fizz Infuser to release the pressure.",
+            alt: "Step 3: Flip to Release Pressure"
+          },
+          step4: {
+            title: "Enjoy!",
+            description: "Fill into a glass and enjoy the drink.",
+            alt: "Step 4: Enjoy Drink"
+          }
+        }
       },
       co2Section: {
+        title: "Why CO₂?",
         litersOfDrinks: "Liters of Drinks",
-        description: "With Drinkmate's CO2 Exchange Program, send back empty cylinders and get a discount on your next CO2 purchase. Easy, sustainable, and fizz-ready—always.",
+        description: "CO₂ gas adds bubbles and fizz to your water. Our Food Grade CO₂ ensures safe, fresh, and sparkling drinks every time.",
         descriptionAr: "مع برنامج تبادل ثاني أكسيد الكربون من Drinkmate، أرسل الأسطوانات الفارغة واحصل على خصم على مشترياتك القادمة من ثاني أكسيد الكربون. سهل ومستدام وجاهز للفوران—دائماً.",
         learnMore: "Learn More",
         learnMoreAr: "اعرف المزيد",
@@ -3667,6 +3803,81 @@ export const translations: Record<Language, Translations> = {
         }
       }
     },
+    profile: {
+      hero: {
+        title: "My Profile",
+        description: "Manage your account settings and view your order history"
+      },
+      tabs: {
+        profile: "Profile",
+        orders: "Orders",
+        security: "Security"
+      },
+      personalInfo: {
+        title: "Personal Information",
+        description: "Update your personal details and contact information",
+        firstName: "First Name",
+        lastName: "Last Name",
+        username: "Username",
+        email: "Email",
+        phone: "Phone Number",
+        firstNamePlaceholder: "Enter your first name",
+        lastNamePlaceholder: "Enter your last name",
+        usernamePlaceholder: "Enter your username",
+        emailPlaceholder: "Enter your email",
+        phonePlaceholder: "Enter your phone number",
+        memberSince: "Member since:",
+        lastLogin: "Last login:",
+        edit: "Edit",
+        cancel: "Cancel",
+        save: "Save Changes",
+        saving: "Saving..."
+      },
+      orders: {
+        title: "Order History",
+        description: "View and track your past and current orders",
+        noOrders: "No orders yet",
+        noOrdersDescription: "You haven't placed any orders yet.",
+        startShopping: "Start Shopping",
+        orderNumber: "Order #",
+        status: "Status",
+        total: "Total",
+        date: "Date",
+        items: "Items",
+        shippingAddress: "Shipping Address",
+        loading: "Loading orders..."
+      },
+      security: {
+        changePassword: {
+          title: "Change Password",
+          description: "Update your password to keep your account secure",
+          currentPassword: "Current Password",
+          newPassword: "New Password",
+          confirmPassword: "Confirm New Password",
+          currentPasswordPlaceholder: "Enter your current password",
+          newPasswordPlaceholder: "Enter your new password",
+          confirmPasswordPlaceholder: "Confirm your new password",
+          update: "Update Password",
+          updating: "Updating..."
+        },
+        accountActions: {
+          title: "Account Actions",
+          description: "Manage your account settings and preferences",
+          signOut: "Sign Out"
+        }
+      },
+      messages: {
+        profileUpdated: "Profile updated successfully",
+        passwordChanged: "Password changed successfully",
+        passwordsNotMatch: "New passwords do not match",
+        passwordTooShort: "Password must be at least 6 characters long",
+        currentPasswordIncorrect: "Current password is incorrect",
+        loadingProfile: "Loading profile...",
+        failedToLoadOrders: "Failed to load order history",
+        failedToUpdateProfile: "Failed to update profile",
+        failedToChangePassword: "Failed to change password"
+      }
+    },
     common: {
       loading: "Loading...",
       error: "An error occurred",
@@ -3709,45 +3920,52 @@ export const translations: Record<Language, Translations> = {
       address: "Riyadh, Saudi Arabia",
       products: {
         title: "Products",
-        sodaMakers: "Soda Makers",
-        co2Cylinders: "CO2 Cylinders",
-        italianSyrups: "Italian Syrups",
+        sodaMakers: "Drinkmate Soda Makers",
+        co2Cylinders: "CO2",
+        italianSyrups: "Premium Italian Syrups",
         accessories: "Accessories",
-        giftBundles: "Gift Bundles",
-        bulkOrders: "Bulk Orders"
+        giftBundles: "Gift For Family & Friends",
+        bulkOrders: "Bulk Order Request"
       },
       information: {
         title: "Information",
-        supportHelp: "Support & Help",
-        trackOrder: "Track Order",
-        drinkRecipes: "Drink Recipes",
-        blogNews: "Blog & News",
+        support: "Support",
+        reprintReturnLabel: "Reprint Return Label",
+        legalTerms: "Legal Terms",
         privacyPolicy: "Privacy Policy",
-        termsOfService: "Terms of Service"
+        cookiePolicy: "Cookie Policy",
+        drinkmateRecipe: "Drinkmate Recipe",
+        blogs: "Blogs"
+      },
+      more: {
+        title: "More",
+        trackOrder: "Track Order"
       },
       newsletter: {
-        title: "Stay Updated",
-        description: "Get exclusive offers and product announcements",
-        emailPlaceholder: "Enter your email",
-        subscribeButton: "Subscribe Now",
-        disclaimer: "Unsubscribe anytime. Gas cylinders not eligible for discount."
+        title: "Stay Refreshed with Drinkmate",
+        emailPlaceholder: "Enter your email address",
+        subscribeButton: "Subscribe to Newsletter",
+        disclaimer: "Get exclusive offers on sodamakers, flavors & CO2 refills"
       },
       social: {
-        followUs: "Follow Us:"
+        followUs: "Follow Us"
       },
       payment: {
-        securePayment: "Secure Payment Methods"
+        title: "Payment Methods Accepted"
       },
       delivery: {
-        fastDelivery: "Fast Delivery"
+        title: "Delivery Partner"
       },
-      copyright: "© 2024 Drinkmate. All rights reserved.",
-      cookiePolicy: "Cookie Policy"
+      copyright: "© 2024 Drinkmate. All rights reserved."
     }
   },
   AR: {
     header: {
+      home: "الرئيسية",
       shop: "المتجر",
+      sodamakers: "صانعات الصودا",
+      flavor: "النكهات",
+      accessories: "الإكسسوارات",
       co2: "ثاني أكسيد الكربون",
       recipes: "الوصفات",
       contactUs: "اتصل بنا",
@@ -3757,11 +3975,11 @@ export const translations: Record<Language, Translations> = {
     },
     banner: {
       messages: {
-          freeDelivery: "🚚 توصيل مجاني للطلبات فوق 150 ﷼",
-          colaFlavors: "🥤 احصل على 3 نكهات كولا مقابل 149 ﷼ فقط استخدم الكود كولا44",
-          firstOrderDiscount: "🎉 احصل على خصم 5% على أول طلب معنا استخدم الكود جديد25",
-          megaOffer: "⚡ درينكميت أومني فيز يبدأ من 599 ﷼",
-          cylinderRefill: "🔄 إعادة ملء أسطوانة ثاني أكسيد الكربون من 65 ﷼"
+        freeDelivery: "🚚 توصيل مجاني للطلبات فوق 150 ﷼",
+        colaFlavors: "🥤 احصل على 3 نكهات كولا مقابل 149 ﷼ فقط استخدم الكود كولا44",
+        firstOrderDiscount: "🎉 احصل على خصم 5% على أول طلب معنا استخدم الكود جديد25",
+        megaOffer: "⚡ درينكميت أومني فيز يبدأ من 599 ﷼",
+        cylinderRefill: "🔄 إعادة ملء أسطوانة ثاني أكسيد الكربون من 65 ﷼"
       },
       codes: {
         cola44: "كولا44",
@@ -3872,11 +4090,35 @@ export const translations: Record<Language, Translations> = {
       },
       howItWorks: {
         title: "كيف تعمل درينكميت أومني فيز؟",
-        subtitle: "ثلاث خطوات بسيطة توضح لك كيفية استخدام درينكميت أومني فيز"
+        subtitle: "أربع خطوات بسيطة توضح لك كيفية استخدام درينكميت أومني فيز",
+        description: "أربع خطوات بسيطة توضح لك كيفية استخدام درينكميت أومني فيز",
+        steps: {
+          step1: {
+            title: "املأ",
+            description: "املأ الزجاجة بالمشروب الذي تريده.",
+            alt: "الخطوة 1: املأ الزجاجة"
+          },
+          step2: {
+            title: "فوران",
+            description: "اضغط على الزر لتحويل مشروبك إلى مشروب غازي.",
+            alt: "الخطوة 2: تحويل المشروب إلى غازي"
+          },
+          step3: {
+            title: "اقلب",
+            description: "افتح الصمام على جهاز الحقن لإطلاق الضغط.",
+            alt: "الخطوة 3: اقلب لإطلاق الضغط"
+          },
+          step4: {
+            title: "استمتع!",
+            description: "اسكب في كوب واستمتع بالمشروب.",
+            alt: "الخطوة 4: استمتع بالمشروب"
+          }
+        }
       },
       co2Section: {
+        title: "لماذا ثاني أكسيد الكربون؟",
         litersOfDrinks: "لتر من المشروبات",
-        description: "مع برنامج تبادل ثاني أكسيد الكربون من درينكميت، أعد الأسطوانات الفارغة واحصل على خصم على مشترياتك القادمة من ثاني أكسيد الكربون. سهل ومستدام وجاهز للفوران—دائماً.",
+        description: "غاز ثاني أكسيد الكربون يضيف الفقاعات والغاز للماء. ثاني أكسيد الكربون الغذائي الخاص بنا يضمن مشروبات آمنة وطازجة وغازية في كل مرة.",
         descriptionAr: "مع برنامج تبادل ثاني أكسيد الكربون من Drinkmate، أرسل الأسطوانات الفارغة واحصل على خصم على مشترياتك القادمة من ثاني أكسيد الكربون. سهل ومستدام وجاهز للفوران—دائماً.",
         learnMore: "اعرف المزيد",
         learnMoreAr: "اعرف المزيد",
@@ -3892,8 +4134,8 @@ export const translations: Record<Language, Translations> = {
         }
       },
       flavorSection: {
-        subtitle: "لا تضيف الغاز للماء فقط",
-        title: "أضف الغاز لأي شيء",
+        subtitle: "لا تكتفِ بتفاعيل الماء فقط",
+        title: "فاعل أي شيء",
         description: "اكتشف نكهاتنا الإيطالية عالية الجودة وأنشئ مشروبات غازية مذهلة في المنزل. من الكولا الكلاسيكي إلى تركيبات الفواكه الغريبة، الإمكانيات لا تنتهي!",
         exploreFlavors: "استكشف النكهات"
       },
@@ -5273,6 +5515,81 @@ export const translations: Record<Language, Translations> = {
         }
       }
     },
+    profile: {
+      hero: {
+        title: "ملفي الشخصي",
+        description: "إدارة إعدادات حسابك وعرض تاريخ طلباتك"
+      },
+      tabs: {
+        profile: "الملف الشخصي",
+        orders: "الطلبات",
+        security: "الأمان"
+      },
+      personalInfo: {
+        title: "المعلومات الشخصية",
+        description: "تحديث تفاصيلك الشخصية ومعلومات الاتصال",
+        firstName: "الاسم الأول",
+        lastName: "اسم العائلة",
+        username: "اسم المستخدم",
+        email: "البريد الإلكتروني",
+        phone: "رقم الهاتف",
+        firstNamePlaceholder: "أدخل اسمك الأول",
+        lastNamePlaceholder: "أدخل اسم العائلة",
+        usernamePlaceholder: "أدخل اسم المستخدم",
+        emailPlaceholder: "أدخل بريدك الإلكتروني",
+        phonePlaceholder: "أدخل رقم هاتفك",
+        memberSince: "عضو منذ:",
+        lastLogin: "آخر تسجيل دخول:",
+        edit: "تعديل",
+        cancel: "إلغاء",
+        save: "حفظ التغييرات",
+        saving: "جاري الحفظ..."
+      },
+      orders: {
+        title: "تاريخ الطلبات",
+        description: "عرض وتتبع طلباتك السابقة والحالية",
+        noOrders: "لا توجد طلبات بعد",
+        noOrdersDescription: "لم تقم بطلب أي منتجات بعد.",
+        startShopping: "ابدأ التسوق",
+        orderNumber: "رقم الطلب #",
+        status: "الحالة",
+        total: "المجموع",
+        date: "التاريخ",
+        items: "العناصر",
+        shippingAddress: "عنوان الشحن",
+        loading: "جاري تحميل الطلبات..."
+      },
+      security: {
+        changePassword: {
+          title: "تغيير كلمة المرور",
+          description: "تحديث كلمة المرور للحفاظ على أمان حسابك",
+          currentPassword: "كلمة المرور الحالية",
+          newPassword: "كلمة المرور الجديدة",
+          confirmPassword: "تأكيد كلمة المرور الجديدة",
+          currentPasswordPlaceholder: "أدخل كلمة المرور الحالية",
+          newPasswordPlaceholder: "أدخل كلمة المرور الجديدة",
+          confirmPasswordPlaceholder: "أكد كلمة المرور الجديدة",
+          update: "تحديث كلمة المرور",
+          updating: "جاري التحديث..."
+        },
+        accountActions: {
+          title: "إجراءات الحساب",
+          description: "إدارة إعدادات حسابك وتفضيلاتك",
+          signOut: "تسجيل الخروج"
+        }
+      },
+      messages: {
+        profileUpdated: "تم تحديث الملف الشخصي بنجاح",
+        passwordChanged: "تم تغيير كلمة المرور بنجاح",
+        passwordsNotMatch: "كلمات المرور الجديدة غير متطابقة",
+        passwordTooShort: "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+        currentPasswordIncorrect: "كلمة المرور الحالية غير صحيحة",
+        loadingProfile: "جاري تحميل الملف الشخصي...",
+        failedToLoadOrders: "فشل في تحميل تاريخ الطلبات",
+        failedToUpdateProfile: "فشل في تحديث الملف الشخصي",
+        failedToChangePassword: "فشل في تغيير كلمة المرور"
+      }
+    },
     recipes: {
       hero: {
         title: "أنشئ وصفات",
@@ -5522,40 +5839,43 @@ export const translations: Record<Language, Translations> = {
       address: "الرياض، المملكة العربية السعودية",
       products: {
         title: "المنتجات",
-        sodaMakers: "صانعات الصودا",
-        co2Cylinders: "أسطوانات ثاني أكسيد الكربون",
-        italianSyrups: "الشرابات الإيطالية",
+        sodaMakers: "صانعات الصودا درينكميت",
+        co2Cylinders: "ثاني أكسيد الكربون",
+        italianSyrups: "الشرابات الإيطالية عالية الجودة",
         accessories: "الملحقات",
-        giftBundles: "باقات الهدايا",
-        bulkOrders: "الطلبات بالجملة"
+        giftBundles: "هدايا للعائلة والأصدقاء",
+        bulkOrders: "طلب بالجملة"
       },
       information: {
         title: "المعلومات",
-        supportHelp: "الدعم والمساعدة",
-        trackOrder: "تتبع الطلب",
-        drinkRecipes: "وصفات المشروبات",
-        blogNews: "المدونة والأخبار",
+        support: "الدعم",
+        reprintReturnLabel: "إعادة طباعة ملصق الإرجاع",
+        legalTerms: "الشروط القانونية",
         privacyPolicy: "سياسة الخصوصية",
-        termsOfService: "شروط الخدمة"
+        cookiePolicy: "سياسة ملفات تعريف الارتباط",
+        drinkmateRecipe: "وصفات درينكميت",
+        blogs: "المدونات"
+      },
+      more: {
+        title: "المزيد",
+        trackOrder: "تتبع الطلب"
       },
       newsletter: {
-        title: "ابق على اطلاع",
-        description: "احصل على عروض حصرية وإعلانات المنتجات",
-        emailPlaceholder: "أدخل بريدك الإلكتروني",
-        subscribeButton: "اشترك الآن",
-        disclaimer: "يمكنك إلغاء الاشتراك في أي وقت. أسطوانات الغاز غير مؤهلة للخصم."
+        title: "ابق منعشاً مع درينكميت",
+        emailPlaceholder: "أدخل عنوان بريدك الإلكتروني",
+        subscribeButton: "اشترك في النشرة الإخبارية",
+        disclaimer: "احصل على عروض حصرية على صانعات الصودا والنكهات وإعادة تعبئة ثاني أكسيد الكربون"
       },
       social: {
-        followUs: "تابعنا:"
+        followUs: "تابعنا"
       },
       payment: {
-        securePayment: "طرق الدفع الآمنة"
+        title: "طرق الدفع المقبولة"
       },
       delivery: {
-        fastDelivery: "توصيل سريع"
+        title: "شريك التوصيل"
       },
-      copyright: "© 2024 درينكميت. جميع الحقوق محفوظة.",
-      cookiePolicy: "سياسة ملفات تعريف الارتباط"
+      copyright: "© 2024 درينكميت. جميع الحقوق محفوظة."
     }
   }
 };

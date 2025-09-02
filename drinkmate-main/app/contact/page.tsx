@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -106,16 +107,28 @@ export default function Contact() {
   return (
     <PageLayout currentPage="contact">
       {/* Hero Section with Quick Actions */}
-      <section className="py-8 md:py-16 bg-white animate-fade-in-up">
-        <div className="max-w-7xl mx-auto px-4">
+      <section className="relative py-8 md:py-16 bg-white animate-fade-in-up overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/contact-hero-bg.jpg"
+            alt="Contact Us Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/50"></div>
+        </div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4">
           <div className="text-center space-y-4 md:space-y-6">
             <h1
-              className={`text-3xl md:text-5xl font-bold text-black leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-tight`}
+              className={`text-3xl md:text-5xl font-bold text-white leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-tight`}
             >
               {t("contact.title")}
             </h1>
             <p
-              className={`text-base md:text-xl text-gray-600 max-w-3xl mx-auto ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-up delay-200 leading-relaxed`}
+              className={`text-base md:text-xl text-gray-200 max-w-3xl mx-auto ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-up delay-200 leading-relaxed`}
             >
               {t("contact.description")}
             </p>

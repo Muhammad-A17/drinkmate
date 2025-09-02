@@ -112,40 +112,69 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+          {/* Company Info Column */}
+          <div className="lg:col-span-1">
+            <div className="mb-8">
+              <Image
+                src="/images/drinkmate-logo.png"
+                alt="Drinkmate"
+                width={140}
+                height={40}
+                className="h-8 sm:h-10 md:h-12 w-auto filter drop-shadow-sm"
+                style={{ width: 'auto' }}
+                priority
+              />
+            </div>
+            <p className={`text-gray-600 leading-relaxed mb-6 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+              {t("footer.companyDescription")}
+            </p>
+            <div className="space-y-2">
+              <p className={`text-sm text-gray-600 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                📞 {t("footer.phone")}
+              </p>
+              <p className={`text-sm text-gray-600 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                ✉️ {t("footer.email")}
+              </p>
+              <p className={`text-sm text-gray-600 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                📍 {t("footer.address")}
+              </p>
+            </div>
+          </div>
+
           {/* Products Column */}
           <div>
             <h3 className={`text-xl font-bold text-black mb-6 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>
-              Products
+              {t("footer.products.title")}
             </h3>
             <ul className="space-y-3">
               <li>
-                <a href="/shop" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Drinkmate Soda Makers
+                <a href="/shop/sodamakers" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                  {t("footer.products.sodaMakers")}
                 </a>
               </li>
               <li>
                 <a href="/co2" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  CO2
+                  {t("footer.products.co2Cylinders")}
                 </a>
               </li>
               <li>
-                <a href="/shop" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Premium Italian Syrups
+                <a href="/shop/flavor" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                  {t("footer.products.italianSyrups")}
                 </a>
               </li>
               <li>
-                <a href="/shop" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Accessories
+                <a href="/shop/accessories" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                  {t("footer.products.accessories")}
                 </a>
               </li>
               <li>
-                <a href="/shop" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Gift For Family & Friends
+                <a href="/shop/bundles" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                  {t("footer.products.giftBundles")}
                 </a>
               </li>
               <li>
                 <a href="/contact" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Bulk Order Request
+                  {t("footer.products.bulkOrders")}
                 </a>
               </li>
             </ul>
@@ -154,42 +183,42 @@ export default function Footer() {
           {/* Information Column */}
           <div>
             <h3 className={`text-xl font-bold text-black mb-6 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>
-              Information
+              {t("footer.information.title")}
             </h3>
             <ul className="space-y-3">
               <li>
                 <a href="/contact" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Support
+                  {t("footer.information.support")}
                 </a>
               </li>
               <li>
                 <a href="/" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Reprint Return Label
+                  {t("footer.information.reprintReturnLabel")}
                 </a>
               </li>
               <li>
                 <a href="/terms-of-service" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Legal Terms
+                  {t("footer.information.legalTerms")}
                 </a>
               </li>
               <li>
                 <a href="/privacy-policy" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Privacy Policy
+                  {t("footer.information.privacyPolicy")}
                 </a>
               </li>
               <li>
                 <a href="/cookie-policy" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Cookie Policy
+                  {t("footer.information.cookiePolicy")}
                 </a>
               </li>
               <li>
                 <a href="/recipes" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Drinkmate Recipe
+                  {t("footer.information.drinkmateRecipe")}
                 </a>
               </li>
               <li>
                 <a href="/blog" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Blogs
+                  {t("footer.information.blogs")}
                 </a>
               </li>
             </ul>
@@ -198,12 +227,12 @@ export default function Footer() {
           {/* More Column */}
           <div>
             <h3 className={`text-xl font-bold text-black mb-6 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>
-              More
+              {t("footer.more.title")}
             </h3>
             <ul className="space-y-3">
               <li>
                 <a href="/track-order" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                  Track Order
+                  {t("footer.more.trackOrder")}
                 </a>
               </li>
             </ul>
@@ -211,146 +240,156 @@ export default function Footer() {
 
           {/* Newsletter Signup */}
           <div className="lg:max-w-sm">
-            <h3 className={`text-xl font-bold text-black mb-6 leading-tight ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>
-              Register your email to hear about our new offers & Promotions and get 5% discount on your next purchase with us!
+            <h3 className={`text-lg font-bold text-black mb-2 leading-tight ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>
+              {t("footer.newsletter.title")}
             </h3>
             
-            <div className="space-y-4">
+            <p className={`text-sm text-gray-600 mb-4 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+              {t("footer.newsletter.disclaimer")}
+            </p>
+            
+            <div className="space-y-3">
               <input
                 type="email"
-                placeholder="Enter email address"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#a8f387] focus:border-[#a8f387] transition-colors duration-200"
+                placeholder={t("footer.newsletter.emailPlaceholder")}
+                className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#a8f387] focus:border-[#a8f387] transition-colors duration-200 text-sm ${isHydrated && isRTL ? 'font-noto-arabic text-right' : 'font-noto-sans'}`}
               />
               
               <Button 
                 onClick={() => alert('Thank you for subscribing to our newsletter!')}
-                className="w-full bg-[#a8f387] hover:bg-[#9ae374] text-black font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-105"
+                className={`w-full bg-[#a8f387] hover:bg-[#9ae374] text-black font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}
               >
-                SIGN ME UP
+                {t("footer.newsletter.subscribeButton")}
               </Button>
-              
-              <p className={`text-xs text-gray-500 leading-relaxed ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                You can unsubscribe to the newsletter at anytime in profile settings<br />
-                <span className="font-medium">*Gas cylinders & exchange/refill are not eligible for the discount*.</span>
-              </p>
             </div>
           </div>
         </div>
 
         {/* Bottom Section */}
         <div className="mt-12 md:mt-16 pt-8 md:pt-10 border-t border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-12 items-center">
+          <div className="flex flex-col lg:flex-row gap-8 md:gap-12 lg:gap-16 items-center justify-between">
             {/* Payment Methods */}
-            <div className="text-center lg:text-left">
-              <p className="text-sm font-medium text-gray-700 mb-3 md:mb-4">Payment Methods Accepted</p>
-              <div className="flex flex-wrap justify-center lg:justify-start gap-2 md:gap-3">
+            <div className={`text-center ${isHydrated && isRTL ? 'lg:text-right' : 'lg:text-left'}`}>
+              <p className={`text-sm font-medium text-gray-700 mb-4 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>{t("footer.payment.title")}</p>
+              <div className={`flex flex-wrap gap-3 justify-center ${isHydrated && isRTL ? 'lg:justify-end' : 'lg:justify-start'}`}>
                 <Image
                   src="/images/payment-logos/Mada Logo Vector.svg"
                   alt="Mada"
                   width={50}
                   height={30}
-                  className="h-6 sm:h-7 md:h-8 w-auto"
+                  className="h-7 sm:h-8 md:h-9 w-auto"
                 />
                 <Image
                   src="/images/payment-logos/visa.png"
                   alt="VISA"
                   width={50}
                   height={30}
-                  className="h-6 sm:h-7 md:h-8 w-auto"
+                  className="h-7 sm:h-8 md:h-9 w-auto"
                 />
                 <Image
                   src="/images/payment-logos/mastercard.png"
                   alt="Mastercard"
                   width={50}
                   height={30}
-                  className="h-6 sm:h-7 md:h-8 w-auto"
+                  className="h-7 sm:h-8 md:h-9 w-auto"
                 />
                 <Image
                   src="/images/payment-logos/american-express.png"
                   alt="American Express"
                   width={50}
                   height={30}
-                  className="h-6 sm:h-7 md:h-8 w-auto"
+                  className="h-7 sm:h-8 md:h-9 w-auto"
                 />
                 <Image
                   src="/images/payment-logos/google-pay.png"
                   alt="Google Pay"
                   width={50}
                   height={30}
-                  className="h-6 sm:h-7 md:h-8 w-auto"
+                  className="h-7 sm:h-8 md:h-9 w-auto"
                 />
                 <Image
                   src="/images/payment-logos/apple-pay.png"
                   alt="Apple Pay"
                   width={50}
                   height={30}
-                  className="h-6 sm:h-7 md:h-8 w-auto"
+                  className="h-7 sm:h-8 md:h-9 w-auto"
                 />
                 <Image
                   src="/images/payment-logos/samsung-pay.svg"
                   alt="Samsung Pay"
                   width={50}
                   height={30}
-                  className="h-6 sm:h-7 md:h-8 w-auto"
+                  className="h-7 sm:h-8 md:h-9 w-auto"
                 />
               </div>
             </div>
 
             {/* Delivery Partner */}
-            <div className="text-center mt-6 md:mt-0">
-              <p className="text-sm font-medium text-gray-700 mb-3 md:mb-4">Delivery Partner</p>
-              <Image
-                src="/images/delivery-logos/aramex-seeklogo.png"
-                alt="Aramex"
-                width={100}
-                height={40}
-                className="h-8 sm:h-9 md:h-10 w-auto mx-auto"
-                style={{ width: 'auto' }}
-              />
+            <div className="text-center">
+              <p className={`text-sm font-medium text-gray-700 mb-4 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>{t("footer.delivery.title")}</p>
+              <div className="flex justify-center">
+                <Image
+                  src="/images/delivery-logos/aramex-seeklogo.png"
+                  alt="Aramex"
+                  width={120}
+                  height={50}
+                  className="h-10 sm:h-12 md:h-14 w-auto"
+                  style={{ width: 'auto' }}
+                />
+              </div>
             </div>
 
             {/* Social Media Icons */}
-            <div className="text-center lg:text-right mt-6 lg:mt-0">
-              <p className="text-sm font-medium text-gray-700 mb-3 md:mb-4">Follow Us</p>
-              <div className="flex justify-center lg:justify-end space-x-2 sm:space-x-3">
+            <div className={`text-center ${isHydrated && isRTL ? 'lg:text-right' : 'lg:text-left'}`}>
+              <p className={`text-sm font-medium text-gray-700 mb-4 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>{t("footer.social.followUs")}</p>
+              <div className={`flex flex-wrap justify-center gap-3 ${isHydrated && isRTL ? 'lg:justify-start' : 'lg:justify-start'}`}>
                 <a 
                   href="https://wa.me/966501234567" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-[#25D366] text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 transform hover:scale-110"
+                  className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 transform hover:scale-110 shadow-lg"
                   aria-label="WhatsApp"
                 >
-                  <FaWhatsapp size={18} className="sm:text-xl md:text-2xl" />
+                  <FaWhatsapp size={20} />
                 </a>
                 <a 
                   href="https://www.facebook.com/drinkmate.sa" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-[#1877F2] text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 transform hover:scale-110"
+                  className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 bg-[#1877F2] text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 transform hover:scale-110 shadow-lg"
                   aria-label="Facebook"
                 >
-                  <FaFacebook size={18} className="sm:text-xl md:text-2xl" />
+                  <FaFacebook size={20} />
                 </a>
                 <a 
                   href="https://www.instagram.com/drinkmate.sa" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 transform hover:scale-110"
+                  className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 transform hover:scale-110 shadow-lg"
                   aria-label="Instagram"
                 >
-                  <FaInstagram size={18} className="sm:text-xl md:text-2xl" />
+                  <FaInstagram size={20} />
                 </a>
                 <a 
                   href="https://twitter.com/drinkmate_sa" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-[#1DA1F2] text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 transform hover:scale-110"
+                  className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 bg-[#1DA1F2] text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 transform hover:scale-110 shadow-lg"
                   aria-label="Twitter"
                 >
-                  <FaTwitter size={18} className="sm:text-xl md:text-2xl" />
+                  <FaTwitter size={20} />
                 </a>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Copyright Section */}
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="text-center">
+            <p className={`text-sm text-gray-600 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+              {t("footer.copyright")}
+            </p>
           </div>
         </div>
       </div>

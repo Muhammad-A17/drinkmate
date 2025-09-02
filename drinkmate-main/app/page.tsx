@@ -11,7 +11,7 @@ import { useTranslation } from "@/lib/translation-context"
 import { useRouter } from "next/navigation"
 
 export default function Home() {
-  const { t, isRTL, isHydrated } = useTranslation()
+  const { t, isRTL } = useTranslation()
   const router = useRouter()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [activeMachineColor, setActiveMachineColor] = useState("cyan") // Default to cyan
@@ -86,31 +86,31 @@ export default function Home() {
   const steps = [
     {
       id: 1,
-      title: "Fill",
-      description: "Fill the bottle with your desired beverage.",
-      img: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756658099/step_1_vmvmii.webp",
-      alt: "Step 1: Fill Bottle",
+      title: t("home.howItWorks.steps.step1.title"),
+      description: t("home.howItWorks.steps.step1.description"),
+      img: "/images/step/step 1.webp",
+      alt: t("home.howItWorks.steps.step1.alt"),
     },
     {
       id: 2,
-      title: "Fizz",
-      description: "Press the button to carbonate your drink.",
-      img: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756658098/step_2_bati86.webp",
-      alt: "Step 2: Carbonate Drink",
+      title: t("home.howItWorks.steps.step2.title"),
+      description: t("home.howItWorks.steps.step2.description"),
+      img: "/images/step/step 2.webp",
+      alt: t("home.howItWorks.steps.step2.alt"),
     },
     {
       id: 3,
-      title: "Flip",
-      description: "Open the valve on the Fizz Infuser to release the pressure.",
-      img: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756658099/step_3_m5ambz.webp",
-      alt: "Step 3: Flip to Release Pressure",
+      title: t("home.howItWorks.steps.step3.title"),
+      description: t("home.howItWorks.steps.step3.description"),
+      img: "/images/step/step 3.webp",
+      alt: t("home.howItWorks.steps.step3.alt"),
     },
     {
       id: 4,
-      title: "Enjoy!",
-      description: "Fill into a glass and enjoy the drink.",
-      img: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756658098/step_4_nbagci.webp", // 👉 Add this image to your public/images
-      alt: "Step 4: Enjoy Drink",
+      title: t("home.howItWorks.steps.step4.title"),
+      description: t("home.howItWorks.steps.step4.description"),
+      img: "/images/step/step 4.webp", // 👉 Add this image to your public/images
+      alt: t("home.howItWorks.steps.step4.alt"),
     },
   ]
 
@@ -131,9 +131,9 @@ export default function Home() {
   const rightColumnStartX = 656
 
   const baseMachines = [
-    { id: "red", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657901/drinkmate-machine-red_lkj7c9.png", alt: "Drinkmate OmniFizz Red" },
-    { id: "cyan", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657904/drinkmate-machine-blue_fs1bk8.png", alt: "Drinkmate OmniFizz Blue" },
-    { id: "black", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657900/drinkmate-machine-black-small_mztxfb.png", alt: "Drinkmate OmniFizz Black" },
+    { id: "red", src: "/images/drinkmate-machine-red.png", alt: "Drinkmate OmniFizz Red" },
+    { id: "cyan", src: "/images/drinkmate-machine-blue.png", alt: "Drinkmate OmniFizz Blue" },
+    { id: "black", src: "/images/drinkmate-machine-black-small.png", alt: "Drinkmate OmniFizz Black" },
   ]
 
   const machineStyles = {
@@ -216,19 +216,7 @@ export default function Home() {
     },
   }
 
-  // Don't render until hydration is complete to prevent mismatches
-  if (!isHydrated) {
-    return (
-      <PageLayout currentPage="home">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#12d6fa] mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
-          </div>
-        </div>
-      </PageLayout>
-    )
-  }
+
 
   return (
     <PageLayout currentPage="home">
@@ -365,7 +353,7 @@ export default function Home() {
 
       {/* Refill Section */}
       <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
-        <div className="w-full bg-white rounded-3xl relative min-h-[300px] md:h-[250px] flex items-center justify-between px-10 md:px-16 lg:px-20 xl:px-24 shadow-2xl shadow-gray-200/40 backdrop-blur-sm border border-white/30">
+        <div className="w-full bg-gradient-to-br from-[#f8fafc] via-[#f3f3f3] to-[#f1f5f9] rounded-3xl relative min-h-[300px] md:h-[250px] flex items-center justify-between px-10 md:px-16 lg:px-20 xl:px-24 shadow-2xl shadow-gray-200/40 backdrop-blur-sm border border-white/30">
           {/* Left Navigation Button */}
           <Button
             className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-gray-300/50 bg-white/90 backdrop-blur-md text-gray-700 shadow-xl z-10 hover:bg-white hover:border-gray-400 hover:shadow-2xl transition-all duration-300 transform hover:scale-110"
@@ -496,7 +484,7 @@ export default function Home() {
                 {/* Multiple Machine Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/Machines_y2di07.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561291/Zoomed_In_Machines_uqufys.png"
                     alt="Soda Makers"
                     width={180}
                     height={225}
@@ -521,7 +509,7 @@ export default function Home() {
                 {/* Multiple CO2 Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/CO2_bodgrh.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/CO2_Zoomed_fwlyev.png"
                     alt="CO2"
                     width={180}
                     height={225}
@@ -546,7 +534,7 @@ export default function Home() {
                 {/* Multiple Flavor Images from Flavors Folder in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/Flavor__ecscmb.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561291/Zoomed_In_Flavor_yiy4ca.png"
                     alt="Premium Italian Flavors"
                     width={180}
                     height={225}
@@ -571,7 +559,7 @@ export default function Home() {
                 {/* Multiple Accessory Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561289/Accessories_ea0rwx.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561289/Accessories_Zoomed_aarhge.png"
                     alt="Accessories"
                     width={180}
                     height={225}
@@ -703,16 +691,12 @@ export default function Home() {
         <div className="max-w-full mx-auto bg-white  rounded-2xl py-8 px-12 md:px-20 lg:px-24 relative overflow-hidden">
           <div className="flex flex-col lg:flex-row gap-8 items-start">
             {/* Left Side - Text Content */}
-            <div className="lg:w-1/4 flex-shrink-0">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-[#12d6fa] leading-tight mb-6">
-                How does the
-                <br />
-                Drinkmate
-                <br />
-                OmniFizz work?
+            <div className="lg:w-1/4 flex-shrink-0" dir={isRTL ? "rtl" : "ltr"}>
+              <h2 className={`text-3xl md:text-4xl lg:text-5xl font-semibold text-[#12d6fa] leading-tight mb-6 ${isRTL ? "font-cairo text-right" : "font-montserrat"}`}>
+                {t("home.howItWorks.title")}
               </h2>
-              <p className="text-lg md:text-xl text-gray-600">
-                Four simple steps that show you how to use the Drinkmate OmniFizz
+              <p className={`text-lg md:text-xl text-gray-600 ${isRTL ? "font-noto-arabic text-right" : "font-noto-sans"}`}>
+                {t("home.howItWorks.description")}
               </p>
             </div>
 
@@ -770,7 +754,7 @@ export default function Home() {
             <div className="relative w-full h-[350px] sm:h-[400px] md:h-[450px] mb-0 overflow-visible">
               {/* Background Image */}
               <Image
-                src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657662/food-grade-co2-text_rhokge.png"
+                src="/images/food-grade-co2-text.png"
                 alt="Food Grade CO2"
                 fill
                 className="object-contain opacity-90 z-0"
@@ -836,24 +820,23 @@ export default function Home() {
               transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
               className="flex flex-col items-center mt-6"
             >
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">Why CO₂?</h2>
-              <p className="text-sm sm:text-base md:text-lg text-gray-700 max-w-md leading-relaxed">
-                CO₂ gas adds bubbles and fizz to your water. Our Food Grade CO₂ ensures safe, fresh, and sparkling
-                drinks every time.
+              <h2 className={`text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mb-2 ${isRTL ? "font-cairo text-right" : "font-montserrat"}`}>{t("home.co2Section.title")}</h2>
+              <p className={`text-sm sm:text-base md:text-lg text-gray-700 max-w-md leading-relaxed ${isRTL ? "font-noto-arabic text-right" : "font-noto-sans"}`}>
+                {t("home.co2Section.description")}
               </p>
 
               <div className="mt-6 flex flex-row space-x-4 justify-center">
                 <Button
                   aria-label="Learn more about Drinkmate CO2 Exchange"
-                  className="bg-yellow-400 text-gray-900 px-6 py-2 rounded-full font-semibold shadow-md hover:bg-yellow-500 transition"
+                  className={`bg-yellow-400 text-gray-900 px-6 py-2 rounded-full font-semibold shadow-md hover:bg-yellow-500 transition ${isRTL ? "font-cairo" : "font-montserrat"}`}
                 >
-                  Learn More
+                  {t("home.co2Section.learnMore")}
                 </Button>
                 <Button
                   aria-label="Explore CO2 Subscriptions"
-                  className="bg-purple text-gray-900 border border-gray-300 px-6 py-2 rounded-full font-semibold shadow-md hover:bg-gray-50 transition"
+                  className={`bg-purple text-gray-900 border border-gray-300 px-6 py-2 rounded-full font-semibold shadow-md hover:bg-gray-50 transition ${isRTL ? "font-cairo" : "font-montserrat"}`}
                 >
-                  Explore Subscriptions
+                  {t("home.co2Section.exploreSubscriptions")}
                 </Button>
               </div>
             </motion.div>
@@ -864,7 +847,7 @@ export default function Home() {
             {/* Background Images */}
             <div className="absolute inset-0 z-0">
               <Image
-                src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657662/food-grade-co2-text_rhokge.png"
+                src="/images/food-grade-co2-text.png"
                 alt="Food Grade CO2"
                 fill
                 className="object-cover opacity-90 rounded-[20px]"
@@ -964,24 +947,23 @@ export default function Home() {
               transition={{ duration: 0.6, ease: "easeOut", delay: 0.4 }}
               className="absolute z-10 flex flex-col items-end max-w-md top-[410px] right-[50px] text-right"
             >
-              <h2 className="text-[40px] font-extrabold text-gray-900 mb-2">Why CO₂?</h2>
-              <p className="text-lg text-gray-700 leading-relaxed max-w-sm">
-                CO₂ gas adds bubbles and fizz to your water. Our Food Grade CO₂ ensures safe, fresh, and sparkling
-                drinks every time.
+              <h2 className={`text-[40px] font-extrabold text-gray-900 mb-2 ${isRTL ? "font-cairo text-right" : "font-montserrat"}`}>{t("home.co2Section.title")}</h2>
+              <p className={`text-lg text-gray-700 leading-relaxed max-w-sm ${isRTL ? "font-noto-arabic text-right" : "font-noto-sans"}`}>
+                {t("home.co2Section.description")}
               </p>
 
               <div className="mt-6 flex flex-row space-x-4 justify-end">
                 <Button
                   aria-label="Learn more about Drinkmate CO2 Exchange"
-                  className="bg-yellow-400 text-gray-900 px-8 py-3 rounded-full font-semibold shadow-md hover:bg-yellow-500 transition"
+                  className={`bg-yellow-400 text-gray-900 px-8 py-3 rounded-full font-semibold shadow-md hover:bg-yellow-500 transition ${isRTL ? "font-cairo" : "font-montserrat"}`}
                 >
-                  Learn More
+                  {t("home.co2Section.learnMore")}
                 </Button>
                 <Button
                   aria-label="Explore CO2 Subscriptions"
-                  className="bg-purple text-gray-900 border border-gray-300 px-8 py-3 rounded-full font-semibold shadow-md hover:bg-gray-50 transition"
+                  className={`bg-purple text-gray-900 border border-gray-300 px-8 py-3 rounded-full font-semibold shadow-md hover:bg-gray-50 transition ${isRTL ? "font-cairo" : "font-montserrat"}`}
                 >
-                  Explore Subscriptions
+                  {t("home.co2Section.exploreSubscriptions")}
                 </Button>
               </div>
             </motion.div>
@@ -997,36 +979,33 @@ export default function Home() {
       {/* Flavor Section */}
       <section className="py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40">
         {/* Header */}
-        <div className="text-center pt-12 mb-8">
-          <div className="inline-block bg-[#12d6fa]  bg-clip-text">
-            <p className="text-lg md:text-xl font-medium mb-3 text-transparent bg-clip-text bg-[#12d6fa] ">
-              Don't just sparkle water
-            </p>
+        <div className="text-center pt-12 mb-8" dir={isRTL ? "rtl" : "ltr"}>
+          <div className="flex justify-center">
+            <div className="bg-[#12d6fa] bg-clip-text">
+              <p className={`text-lg md:text-xl font-medium mb-3 text-transparent bg-clip-text bg-[#12d6fa] text-center ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                {t("home.flavorSection.subtitle")}
+              </p>
+            </div>
           </div>
-          <h2 className="text-4xl md:text-6xl font-medium bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 bg-clip-text text-transparent mb-4">
-            Sparkle Anything
+          <h2 className={`text-4xl md:text-6xl font-medium bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 bg-clip-text text-transparent mb-4 text-center ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+            {t("home.flavorSection.title")}
           </h2>
           <div className="w-24 h-1 bg-[#12d6fa]  mx-auto rounded-full shadow-lg"></div>
         </div>
 
         <div
-          className="mx-auto bg-white rounded-2xl relative overflow-hidden"
+          className="mx-auto bg-white rounded-2xl relative overflow-hidden shadow-2xl shadow-gray-200/40"
           style={{ height: "600px" }}
         >
           {/* Main Content with Background Image */}
           <Image
-            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657780/flavor-section-background_ehd2eh.png"
+            src="/images/flavor-section-background.png"
             alt="Italian Flavors and Cherry Cola Bottle"
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 1200px"
             priority
             quality={90}
-            className="absolute object-cover rounded-2xl"
-            style={{
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-            }}
+            className="object-contain rounded-2xl"
           />
         </div>
       </section>

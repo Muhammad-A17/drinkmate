@@ -7,7 +7,13 @@ interface User {
   _id: string;
   username: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  avatar?: string;
   isAdmin: boolean;
+  createdAt?: string;
+  lastLogin?: string;
 }
 
 interface AuthState {
