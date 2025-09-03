@@ -233,7 +233,8 @@ export default function FlavorPage() {
         sections.push({ _id: 'all', name: 'All Flavors', products: formattedFlavors })
       }
       
-      console.log("Subcategory sections:", sections)
+      const isDev = process.env.NODE_ENV === 'development';
+      if (isDev) console.log("Subcategory sections:", sections)
       setSubcategorySections(sections)
     } catch (error) {
       console.error("Error fetching products:", error)
@@ -317,9 +318,12 @@ export default function FlavorPage() {
       const selectedSection = subcategorySections.find(section => section._id === selectedFilter)
       if (selectedSection) {
         // Filter products that belong to this subcategory
-        filteredProducts = filteredProducts.filter(product => 
-          product.subcategory === selectedSection.name
-        )
+        filteredProducts = filteredProducts.filter(product => {
+          // Check both direct match and case-insensitive match
+          return product.subcategory === selectedSection.name || 
+            (product.subcategory && selectedSection.name && 
+             product.subcategory.toLowerCase() === selectedSection.name.toLowerCase())
+        })
       }
     }
 
@@ -344,7 +348,11 @@ export default function FlavorPage() {
         filteredProducts.sort((a, b) => a.price - b.price)
         break
       case "latest":
-        filteredProducts.sort((a, b) => new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime())
+        filteredProducts.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+          return dateB - dateA
+        })
         break
       default:
         filteredProducts.sort((a, b) => b.rating - a.rating)
@@ -504,8 +512,11 @@ export default function FlavorPage() {
                             height={180}
                             className="object-contain h-44 transition-transform duration-300 hover:scale-105"
                             onError={(e) => {
-                              console.log("Image failed to load:", bundle.image)
-                              e.currentTarget.src = "/images/01 - Flavors/Strawberry-Lemon-Flavor.png"
+                              const target = e.currentTarget;
+                              if (target) {
+                                console.log("Image failed to load:", bundle.image);
+                                target.src = "/images/01 - Flavors/Strawberry-Lemon-Flavor.png";
+                              }
                             }}
                           />
                         </div>
@@ -542,16 +553,16 @@ export default function FlavorPage() {
                           <Button
                             onClick={() => handleAddToCart({
                               _id: bundle._id,
-                              id: typeof bundle.id === 'number' ? bundle.id : undefined,
-                              slug: bundle.slug,
+                              id: bundle.id && typeof bundle.id === 'number' ? bundle.id : undefined,
+                              slug: bundle.slug || '',
                               name: bundle.name,
                               price: bundle.price,
                               originalPrice: bundle.originalPrice,
-                              image: bundle.image,
+                              image: bundle.image || '/placeholder.svg',
                               category: "bundle",
-                              rating: bundle.rating,
-                              reviews: bundle.reviews,
-                              description: bundle.description
+                              rating: bundle.rating || 5,
+                              reviews: bundle.reviews || 0,
+                              description: bundle.description || ''
                             })}
                             disabled={isInCart(bundle._id)}
                             className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full w-full sm:w-auto justify-center px-4 sm:px-6 py-2 h-10 text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -596,7 +607,7 @@ export default function FlavorPage() {
                 </div>
 
                 {/* Desktop filters */}
-                <div className={`${showFilters ? "block" : "hidden"} lg:block space-y-4 lg:space-y-0 lg:flex lg:items-center lg:gap-8`}>
+                <div className={`${showFilters ? "block" : "hidden"} lg:flex space-y-4 lg:space-y-0 lg:items-center lg:gap-8`}>
                   {/* Search */}
                   <div className="flex items-center gap-3">
                     <div className="relative flex-1">
@@ -625,6 +636,7 @@ export default function FlavorPage() {
                       value={selectedFilter}
                       onChange={(e) => setSelectedFilter(e.target.value)}
                       className="px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
+                      aria-label="Filter products by category"
                     >
                       {filterOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -641,6 +653,7 @@ export default function FlavorPage() {
                       value={selectedSort}
                       onChange={(e) => setSelectedSort(e.target.value)}
                       className="px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
+                      aria-label="Sort products"
                     >
                       {sortOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -655,7 +668,8 @@ export default function FlavorPage() {
                 <div className="text-sm text-gray-600 font-medium bg-gray-50 px-3 py-2 rounded-lg">
                   {(() => {
                     if (selectedFilter === "all") {
-                      return `${allFlavors.length} ${allFlavors.length === 1 ? "product" : "products"} found`
+                      const count = allFlavors?.length || 0
+                      return `${count} ${count === 1 ? "product" : "products"} found`
                     } else {
                       const selectedSection = subcategorySections.find(section => section._id === selectedFilter)
                       if (!selectedSection) return "0 products found"
@@ -686,14 +700,20 @@ export default function FlavorPage() {
                       {section.products.map((product) => renderProductCard(product))}
                     </div>
                   ) : (
-                    <div className="text-center py-16 bg-gray-50 rounded-2xl shadow-inner">
+                                          <div className="text-center py-16 bg-gray-50 rounded-2xl shadow-inner">
                       <div className="text-gray-400 mb-6">
                         <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
                       </div>
                       <h3 className="text-xl font-medium text-gray-900 mb-3">No products in this subcategory</h3>
-                      <Button onClick={() => router.push("/admin/products")} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                      <Button 
+                        onClick={() => {
+                          if (typeof window !== 'undefined') {
+                            router.push("/admin/products")
+                          }
+                        }} 
+                        className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
                         Add Products (Admin)
                       </Button>
                     </div>
@@ -703,19 +723,32 @@ export default function FlavorPage() {
             ) : (
               /* Show filtered products with subcategory headline when specific subcategory is selected */
               (() => {
-                console.log("Selected filter:", selectedFilter)
-                console.log("Subcategory sections:", subcategorySections)
-                const selectedSection = subcategorySections.find(section => section._id === selectedFilter)
-                console.log("Selected section:", selectedSection)
+                // Only log in development environment
+                const isDev = process.env.NODE_ENV === 'development';
+                
+                if (isDev) {
+                  console.log("Selected filter:", selectedFilter);
+                  console.log("Subcategory sections:", subcategorySections);
+                }
+                
+                const selectedSection = subcategorySections.find(section => section._id === selectedFilter);
+                
+                if (isDev) {
+                  console.log("Selected section:", selectedSection);
+                }
+                
                 if (!selectedSection) {
-                  console.log("No selected section found, returning null")
-                  return null
+                  if (isDev) console.log("No selected section found, returning null");
+                  return null;
                 }
                 
                 // Apply search and sort to the selected section's products
-                let filteredProducts = [...selectedSection.products]
-                console.log("Selected section products:", selectedSection.products)
-                console.log("Filtered products before search/sort:", filteredProducts)
+                let filteredProducts = [...selectedSection.products];
+                
+                if (isDev) {
+                  console.log("Selected section products:", selectedSection.products);
+                  console.log("Filtered products before search/sort:", filteredProducts);
+                }
                 
                 // Apply search
                 if (searchQuery.trim()) {
@@ -738,12 +771,18 @@ export default function FlavorPage() {
                     filteredProducts.sort((a, b) => a.price - b.price)
                     break
                   case "latest":
-                    filteredProducts.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+                    filteredProducts.sort((a, b) => {
+                      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+                      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+                      return dateB - dateA
+                    })
                     break
                 }
                 
-                console.log("Final filtered products:", filteredProducts)
-                console.log("Filtered products length:", filteredProducts.length)
+                if (isDev) {
+                  console.log("Final filtered products:", filteredProducts)
+                  console.log("Filtered products length:", filteredProducts.length)
+                }
                 
                 return filteredProducts.length > 0 ? (
                   <div>

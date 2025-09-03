@@ -12,6 +12,7 @@ export interface Translations {
     recipes: string
     contactUs: string
     trackOrder: string
+    userMenu: string
     refillCylinder: string
     refill: string
   }
@@ -1555,6 +1556,10 @@ export interface Translations {
     apply: string
     cancel: string
     save: string
+    changeToArabic: string
+    changeToEnglish: string
+    openMenu: string
+    closeMenu: string
     edit: string
     delete: string
     view: string
@@ -1847,6 +1852,7 @@ export const translations: Record<Language, Translations> = {
       recipes: "Recipes",
       contactUs: "Contact Us",
       trackOrder: "Track Order",
+      userMenu: "User Menu",
       refillCylinder: "Refill Cylinder",
       refill: "Refill"
     },
@@ -3891,6 +3897,10 @@ export const translations: Record<Language, Translations> = {
       apply: "Apply",
       cancel: "Cancel",
       save: "Save",
+      changeToArabic: "Change to Arabic",
+      changeToEnglish: "Change to English",
+      openMenu: "Open Menu",
+      closeMenu: "Close Menu",
       edit: "Edit",
       delete: "Delete",
       view: "View",
@@ -3970,6 +3980,7 @@ export const translations: Record<Language, Translations> = {
       recipes: "الوصفات",
       contactUs: "اتصل بنا",
       trackOrder: "تتبع الطلب",
+      userMenu: "قائمة المستخدم",
       refillCylinder: "إعادة ملء الأسطوانة",
       refill: "إعادة ملء"
     },
@@ -5810,6 +5821,10 @@ export const translations: Record<Language, Translations> = {
       apply: "تطبيق",
       cancel: "إلغاء",
       save: "حفظ",
+      changeToArabic: "التغيير إلى العربية",
+      changeToEnglish: "Change to English",
+      openMenu: "فتح القائمة",
+      closeMenu: "إغلاق القائمة",
       edit: "تعديل",
       delete: "حذف",
       view: "عرض",

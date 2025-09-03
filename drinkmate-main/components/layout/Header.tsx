@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ShoppingCart, User, Menu, X, ChevronDown, LogOut, Star, TrendingUp, Sparkles, ArrowRight } from "lucide-react"
+import { ShoppingCart, User, Menu, X, ChevronDown, LogOut, ArrowLeft } from "lucide-react"
 import { useTranslation } from "@/lib/translation-context"
 import { useState, useEffect } from "react"
 import { useCart } from "@/lib/cart-context"
@@ -24,6 +24,7 @@ export default function Header({ currentPage }: HeaderProps) {
   const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false)
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const [isAdminPage, setIsAdminPage] = useState(false)
+  const [showMobileShopGrid, setShowMobileShopGrid] = useState(false)
 
   useEffect(() => {
     setIsAdminPage(pathname?.startsWith("/admin") || false)
@@ -33,14 +34,14 @@ export default function Header({ currentPage }: HeaderProps) {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element
-      if (!target.closest('.shop-dropdown') && !target.closest('.shop-button')) {
+      if (!target.closest(".shop-dropdown") && !target.closest(".shop-button")) {
         setIsShopDropdownOpen(false)
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside)
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
 
@@ -50,6 +51,9 @@ export default function Header({ currentPage }: HeaderProps) {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
+    if (isMobileMenuOpen) {
+      setShowMobileShopGrid(false)
+    }
   }
 
   const handleLogout = () => {
@@ -57,8 +61,18 @@ export default function Header({ currentPage }: HeaderProps) {
     router.push("/")
   }
 
+  const handleMobileShopClick = () => {
+    setShowMobileShopGrid(true)
+  }
+
+  const handleBackToMenu = () => {
+    setShowMobileShopGrid(false)
+  }
+
   return (
-    <header className={`bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50 transition-all duration-300 ${isRTL ? 'font-cairo' : 'font-montserrat'}`}>
+    <header
+      className={`bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50 transition-all duration-300 ${isRTL ? "font-cairo" : "font-montserrat"}`}
+    >
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
@@ -69,7 +83,7 @@ export default function Header({ currentPage }: HeaderProps) {
               width={120}
               height={40}
               className="h-7 sm:h-8 md:h-10 w-auto filter drop-shadow-sm"
-              style={{ width: 'auto' }}
+              style={{ width: "auto" }}
               priority
             />
           </Link>
@@ -87,7 +101,9 @@ export default function Header({ currentPage }: HeaderProps) {
             >
               {t("header.home")}
               {(currentPage === "home" || !currentPage) && (
-                <span className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}></span>
+                <span
+                  className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}
+                ></span>
               )}
             </button>
             <div className="relative group">
@@ -98,7 +114,7 @@ export default function Header({ currentPage }: HeaderProps) {
                   setIsShopDropdownOpen(!isShopDropdownOpen)
                 }}
                 onMouseEnter={() => setIsShopDropdownOpen(true)}
-                aria-label="Shop Menu"
+                aria-label={t("header.shop")}
                 className={`shop-button flex items-center text-sm font-semibold tracking-wide transition-all duration-300 relative group ${isRTL ? "font-cairo px-2" : "font-montserrat px-2"} ${
                   currentPage === "shop" || currentPage?.startsWith("shop-")
                     ? "text-slate-900"
@@ -110,77 +126,102 @@ export default function Header({ currentPage }: HeaderProps) {
                   className={`${isRTL ? "mr-1" : "ml-1"} w-4 h-4 transition-all duration-300 ${isShopDropdownOpen ? "rotate-180" : ""}`}
                 />
                 {(currentPage === "shop" || currentPage?.startsWith("shop-")) && (
-                  <span className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}></span>
+                  <span
+                    className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}
+                  ></span>
                 )}
               </button>
 
               {/* Dropdown Menu */}
               <div
-                className={`shop-dropdown absolute left-0 mt-3 w-56 rounded-xl shadow-2xl bg-white/95 backdrop-blur-md ring-1 ring-slate-200 transition-all duration-300 ${
+                className={`shop-dropdown absolute ${isRTL ? "right-0" : "left-0"} mt-3 w-[720px] rounded-2xl shadow-2xl bg-white ring-1 ring-slate-200/50 border border-white/20 transition-all duration-300 ${
                   isShopDropdownOpen
                     ? "opacity-100 translate-y-0 scale-100"
                     : "opacity-0 -translate-y-4 scale-95 pointer-events-none"
                 }`}
                 onMouseLeave={() => setIsShopDropdownOpen(false)}
               >
-                <div className="py-2">
-                  <Link
-                    href="/shop/sodamakers"
-                    className={`flex items-center px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 border-l-2 border-transparent hover:border-blue-400 ${isRTL ? "font-cairo" : "font-montserrat"}`}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setIsShopDropdownOpen(false)
-                      router.push("/shop/sodamakers")
-                    }}
-                  >
-                    <Image
-                      src="/images/02 - Soda Makers/Artic-Blue-Machine---Front.png"
-                      alt="Soda Makers"
-                      width={24}
-                      height={24}
-                      className={`object-contain ${isRTL ? "ml-3" : "mr-3"} flex-shrink-0`}
-                    />
-                    {t("header.sodamakers")}
-                  </Link>
-                  <Link
-                    href="/shop/flavor"
-                    className={`flex items-center px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 border-l-2 border-transparent hover:border-blue-400 ${isRTL ? "font-cairo" : "font-montserrat"}`}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setIsShopDropdownOpen(false)
-                      router.push("/shop/flavor")
-                    }}
-                  >
-                    <Image
-                      src="/images/01 - Flavors/Strawberry-Lemon-Flavor.png"
-                      alt="Flavors"
-                      width={24}
-                      height={24}
-                      className={`object-contain ${isRTL ? "ml-3" : "mr-3"} flex-shrink-0`}
-                    />
-                    {t("header.flavor")}
-                  </Link>
-                  <Link
-                    href="/shop/accessories"
-                    className={`flex items-center px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 border-l-2 border-transparent hover:border-blue-400 ${isRTL ? "font-cairo" : "font-montserrat"}`}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setIsShopDropdownOpen(false)
-                      router.push("/shop/accessories")
-                    }}
-                  >
-                    <Image
-                      src="/images/05 - Accessories-20250824T073107Z-1-001/05 - Accessories/Black-Bottle---500-ML.png"
-                      alt="Accessories"
-                      width={24}
-                      height={24}
-                      className={`object-contain ${isRTL ? "ml-3" : "mr-3"} flex-shrink-0`}
-                    />
-                    {t("header.accessories")}
-                  </Link>
+                <div className="p-4">
+                  <div className="grid grid-cols-3 gap-4 h-64">
+                    {/* Soda Makers */}
+                    <Link
+                      href="/shop/sodamakers"
+                      className="col-span-1 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-2xl p-4 text-white hover:[#12d6fa] hover:[#0bc4e8]  transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setIsShopDropdownOpen(false)
+                        router.push("/shop/sodamakers")
+                      }}
+                    >
+                      <div className="relative z-10 text-center">
+                        <h3 className={`text-xl font-bold mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.sodamakers")}</h3>
+                        <div className="flex justify-center">
+                          <Image
+                            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559855/Artic-Black-Machine---Front_pxsies.png"
+                            alt="Sample Soda Maker"
+                            width={100}
+                            height={100}
+                            className="object-contain group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </Link>
+
+                    {/* Flavors */}
+                    <Link
+                      href="/shop/flavor"
+                      className="col-span-1 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl p-4 text-white hover:from-pink-600 hover:to-rose-700 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setIsShopDropdownOpen(false)
+                        router.push("/shop/flavor")
+                      }}
+                    >
+                      <div className="relative z-10 text-center">
+                        <h3 className={`text-xl font-bold mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.flavor")}</h3>
+                        <div className="flex justify-center">
+                          <Image
+                            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892917/italian-strawberry-lemon-syrup_x0cz9h.png"
+                            alt="Sample Flavor"
+                            width={80}
+                            height={100}
+                            className="object-contain group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </Link>
+
+                    {/* Accessories */}
+                    <Link
+                      href="/shop/accessories"
+                      className="col-span-1 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl p-4 hover:from-slate-200 hover:to-slate-300 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setIsShopDropdownOpen(false)
+                        router.push("/shop/accessories")
+                      }}
+                    >
+                      <div className="relative z-10 text-center">
+                        <h3 className={`text-xl font-bold text-slate-800 mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.accessories")}</h3>
+                        <div className="flex justify-center">
+                          <Image
+                            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892916/empty-drinkmate-bottle_dkmtzo.png"
+                            alt="Sample Accessory"
+                            width={80}
+                            height={100}
+                            className="object-contain group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
+
             <button
               onClick={(e) => {
                 e.preventDefault()
@@ -192,7 +233,9 @@ export default function Header({ currentPage }: HeaderProps) {
             >
               {t("header.co2")}
               {currentPage === "co2" && (
-                <span className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}></span>
+                <span
+                  className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}
+                ></span>
               )}
             </button>
             <button
@@ -206,7 +249,9 @@ export default function Header({ currentPage }: HeaderProps) {
             >
               {t("header.recipes")}
               {currentPage === "recipes" && (
-                <span className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}></span>
+                <span
+                  className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}
+                ></span>
               )}
             </button>
             <button
@@ -220,7 +265,9 @@ export default function Header({ currentPage }: HeaderProps) {
             >
               {t("header.contactUs")}
               {currentPage === "contact" && (
-                <span className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}></span>
+                <span
+                  className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}
+                ></span>
               )}
             </button>
             <button
@@ -234,7 +281,9 @@ export default function Header({ currentPage }: HeaderProps) {
             >
               {t("header.trackOrder")}
               {currentPage === "track-order" && (
-                <span className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}></span>
+                <span
+                  className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}
+                ></span>
               )}
             </button>
           </nav>
@@ -246,7 +295,7 @@ export default function Header({ currentPage }: HeaderProps) {
             {/* Language Selector */}
             <button
               onClick={toggleLanguage}
-              aria-label={`Change language to ${language === "EN" ? "Arabic" : "English"}`}
+              aria-label={language === "EN" ? t("common.changeToArabic") : t("common.changeToEnglish")}
               className={`flex items-center ${isRTL ? "space-x-reverse space-x-2" : "space-x-2"} px-3 py-2 rounded-lg hover:bg-slate-50 transition-all duration-200 border border-transparent hover:border-slate-200 hover:shadow-sm`}
             >
               <Image
@@ -276,7 +325,7 @@ export default function Header({ currentPage }: HeaderProps) {
               <button
                 onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                 onBlur={() => setTimeout(() => setIsUserDropdownOpen(false), 100)}
-                aria-label="User Menu"
+                aria-label={t("header.userMenu")}
                 className="p-3 rounded-lg hover:bg-slate-50 transition-all duration-200 group hover:shadow-sm border border-transparent hover:border-slate-200"
               >
                 <User className="w-5 h-5 text-slate-700 group-hover:text-slate-900 transition-colors duration-200" />
@@ -315,7 +364,7 @@ export default function Header({ currentPage }: HeaderProps) {
 
                         <button
                           onClick={handleLogout}
-                          className="block w-full text-left px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+                          className={`block w-full ${isRTL ? "text-right" : "text-left"} px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200`}
                         >
                           <div className="flex items-center">
                             <LogOut className="w-4 h-4 mr-3" />
@@ -359,7 +408,7 @@ export default function Header({ currentPage }: HeaderProps) {
             {/* Mobile Menu Toggle */}
             <button
               onClick={toggleMobileMenu}
-              aria-label={isMobileMenuOpen ? "Close Menu" : "Open Menu"}
+              aria-label={isMobileMenuOpen ? t("common.closeMenu") : t("common.openMenu")}
               className="md:hidden p-3 rounded-lg hover:bg-slate-50 transition-all duration-200 border border-transparent hover:border-slate-200 hover:shadow-sm"
             >
               {isMobileMenuOpen ? (
@@ -374,211 +423,240 @@ export default function Header({ currentPage }: HeaderProps) {
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-slate-100 py-6 bg-white/95 backdrop-blur-md">
-            <nav className="flex flex-col space-y-2">
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  setIsMobileMenuOpen(false)
-                  router.push("/")
-                }}
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
-                  currentPage === "home" || !currentPage
-                    ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                }`}
-              >
-                {t("header.home")}
-              </button>
-              <div className="space-y-1">
+            {showMobileShopGrid ? (
+              // Mobile Shop Grid View
+              <div className="px-4">
+                {/* Back Button */}
                 <button
-                  className={`w-full text-left text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 ${isRTL ? "font-cairo" : "font-montserrat"} ${
-                    currentPage === "shop" || currentPage?.startsWith("shop-")
-                      ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                  } flex items-center justify-between`}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    // Toggle shop dropdown instead of keeping mobile menu open
-                    setIsShopDropdownOpen(!isShopDropdownOpen)
-                  }}
+                  onClick={handleBackToMenu}
+                  className="flex items-center text-slate-600 hover:text-slate-900 mb-6 transition-colors duration-200"
                 >
-                  <span>{t("header.shop")}</span>
-                  <ChevronDown className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <span className={`text-sm font-medium ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("common.back")}</span>
                 </button>
 
-                {/* Shop subcategories */}
-                <div className="pl-6 space-y-1">
+                {/* Shop Categories Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Soda Makers */}
                   <Link
                     href="/shop/sodamakers"
-                    className={`flex items-center text-sm font-medium text-slate-600 px-5 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 ${isRTL ? "font-cairo" : "font-montserrat"}`}
+                    className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-2xl p-6 text-white hover:from-[#12d6fa] hover:to-[#0bc4e8] transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square"
                     onClick={(e) => {
                       e.preventDefault()
                       setIsMobileMenuOpen(false)
+                      setShowMobileShopGrid(false)
                       router.push("/shop/sodamakers")
                     }}
                   >
-                    <Image
-                      src="/images/02 - Soda Makers/Artic-Blue-Machine---Front.png"
-                      alt="Soda Makers"
-                      width={20}
-                      height={20}
-                      className={`object-contain ${isRTL ? "ml-2" : "mr-2"} flex-shrink-0`}
-                    />
-                    {t("header.sodamakers")}
+                    <div className="relative z-10 text-center">
+                      <div className="flex justify-center mb-4">
+                        <Image
+                          src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559855/Artic-Black-Machine---Front_pxsies.png"
+                          alt="Sample Soda Maker"
+                          width={80}
+                          height={80}
+                          className="object-contain group-hover:scale-110 transition-transform duration-300"
+                        />
+                      </div>
+                      <h3 className={`text-sm font-bold ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.sodamakers")}</h3>
+                    </div>
                   </Link>
+
+                  {/* Flavors */}
                   <Link
                     href="/shop/flavor"
-                    className={`flex items-center text-sm font-medium text-slate-600 px-5 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 ${isRTL ? "font-cairo" : "font-montserrat"}`}
+                    className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl p-6 text-white hover:from-pink-600 hover:to-rose-700 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square"
                     onClick={(e) => {
                       e.preventDefault()
                       setIsMobileMenuOpen(false)
+                      setShowMobileShopGrid(false)
                       router.push("/shop/flavor")
                     }}
                   >
-                    <Image
-                      src="/images/01 - Flavors/Strawberry-Lemon-Flavor.png"
-                      alt="Flavors"
-                      width={20}
-                      height={20}
-                      className={`object-contain ${isRTL ? "ml-2" : "mr-2"} flex-shrink-0`}
-                    />
-                    {t("header.flavor")}
+                    <div className="relative z-10 text-center">
+                      <div className="flex justify-center mb-4">
+                        <Image
+                          src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892917/italian-strawberry-lemon-syrup_x0cz9h.png"
+                          alt="Sample Flavor"
+                          width={60}
+                          height={80}
+                          className="object-contain group-hover:scale-110 transition-transform duration-300"
+                        />
+                      </div>
+                      <h3 className={`text-sm font-bold ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.flavor")}</h3>
+                    </div>
                   </Link>
+
+                  {/* Accessories */}
                   <Link
                     href="/shop/accessories"
-                    className={`flex items-center text-sm font-medium text-slate-600 px-5 py-2 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 ${isRTL ? "font-cairo" : "font-montserrat"}`}
+                    className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl p-6 hover:from-slate-200 hover:to-slate-300 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square col-span-2"
                     onClick={(e) => {
                       e.preventDefault()
                       setIsMobileMenuOpen(false)
+                      setShowMobileShopGrid(false)
                       router.push("/shop/accessories")
                     }}
                   >
-                    <Image
-                      src="/images/05 - Accessories-20250824T073107Z-1-001/05 - Accessories/Black-Bottle---500-ML.png"
-                      alt="Accessories"
-                      width={20}
-                      height={20}
-                      className={`object-contain ${isRTL ? "ml-2" : "mr-2"} flex-shrink-0`}
-                    />
-                    {t("header.accessories")}
+                    <div className="relative z-10 text-center">
+                      <div className="flex justify-center mb-4">
+                        <Image
+                          src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892916/empty-drinkmate-bottle_dkmtzo.png"
+                          alt="Sample Accessory"
+                          width={60}
+                          height={80}
+                          className="object-contain group-hover:scale-110 transition-transform duration-300"
+                        />
+                      </div>
+                      <h3 className={`text-sm font-bold text-slate-800 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.accessories")}</h3>
+                    </div>
                   </Link>
                 </div>
               </div>
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  setIsMobileMenuOpen(false)
-                  router.push("/co2")
-                }}
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
-                  currentPage === "co2"
-                    ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                }`}
-              >
-                {t("header.co2")}
-              </button>
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  setIsMobileMenuOpen(false)
-                  router.push("/recipes")
-                }}
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
-                  currentPage === "recipes"
-                    ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                }`}
-              >
-                {t("header.recipes")}
-              </button>
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  setIsMobileMenuOpen(false)
-                  router.push("/contact")
-                }}
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
-                  currentPage === "contact"
-                    ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                }`}
-              >
-                {t("header.contactUs")}
-              </button>
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  setIsMobileMenuOpen(false)
-                  router.push("/track-order")
-                }}
-                className={`text-sm font-semibold px-5 py-3 rounded-lg transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
-                  currentPage === "track-order"
-                    ? "text-slate-900 bg-slate-100 border-l-4 border-[#12d6fa]"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                }`}
-              >
-                {t("header.trackOrder")}
-              </button>
+            ) : (
+              // Regular Mobile Menu
+              <nav className="flex flex-col space-y-1">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setIsMobileMenuOpen(false)
+                    router.push("/")
+                  }}
+                  className={`text-sm font-medium px-5 py-3 ${isRTL ? "text-right" : "text-left"} transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
+                    currentPage === "home" || !currentPage
+                      ? `text-slate-900 bg-slate-100 ${isRTL ? "border-r-4" : "border-l-4"} border-[#12d6fa]`
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  {t("header.home")}
+                </button>
 
-              {/* Auth links for mobile */}
-              <div className="border-t border-slate-100 mt-4 pt-4">
-                {isAuthenticated ? (
-                  <>
-                    <div className="px-5 py-3 text-sm font-semibold text-slate-700 bg-slate-50 rounded-lg mb-2">
-                      Signed in as <span className="font-bold text-slate-900">{user?.username}</span>
-                    </div>
+                <button
+                  className={`w-full ${isRTL ? "text-right" : "text-left"} text-sm font-medium px-5 py-3 transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
+                    currentPage === "shop" || currentPage?.startsWith("shop-")
+                      ? `text-slate-900 bg-slate-100 ${isRTL ? "border-r-4" : "border-l-4"} border-[#12d6fa]`
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                  onClick={handleMobileShopClick}
+                >
+                  {t("header.shop")}
+                </button>
 
-                    <Link
-                      href="/profile"
-                      className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-all duration-200"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      My Profile
-                    </Link>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setIsMobileMenuOpen(false)
+                    router.push("/co2")
+                  }}
+                  className={`text-sm font-medium px-5 py-3 ${isRTL ? "text-right" : "text-left"} transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
+                    currentPage === "co2"
+                      ? `text-slate-900 bg-slate-100 ${isRTL ? "border-r-4" : "border-l-4"} border-[#12d6fa]`
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  {t("header.co2")}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setIsMobileMenuOpen(false)
+                    router.push("/recipes")
+                  }}
+                  className={`text-sm font-medium px-5 py-3 ${isRTL ? "text-right" : "text-left"} transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
+                    currentPage === "recipes"
+                      ? `text-slate-900 bg-slate-100 ${isRTL ? "border-r-4" : "border-l-4"} border-[#12d6fa]`
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  {t("header.recipes")}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setIsMobileMenuOpen(false)
+                    router.push("/contact")
+                  }}
+                  className={`text-sm font-medium px-5 py-3 ${isRTL ? "text-right" : "text-left"} transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
+                    currentPage === "contact"
+                      ? `text-slate-900 bg-slate-100 ${isRTL ? "border-r-4" : "border-l-4"} border-[#12d6fa]`
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  {t("header.contactUs")}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setIsMobileMenuOpen(false)
+                    router.push("/track-order")
+                  }}
+                  className={`text-sm font-medium px-5 py-3 ${isRTL ? "text-right" : "text-left"} transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
+                    currentPage === "track-order"
+                      ? `text-slate-900 bg-slate-100 ${isRTL ? "border-r-4" : "border-l-4"} border-[#12d6fa]`
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  {t("header.trackOrder")}
+                </button>
 
-                    {user?.isAdmin && (
+                {/* Auth links for mobile */}
+                <div className="border-t border-slate-100 mt-4 pt-4 space-y-1">
+                  {isAuthenticated ? (
+                    <>
+                      <div className="px-5 py-3 text-sm text-slate-700 bg-slate-50">
+                        Signed in as <span className="font-bold text-slate-900">{user?.username}</span>
+                      </div>
+
                       <Link
-                        href="/admin"
-                        className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-all duration-200"
+                        href="/profile"
+                        className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        Admin Dashboard
+                        My Profile
                       </Link>
-                    )}
 
-                    <button
-                      onClick={() => {
-                        handleLogout()
-                        setIsMobileMenuOpen(false)
-                      }}
-                      className="flex items-center w-full text-left px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-all duration-200"
-                    >
-                      <LogOut className="w-4 h-4 mr-3" />
-                      Sign out
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      href="/login"
-                      className="block px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-all duration-200"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Sign in
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="block px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-all duration-200"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Create account
-                    </Link>
-                  </>
-                )}
-              </div>
-            </nav>
+                      {user?.isAdmin && (
+                        <Link
+                          href="/admin"
+                          className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Admin Dashboard
+                        </Link>
+                      )}
+
+                      <button
+                        onClick={() => {
+                          handleLogout()
+                          setIsMobileMenuOpen(false)
+                        }}
+                        className={`flex items-center w-full ${isRTL ? "text-right" : "text-left"} px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200`}
+                      >
+                        <LogOut className="w-4 h-4 mr-3" />
+                        Sign out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/login"
+                        className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Sign in
+                      </Link>
+                      <Link
+                        href="/register"
+                        className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Create account
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </nav>
+            )}
           </div>
         )}
       </div>

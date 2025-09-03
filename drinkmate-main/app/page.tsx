@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { useState } from "react"
+import React, { useState } from "react"
 import { motion } from "framer-motion"
 import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
@@ -37,7 +37,7 @@ export default function Home() {
       description: t("home.carousel.slide2.description"),
       buttonText: "",
       offerText: "",
-      imageSrc: "/images/energy-cola-flavors.png",
+      imageSrc: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657902/energy-cola-flavors_lx3fvx.png",
       imageAlt: "Energy Drink & Cola Flavor",
       showYellowCircle: false,
       yellowCircleData: null,
@@ -54,30 +54,30 @@ export default function Home() {
       yellowCircleData: null,
       multiImages: [
         {
-          src: "/images/drinkmate-machine.png",
+          src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559855/Artic-Black-Machine---Front_pxsies.png",
           alt: "Drinkmate Machine",
-          width: 121,
-          height: 345,
-          top: 18, // Relative to the main gray container
-          left: 1324, // Relative to the main gray container
+          width: 193,
+          height: 493,
+          top:  28, // Relative to the main gray container
+          left: 1160, // Relative to the main gray container
           zIndex: 2, // Machine is in front
         },
         {
-          src: "/images/co2-cylinder-single.png",
+          src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893591/co2-cylinder-single_dcrdnx.png",
           alt: "CO2 Cylinder",
           width: 340,
           height: 340,
           top: 28, // Relative to the main gray container
-          left: 1281, // Relative to the main gray container
+          left: 1170, // Relative to the main gray container
           zIndex: 1, // Cylinder is behind machine
         },
         {
-          src: "/images/strawberry-lemon-flavor.png",
+          src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559866/Strawberry-Lemon-Flavor_sjdzju.png",
           alt: "Strawberry Lemon Flavor",
-          width: 55,
-          height: 157,
+          width: 100,
+          height: 257,
           top: 135, // Relative to the main gray container
-          left: 1500, // Relative to the main gray container
+          left: 1350, // Relative to the main gray container
           zIndex: 3, // Strawberry is in front of machine
         },
       ],
@@ -131,87 +131,145 @@ export default function Home() {
   const rightColumnStartX = 656
 
   const baseMachines = [
-    { id: "red", src: "/images/drinkmate-machine-red.png", alt: "Drinkmate OmniFizz Red" },
-    { id: "cyan", src: "/images/drinkmate-machine-blue.png", alt: "Drinkmate OmniFizz Blue" },
-    { id: "black", src: "/images/drinkmate-machine-black-small.png", alt: "Drinkmate OmniFizz Black" },
+    { id: "red", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657901/drinkmate-machine-red_lkj7c9.png", alt: "Drinkmate OmniFizz Red" },
+    { id: "cyan", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657904/drinkmate-machine-blue_fs1bk8.png", alt: "Drinkmate OmniFizz Blue" },
+    { id: "black", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657900/drinkmate-machine-black-small_mztxfb.png", alt: "Drinkmate OmniFizz Black" },
   ]
 
   const machineStyles = {
     red: {
       red: {
-        width: 258,
-        height: 645,
-        top: "78px",
-        left: `${801 - rightColumnStartX}px`,
+        width: 140,
+        height: 350,
+        top: "50px",
+        left: "50%",
+        transform: "translateX(-50%)",
         opacity: 1,
         zIndex: 2,
         borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 320,
+        mdHeight: 750,
+        mdTop: "50px",
       },
       cyan: {
-        width: 91.04199981689453,
-        height: 221,
-        top: "290px",
-        left: `${1076.2 - rightColumnStartX}px`,
+        width: 70,
+        height: 175,
+        top: "300px",
+        left: "30%",
+        transform: "translateX(-50%)",
         opacity: 0.5,
         zIndex: 1,
+        // Desktop styles
+        mdWidth: 120,
+        mdHeight: 300,
+        mdTop: "400px",
+        mdLeft: "25%",
       },
       black: {
-        width: 77,
-        height: 221,
-        top: "290px",
-        left: `${1083 - rightColumnStartX}px`,
+        width: 60,
+        height: 150,
+        top: "300px",
+        left: "70%",
+        transform: "translateX(-50%)",
         opacity: 0,
         zIndex: 0,
         borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "400px",
+        mdLeft: "75%",
       },
     },
     cyan: {
       red: {
-        width: 100,
-        height: 251,
-        top: "278px",
-        left: `${640 - rightColumnStartX}px`,
+        width: 70,
+        height: 175,
+        top: "300px",
+        left: "30%",
+        transform: "translateX(-50%)",
         opacity: 0.5,
         zIndex: 1,
         borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 120,
+        mdHeight: 300,
+        mdTop: "400px",
+        mdLeft: "25%",
       },
-      cyan: { width: 255, height: 619, top: "90px", left: `${828 - rightColumnStartX}px`, opacity: 1, zIndex: 2 },
+      cyan: { 
+        width: 140, 
+        height: 350, 
+        top: "50px", 
+        left: "50%", 
+        transform: "translateX(-50%)", 
+        opacity: 1, 
+        zIndex: 2,
+        // Desktop styles
+        mdWidth: 320,
+        mdHeight: 750,
+        mdTop: "50px",
+      },
       black: {
-        width: 77,
-        height: 221,
-        top: "290px",
-        left: `${1083 - rightColumnStartX}px`,
+        width: 60,
+        height: 150,
+        top: "300px",
+        left: "70%",
+        transform: "translateX(-50%)",
         opacity: 0.5,
         zIndex: 1,
         borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "400px",
+        mdLeft: "75%",
       },
     },
     black: {
       red: {
-        width: 100,
-        height: 251,
-        top: "278px",
-        left: `${640 - rightColumnStartX}px`,
+        width: 70,
+        height: 175,
+        top: "300px",
+        left: "30%",
+        transform: "translateX(-50%)",
         opacity: 0, // Hide red machine
         zIndex: 0,
         borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 120,
+        mdHeight: 300,
+        mdTop: "400px",
+        mdLeft: "25%",
       },
       cyan: {
-        width: 94, // Updated width
-        height: 227, // Updated height
-        top: "286px", // Updated top
-        left: `${720 - rightColumnStartX}px`, // Updated left
+        width: 70,
+        height: 175,
+        top: "300px",
+        left: "70%",
+        transform: "translateX(-50%)",
         opacity: 0.5,
         zIndex: 1,
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 300,
+        mdTop: "400px",
+        mdLeft: "75%",
       },
       black: {
-        width: 218, // Updated width
-        height: 623, // Updated height
-        top: "89px", // Updated top
-        left: `${847 - rightColumnStartX}px`, // Updated left
+        width: 120,
+        height: 280,
+        top: "50px",
+        left: "50%",
+        transform: "translateX(-50%)",
         opacity: 1,
         zIndex: 2,
         borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 280,
+        mdHeight: 580,
+        mdTop: "50px",
       },
     },
   }
@@ -221,11 +279,11 @@ export default function Home() {
   return (
     <PageLayout currentPage="home">
       {/* Hero Section */}
-      <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 relative z-30">
-        <div className="w-full bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-b-3xl relative overflow-hidden min-h-[400px] md:h-[600px] backdrop-blur-sm shadow-2xl shadow-gray-200/50 border border-white/20">
+      <section className="py-6 md:py-16 px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40 relative z-30">
+        <div className="w-full bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-b-3xl relative overflow-hidden min-h-[600px] md:h-[600px] backdrop-blur-sm shadow-2xl shadow-gray-200/50 border border-white/20">
           {/* Product Images (Absolute Positioning) */}
           <Image
-            src="/images/drinkmate-machine-hero.png"
+            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/drinkmate-machine-hero_ckcqe4.png"
             alt="Drinkmate OmniFizz Soda Maker"
             width={242}
             height={417}
@@ -235,7 +293,7 @@ export default function Home() {
             style={{ top: "203px", left: "121px" }}
           />
           <Image
-            src="/images/italian-strawberry-lemon.png"
+            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/italian-strawberry-lemon_zp1jui.png"
             alt="Italian Strawberry Lemon Flavor"
             width={99}
             height={206}
@@ -246,38 +304,39 @@ export default function Home() {
           />
 
           {/* Mobile Product Images */}
-          <div className="block md:hidden w-full">
-            <div className="flex flex-row items-center justify-center space-x-6 p-4">
-              <Image
-                src="/images/drinkmate-machine-hero.png"
-                alt="Drinkmate OmniFizz Soda Maker"
-                width={120}
-                height={200}
-                quality={85}
-                priority
-                className="object-contain drop-shadow-xl"
-              />
-              <Image
-                src="/images/italian-strawberry-lemon.png"
-                alt="Italian Strawberry Lemon Flavor"
-                width={80}
-                height={160}
-                quality={85}
-                priority
-                className="object-contain drop-shadow-lg"
-              />
-            </div>
+          <div className="block md:hidden w-full" dir="ltr">
+          <div className="flex flex-row items-end justify-center p-6">
+  <Image
+    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/drinkmate-machine-hero_ckcqe4.png"
+    alt="Drinkmate OmniFizz Soda Maker"
+    width={140}
+    height={220}
+    quality={85}
+    priority
+    className="object-contain drop-shadow-2xl"
+  />
+  <Image
+    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/italian-strawberry-lemon_zp1jui.png"
+    alt="Italian Strawberry Lemon Flavor"
+    width={80}
+    height={160}
+    quality={85}
+    priority
+    className="object-contain drop-shadow-xl"
+  />
+</div>
+
 
             {/* Mobile Content - After Images */}
-            <div className="text-center px-6 py-8 bg-white/90 backdrop-blur-md rounded-2xl mx-2 shadow-2xl shadow-gray-200/30 mb-8 hover:shadow-3xl hover:bg-white/95 transition-all duration-500 transform hover:-translate-y-2 animate-fade-in-up border border-white/40">
+            <div className="text-center px-6 py-10 bg-white/98 backdrop-blur-md rounded-3xl mx-6 shadow-2xl shadow-gray-200/40 mb-8 hover:shadow-3xl hover:bg-white transition-all duration-500 transform hover:-translate-y-2 animate-fade-in-up border border-white/50">
               <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
                 <h1
-                  className={`text-2xl font-semibold text-gray-900 leading-tight ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-up tracking-tight`}
+                  className={`text-2xl font-bold text-gray-900 leading-tight ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-up tracking-tight`}
                 >
                   {t("home.hero.title")}
                 </h1>
                 <h2
-                  className={`text-lg text-gray-600 font-medium ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-up delay-200 tracking-wide`}
+                  className={`text-lg text-gray-600 font-semibold ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-up delay-200 tracking-wide`}
                 >
                   {t("home.hero.subtitle")}
                 </h2>
@@ -291,13 +350,13 @@ export default function Home() {
                 >
                   <button
                     onClick={() => router.push("/shop")}
-                    className="px-8 py-4 text-gray-700 border-2 border-gray-300 bg-white/80 backdrop-blur-sm hover:bg-white hover:border-gray-400 font-semibold rounded-xl min-w-[140px] transition-all duration-300 transform hover:scale-105 hover:shadow-lg shadow-md"
+                    className="px-8 py-4 text-gray-700 border-2 border-gray-300 bg-white/90 backdrop-blur-sm hover:bg-white hover:border-gray-400 font-semibold rounded-xl min-w-[130px] transition-all duration-300 transform hover:scale-105 hover:shadow-lg shadow-md text-sm"
                   >
                     {t("home.hero.exploreMore")}
                   </button>
                   <button
                     onClick={() => router.push("/shop")}
-                    className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#09b3d1] text-white px-8 py-4 font-semibold shadow-xl border-2 border-[#12d6fa]/20 rounded-xl min-w-[140px] transition-all duration-300 transform hover:scale-105 hover:shadow-2xl backdrop-blur-sm"
+                    className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#09b3d1] text-white px-8 py-4 font-semibold shadow-xl border-2 border-[#12d6fa]/20 rounded-xl min-w-[130px] transition-all duration-300 transform hover:scale-105 hover:shadow-2xl backdrop-blur-sm text-sm"
                   >
                     {t("home.hero.buyNow")}
                   </button>
@@ -352,8 +411,8 @@ export default function Home() {
       </section>
 
       {/* Refill Section */}
-      <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
-        <div className="w-full bg-gradient-to-br from-[#f8fafc] via-[#f3f3f3] to-[#f1f5f9] rounded-3xl relative min-h-[300px] md:h-[250px] flex items-center justify-between px-10 md:px-16 lg:px-20 xl:px-24 shadow-2xl shadow-gray-200/40 backdrop-blur-sm border border-white/30">
+      <section className="py-6 md:py-16 px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
+        <div className="w-full bg-gradient-to-br from-[#f8fafc] via-[#f3f3f3] to-[#f1f5f9] rounded-3xl relative min-h-[350px] md:h-[250px] flex items-center justify-between px-8 md:px-16 lg:px-20 xl:px-24 shadow-2xl shadow-gray-200/40 backdrop-blur-sm border border-white/30">
           {/* Left Navigation Button */}
           <Button
             className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-gray-300/50 bg-white/90 backdrop-blur-md text-gray-700 shadow-xl z-10 hover:bg-white hover:border-gray-400 hover:shadow-2xl transition-all duration-300 transform hover:scale-110"
@@ -365,14 +424,14 @@ export default function Home() {
           {/* Main Content Area - Responsive Layout */}
           <div className="flex-1 mx-4 md:mx-0 md:absolute md:top-[44px] md:left-[125px]">
             <div className="w-full md:w-[520px] h-auto md:h-[138px] flex flex-col justify-between text-center md:text-left">
-              <div className="space-y-4 mb-4 md:mb-0">
+              <div className="space-y-3 md:space-y-4 mb-4 md:mb-0">
                 <h2
-                  className={`text-2xl md:text-4xl font-medium text-gray-800 leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} tracking-wide`}
+                  className={`text-xl md:text-4xl font-semibold text-gray-800 leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} tracking-wide`}
                 >
                   {slide.headline}
                 </h2>
                 <p
-                  className={`text-gray-700 text-sm md:text-[15px] md:whitespace-nowrap ${isRTL ? "font-noto-arabic" : "font-noto-sans"} font-medium`}
+                  className={`text-gray-700 text-sm md:text-[15px] md:whitespace-nowrap ${isRTL ? "font-noto-arabic" : "font-noto-sans"} font-medium leading-relaxed`}
                 >
                   {slide.description}
                 </p>
@@ -461,7 +520,7 @@ export default function Home() {
       </section>
 
       {/* Product Categories Section */}
-      <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
+      <section className="py-6 md:py-16 px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
         <div className="w-full">
           {/* Header */}
           <div className="text-center mb-8 md:mb-12" dir={isRTL ? "rtl" : "ltr"}>
@@ -477,10 +536,10 @@ export default function Home() {
             {/* Soda Makers */}
             <Link
               href="/shop/soda-makers"
-              className="text-center space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 animate-slide-in-up block"
+              className="text-center space-y-3 md:space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 animate-slide-in-up block"
               dir={isRTL ? "rtl" : "ltr"}
             >
-              <div className="bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-3xl p-4 md:p-8 relative overflow-hidden h-[280px] md:h-[270px] group shadow-xl shadow-gray-200/30 group-hover:shadow-2xl group-hover:shadow-gray-200/40 transition-all duration-500 backdrop-blur-sm border border-white/40 group-hover:border-white/60">
+              <div className="bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-2xl p-4 md:p-8 relative overflow-hidden h-[200px] md:h-[270px] group shadow-xl shadow-gray-200/30 group-hover:shadow-2xl group-hover:shadow-gray-200/40 transition-all duration-500 backdrop-blur-sm border border-white/40 group-hover:border-white/60">
                 {/* Multiple Machine Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
@@ -493,7 +552,7 @@ export default function Home() {
                 </div>
               </div>
               <h3
-                className={`text-lg md:text-xl font-semibold text-gray-800 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide`}
+                className={`text-base md:text-xl font-semibold text-gray-800 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide`}
               >
                 {t("home.productCategories.sodaMakers")}
               </h3>
@@ -502,10 +561,10 @@ export default function Home() {
             {/* CO2 */}
             <Link
               href="/co2"
-              className="text-center space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 animate-slide-in-up delay-200 block"
+              className="text-center space-y-3 md:space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 animate-slide-in-up delay-200 block"
               dir={isRTL ? "rtl" : "ltr"}
             >
-              <div className="bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-3xl p-4 md:p-8 relative overflow-hidden h-[280px] md:h-[270px] group shadow-xl shadow-gray-200/30 group-hover:shadow-2xl group-hover:shadow-gray-200/40 transition-all duration-500 backdrop-blur-sm border border-white/40 group-hover:border-white/60">
+              <div className="bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-2xl p-4 md:p-8 relative overflow-hidden h-[200px] md:h-[270px] group shadow-xl shadow-gray-200/30 group-hover:shadow-2xl group-hover:shadow-gray-200/40 transition-all duration-500 backdrop-blur-sm border border-white/40 group-hover:border-white/60">
                 {/* Multiple CO2 Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
@@ -518,7 +577,7 @@ export default function Home() {
                 </div>
               </div>
               <h3
-                className={`text-lg md:text-xl font-semibold text-gray-800 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide`}
+                className={`text-base md:text-xl font-semibold text-gray-800 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide`}
               >
                 {t("home.productCategories.co2")}
               </h3>
@@ -527,10 +586,10 @@ export default function Home() {
             {/* Premium Italian Flavors */}
             <Link
               href="/shop/flavor"
-              className="text-center space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 animate-slide-in-up delay-300 block"
+              className="text-center space-y-3 md:space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 animate-slide-in-up delay-300 block"
               dir={isRTL ? "rtl" : "ltr"}
             >
-              <div className="bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-3xl p-4 md:p-8 relative overflow-hidden h-[280px] md:h-[270px] group shadow-xl shadow-gray-200/30 group-hover:shadow-2xl group-hover:shadow-gray-200/40 transition-all duration-500 backdrop-blur-sm border border-white/40 group-hover:border-white/60">
+              <div className="bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-2xl p-4 md:p-8 relative overflow-hidden h-[200px] md:h-[270px] group shadow-xl shadow-gray-200/30 group-hover:shadow-2xl group-hover:shadow-gray-200/40 transition-all duration-500 backdrop-blur-sm border border-white/40 group-hover:border-white/60">
                 {/* Multiple Flavor Images from Flavors Folder in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
@@ -543,7 +602,7 @@ export default function Home() {
                 </div>
               </div>
               <h3
-                className={`text-lg md:text-xl font-semibold text-gray-800 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide`}
+                className={`text-base md:text-xl font-semibold text-gray-800 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide`}
               >
                 {t("home.productCategories.premiumItalianFlavors")}
               </h3>
@@ -552,10 +611,10 @@ export default function Home() {
             {/* Accessories */}
             <Link
               href="/shop/accessories"
-              className="text-center space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 animate-slide-in-up delay-500 block"
+              className="text-center space-y-3 md:space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 animate-slide-in-up delay-500 block"
               dir={isRTL ? "rtl" : "ltr"}
             >
-              <div className="bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-3xl p-4 md:p-8 relative overflow-hidden h-[280px] md:h-[270px] group shadow-xl shadow-gray-200/30 group-hover:shadow-2xl group-hover:shadow-gray-200/40 transition-all duration-500 backdrop-blur-sm border border-white/40 group-hover:border-white/60">
+              <div className="bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-2xl p-4 md:p-8 relative overflow-hidden h-[200px] md:h-[270px] group shadow-xl shadow-gray-200/30 group-hover:shadow-2xl group-hover:shadow-gray-200/40 transition-all duration-500 backdrop-blur-sm border border-white/40 group-hover:border-white/60">
                 {/* Multiple Accessory Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <Image
@@ -568,7 +627,7 @@ export default function Home() {
                 </div>
               </div>
               <h3
-                className={`text-lg md:text-xl font-semibold text-gray-800 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide`}
+                className={`text-base md:text-xl font-semibold text-gray-800 ${isRTL ? "font-cairo text-right" : "font-montserrat"} group-hover:text-[#12d6fa] transition-colors duration-300 tracking-wide`}
               >
                 {t("home.productCategories.accessories")}
               </h3>
@@ -583,46 +642,46 @@ export default function Home() {
       </div>
 
       {/* Mega Offer Section */}
-      <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
+      <section className="py-6 md:py-16 px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
         <div className="w-full">
           {/* First Card - Drinkmate OmniFizz */}
-          <div className="bg-gradient-to-br from-white via-white/95 to-[#f8fafc] rounded-b-3xl py-8 md:py-16 px-6 md:px-8 lg:px-12 xl:px-16 pb-4 relative overflow-hidden mb-8 shadow-2xl shadow-gray-200/40 backdrop-blur-sm border border-white/30">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div className="bg-gradient-to-br from-white via-white/95 to-[#f8fafc] rounded-b-3xl py-6 md:py-20 px-4 md:px-8 lg:px-12 xl:px-16 pb-4 relative overflow-hidden mb-8 shadow-2xl shadow-gray-200/40 backdrop-blur-sm border border-white/30">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-center">
               {/* Left Content */}
-              <div className="space-y-6 md:space-y-8 max-w-lg animate-slide-in-left" dir={isRTL ? "rtl" : "ltr"}>
+              <div className="space-y-6 md:space-y-8 max-w-lg animate-slide-in-left order-1 md:order-1" dir={isRTL ? "rtl" : "ltr"}>
                 <h2
-                  className={`text-4xl md:text-6xl font-medium text-gray-800 leading-tight ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-left delay-200 tracking-wide`}
+                  className={`text-2xl md:text-6xl font-medium text-gray-800 leading-tight ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-left delay-200 tracking-wide`}
                 >
                   {t("home.megaOffer.title")}
                 </h2>
                 <p
-                  className={`text-base md:text-lg text-gray-600 leading-relaxed ${isRTL ? "font-noto-arabic text-right" : "font-noto-sans"} animate-slide-in-left delay-300 font-medium`}
+                  className={`text-sm md:text-lg text-gray-600 leading-relaxed ${isRTL ? "font-noto-arabic text-right" : "font-noto-sans"} animate-slide-in-left delay-300 font-medium`}
                 >
                   {t("home.megaOffer.description")}
                 </p>
 
                 {/* Available Color Options */}
-                <div className="space-y-4">
+                <div className="space-y-3 md:space-y-4">
                   <h3
-                    className={`text-sm md:text-base font-bold text-black ${isRTL ? "font-cairo text-right" : "font-montserrat"} tracking-wide`}
+                    className={`text-xs md:text-base font-bold text-black ${isRTL ? "font-cairo text-right" : "font-montserrat"} tracking-wide`}
                   >
                     {t("home.megaOffer.availableColors")}
                   </h3>
                   <div
-                    className={`flex ${isRTL ? "flex-row-reverse" : ""} space-x-4 ${isRTL ? "space-x-reverse justify-start" : "justify-start"}`}
+                    className={`flex ${isRTL ? "flex-row-reverse" : ""} space-x-3 md:space-x-4 ${isRTL ? "space-x-reverse justify-start" : "justify-start"}`}
                   >
                     <button
-                      className="w-10 h-10 md:w-12 md:h-12 bg-red-500 rounded-lg cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 border-2 border-white/50 hover:border-white/80"
+                      className="w-8 h-8 md:w-12 md:h-12 bg-red-500 rounded-lg cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 border-2 border-white/50 hover:border-white/80"
                       onClick={() => setActiveMachineColor("red")}
                       aria-label="Select Red Machine"
                     ></button>
                     <button
-                      className="w-10 h-10 md:w-12 md:h-12 bg-[#badee4] rounded-lg cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 border-2 border-white/50 hover:border-white/80"
+                      className="w-8 h-8 md:w-12 md:h-12 bg-[#badee4] rounded-lg cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 border-2 border-white/50 hover:border-white/80"
                       onClick={() => setActiveMachineColor("cyan")}
                       aria-label="Select Cyan Machine"
                     ></button>
                     <button
-                      className="w-10 h-10 md:w-12 md:h-12 bg-black rounded-lg cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 border-2 border-white/50 hover:border-white/80"
+                      className="w-8 h-8 md:w-12 md:h-12 bg-black rounded-lg cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 border-2 border-white/50 hover:border-white/80"
                       onClick={() => setActiveMachineColor("black")}
                       aria-label="Select Black Machine"
                     ></button>
@@ -631,18 +690,18 @@ export default function Home() {
 
                 {/* Buttons */}
                 <div
-                  className={`flex ${isRTL ? "flex-row-reverse space-x-reverse" : "flex-row"} space-x-4 justify-center ${isRTL ? "md:justify-start" : "md:justify-start"}`}
+                  className={`flex ${isRTL ? "flex-row-reverse space-x-reverse" : "flex-row"} space-x-3 md:space-x-4 justify-center ${isRTL ? "md:justify-start" : "md:justify-start"}`}
                 >
                   <Button
                     onClick={() => router.push("/shop/bundles")}
                     variant="outline"
-                    className="px-8 py-4 text-gray-700 border-2 border-gray-300 bg-white/80 backdrop-blur-sm min-w-[140px] hover:bg-white hover:border-gray-400 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-semibold rounded-xl"
+                    className="px-4 md:px-8 py-3 md:py-4 text-gray-700 border-2 border-gray-300 bg-white/80 backdrop-blur-sm min-w-[120px] md:min-w-[140px] hover:bg-white hover:border-gray-400 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-semibold rounded-xl text-sm md:text-base"
                   >
                     {t("home.megaOffer.offersBundles")}
                   </Button>
                   <Button
                     onClick={() => router.push("/shop")}
-                    className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-bold px-8 py-4 min-w-[140px] shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 rounded-xl backdrop-blur-sm border border-yellow-300/30"
+                    className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-bold px-4 md:px-8 py-3 md:py-4 min-w-[120px] md:min-w-[140px] shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 rounded-xl backdrop-blur-sm border border-yellow-300/30 text-sm md:text-base"
                   >
                     {t("home.megaOffer.exploreMore")}
                   </Button>
@@ -650,28 +709,45 @@ export default function Home() {
               </div>
 
               {/* Right Image - Slideshow */}
-              <div className="relative flex justify-center items-center h-[750px] md:h-[700px]">
+              <div className="relative flex justify-center items-center h-[450px] md:h-[800px] order-2 md:order-2">
                 {baseMachines.map((machine) => {
                   const styles = (machineStyles as any)[activeMachineColor]?.[machine.id]
                   if (!styles) return null // Fallback in case a style is not defined for a state
                   return (
-                    <Image
-                      key={machine.id}
-                      src={machine.src || "/placeholder.svg"}
-                      alt={machine.alt}
-                      width={styles.width}
-                      height={styles.height}
-                      className="absolute object-contain transition-all duration-300 ease-in-out"
-                      style={{
-                        top: styles.top,
-                        left: styles.left,
-                        opacity: activeMachineColor === machine.id ? 1 : Math.max(styles.opacity, 0.6), // Increased minimum opacity to 60%
-                        zIndex: styles.zIndex,
-                        borderRadius: styles.borderRadius || "0px",
-                        filter: activeMachineColor === machine.id ? "none" : "grayscale(10%) brightness(1.1)", // Reduced grayscale, added brightness
-                        transform: activeMachineColor === machine.id ? "scale(1)" : "scale(0.95)", // Slight scale down for inactive machines
-                      }}
-                    />
+                    <React.Fragment key={machine.id}>
+                      <Image
+                        src={machine.src || "/placeholder.svg"}
+                        alt={machine.alt}
+                        width={styles.width}
+                        height={styles.height}
+                        className="absolute object-contain transition-all duration-300 ease-in-out md:hidden"
+                        style={{
+                          top: styles.top,
+                          left: styles.left,
+                          transform: styles.transform || (activeMachineColor === machine.id ? "scale(1)" : "scale(0.95)"),
+                          opacity: activeMachineColor === machine.id ? 1 : Math.max(styles.opacity, 0.6), // Increased minimum opacity to 60%
+                          zIndex: styles.zIndex,
+                          borderRadius: styles.borderRadius || "0px",
+                          filter: activeMachineColor === machine.id ? "none" : "grayscale(10%) brightness(1.1)", // Reduced grayscale, added brightness
+                        }}
+                      />
+                      <Image
+                        src={machine.src || "/placeholder.svg"}
+                        alt={machine.alt}
+                        width={styles.mdWidth || styles.width}
+                        height={styles.mdHeight || styles.height}
+                        className="absolute object-contain transition-all duration-300 ease-in-out hidden md:block"
+                        style={{
+                          top: styles.mdTop || styles.top,
+                          left: styles.mdLeft || styles.left,
+                          transform: styles.transform || (activeMachineColor === machine.id ? "scale(1)" : "scale(0.95)"),
+                          opacity: activeMachineColor === machine.id ? 1 : Math.max(styles.opacity, 0.6), // Increased minimum opacity to 60%
+                          zIndex: styles.zIndex,
+                          borderRadius: styles.borderRadius || "0px",
+                          filter: activeMachineColor === machine.id ? "none" : "grayscale(10%) brightness(1.1)", // Reduced grayscale, added brightness
+                        }}
+                      />
+                    </React.Fragment>
                   )
                 })}
               </div>
@@ -686,9 +762,9 @@ export default function Home() {
 
       {/* Second Card - How does it work */}
 
-      <div className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40">
+      <div className="py-6 md:py-16 px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40">
         {/* Container Card */}
-        <div className="max-w-full mx-auto bg-white  rounded-2xl py-8 px-12 md:px-20 lg:px-24 relative overflow-hidden">
+        <div className="max-w-full mx-auto bg-white rounded-2xl py-6 md:py-8 px-8 md:px-20 lg:px-24 relative overflow-hidden shadow-lg shadow-gray-200/20">
           <div className="flex flex-col lg:flex-row gap-8 items-start">
             {/* Left Side - Text Content */}
             <div className="lg:w-1/4 flex-shrink-0" dir={isRTL ? "rtl" : "ltr"}>
@@ -701,7 +777,7 @@ export default function Home() {
             </div>
 
             {/* Right Side - Steps Grid */}
-            <div className="lg:w-3/4 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 w-full overflow-x-visible">
+            <div className="lg:w-3/4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 w-full overflow-x-visible">
               {steps.map((step, index) => (
                 <motion.div
                   key={step.id}
@@ -712,7 +788,7 @@ export default function Home() {
                   aria-label={`Step ${step.id}: ${step.title}`}
                 >
                   {/* Step Image */}
-                  <div className="relative w-full h-[320px] sm:h-[320px] md:h-[320px] lg:h-[320px] mb-4">
+                  <div className="relative w-full h-[220px] sm:h-[250px] md:h-[280px] lg:h-[320px] mb-4">
                     <motion.div
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.98 }}
@@ -749,7 +825,7 @@ export default function Home() {
       <div className="relative w-full">
         <section className="relative w-full">
           {/* 🌍 Mobile & Tablet (Responsive Fluid Layout) */}
-          <div className="xl:hidden flex flex-col items-center text-center px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 py-12 bg-white">
+          <div className="xl:hidden flex flex-col items-center text-center px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40 py-8 md:py-12 bg-white">
             {/* Image Container */}
             <div className="relative w-full h-[350px] sm:h-[400px] md:h-[450px] mb-0 overflow-visible">
               {/* Background Image */}
@@ -977,45 +1053,55 @@ export default function Home() {
       </div>
 
       {/* Flavor Section */}
-      <section className="py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40">
-        {/* Header */}
-        <div className="text-center pt-12 mb-8" dir={isRTL ? "rtl" : "ltr"}>
-          <div className="flex justify-center">
-            <div className="bg-[#12d6fa] bg-clip-text">
-              <p className={`text-lg md:text-xl font-medium mb-3 text-transparent bg-clip-text bg-[#12d6fa] text-center ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                {t("home.flavorSection.subtitle")}
-              </p>
-            </div>
-          </div>
-          <h2 className={`text-4xl md:text-6xl font-medium bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 bg-clip-text text-transparent mb-4 text-center ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-            {t("home.flavorSection.title")}
-          </h2>
-          <div className="w-24 h-1 bg-[#12d6fa]  mx-auto rounded-full shadow-lg"></div>
-        </div>
-
-        <div
-          className="mx-auto bg-white rounded-2xl relative overflow-hidden shadow-2xl shadow-gray-200/40"
-          style={{ height: "600px" }}
+<section className="px-6 md:px-20 lg:px-24 xl:px-32 2xl:px-40">
+  {/* Header */}
+  <div className="text-center mb-2 md:mb-4" dir={isRTL ? "rtl" : "ltr"}>
+    <div className="flex justify-center">
+      <div className="bg-[#12d6fa] bg-clip-text">
+        <p
+          className={`text-base md:text-lg lg:text-xl font-medium mb-2 md:mb-3 text-transparent bg-clip-text bg-[#12d6fa] text-center ${
+            isRTL ? "font-cairo" : "font-montserrat"
+          }`}
         >
-          {/* Main Content with Background Image */}
-          <Image
-            src="/images/flavor-section-background.png"
-            alt="Italian Flavors and Cherry Cola Bottle"
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 1200px"
-            priority
-            quality={90}
-            className="object-contain rounded-2xl"
-          />
-        </div>
-      </section>
+          {t("home.flavorSection.subtitle")}
+        </p>
+      </div>
+    </div>
+    <h2
+      className={`text-2xl md:text-4xl lg:text-6xl font-medium bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 bg-clip-text text-transparent mb-3 md:mb-4 text-center ${
+        isRTL ? "font-cairo" : "font-montserrat"
+      }`}
+    >
+      {t("home.flavorSection.title")}
+    </h2>
+    <div className="w-16 md:w-24 h-1 bg-[#12d6fa] mx-auto rounded-full shadow-lg"></div>
+  </div>
+
+  <div
+  className="mx-auto bg-white rounded-xl md:rounded-2xl relative overflow-hidden 
+             h-[600px] md:h-[500px] lg:h-[550px]"
+>
+  <Image
+    src="/images/flavor-section-background.png"
+    alt="Italian Flavors and Cherry Cola Bottle"
+    fill
+    sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 80vw, 1200px"
+    priority
+    quality={90}
+    className="object-cover rounded-xl md:rounded-2xl"
+  />
+</div>
+
+
+
+</section>
 
       {/* Horizontal Border */}
-      <div className="w-full px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 py-8">
+      <div className="w-full px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 py-2 md:py-8">
         <hr className="border-gray-200" />
       </div>
       {/* New Sections below Flavor Section */}
-      <section className="py-8 md:py-16 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
+      <section className="py-6 md:py-16 px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up">
         <div className="w-full bg-white rounded-2xl relative overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 py-12">
             {/* How to Use */}
@@ -1105,7 +1191,7 @@ export default function Home() {
       </div>
 
       {/* Environmental Impact Section */}
-      <section className="py-8 md:py-16 bg-gradient-to-b from-white to-gray-50/30 px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up delay-300">
+      <section className="py-6 md:py-16 bg-gradient-to-b from-white to-gray-50/30 px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40 animate-fade-in-up delay-300">
         <div className="w-full">
           {/* Header */}
           <div className="text-center mb-8 md:mb-12" dir={isRTL ? "rtl" : "ltr"}>
