@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
+import { fetchWithRetry } from "@/lib/fetch-utils"
 
 interface CO2Cylinder {
   _id: string
@@ -42,8 +43,8 @@ export function CylindersShopSection() {
       setLoading(true)
       setError(null)
       
-      // Make API call to fetch cylinders
-      const response = await fetch('http://localhost:3000/api/co2/cylinders')
+      // Make API call to fetch cylinders with retry
+      const response = await fetchWithRetry('/api/co2/cylinders', {}, 3);
       
       if (response.ok) {
         const data = await response.json()
@@ -54,13 +55,21 @@ export function CylindersShopSection() {
           
         // Ensure image URLs are absolute
         const processedCylinders = activeCylinders.map((cylinder: CO2Cylinder) => {
+          // Handle case where image might be undefined or null
+          const safeImage = cylinder.image || '';
+          const safeImages = cylinder.images || [];
+          
           return {
             ...cylinder,
             // Ensure image URL is absolute
-            image: cylinder.image?.startsWith('http') ? cylinder.image : `http://localhost:3000${cylinder.image}`,
+            image: safeImage.startsWith('http') ? safeImage : 
+                   safeImage.startsWith('/') ? `${window.location.origin}${safeImage}` : 
+                   '/placeholder.svg',
             // Ensure image URLs in arrays are absolute
-            images: (cylinder.images || []).map((img: string) => 
-              img?.startsWith('http') ? img : `http://localhost:3000${img}`
+            images: safeImages.map((img: string) => 
+              img?.startsWith('http') ? img : 
+              img?.startsWith('/') ? `${window.location.origin}${img}` : 
+              '/placeholder.svg'
             )
           }
         })

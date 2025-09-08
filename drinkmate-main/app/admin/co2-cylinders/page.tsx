@@ -32,6 +32,10 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { backendImageService, uploadImageWithProgress } from "@/lib/cloud-storage"
+import { fetchWithRetry } from "@/lib/fetch-utils"
+
+// Import API URL constant for consistent endpoint usage
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'
 
 interface CO2Cylinder {
   _id: string
@@ -143,6 +147,13 @@ export default function CO2CylindersPage() {
     console.log('Sample data initialized:', sampleCylinders)
   }
 
+  // Function to get progress bar width class
+  const getProgressBarWidth = (progress: number) => {
+    // Round to nearest 5% for reasonable number of classes
+    const roundedProgress = Math.round(progress / 5) * 5;
+    return `w-[${roundedProgress}%]`;
+  }
+  
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -354,12 +365,12 @@ export default function CO2CylindersPage() {
         return
       }
 
-      const response = await fetch('http://localhost:3000/api/co2/cylinders', {
+      const response = await fetchWithRetry(`${API_URL}/api/co2/cylinders`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
-      })
+      }, 3)
       
       if (response.status === 401) {
         toast.error('Authentication failed. Please log in again.')
@@ -376,16 +387,16 @@ export default function CO2CylindersPage() {
           return {
             ...cylinder,
             // Ensure image URL is absolute
-            image: cylinder.image?.startsWith('http') ? cylinder.image : `http://localhost:3000${cylinder.image}`,
+            image: cylinder.image?.startsWith('http') ? cylinder.image : `${API_URL}${cylinder.image}`,
             // Ensure image URLs in arrays are absolute
             images: (cylinder.images || []).map((img: string) => 
-              img?.startsWith('http') ? img : `http://localhost:3000${img}`
+              img?.startsWith('http') ? img : `${API_URL}${img}`
             ),
             // Ensure video URLs are absolute (if not YouTube)
             videos: (cylinder.videos || []).map((video: string) => 
               video?.includes('youtube.com') || video?.includes('youtu.be') || video?.startsWith('http') 
                 ? video 
-                : `http://localhost:3000${video}`
+                : `${API_URL}${video}`
             )
           }
         })
@@ -438,8 +449,8 @@ export default function CO2CylindersPage() {
     
     try {
       const url = editingCylinder 
-        ? `http://localhost:3000/api/co2/cylinders/${editingCylinder._id}`
-        : 'http://localhost:3000/api/co2/cylinders'
+        ? `${API_URL}/api/co2/cylinders/${editingCylinder._id}`
+        : `${API_URL}/api/co2/cylinders`
       
       const method = editingCylinder ? 'PUT' : 'POST'
       
@@ -465,7 +476,7 @@ export default function CO2CylindersPage() {
 
       console.log('Submitting cylinder data:', requestData)
       
-      const response = await fetch(url, {
+      const response = await fetchWithRetry(url, {
         method: method,
         headers: {
           'Content-Type': 'application/json',
@@ -505,7 +516,7 @@ export default function CO2CylindersPage() {
         return
       }
 
-      const response = await fetch(`http://localhost:3000/api/co2/cylinders/${id}`, {
+      const response = await fetchWithRetry(`${API_URL}/api/co2/cylinders/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -1024,6 +1035,8 @@ export default function CO2CylindersPage() {
                     onChange={handleImageUpload}
                     className="hidden"
                     disabled={isUploading}
+                    title="Upload cylinder image"
+                    aria-label="Upload cylinder image"
                   />
                   <Button
                     type="button"
@@ -1056,8 +1069,20 @@ export default function CO2CylindersPage() {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
+                        className={`bg-blue-600 h-2 rounded-full transition-all duration-300 ${
+                          uploadProgress <= 5 ? 'w-[5%]' :
+                          uploadProgress <= 10 ? 'w-[10%]' :
+                          uploadProgress <= 20 ? 'w-[20%]' :
+                          uploadProgress <= 30 ? 'w-[30%]' :
+                          uploadProgress <= 40 ? 'w-[40%]' :
+                          uploadProgress <= 50 ? 'w-[50%]' :
+                          uploadProgress <= 60 ? 'w-[60%]' :
+                          uploadProgress <= 70 ? 'w-[70%]' :
+                          uploadProgress <= 80 ? 'w-[80%]' :
+                          uploadProgress <= 90 ? 'w-[90%]' : 'w-full'
+                        }`}
+                        role="progressbar"
+                        aria-label="Upload progress"
                       ></div>
                     </div>
                   </div>
@@ -1106,6 +1131,8 @@ export default function CO2CylindersPage() {
                     onChange={handleMultipleImageUpload}
                     className="hidden"
                     disabled={isUploading}
+                    title="Upload additional images"
+                    aria-label="Upload additional images"
                   />
                   <Button
                     type="button"
@@ -1158,6 +1185,8 @@ export default function CO2CylindersPage() {
                     onChange={handleVideoUpload}
                     className="hidden"
                     disabled={isUploadingVideo}
+                    title="Upload video"
+                    aria-label="Upload video"
                   />
                   <Button
                     type="button"
