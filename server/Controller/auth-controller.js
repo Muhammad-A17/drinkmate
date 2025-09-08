@@ -2,7 +2,9 @@ const User = require('../Models/user-model'); // Adjust path if needed
 require('dotenv').config(); // Make sure this is loaded
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const multer = require('multer');
 const { sendPasswordResetEmail, sendPasswordResetSuccessEmail, sendWelcomeEmail, sendEmail } = require('../Utils/email-service');
+const { cloudinary, storage } = require('../Utils/cloudinary');
 
 const home = (req, res) => {
     res.send('Hello World');
@@ -640,11 +642,67 @@ const changePassword = async (req, res) => {
     }
 };
 
-module.exports = { 
-    home, 
-    register, 
-    login, 
-    logout, 
+// Upload user avatar
+const uploadAvatar = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        
+        if (!req.file) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'No image file provided' 
+            });
+        }
+        
+        // Try to update user avatar in MongoDB first
+        try {
+            const user = await User.findById(userId);
+            if (user) {
+                // Delete old avatar from Cloudinary if it exists
+                if (user.avatar && user.avatar.includes('cloudinary')) {
+                    try {
+                        const publicId = user.avatar.split('/').pop().split('.')[0];
+                        await cloudinary.uploader.destroy(`drinkmate/${publicId}`);
+                    } catch (deleteError) {
+                        console.error('Error deleting old avatar:', deleteError);
+                        // Continue with upload even if deletion fails
+                    }
+                }
+                
+                // Update user avatar with new Cloudinary URL
+                user.avatar = req.file.path;
+                await user.save();
+                
+                return res.status(200).json({
+                    success: true,
+                    message: 'Avatar uploaded successfully',
+                    avatar: req.file.path
+                });
+            }
+        } catch (mongoError) {
+            console.error("MongoDB error during avatar upload:", mongoError);
+        }
+        
+        // Fallback response if MongoDB is unavailable
+        res.status(200).json({
+            success: true,
+            message: 'Avatar upload simulated (MongoDB unavailable)',
+            avatar: req.file.path
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ 
+            success: false,
+            error: 'Server error during avatar upload' 
+        });
+    }
+};
+
+module.exports = {
+    home,
+    register,
+    login,
+    logout,
     verifyToken,
     forgotPassword,
     resetPassword,
@@ -653,5 +711,6 @@ module.exports = {
     testWelcomeEmail,
     getUserProfile,
     updateUserProfile,
-    changePassword
+    changePassword,
+    uploadAvatar
 };

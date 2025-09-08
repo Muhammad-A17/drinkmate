@@ -413,7 +413,7 @@ export default function SodamakersPage() {
         {/* Category Banners */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* OmniFizz Banner */}
-          <div className="relative h-48 md:h-56 rounded-2xl overflow-hidden shadow-lg bg-gradient-to-r from-orange-400 to-orange-500">
+          <div className="relative h-48 md:h-56 rounded-2xl overflow-hidden shadow-lg bg-[#ffc232]">
             <div className="flex items-center justify-between h-full p-6">
               <div className="text-black flex-1">
                 <h2 className="text-xl md:text-2xl font-bold mb-2">OmniFizz Soda Makers</h2>
@@ -421,7 +421,7 @@ export default function SodamakersPage() {
               </div>
               <div className="relative w-24 h-24 md:w-32 md:h-32 flex-shrink-0 ml-4">
                 <Image
-                  src="/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
+                  src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559856/Banner-Omni-Fiz_yjehil.png"
                   alt="OmniFizz Soda Maker"
                   fill
                   className="object-contain hover:scale-105 transition-transform duration-300"
@@ -439,7 +439,7 @@ export default function SodamakersPage() {
               </div>
               <div className="relative w-24 h-24 md:w-32 md:h-32 flex-shrink-0 ml-4">
                 <Image
-                  src="/images/02 - Soda Makers/Banner-Luxe-Machine.png"
+                  src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559856/Banner-Luxe-Machine_obvfmq.png"
                   alt="Luxe Soda Maker"
                   fill
                   className="object-contain hover:scale-105 transition-transform duration-300"

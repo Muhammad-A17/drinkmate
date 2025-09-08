@@ -89,6 +89,7 @@ const benefits = [
 ]
 
 export default function CO2() {
+
   return (
     <PageLayout currentPage="co2">
       {/* Hero Section */}
@@ -96,7 +97,7 @@ export default function CO2() {
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/co2-hero-bg.jpg"
+            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151268/banner-5185319_ntnjqe.jpg"
             alt="CO2 Cylinders Background"
             fill
             className="object-cover"
@@ -116,6 +117,7 @@ export default function CO2() {
           </div>
         </div>
       </section>
+
 
       {/* Cylinders Shop Section */}
       <section className="py-16 bg-white">
@@ -223,6 +225,7 @@ export default function CO2() {
           </div>
         </div>
       </section>
+
     </PageLayout>
   )
 }

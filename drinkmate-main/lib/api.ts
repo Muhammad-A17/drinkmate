@@ -15,11 +15,11 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 second timeout (helps with Render cold starts)
+  timeout: 15000, // Reduced to 15 seconds for better UX
 });
 
 // Helper function to implement retry mechanism with caching
-const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = 4, delay = 1500): Promise<any> => {
+const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = 3, delay = 1000): Promise<any> => {
   // Check cache first if cacheKey is provided
   if (cacheKey && apiCache.has(cacheKey)) {
     const cachedData = apiCache.get(cacheKey);
@@ -123,7 +123,7 @@ api.interceptors.response.use(
   (error) => {
     // Convert network timeouts to a friendlier message
     if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-      error.message = 'Network timeout. Please try again in a moment.';
+      error.message = 'Server is starting up (this may take 20-30 seconds). Please wait and try again.';
     }
     // Handle unauthorized errors (401)
     if (error.response && error.response.status === 401) {
@@ -275,6 +275,22 @@ export const authAPI = {
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
         console.error('Change password error:', error.response?.data || error.message);
+      }
+      throw error;
+    }
+  },
+
+  uploadAvatar: async (formData: FormData) => {
+    try {
+      const response = await api.post('/auth/upload-avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Upload avatar error:', error.response?.data || error.message);
       }
       throw error;
     }

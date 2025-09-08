@@ -71,6 +71,12 @@ const co2CylinderSchema = new mongoose.Schema({
     required: true
   },
   images: [String],
+  videos: [String],
+  documents: [{
+    name: String,
+    url: String,
+    type: String
+  }],
   
   // Description and details
   description: {
@@ -81,8 +87,24 @@ const co2CylinderSchema = new mongoose.Schema({
   specifications: {
     weight: Number,
     height: Number,
-    diameter: Number
+    diameter: Number,
+    pressure: String,
+    threadType: String,
+    valveType: String,
+    certification: String,
+    temperatureRange: String,
+    serviceLife: String,
+    refillCycles: String,
+    safetyFeatures: String
   },
+  dimensions: {
+    length: Number,
+    width: Number,
+    height: Number,
+    weight: Number
+  },
+  safetyFeatures: [String],
+  certifications: [String],
   
   // Status and metadata
   status: {
@@ -97,6 +119,30 @@ const co2CylinderSchema = new mongoose.Schema({
   isFeatured: {
     type: Boolean,
     default: false
+  },
+  isNew: {
+    type: Boolean,
+    default: false
+  },
+  isEcoFriendly: {
+    type: Boolean,
+    default: false
+  },
+  averageRating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5
+  },
+  totalReviews: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  slug: {
+    type: String,
+    unique: true,
+    sparse: true
   },
   
   // SEO and marketing
@@ -122,6 +168,10 @@ co2CylinderSchema.index({ brand: 1, type: 1 });
 co2CylinderSchema.index({ status: 1, isAvailable: 1 });
 co2CylinderSchema.index({ price: 1 });
 co2CylinderSchema.index({ isBestSeller: 1, isFeatured: 1 });
+co2CylinderSchema.index({ slug: 1 });
+co2CylinderSchema.index({ averageRating: -1 });
+co2CylinderSchema.index({ totalReviews: -1 });
+co2CylinderSchema.index({ createdAt: -1 });
 
 // Virtual for discount percentage
 co2CylinderSchema.virtual('discountPercentage').get(function() {
@@ -136,11 +186,22 @@ co2CylinderSchema.virtual('finalPrice').get(function() {
   return this.price;
 });
 
-// Pre-save middleware to update discount
+// Pre-save middleware to update discount and generate slug
 co2CylinderSchema.pre('save', function(next) {
   if (this.originalPrice > 0 && this.price < this.originalPrice) {
     this.discount = Math.round(((this.originalPrice - this.price) / this.originalPrice) * 100);
   }
+  
+  // Generate slug if not provided
+  if (!this.slug && this.name) {
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .trim();
+  }
+  
   this.updatedAt = new Date();
   next();
 });
@@ -158,6 +219,47 @@ co2CylinderSchema.methods.updateStock = function(quantity, operation = 'decrease
     this.stock += quantity;
   }
   return this.save();
+};
+
+// Method to update rating
+co2CylinderSchema.methods.updateRating = function(newRating) {
+  const totalRating = (this.averageRating * this.totalReviews) + newRating;
+  this.totalReviews += 1;
+  this.averageRating = totalRating / this.totalReviews;
+  return this.save();
+};
+
+// Method to get primary image
+co2CylinderSchema.methods.getPrimaryImage = function() {
+  return this.images && this.images.length > 0 ? this.images[0] : this.image;
+};
+
+// Method to get all images
+co2CylinderSchema.methods.getAllImages = function() {
+  const allImages = [];
+  if (this.image) allImages.push(this.image);
+  if (this.images) allImages.push(...this.images);
+  return [...new Set(allImages)]; // Remove duplicates
+};
+
+// Static method to find by slug
+co2CylinderSchema.statics.findBySlug = function(slug) {
+  return this.findOne({ slug, status: 'active' });
+};
+
+// Static method to get active cylinders
+co2CylinderSchema.statics.getActive = function() {
+  return this.find({ status: 'active', isAvailable: true }).sort({ createdAt: -1 });
+};
+
+// Static method to get best sellers
+co2CylinderSchema.statics.getBestSellers = function(limit = 10) {
+  return this.find({ status: 'active', isBestSeller: true }).limit(limit).sort({ averageRating: -1 });
+};
+
+// Static method to get featured products
+co2CylinderSchema.statics.getFeatured = function(limit = 10) {
+  return this.find({ status: 'active', isFeatured: true }).limit(limit).sort({ createdAt: -1 });
 };
 
 module.exports = mongoose.model('CO2Cylinder', co2CylinderSchema);

@@ -23,9 +23,10 @@ import { useTranslation } from "@/lib/translation-context"
 import { contactAPI } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
+import { toArabicNumerals } from "@/lib/utils"
 
 export default function Contact() {
-  const { t, isRTL } = useTranslation()
+  const { t, isRTL, language } = useTranslation()
   const { user } = useAuth()
   const [formData, setFormData] = useState({
     name: user?.username || "",
@@ -54,7 +55,7 @@ export default function Contact() {
       const response = await contactAPI.submitContact(contactData)
 
       if (response.success) {
-        toast.success("Your message has been sent successfully! We'll get back to you soon.", {
+        toast.success(t("contact.form.sendMessage") + " " + t("contact.form.title"), {
           duration: 5000,
           icon: <CheckCircle className="h-5 w-5" />,
         })
@@ -67,14 +68,14 @@ export default function Contact() {
           phone: "",
         })
       } else {
-        toast.error(response.message || "Failed to send message. Please try again.", {
+        toast.error(response.message || t("contact.form.sendMessage") + " " + t("contact.form.title"), {
           duration: 5000,
           icon: <AlertCircle className="h-5 w-5" />,
         })
       }
     } catch (err: any) {
       console.error("Contact form submission error:", err)
-      toast.error(err.response?.data?.message || "An error occurred. Please try again later.", {
+      toast.error(err.response?.data?.message || t("contact.form.title"), {
         duration: 5000,
         icon: <AlertCircle className="h-5 w-5" />,
       })
@@ -111,7 +112,7 @@ export default function Contact() {
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/contact-hero-bg.jpg"
+            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1757148169/javier-balseiro-EjJ7ffSd8iA-unsplash_xpsedo.webp"
             alt="Contact Us Background"
             fill
             className="object-cover"
@@ -149,15 +150,15 @@ export default function Contact() {
               <h3
                 className={`text-lg md:text-xl font-bold text-black mb-3 md:mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
               >
-                Urgent Support
+                {t("contact.phoneSupport.title")}
               </h3>
               <p
                 className={`text-gray-600 text-sm md:text-base mb-3 md:mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"} leading-relaxed`}
               >
-                Need immediate help? Call us directly
+                {t("contact.phoneSupport.description")}
               </p>
-              <p className="text-xl md:text-2xl font-bold text-[#12d6fa] tracking-tight">+966 50 123 4567</p>
-              <p className="text-xs md:text-sm text-gray-500 font-medium">Available 24/7</p>
+              <p className="text-xl md:text-2xl font-bold text-[#12d6fa] tracking-tight">{language === 'AR' ? toArabicNumerals('+966 50 123 4567') : '+966 50 123 4567'}</p>
+              <p className="text-xs md:text-sm text-gray-500 font-medium">{t("contact.phoneSupport.hours")}</p>
             </div>
 
             <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl animate-fade-in-up delay-200 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
@@ -167,18 +168,18 @@ export default function Contact() {
               <h3
                 className={`text-lg md:text-xl font-bold text-black mb-3 md:mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
               >
-                General Inquiries
+                {t("contact.emailSupport.title")}
               </h3>
               <p
                 className={`text-gray-600 text-sm md:text-base mb-3 md:mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"} leading-relaxed`}
               >
-                Send us a detailed message below
+                {t("contact.emailSupport.description")}
               </p>
               <Button
                 onClick={() => scrollToSection(formRef)}
                 className="bg-gradient-to-r from-[#a8f387] to-[#96e075] hover:from-[#96e075] hover:to-[#84d663] text-white px-6 py-2 font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105"
               >
-                Send Message
+                {t("contact.form.sendMessage")}
               </Button>
             </div>
           </div>
@@ -190,7 +191,7 @@ export default function Contact() {
                 onClick={() => setShowAllMethods(true)}
                 className="text-[#12d6fa] hover:text-[#0bc4e8] hover:bg-[#12d6fa]/10 flex items-center gap-2 mx-auto font-semibold px-6 py-3 rounded-xl transition-all duration-300"
               >
-                View More Contact Options
+                {t("contact.offices.title")}
                 <ArrowDown className="w-4 h-4" />
               </Button>
             </div>
@@ -213,9 +214,7 @@ export default function Contact() {
                   {t("contact.officeLocation.description")}
                 </p>
                 <p className="text-sm text-gray-700 font-medium">
-                  King Fahd Road, Riyadh
-                  <br />
-                  Saudi Arabia
+                  {t("contact.offices.riyadh.address")}
                 </p>
                 <p className="text-xs md:text-sm text-gray-500 font-medium">
                   {t("contact.officeLocation.appointment")}
@@ -236,7 +235,7 @@ export default function Contact() {
                 >
                   {t("contact.phoneSupport.description")}
                 </p>
-                <p className="text-xl md:text-2xl font-bold text-[#12d6fa] tracking-tight">+966 50 123 4567</p>
+                <p className="text-xl md:text-2xl font-bold text-[#12d6fa] tracking-tight">{language === 'AR' ? toArabicNumerals('+966 50 123 4567') : '+966 50 123 4567'}</p>
                 <p className="text-xs md:text-sm text-gray-500 font-medium">{t("contact.phoneSupport.hours")}</p>
               </div>
 
@@ -341,7 +340,7 @@ export default function Contact() {
 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
-                    {t("contact.form.phone")} <span className="text-gray-500 font-normal">(Optional)</span>
+                    {t("contact.form.phone")} <span className="text-gray-500 font-normal">({t("contact.form.optional")})</span>
                   </label>
                   <input
                     type="tel"

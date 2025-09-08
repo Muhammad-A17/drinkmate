@@ -103,60 +103,70 @@ export default function RefillCylindersPage() {
       setLoading(true)
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
       
-      // For now, using mock data since we don't have a refill cylinders API yet
-      const mockCylinders: RefillCylinder[] = [
-        {
-          _id: "1",
-          name: "Standard CO2 Refill",
-          brand: "DrinkMate",
-          type: "Standard",
-          refillPrice: 29.99,
-          originalPrice: 89.99,
-          discount: 15,
-          capacity: 60,
-          material: "steel",
-          availableForRefill: 25,
-          minStock: 10,
-          status: "active",
-          isBestSeller: true,
-          isFeatured: true,
-          description: "Standard CO2 cylinder refill service for all DrinkMate machines",
-          features: ["Quick refill", "Quality tested", "Safe handling"],
-          image: "/images/co2-refill-standard.jpg",
-          refillInstructions: "Bring your empty cylinder to any authorized refill station",
-          createdAt: new Date().toISOString()
-        },
-        {
-          _id: "2",
-          name: "Premium CO2 Refill",
-          brand: "DrinkMate",
-          type: "Premium",
-          refillPrice: 39.99,
-          originalPrice: 119.99,
-          discount: 20,
-          capacity: 80,
-          material: "aluminum",
-          availableForRefill: 15,
-          minStock: 5,
-          status: "active",
-          isBestSeller: false,
-          isFeatured: true,
-          description: "Premium CO2 cylinder refill with extended capacity",
-          features: ["Extended capacity", "Premium quality", "Fast service"],
-          image: "/images/co2-refill-premium.jpg",
-          refillInstructions: "Premium refill service with extended capacity and quality guarantee",
-          createdAt: new Date(Date.now() - 86400000).toISOString()
-        }
-      ]
-      
+      if (!token) {
+        toast.error('No authentication token found. Please log in.')
+        router.push('/login')
+        return
+      }
+
+      // For now, using mock data since we need a separate refill cylinders API
+      // TODO: Create /api/refill/cylinders endpoint
+      const mockCylinders: RefillCylinder[] = getMockCylinders()
       setCylinders(mockCylinders)
     } catch (error) {
       console.error("Error fetching refill cylinders:", error)
       toast.error("Failed to fetch refill cylinders")
+      // Fallback to mock data if API fails
+      setCylinders(getMockCylinders())
     } finally {
       setLoading(false)
     }
   }
+
+  const getMockCylinders = (): RefillCylinder[] => [
+    {
+      _id: "1",
+      name: "Standard CO2 Refill",
+      brand: "DrinkMate",
+      type: "Standard",
+      refillPrice: 29.99,
+      originalPrice: 89.99,
+      discount: 15,
+      capacity: 60,
+      material: "steel",
+      availableForRefill: 25,
+      minStock: 10,
+      status: "active",
+      isBestSeller: true,
+      isFeatured: true,
+      description: "Standard CO2 cylinder refill service for all DrinkMate machines",
+      features: ["Quick refill", "Quality tested", "Safe handling"],
+      image: "/images/co2-refill-standard.jpg",
+      refillInstructions: "Bring your empty cylinder to any authorized refill station",
+      createdAt: new Date().toISOString()
+    },
+    {
+      _id: "2",
+      name: "Premium CO2 Refill",
+      brand: "DrinkMate",
+      type: "Premium",
+      refillPrice: 39.99,
+      originalPrice: 119.99,
+      discount: 20,
+      capacity: 80,
+      material: "aluminum",
+      availableForRefill: 15,
+      minStock: 5,
+      status: "active",
+      isBestSeller: false,
+      isFeatured: true,
+      description: "Premium CO2 cylinder refill with extended capacity",
+      features: ["Extended capacity", "Premium quality", "Fast service"],
+      image: "/images/co2-refill-premium.jpg",
+      refillInstructions: "Premium refill service with extended capacity and quality guarantee",
+      createdAt: new Date(Date.now() - 86400000).toISOString()
+    }
+  ]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -187,20 +197,37 @@ export default function RefillCylindersPage() {
     }
 
     try {
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      if (!token) {
+        toast.error('No authentication token found. Please log in.')
+        router.push('/login')
+        return
+      }
+
+      // Transform data to RefillCylinder format for API
       const cylinderData = {
-        ...formData,
+        name: formData.name,
+        brand: formData.brand,
+        type: formData.type,
         refillPrice: parseFloat(formData.refillPrice),
-        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : parseFloat(formData.refillPrice),
         capacity: parseFloat(formData.capacity),
+        material: formData.material,
         availableForRefill: parseInt(formData.availableForRefill),
         minStock: parseInt(formData.minStock),
+        status: formData.status,
+        description: formData.description,
         features: formData.features ? formData.features.split(',').map(f => f.trim()) : [],
+        image: formData.image,
+        refillInstructions: formData.refillInstructions,
         isBestSeller: false,
         isFeatured: false
       }
 
+      // TODO: Create separate refill API endpoints
+      // For now, using mock data updates
       if (editingCylinder) {
-        // Update existing cylinder
+        // Update existing cylinder in mock data
         const updatedCylinders = cylinders.map(cyl => 
           cyl._id === editingCylinder._id 
             ? { ...editingCylinder, ...cylinderData }
@@ -209,7 +236,7 @@ export default function RefillCylindersPage() {
         setCylinders(updatedCylinders)
         toast.success("Refill cylinder updated successfully")
       } else {
-        // Add new cylinder
+        // Add new cylinder to mock data
         const newCylinder: RefillCylinder = {
           _id: Date.now().toString(),
           ...cylinderData,
@@ -220,6 +247,7 @@ export default function RefillCylindersPage() {
       }
 
       setShowAddDialog(false)
+      setEditingCylinder(null)
       resetForm()
     } catch (error: any) {
       console.error("Error saving refill cylinder:", error)
@@ -252,6 +280,8 @@ export default function RefillCylindersPage() {
     if (!confirm("Are you sure you want to delete this refill cylinder?")) return
 
     try {
+      // TODO: Create separate refill API endpoints
+      // For now, using mock data updates
       setCylinders(prev => prev.filter(cyl => cyl._id !== id))
       toast.success("Refill cylinder deleted successfully")
     } catch (error: any) {
@@ -493,180 +523,192 @@ export default function RefillCylindersPage() {
 
         {/* Add/Edit Dialog */}
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
-                {editingCylinder ? "Edit Refill Cylinder" : "Add New Refill Service"}
+              <DialogTitle className="text-2xl font-bold text-black">
+                {editingCylinder ? 'Edit Cylinder' : 'Add New Cylinder'}
               </DialogTitle>
             </DialogHeader>
+            
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Cylinder Name</Label>
+                  <Label htmlFor="name" className="text-gray-700 font-medium">Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g., Standard CO2 Refill"
+                    className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="brand">Brand</Label>
-                  <Input
-                    id="brand"
-                    value={formData.brand}
-                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    placeholder="e.g., DrinkMate"
-                    required
-                  />
+                  <Label htmlFor="brand" className="text-gray-700 font-medium">Brand *</Label>
+                  <Select value={formData.brand} onValueChange={(value) => setFormData({ ...formData, brand: value })}>
+                    <SelectTrigger className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20">
+                      <SelectValue placeholder="Select brand" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="drinkmate">Drinkmate</SelectItem>
+                      <SelectItem value="sodastream">SodaStream</SelectItem>
+                      <SelectItem value="errva">Errva</SelectItem>
+                      <SelectItem value="fawwar">Fawwar</SelectItem>
+                      <SelectItem value="phillips">Phillips</SelectItem>
+                      <SelectItem value="ultima-cosa">Ultima Cosa</SelectItem>
+                      <SelectItem value="bubble-bro">Bubble Bro</SelectItem>
+                      <SelectItem value="yoco-cosa">Yoco Cosa</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="type">Type</Label>
+                  <Label htmlFor="type" className="text-gray-700 font-medium">Type *</Label>
                   <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Standard">Standard</SelectItem>
-                      <SelectItem value="Premium">Premium</SelectItem>
-                      <SelectItem value="Large">Large</SelectItem>
+                      <SelectItem value="refill">Refill</SelectItem>
+                      <SelectItem value="exchange">Exchange</SelectItem>
+                      <SelectItem value="new">New</SelectItem>
+                      <SelectItem value="conversion">Conversion</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="refillPrice">Refill Price (﷼)</Label>
-                  <Input
-                    id="refillPrice"
-                    type="number"
-                    step="0.01"
-                    value={formData.refillPrice}
-                    onChange={(e) => setFormData({ ...formData, refillPrice: e.target.value })}
-                    placeholder="29.99"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="originalPrice">Original Price (﷼)</Label>
-                  <Input
-                    id="originalPrice"
-                    type="number"
-                    step="0.01"
-                    value={formData.originalPrice}
-                    onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
-                    placeholder="89.99"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="capacity">Capacity (L)</Label>
+                  <Label htmlFor="capacity" className="text-gray-700 font-medium">Capacity (Liters) *</Label>
                   <Input
                     id="capacity"
                     type="number"
                     step="0.1"
                     value={formData.capacity}
                     onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                    placeholder="60"
+                    className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="refillPrice" className="text-gray-700 font-medium">Price (ريال) *</Label>
+                  <Input
+                    id="refillPrice"
+                    type="number"
+                    step="0.01"
+                    value={formData.refillPrice}
+                    onChange={(e) => setFormData({ ...formData, refillPrice: e.target.value })}
+                    className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="material">Material</Label>
-                  <Select value={formData.material} onValueChange={(value) => setFormData({ ...formData, material: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="steel">Steel</SelectItem>
-                      <SelectItem value="aluminum">Aluminum</SelectItem>
-                      <SelectItem value="composite">Composite</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="originalPrice" className="text-gray-700 font-medium">Original Price (ريال) *</Label>
+                  <Input
+                    id="originalPrice"
+                    type="number"
+                    step="0.01"
+                    value={formData.originalPrice}
+                    onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
+                    className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20"
+                    required
+                  />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="availableForRefill">Available for Refill</Label>
+                  <Label htmlFor="availableForRefill" className="text-gray-700 font-medium">Current Stock *</Label>
                   <Input
                     id="availableForRefill"
                     type="number"
                     value={formData.availableForRefill}
                     onChange={(e) => setFormData({ ...formData, availableForRefill: e.target.value })}
-                    placeholder="25"
+                    className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="minStock" className="text-gray-700 font-medium">Minimum Stock *</Label>
+                  <Input
+                    id="minStock"
+                    type="number"
+                    value={formData.minStock}
+                    onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
+                    className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description" className="text-gray-700 font-medium">Description *</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Description of the refill service..."
-                  rows={3}
+                  className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20"
+                  required
                 />
               </div>
 
               <div>
-                <Label htmlFor="refillInstructions">Refill Instructions</Label>
-                <Textarea
-                  id="refillInstructions"
-                  value={formData.refillInstructions}
-                  onChange={(e) => setFormData({ ...formData, refillInstructions: e.target.value })}
-                  placeholder="Instructions for customers on how to get their cylinder refilled..."
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="features">Features (comma-separated)</Label>
+                <Label htmlFor="features" className="text-gray-700 font-medium">Features (comma-separated)</Label>
                 <Input
                   id="features"
                   value={formData.features}
                   onChange={(e) => setFormData({ ...formData, features: e.target.value })}
-                  placeholder="Quick refill, Quality tested, Safe handling"
+                  placeholder="Feature 1, Feature 2, Feature 3"
+                  className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20"
                 />
               </div>
 
               <div>
-                <Label htmlFor="image">Image URL</Label>
+                <Label htmlFor="image" className="text-gray-700 font-medium">Image URL *</Label>
                 <Input
                   id="image"
                   value={formData.image}
                   onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
+                  className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20"
+                  required
                 />
               </div>
 
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="isBestSeller"
-                  checked={formData.status === "active"}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.checked ? "active" : "inactive" })}
-                  className="rounded"
-                />
-                <Label htmlFor="isBestSeller">Active</Label>
+              <div>
+                <Label htmlFor="status" className="text-gray-700 font-medium">Status</Label>
+                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                  <SelectTrigger className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="discontinued">Discontinued</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex justify-end gap-2 pt-4">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowAddDialog(false)}
+                  onClick={() => {
+                    setShowAddDialog(false)
+                    setEditingCylinder(null)
+                    resetForm()
+                  }}
+                  className="rounded-xl border-gray-300 hover:border-gray-400 bg-transparent"
                 >
                   Cancel
                 </Button>
                 <Button 
                   type="submit" 
-                  className="bg-[#12d6fa] hover:bg-[#0fb8d9]"
+                  className="bg-black hover:bg-gray-800 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  {editingCylinder ? "Update" : "Add"} Refill Service
+                  {editingCylinder ? 'Update Cylinder' : 'Add Cylinder'}
                 </Button>
               </div>
             </form>

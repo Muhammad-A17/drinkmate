@@ -2,11 +2,12 @@
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Clock, Star, Heart, Utensils, Search, X, Download } from "lucide-react"
+import { Clock, Star, Heart, Utensils, Search, X } from "lucide-react"
 import { useState } from "react"
 import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
 import { useRecipeRotation, formatTimeRemaining } from "@/hooks/use-recipe-rotation"
+import { toArabicNumerals } from "@/lib/utils"
 
 export default function Recipes() {
   const { t, isRTL, language } = useTranslation()
@@ -23,6 +24,280 @@ export default function Recipes() {
     time: "5 min",
     tags: [""]
   })
+
+  // Helper function to convert recipe data to Arabic numerals and translations if language is Arabic
+  const convertRecipeToArabic = (recipe: any) => {
+    if (language !== 'AR') return recipe
+
+    // Translation mappings
+    const difficultyTranslations: Record<string, string> = {
+      'Easy': 'سهل',
+      'Intermediate': 'متوسط',
+      'Advanced': 'متقدم'
+    }
+
+    const tagTranslations: Record<string, string> = {
+      'refreshing': 'منعش',
+      'summer': 'صيفي',
+      'popular': 'شائع',
+      'tequila': 'تيكيلا',
+      'margarita': 'مارغريتا',
+      'spicy': 'حار',
+      'tropical': 'استوائي',
+      'jalapeño': 'هالبينو',
+      'brunch': 'غداء متأخر',
+      'mimosa': 'ميموزا',
+      'citrus': 'حمضيات',
+      'celebration': 'احتفال',
+      'winter': 'شتوي',
+      'pomegranate': 'رمان',
+      'ginger': 'زنجبيل',
+      'seasonal': 'موسمي',
+      'warm': 'دافئ',
+      'pear': 'إجاص',
+      'cinnamon': 'قرفة',
+      'gin': 'جن',
+      'tea': 'شاي',
+      'peach': 'خوخ',
+      'whisky': 'ويسكي',
+      'classic': 'كلاسيكي',
+      'patriotic': 'وطني',
+      'mocktail': 'مشروب غير كحولي',
+      'cranberry': 'توت بري',
+      'blue': 'أزرق',
+      'gatorade': 'جاتوريد',
+      'pina': 'أناناس',
+      'orange': 'برتقالي',
+      'lemon': 'ليمون',
+      'lime': 'ليمون أخضر',
+      'apple': 'تفاح',
+      'fruit': 'فواكه',
+      'infused': 'مغمس',
+      'sparkling': 'متلألئ',
+      'diet': 'دايت',
+      'fizzy': 'فيزي',
+      'grape': 'عنب',
+      'grapefruit': 'جريب فروت',
+      'juice': 'عصير',
+      'spritzer': 'سبريتزر',
+      'raspberry': 'توت أحمر',
+      'delight': 'لذة',
+      'cucumber': 'خيار',
+      'sparkler': 'متلألئ',
+      'healthy': 'صحي',
+      'natural': 'طبيعي',
+      'homemade': 'محلي الصنع',
+      'colorful': 'ملون',
+      'easy': 'سهل',
+      'kid-friendly': 'مناسب للأطفال',
+      'sweet': 'حلو',
+      'herbal': 'عشبي',
+      'light': 'خفيف',
+      'berry': 'توت',
+      'sunset': 'غروب',
+      'rum': 'روم',
+      'fall': 'خريف'
+    }
+
+    // Comprehensive recipe title translations
+    const titleTranslations: Record<string, string> = {
+      'Firecracker Margarita Recipe': 'وصفة مارغريتا النارية',
+      'Next Level Carbonated Margarita': 'مارغريتا متكربنة من المستوى التالي',
+      'Signature Mother\'s Day Mimosa Recipe': 'وصفة ميموزا يوم الأم المميزة',
+      'Winter Margarita': 'مارغريتا الشتاء',
+      'The Pear-fect Warmer': 'الدافئ المثالي بالإجاص',
+      'Classic Peach Tea Cocktail Recipe': 'وصفة كوكتيل الشاي بالخوخ الكلاسيكي',
+      'Red, White, & Blue Mocktail Recipe': 'وصفة مشروب غير كحولي أحمر أبيض أزرق',
+      'Signature Mother\'s Day Mimosa Recipe (Mocktail)': 'وصفة ميموزا يوم الأم المميزة (مشروب غير كحولي)',
+      'Homemade Orange Soda Recipe': 'وصفة صودا البرتقال المنزلية',
+      'Homemade Lemon Lime Soda': 'صودا الليمون والليمون الأخضر المنزلية',
+      'Homemade Lime Green Soda': 'صودا الليمون الأخضر المنزلية',
+      'Carbonated Apple Cider': 'عصير التفاح المتكربن',
+      'Fruit Infused Sparkling Water': 'ماء متلألئ مغمس بالفواكه',
+      'Drinkmate Diet Fizzy Grape Juice': 'عصير العنب الفيزي الدايت من درينكميت',
+      'Drinkmate Diet Fizzy Grapefruit Juice': 'عصير الجريب فروت الفيزي الدايت من درينكميت',
+      'Drinkmate Fruit Juice Spritzer': 'سبريتزر عصير الفواكه من درينكميت',
+      'Drinkmate Raspberry Delight': 'لذة التوت الأحمر من درينكميت',
+      'Drinkmate Cucumber Sparkler': 'متلألئ الخيار من درينكميت',
+      'Tropical Sunset Spritzer': 'سبريتزر غروب استوائي',
+      'Berry Blast Fizz': 'فيز توت متفجر',
+      'Mint Lemonade Sparkler': 'متلألئ ليمون نعناع',
+      'Ginger Lime Fizz': 'فيز زنجبيل ليمون'
+    }
+
+    const categoryTranslations: Record<string, string> = {
+      'cocktails': 'كوكتيلات',
+      'mocktails': 'مشروبات غير كحولية',
+      'infused': 'مشروبات مغمسة'
+    }
+
+    // Ingredient translations
+    const ingredientTranslations: Record<string, string> = {
+      '2 oz Tequila': '٢ أونصة تيكيلا',
+      '1 oz Lime Juice': '١ أونصة عصير ليمون أخضر',
+      '1 oz Blue Curaçao': '١ أونصة كوراساو أزرق',
+      'Lemonade': 'ليمونادة',
+      'Optional: red sugar for rim': 'اختياري: سكر أحمر للحافة',
+      '2 oz Tres Generaciones Tequila': '٢ أونصة تيكيلا تريس جينيراسيونز',
+      '1/2 oz Grand Marnier Cuvee Louis Alexander': '١/٢ أونصة غراند مارنييه كوڤيه لويس ألكسندر',
+      '1 oz fresh lime juice': '١ أونصة عصير ليمون أخضر طازج',
+      '3/4 oz Jalapeño liquor': '٣/٤ أونصة ليكور هالبينو',
+      '3/4 oz simple syrup': '٣/٤ أونصة شراب بسيط',
+      '3/4 oz Mango nectar': '٣/٤ أونصة عصير مانجو',
+      '3/4 oz Peach nectar': '٣/٤ أونصة عصير خوخ',
+      'Lime wedge for garnish': 'شريحة ليمون للزينة',
+      'Orange Juice': 'عصير برتقال',
+      'Limeade or Lemonade': 'ليمونادة أو ليمونادة',
+      'White Wine (optional)': 'نبيذ أبيض (اختياري)',
+      'Cocktail rimming sugar': 'سكر لزينة الحافة',
+      'Tangerine for garnish': 'يوسفي للزينة',
+      'Pomegranate seeds (muddled and for garnish)': 'بذور رمان (مهروسة وللزينة)',
+      '25ml Fresh pink grapefruit juice': '٢٥ مل عصير جريب فروت وردي طازج',
+      '20ml Fresh lime juice': '٢٠ مل عصير ليمون أخضر طازج',
+      '50ml Tequila': '٥٠ مل تيكيلا',
+      '4 oz Ginger Concentrate or Syrup': '٤ أونصة مركز زنجبيل أو شراب',
+      '50ml Pear-infused Gin': '٥٠ مل جن مغمس بالإجاص',
+      '20ml Homemade cinnamon syrup': '٢٠ مل شراب قرفة منزلي',
+      '20ml Fresh lemon juice': '٢٠ مل عصير ليمون طازج',
+      'Hot water': 'ماء ساخن',
+      '40ml Johnnie Walker Black Label': '٤٠ مل جوني ووكر بلاك لايبل',
+      '80ml Breakfast Tea': '٨٠ مل شاي الإفطار',
+      '40ml Peach Nectar': '٤٠ مل عصير خوخ',
+      '15ml Lemon Juice': '١٥ مل عصير ليمون',
+      '25ml Sugar Syrup': '٢٥ مل شراب سكر',
+      '2 oz Cran-Apple Juice': '٢ أونصة عصير كرنبري تفاح',
+      '2 oz Blue Gatorade or Powerade': '٢ أونصة جاتوريد أزرق أو باوريد',
+      '1 oz Pina Colada Juice': '١ أونصة عصير بينا كولادا',
+      'Freshly Squeezed Orange Juice': 'عصير برتقال طازج معصور',
+      'Freshly Squeezed Lemon': 'ليمون طازج معصور',
+      'Freshly Squeezed Lime': 'ليمون أخضر طازج معصور',
+      'Raw Honey': 'عسل خام',
+      'Water': 'ماء',
+      '1 Cup Sugar': '١ كوب سكر',
+      '1 Liter Water': '١ لتر ماء',
+      '1/4 Cup Lime Juice, plus rind from 1 Lime': '١/٤ كوب عصير ليمون أخضر، بالإضافة إلى قشر ليمونة واحدة',
+      '6-8 Drops Green Food Coloring': '٦-٨ قطرات صبغة غذائية خضراء',
+      'Lime Slices for Garnish': 'شرائح ليمون أخضر للزينة',
+      'Fresh Apple Cider': 'عصير تفاح طازج',
+      'Optional: Cinnamon sticks': 'اختياري: عصي قرفة',
+      'Optional: Apple slices for garnish': 'اختياري: شرائح تفاح للزينة',
+      'Fresh fruits (berries, citrus, herbs)': 'فواكه طازجة (توت، حمضيات، أعشاب)',
+      'Optional: Honey or agave': 'اختياري: عسل أو أغاف',
+      'Grape Juice': 'عصير عنب',
+      'Optional: Sweetener': 'اختياري: محلي',
+      'Grapefruit Juice': 'عصير جريب فروت',
+      'Your favorite fruit juice': 'عصير الفواكه المفضل لديك',
+      'Optional: Fresh fruit for garnish': 'اختياري: فواكه طازجة للزينة',
+      'Fresh raspberries': 'توت أحمر طازج',
+      'Optional: Honey or sugar': 'اختياري: عسل أو سكر',
+      'Fresh cucumber slices': 'شرائح خيار طازج',
+      'Optional: Mint leaves': 'اختياري: أوراق نعناع',
+      'Optional: Lime juice': 'اختياري: عصير ليمون أخضر',
+      '2 oz Coconut Rum': '٢ أونصة رم جوز الهند',
+      '1 oz Pineapple Juice': '١ أونصة عصير أناناس',
+      '1 oz Orange Juice': '١ أونصة عصير برتقال',
+      '1/2 oz Grenadine': '١/٢ أونصة غرينادين',
+      'Club Soda': 'صودا كلوب',
+      'Mixed berries (strawberries, blueberries, raspberries)': 'توت مختلط (فراولة، توت أزرق، توت أحمر)',
+      'Honey': 'عسل',
+      'Lemon juice': 'عصير ليمون',
+      'Fresh mint leaves': 'أوراق نعناع طازجة',
+      'Sugar or honey': 'سكر أو عسل',
+      '2 oz Gin': '٢ أونصة جن',
+      '1 oz Fresh lime juice': '١ أونصة عصير ليمون أخضر طازج',
+      '1 oz Ginger syrup': '١ أونصة شراب زنجبيل',
+      'Soda water': 'ماء صودا'
+    }
+
+    // Instruction translations
+    const instructionTranslations: Record<string, string> = {
+      'Prepare margarita glass by wetting the rim in water or agave syrup, then dipping in red sanding sugar.': 'أعد كوب المارغريتا برطب الحافة في الماء أو شراب الأغاف، ثم اغمسها في سكر الرمل الأحمر.',
+      'Fill a cocktail shaker at least halfway with ice. Add tequila, blue curaçao, lemonade and lime juice. Cover and shake vigorously for 30 seconds.': 'املأ شاكر الكوكتيل نصفاً على الأقل بالثلج. أضف التيكيلا، الكوراساو الأزرق، الليمونادة وعصير الليمون الأخضر. غطِ وهز بقوة لمدة ٣٠ ثانية.',
+      'Strain into the Drinkmate carbonation bottle and add sparkle!': 'صفِ في زجاجة التكربن درينكميت وأضف التلألؤ!',
+      'Pour the carbonated mixture into your favorite cocktail glass over 1/2 cup of ice cubes or crushed ice.': 'صب الخليط المتكربن في كوب الكوكتيل المفضل لديك فوق ١/٢ كوب مكعبات ثلج أو ثلج مطحون.',
+      'Enjoy!': 'استمتع!',
+      'Combine the tequila, Grand Marnier, lime juice, jalapeño liquor and simple syrup in a drink shaker with 1/2 cup of ice.': 'اجمع التيكيلا، غراند مارنييه، عصير الليمون الأخضر، ليكور الهالبينو والشراب البسيط في شاكر مشروبات مع ١/٢ كوب ثلج.',
+      'Shake vigorously.': 'هز بقوة.',
+      'Strain into the Drinkmate carbonation bottle and add sparkle ... careful, this mixture may bubble over!': 'صفِ في زجاجة التكربن درينكميت وأضف التلألؤ ... احذر، قد يفور هذا الخليط!',
+      'Add the mango and peach nectar gently to the top of your cocktail to create a brightly colored layer effect.': 'أضف عصير المانجو والخوخ بلطف إلى أعلى كوكتيلك لإنشاء تأثير طبقة ملونة مشرقة.',
+      'Garnish with lime wedge.': 'زين بشريحة ليمون أخضر.',
+      'Pour all ingredients into your Drinkmate OmniFizz to carbonate.': 'صب جميع المكونات في درينكميت أومني فيز الخاص بك للتكربن.',
+      'Rim glass with sugar (get the rim wet first so it sticks!)': 'زين الحافة بالسكر (بلل الحافة أولاً حتى يلتصق!)',
+      'Pour into glass without touching the rim.': 'صب في الكوب دون لمس الحافة.',
+      'Garnish with a tangerine slice.': 'زين بشريحة يوسفي.',
+      'Combine all ingredients in a cocktail shaker with ice': 'اجمع جميع المكونات في شاكر كوكتيل مع الثلج',
+      'Shake vigorously until well-chilled': 'هز بقوة حتى يبرد جيداً',
+      'Pour into a glass over ice and garnish with pomegranate seeds': 'صب في كوب فوق الثلج وزين ببذور الرمان',
+      'Combine gin, cinnamon syrup, and lemon juice in a glass': 'اجمع الجن، شراب القرفة، وعصير الليمون في كوب',
+      'Add hot water and stir gently': 'أضف الماء الساخن وقلب بلطف',
+      'Pour into Drinkmate and carbonate for a unique fizzy hot cocktail': 'صب في درينكميت وكربن للحصول على كوكتيل ساخن فيزي فريد',
+      'Serve warm with a cinnamon stick garnish': 'قدم دافئاً مع زينة عصا قرفة',
+      'Carbonate any drink—not just water': 'كربن أي مشروب - ليس الماء فقط',
+      'Preserve bold flavors like whisky, tea, and nectar': 'احتفظ بالنكهات الجريئة مثل الويسكي، الشاي، والعصير',
+      'Reduce waste from cans and mixers': 'قلل النفايات من العلب والخلاطات',
+      'Customize your bubbles to match your vibe': 'خصص فقاعاتك لتتناسب مع مزاجك',
+      'Fill your Drinkmate with the Cran-Apple, Blue Gatorade, and Pina Colada juice.': 'املأ درينكميت بعصير الكرنبري التفاح، الجاتوريد الأزرق، وعصير البينا كولادا.',
+      'Add sparkle!': 'أضف التلألؤ!',
+      'Pour into a glass over ice and enjoy!': 'صب في كوب فوق الثلج واستمتع!',
+      'All-natural ingredients – No artificial flavors or added sugar': 'مكونات طبيعية ١٠٠% - لا نكهات صناعية أو سكر مضاف',
+      'Soothing and refreshing – A little honey, a lot of citrusy goodness': 'مهدئ ومنعش - قليل من العسل، الكثير من النكهة الحمضية',
+      'Perfect for mornings or wind-down evenings': 'مثالي للصباح أو مساءات الاسترخاء',
+      'Kid-friendly, brunch-ready, and endlessly customizable': 'مناسب للأطفال، جاهز للغداء المتأخر، وقابل للتخصيص بلا حدود',
+      'Mix lemon and lime juice with honey and water': 'اخلط عصير الليمون والليمون الأخضر مع العسل والماء',
+      'Pour into Drinkmate and carbonate': 'صب في درينكميت وكربن',
+      'Serve over ice for a refreshing citrus soda': 'قدم فوق الثلج للحصول على صودا حمضيات منعشة',
+      '1. In a small pot on medium heat dissolve sugar in water. Raise the heat, add the lime rind and bring to a boil. Lower the heat to a simmer and cook until slightly reduced. Remove from heat and discard the lime rinds. Stir in the food coloring and cool, add ice.': '١. في قدر صغير على نار متوسطة، ذوب السكر في الماء. زد النار، أضف قشر الليمون الأخضر واطبخ حتى الغليان. خفف النار إلى نار هادئة واطبخ حتى يقل قليلاً. أزل عن النار وتخلص من قشور الليمون الأخضر. قلب في الصبغة الغذائية وبرد، أضف الثلج.',
+      '2. Next Pour into your drinkmate machine to carbonate. Pour into glass and garnish with lime slice.': '٢. بعد ذلك صب في آلة درينكميت للتكربن. صب في الكوب وزين بشريحة ليمون أخضر.',
+      'Pour fresh apple cider into your Drinkmate': 'صب عصير التفاح الطازج في درينكميت الخاص بك',
+      'Add sparkle for a fizzy fall treat': 'أضف التلألؤ للحصول على علاج خريفي فيزي',
+      'Serve with cinnamon sticks and apple slices': 'قدم مع عصي القرفة وشرائح التفاح',
+      'Add fresh fruits and herbs to water': 'أضف الفواكه الطازجة والأعشاب إلى الماء',
+      'Let infuse for 10-15 minutes': 'اترك ينقع لمدة ١٠-١٥ دقيقة',
+      'Serve with fresh fruit garnish': 'قدم مع زينة فواكه طازجة',
+      'Mix grape juice with water to your preferred ratio': 'اخلط عصير العنب مع الماء بنسبة تفضلها',
+      'Pour grapefruit juice into your Drinkmate carbonation bottle': 'صب عصير الجريب فروت في زجاجة التكربن درينكميت الخاصة بك',
+      'Mix fruit juice with water to your preferred ratio': 'اخلط عصير الفواكه مع الماء بنسبة تفضلها',
+      'Muddle fresh raspberries in a glass': 'اهرس التوت الأحمر الطازج في كوب',
+      'Add water and optional sweetener': 'أضف الماء والمحلي الاختياري',
+      'Serve with fresh raspberries': 'قدم مع توت أحمر طازج',
+      'Add cucumber slices and optional mint to water': 'أضف شرائح الخيار والنعناع الاختياري إلى الماء',
+      'Let infuse for 5 minutes': 'اترك ينقع لمدة ٥ دقائق',
+      'Serve with fresh cucumber and mint garnish': 'قدم مع زينة خيار ونعناع طازجة',
+      'Combine rum, pineapple juice, and orange juice in a shaker with ice': 'اجمع الروم، عصير الأناناس، وعصير البرتقال في شاكر مع الثلج',
+      'Shake well and strain into Drinkmate carbonation bottle': 'هز جيداً وصفِ في زجاجة التكربن درينكميت',
+      'Pour into glass over ice': 'صب في كوب فوق الثلج',
+      'Slowly pour grenadine to create sunset effect': 'صب الغرينادين ببطء لإنشاء تأثير غروب الشمس',
+      'Top with club soda and garnish with pineapple wedge': 'أضف صودا كلوب وزين بشريحة أناناس',
+      'Muddle fresh berries with honey and lemon juice': 'اهرس التوت الطازج مع العسل وعصير الليمون',
+      'Add water and mix well': 'أضف الماء واخلط جيداً',
+      'Serve over ice with fresh berry garnish': 'قدم فوق الثلج مع زينة توت طازج',
+      'Muddle mint leaves with sugar or honey': 'اهرس أوراق النعناع مع السكر أو العسل',
+      'Add lemon juice and water': 'أضف عصير الليمون والماء',
+      'Serve with fresh mint garnish': 'قدم مع زينة نعناع طازج',
+      'Combine gin, lime juice, and ginger syrup in a shaker': 'اجمع الجن، عصير الليمون الأخضر، وشراب الزنجبيل في شاكر',
+      'Shake with ice and strain into Drinkmate': 'هز مع الثلج وصفِ في درينكميت',
+      'Top with soda water and garnish with lime wheel': 'أضف ماء صودا وزين بدائرة ليمون أخضر'
+    }
+
+    return {
+      ...recipe,
+      title: titleTranslations[recipe.title] || recipe.title,
+      category: categoryTranslations[recipe.category] || recipe.category,
+      ingredients: recipe.ingredients.map((ing: string) => {
+        const translated = ingredientTranslations[ing] || toArabicNumerals(ing)
+        return translated
+      }),
+      instructions: recipe.instructions.map((inst: string) => {
+        const translated = instructionTranslations[inst] || toArabicNumerals(inst)
+        return translated
+      }),
+      time: toArabicNumerals(recipe.time),
+      rating: recipe.rating,
+      reviews: recipe.reviews,
+      difficulty: difficultyTranslations[recipe.difficulty] || recipe.difficulty,
+      tags: recipe.tags.map((tag: string) => tagTranslations[tag] || tag)
+    }
+  }
 
   const toggleRecipeDetails = (recipeId: number) => {
     setExpandedRecipes((prev) => {
@@ -55,7 +330,7 @@ export default function Recipes() {
       time: "10 min",
       rating: 4.9,
       reviews: 156,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151606/Screenshot_2025-09-06_143948_ijhtye.png",
       tags: ["refreshing", "summer", "popular", "tequila", "margarita"],
     },
     {
@@ -87,7 +362,7 @@ export default function Recipes() {
       time: "15 min",
       rating: 4.8,
       reviews: 89,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757152674/next-level_ktxiit.png",
       tags: ["spicy", "tropical", "margarita", "jalapeño"],
     },
     {
@@ -114,7 +389,7 @@ export default function Recipes() {
       time: "5 min",
       rating: 4.7,
       reviews: 67,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757152676/signature_rb6rxf.png",
       tags: ["brunch", "mimosa", "citrus", "celebration"],
     },
     {
@@ -140,7 +415,7 @@ export default function Recipes() {
       time: "12 min",
       rating: 4.5,
       reviews: 45,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757152676/winter_migrata_fyyvno.png",
       tags: ["winter", "pomegranate", "ginger", "seasonal"],
     },
     {
@@ -160,7 +435,7 @@ export default function Recipes() {
       time: "20 min",
       rating: 4.6,
       reviews: 34,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757152675/pear-fect_warm_ha2rm7.png",
       tags: ["warm", "pear", "cinnamon", "gin"],
     },
     {
@@ -186,7 +461,7 @@ export default function Recipes() {
       time: "8 min",
       rating: 4.4,
       reviews: 56,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757152675/classic-peach-tea_dryr3g.png",
       tags: ["tea", "peach", "whisky", "classic"],
     },
     {
@@ -205,7 +480,7 @@ export default function Recipes() {
       time: "3 min",
       rating: 4.8,
       reviews: 78,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757152967/red-white_fcsmys.png",
       tags: ["patriotic", "colorful", "tropical", "easy"],
     },
     {
@@ -226,7 +501,7 @@ export default function Recipes() {
       time: "5 min",
       rating: 4.7,
       reviews: 67,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757152676/signature_rb6rxf.png",
       tags: ["brunch", "mimosa", "citrus", "celebration"],
     },
     {
@@ -246,7 +521,7 @@ export default function Recipes() {
       time: "5 min",
       rating: 4.9,
       reviews: 123,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757153192/orange-soda_jrydsp.png",
       tags: ["natural", "orange", "honey", "kid-friendly"],
     },
     {
@@ -265,7 +540,7 @@ export default function Recipes() {
       time: "5 min",
       rating: 4.6,
       reviews: 89,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757153192/lemon-lime_f5s32g.png",
       tags: ["citrus", "lemon", "lime", "refreshing"],
     },
     {
@@ -289,7 +564,7 @@ export default function Recipes() {
       time: "15 min",
       rating: 4.5,
       reviews: 67,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757153192/green-lime_wuvika.png",
       tags: ["lime", "green", "homemade", "colorful"],
     },
     {
@@ -308,7 +583,7 @@ export default function Recipes() {
       time: "3 min",
       rating: 4.7,
       reviews: 45,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757153190/apple-cipher_xkrtz7.png",
       tags: ["apple", "cider", "fall", "seasonal"],
     },
     {
@@ -328,7 +603,7 @@ export default function Recipes() {
       time: "5 min",
       rating: 4.8,
       reviews: 156,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757153629/fruit-soda_sxrpfb.png",
       tags: ["infused", "fruit", "water", "healthy"],
     },
     {
@@ -347,7 +622,7 @@ export default function Recipes() {
       time: "3 min",
       rating: 4.6,
       reviews: 78,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757153629/grapes_gnnfeu.png",
       tags: ["grape", "diet", "juice", "fizzy"],
     },
     {
@@ -366,7 +641,7 @@ export default function Recipes() {
       time: "3 min",
       rating: 4.5,
       reviews: 67,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757153629/grapefruit_bxlgzd.png",
       tags: ["grapefruit", "diet", "juice", "citrus"],
     },
     {
@@ -385,7 +660,7 @@ export default function Recipes() {
       time: "3 min",
       rating: 4.7,
       reviews: 89,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757153628/juice_spritzer_hbegny.png",
       tags: ["spritzer", "fruit", "juice", "refreshing"],
     },
     {
@@ -405,7 +680,7 @@ export default function Recipes() {
       time: "5 min",
       rating: 4.8,
       reviews: 112,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757153628/raspberry_hklbsd.png",
       tags: ["raspberry", "delight", "berry", "sweet"],
     },
     {
@@ -425,7 +700,7 @@ export default function Recipes() {
       time: "5 min",
       rating: 4.6,
       reviews: 78,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757153628/cucumber_ptedtj.png",
       tags: ["cucumber", "sparkler", "refreshing", "light"],
     },
     {
@@ -446,7 +721,7 @@ export default function Recipes() {
       time: "8 min",
       rating: 4.7,
       reviews: 92,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151606/Screenshot_2025-09-06_143948_ijhtye.png",
       tags: ["tropical", "sunset", "rum", "colorful"],
     },
     {
@@ -466,7 +741,7 @@ export default function Recipes() {
       time: "6 min",
       rating: 4.8,
       reviews: 134,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757153192/lemon-lime_f5s32g.png",
       tags: ["berry", "fizz", "natural", "sweet"],
     },
     {
@@ -487,7 +762,7 @@ export default function Recipes() {
       time: "7 min",
       rating: 4.5,
       reviews: 67,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757152676/winter_migrata_fyyvno.png",
       tags: ["mint", "lemonade", "refreshing", "herbal"],
     },
     {
@@ -507,7 +782,7 @@ export default function Recipes() {
       time: "9 min",
       rating: 4.6,
       reviews: 89,
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
+      image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757153629/fruit-soda_sxrpfb.png",
       tags: ["ginger", "lime", "gin", "spicy"],
     },
   ]
@@ -522,7 +797,8 @@ export default function Recipes() {
 
   // Use dynamic recipe rotation for the featured recipe
   const { currentRecipe: dynamicRecipe, timeUntilNext, isRotating } = useRecipeRotation(recipesData, 10)
-  const featuredRecipe = dynamicRecipe || recipesData.find((recipe) => recipe.isFeatured)
+  const rawFeaturedRecipe = dynamicRecipe || recipesData.find((recipe) => recipe.isFeatured)
+  const featuredRecipe = rawFeaturedRecipe ? (language === 'AR' ? convertRecipeToArabic(rawFeaturedRecipe) : rawFeaturedRecipe) : null
 
   const baseFiltered =
     selectedCategory === "all" ? recipesData : recipesData.filter((recipe) => recipe.category === selectedCategory)
@@ -536,7 +812,7 @@ export default function Recipes() {
       recipe.ingredients.join(" ").toLowerCase().includes(query) ||
       recipe.tags.join(" ").toLowerCase().includes(query)
     return matchesSearch
-  })
+  }).map(recipe => convertRecipeToArabic(recipe))
 
   const clearFilters = () => {
     setSelectedCategory("all")
@@ -546,11 +822,11 @@ export default function Recipes() {
   const getCategoryDisplayName = (category: string) => {
     switch (category) {
       case "cocktails":
-        return "Cocktails"
+        return isRTL ? "كوكتيلات" : "Cocktails"
       case "mocktails":
-        return "Mocktails"
+        return isRTL ? "مشروبات غير كحولية" : "Mocktails"
       case "infused":
-        return "Infused Drinks"
+        return isRTL ? "مشروبات مغمسة" : "Infused Drinks"
       default:
         return category
     }
@@ -559,7 +835,7 @@ export default function Recipes() {
   const handleSubmitRecipe = () => {
     // Validate form
     if (!newRecipe.title.trim() || newRecipe.ingredients[0].trim() === "" || newRecipe.instructions[0].trim() === "") {
-      alert("Please fill in all required fields!")
+      alert(isRTL ? "يرجى ملء جميع الحقول المطلوبة!" : "Please fill in all required fields!")
       return
     }
 
@@ -592,44 +868,9 @@ export default function Recipes() {
     })
     setShowSubmitForm(false)
     
-    alert("Recipe submitted successfully! Thank you for sharing!")
+    alert(isRTL ? "تم إرسال الوصفة بنجاح! شكراً لمشاركتك!" : "Recipe submitted successfully! Thank you for sharing!")
   }
 
-  const downloadRecipe = (recipe: any) => {
-    // Create recipe content
-    const recipeContent = `
-${recipe.title}
-${'='.repeat(recipe.title.length)}
-
-Difficulty: ${recipe.difficulty}
-Prep Time: ${recipe.time}
-Servings: 1-2
-Rating: ${recipe.rating}/5 (${recipe.reviews} reviews)
-
-INGREDIENTS:
-${recipe.ingredients.map((ingredient: string, index: number) => `${index + 1}. ${ingredient}`).join('\n')}
-
-INSTRUCTIONS:
-${recipe.instructions.map((instruction: string, index: number) => `${index + 1}. ${instruction}`).join('\n')}
-
-TAGS: ${recipe.tags.join(', ')}
-
----
-Recipe from Drinkmate
-Generated on ${new Date().toLocaleDateString()}
-    `.trim()
-
-    // Create and download file
-    const blob = new Blob([recipeContent], { type: 'text/plain' })
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `${recipe.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_recipe.txt`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-  }
 
   const addIngredient = () => {
     setNewRecipe(prev => ({
@@ -656,11 +897,11 @@ Generated on ${new Date().toLocaleDateString()}
     <PageLayout currentPage="recipes">
       <div dir={isRTL ? "rtl" : "ltr"}>
         {/* Hero Section */}
-        <section className="relative py-16 bg-gray-50 animate-fade-in-up overflow-hidden">
+        <section className="relative py-8 md:py-16 bg-white animate-fade-in-up overflow-hidden">
           {/* Background Image with Overlay */}
           <div className="absolute inset-0 z-0">
             <Image
-              src="/images/recipes-hero-bg.jpg"
+              src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/water-366586_bd4us9.jpg"
               alt="Recipes Background"
               fill
               className="object-cover"
@@ -670,36 +911,17 @@ Generated on ${new Date().toLocaleDateString()}
           </div>
           
           <div className="relative z-10 max-w-7xl mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                <h1
-                  className={`text-5xl font-bold text-white leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-left`}
-                >
-                  {t("recipes.hero.title")}
-                  <br />
-                  <span className="text-[#12d6fa]">{t("recipes.hero.subtitle")}</span>
-                </h1>
-                <p
-                  className={`text-xl text-gray-200 leading-relaxed ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-left delay-200`}
-                >
-                  {t("recipes.hero.description")}
-                </p>
-                
-              
-              </div>
-              <div className="relative flex justify-center">
-                <Image
-                  src="/images/drink-recipes.png"
-                  alt="Drink Recipes"
-                  width={400}
-                  height={320}
-                  className="w-full max-w-md h-auto object-contain"
-                />
-                <div className="absolute -top-4 -right-8 bg-yellow-400 rounded-full w-20 h-20 md:w-24 md:h-24 flex flex-col items-center justify-center text-white font-bold text-center p-2 shadow-lg">
-                  <span className={`text-xs ${isRTL ? "font-cairo" : "font-montserrat"}`}>{recipesData.length}</span>
-                  <span className={`text-sm md:text-lg ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("recipes.hero.recipesLabel")}</span>
-                </div>
-              </div>
+            <div className="text-center space-y-4 md:space-y-6">
+              <h1
+                className={`text-3xl md:text-5xl font-bold text-white leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-tight`}
+              >
+                {isRTL ? "وصفات المشروبات" : "Drink Recipes"}
+              </h1>
+              <p
+                className={`text-base md:text-xl text-gray-200 max-w-3xl mx-auto ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-up delay-200 leading-relaxed`}
+              >
+                {isRTL ? "اكتشف وصفات المشروبات اللذيذة مع شراباتنا الممتازة." : "Discover delicious drink recipes with our premium syrups."}
+              </p>
             </div>
           </div>
         </section>
@@ -708,115 +930,113 @@ Generated on ${new Date().toLocaleDateString()}
         {featuredRecipe && (
           <section className="py-16 bg-white animate-fade-in-up">
             <div className="max-w-7xl mx-auto px-4">
-              <div className={`bg-white rounded-3xl p-12 shadow-lg transition-all duration-500 ${isRotating ? 'scale-105 shadow-2xl' : ''}`}>
-                <div className="text-center mb-8">
-                  <div className="inline-flex items-center space-x-2 bg-yellow-400 text-black px-4 py-2 rounded-full text-sm font-semibold mb-4 animate-slide-in-up">
+              <div className={`bg-white rounded-3xl p-8 shadow-lg transition-all duration-500 ${isRotating ? 'scale-105 shadow-2xl' : ''}`}>
+                {/* Top Badges */}
+                <div className="flex flex-wrap gap-3 mb-6">
+                  <div className="inline-flex items-center space-x-2 bg-yellow-400 text-black px-4 py-2 rounded-full text-sm font-semibold">
                     <Star className="w-4 h-4 fill-current" />
-                    <span className={isRTL ? "font-cairo" : "font-montserrat"}>{t("recipes.featuredRecipe.recipeOfTheWeek")}</span>
-                  </div>
-                  
-                  {/* Rotation Timer */}
-                  <div className="inline-flex items-center space-x-2 bg-[#12d6fa] text-white px-4 py-2 rounded-full text-sm font-semibold mb-4 animate-slide-in-up delay-100">
-                    <Clock className={`w-4 h-4 ${isRotating ? 'animate-spin' : ''}`} />
                     <span className={isRTL ? "font-cairo" : "font-montserrat"}>
-                      Next recipe in: {formatTimeRemaining(timeUntilNext)}
+                      {isRTL ? "وصفة الأسبوع" : "Recipe of the Week"}
                     </span>
                   </div>
                   
-                  {/* Progress Bar */}
-                  <div className="w-full max-w-md mx-auto mb-4">
-                    <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
-                      <div 
-                        className="bg-[#12d6fa] h-full transition-all duration-1000 ease-linear"
-                        style={{ 
-                          width: `${((10 * 60 * 1000 - timeUntilNext) / (10 * 60 * 1000)) * 100}%` 
-                        }}
-                      ></div>
-                    </div>
+                  <div className="inline-flex items-center space-x-2 bg-[#12d6fa] text-white px-4 py-2 rounded-full text-sm font-semibold">
+                    <Clock className={`w-4 h-4 ${isRotating ? 'animate-spin' : ''}`} />
+                    <span className={isRTL ? "font-cairo" : "font-montserrat"}>
+                      {isRTL ? "الوصفة التالية خلال:" : "Next recipe in:"} {formatTimeRemaining(timeUntilNext)}
+                    </span>
                   </div>
+                </div>
+
+                {/* Title and Description */}
+                <div className="mb-8">
                   <h2
-                    className={`text-4xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up delay-200 transition-all duration-300 ${isRotating ? 'text-[#12d6fa]' : ''}`}
+                    className={`text-4xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} transition-all duration-300 ${isRotating ? 'text-[#12d6fa]' : ''}`}
                   >
                     {featuredRecipe.title}
                   </h2>
                   <p
-                    className={`text-gray-600 max-w-2xl mx-auto ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-up delay-300`}
+                    className={`text-gray-600 text-lg ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                   >
-                    {t("recipes.featuredRecipe.description")}
+                    {isRTL ? "تُظهر وصفة هذا الأسبوع توازنًا مثاليًا في النكهات وهي مثالية لأي مناسبة." : "This week's featured recipe showcases the perfect balance of flavors and is perfect for any occasion."}
                   </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-12 items-center">
-                  <div className="space-y-6">
-                    <div className="flex gap-6 justify-start">
-                      <div className="text-left">
-                        <Clock className="w-8 h-8 text-[#12d6fa] mb-2" />
-                        <p className={`text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                          {t("recipes.featuredRecipe.prepTime")}
+                <div className="grid md:grid-cols-2 gap-12 items-start">
+                  <div className="space-y-8">
+                    {/* Recipe Details */}
+                    <div className="flex gap-8">
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-[#12d6fa]/10 rounded-full flex items-center justify-center mb-3">
+                          <Clock className="w-6 h-6 text-[#12d6fa]" />
+                        </div>
+                        <p className={`text-sm text-gray-600 mb-1 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                          {isRTL ? "وقت التحضير" : "Prep Time"}
                         </p>
                         <p className={`font-semibold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>{featuredRecipe.time}</p>
                       </div>
-                      <div className="text-left">
-                        <Utensils className="w-8 h-8 text-[#12d6fa] mb-2" />
-                        <p className={`text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                          {t("recipes.featuredRecipe.difficulty")}
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-[#12d6fa]/10 rounded-full flex items-center justify-center mb-3">
+                          <Utensils className="w-6 h-6 text-[#12d6fa]" />
+                        </div>
+                        <p className={`text-sm text-gray-600 mb-1 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                          {isRTL ? "الصعوبة" : "Difficulty"}
                         </p>
                         <p className={`font-semibold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>{featuredRecipe.difficulty}</p>
                       </div>
-                      <div className="text-left">
-                        <Heart className="w-8 h-8 text-[#12d6fa] mb-2" />
-                        <p className={`text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>Servings</p>
-                        <p className={`font-semibold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>1-2</p>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-[#12d6fa]/10 rounded-full flex items-center justify-center mb-3">
+                          <Heart className="w-6 h-6 text-[#12d6fa]" />
+                        </div>
+                        <p className={`text-sm text-gray-600 mb-1 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                          {isRTL ? "الوجبات" : "Servings"}
+                        </p>
+                        <p className={`font-semibold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                          {language === 'AR' ? toArabicNumerals("1-2") : "1-2"}
+                        </p>
                       </div>
                     </div>
 
+                    {/* Ingredients */}
                     <div>
                       <h3
-                        className={`text-lg font-semibold text-black mb-3 ${isRTL ? "font-cairo" : "font-montserrat"}`}
+                        className={`text-xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}
                       >
-                        {t("recipes.featuredRecipe.ingredients")}
+                        {isRTL ? "المكونات" : "Ingredients"}
                       </h3>
-                      <ul className="space-y-2">
-                        {featuredRecipe.ingredients.map((ingredient, index) => (
-                          <li key={index} className="flex items-center space-x-3">
-                            <div className="w-2 h-2 bg-[#12d6fa] rounded-full"></div>
-                            <span className={`text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                              {ingredient}
-                            </span>
+                      <ul className="space-y-3">
+                        {featuredRecipe.ingredients.map((ingredient: string, index: number) => (
+                          <li key={index} className={`text-gray-700 text-lg ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                            {ingredient}
                           </li>
                         ))}
                       </ul>
                     </div>
 
+                    {/* Instructions */}
                     <div>
                       <h3
-                        className={`text-lg font-semibold text-black mb-3 ${isRTL ? "font-cairo" : "font-montserrat"}`}
+                        className={`text-xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}
                       >
-                        {t("recipes.featuredRecipe.instructions")}
+                        {isRTL ? "التعليمات" : "Instructions"}
                       </h3>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {Array.isArray(featuredRecipe.instructions) ? (
-                          featuredRecipe.instructions.map((instruction, index) => (
-                            <p key={index} className={`text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                          featuredRecipe.instructions.map((instruction: string, index: number) => (
+                            <p key={index} className={`text-gray-700 text-lg ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                               {instruction}
                             </p>
                           ))
                         ) : (
-                          <p className={`text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
+                          <p className={`text-gray-700 text-lg ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                             {featuredRecipe.instructions}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex space-x-3">
-                      <Button
-                        onClick={() => downloadRecipe(featuredRecipe)}
-                        className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-6 py-3"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        <span className={isRTL ? "font-cairo" : "font-montserrat"}>{t("recipes.featuredRecipe.saveRecipe")}</span>
-                      </Button>
+                    {/* Action Buttons */}
+                    <div className="flex gap-4">
                       <Button
                         onClick={() => {
                           if (navigator.share) {
@@ -830,24 +1050,26 @@ Generated on ${new Date().toLocaleDateString()}
                             alert("Link copied to clipboard!")
                           }
                         }}
-                        variant="outline"
-                        className="px-6 py-3 text-gray-600 border-gray-300"
+                        className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-8 py-3 rounded-lg font-semibold"
                       >
-                        <span className={isRTL ? "font-cairo" : "font-montserrat"}>{t("recipes.featuredRecipe.share")}</span>
+                        <span className={isRTL ? "font-cairo" : "font-montserrat"}>
+                          {isRTL ? "مشاركة" : "Share"}
+                        </span>
                       </Button>
                     </div>
                   </div>
 
-                  <div className="relative flex justify-center">
-                    <div className="relative bg-white p-4 md:p-6 h-48 md:h-64 flex items-center justify-center overflow-hidden rounded-2xl">
+                  {/* Recipe Image */}
+                  <div className="relative">
+                    <div className="relative bg-pink-50 h-96 flex items-center justify-center overflow-hidden rounded-2xl">
                       <Image
                         src={featuredRecipe.image || "/placeholder.svg"}
                         alt={featuredRecipe.title}
-                        width={350}
+                        width={500}
                         height={400}
-                        className="w-full max-w-sm h-auto object-contain"
+                        className="w-full h-full object-cover"
                       />
-                      <div className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-md">
+                      <div className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg">
                         <Heart className="w-5 h-5 text-red-500" />
                       </div>
                     </div>
@@ -906,7 +1128,9 @@ Generated on ${new Date().toLocaleDateString()}
                         : "bg-white text-gray-700 hover:bg-gray-50 border-gray-200"
                     }`}
                   >
-                    <span className={isRTL ? "font-cairo" : "font-montserrat"}>{category.name === "all" ? "All" : getCategoryDisplayName(category.name)}</span>
+                    <span className={isRTL ? "font-cairo" : "font-montserrat"}>
+                      {category.name === "all" ? (isRTL ? "الكل" : "All") : getCategoryDisplayName(category.name)}
+                    </span>
                     <span
                       className={`ml-2 inline-flex items-center justify-center rounded-full text-[10px] px-2 py-0.5 ${
                         selectedCategory === category.name ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
@@ -928,13 +1152,13 @@ Generated on ${new Date().toLocaleDateString()}
                   className="recipe-card bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group"
                 >
                   {/* Recipe Image */}
-                  <div className="relative bg-white p-4 md:p-6 h-48 md:h-64 flex items-center justify-center overflow-hidden rounded-2xl">
+                  <div className="relative bg-gray-100 h-48 md:h-64 overflow-hidden rounded-t-3xl">
                     <Image
                       src={recipe.image || "/placeholder.svg"}
                       alt={recipe.title}
-                      width={180}
-                      height={180}
-                      className="w-full max-w-[180px] h-auto object-contain transition-transform duration-300 group-hover:scale-110"
+                      width={400}
+                      height={300}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
 
                     {/* Recipe Info Overlay */}
@@ -955,7 +1179,9 @@ Generated on ${new Date().toLocaleDateString()}
                     <div className="absolute top-4 right-4 bg-white rounded-full px-2 py-1 shadow-md">
                       <div className="flex items-center space-x-1">
                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className={`text-sm font-semibold text-gray-800 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{recipe.rating}</span>
+                        <span className={`text-sm font-semibold text-gray-800 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                          {language === 'AR' ? toArabicNumerals(recipe.rating.toString()) : recipe.rating}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -966,7 +1192,7 @@ Generated on ${new Date().toLocaleDateString()}
 
                     {/* Tags */}
                     <div className="flex flex-wrap gap-2">
-                      {recipe.tags.map((tag, index) => (
+                      {recipe.tags.map((tag: string, index: number) => (
                         <span key={index} className={`bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
                           {tag}
                         </span>
@@ -975,11 +1201,11 @@ Generated on ${new Date().toLocaleDateString()}
 
                     {/* Quick Info */}
                     <div className={`flex items-center justify-between text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                      <span>
-                        {recipe.reviews} {isRTL ? "تقييم" : "reviews"}
+                        <span>
+                        {language === 'AR' ? toArabicNumerals(recipe.reviews.toString()) : recipe.reviews} {isRTL ? "تقييم" : "reviews"}
                       </span>
                       <span>
-                        {recipe.ingredients.length} {isRTL ? "مكون" : "ingredients"}
+                        {language === 'AR' ? toArabicNumerals(recipe.ingredients.length.toString()) : recipe.ingredients.length} {isRTL ? "مكون" : "ingredients"}
                       </span>
                     </div>
 
@@ -990,16 +1216,8 @@ Generated on ${new Date().toLocaleDateString()}
                         className="flex-1 bg-[#12d6fa] hover:bg-[#0bc4e8] text-white"
                       >
                         <span className={isRTL ? "font-cairo" : "font-montserrat"}>
-                          {expandedRecipes.has(recipe.id) ? "Hide Details" : "Show Details"}
+                          {expandedRecipes.has(recipe.id) ? (isRTL ? "إخفاء التفاصيل" : "Hide Details") : (isRTL ? "عرض التفاصيل" : "Show Details")}
                         </span>
-                      </Button>
-                      <Button
-                        onClick={() => downloadRecipe(recipe)}
-                        variant="outline"
-                        className="px-4 border-gray-300"
-                        title="Download Recipe"
-                      >
-                        <Download className="w-4 h-4" />
                       </Button>
                     </div>
 
@@ -1008,9 +1226,11 @@ Generated on ${new Date().toLocaleDateString()}
                         <div className="space-y-4">
                           {/* Ingredients */}
                           <div>
-                            <h4 className={`font-semibold text-gray-800 mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>Ingredients:</h4>
+                            <h4 className={`font-semibold text-gray-800 mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                              {isRTL ? "المكونات:" : "Ingredients:"}
+                            </h4>
                             <ul className={`list-disc list-inside space-y-1 text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                              {recipe.ingredients.map((ingredient, index) => (
+                              {recipe.ingredients.map((ingredient: string, index: number) => (
                                 <li key={index}>{ingredient}</li>
                               ))}
                             </ul>
@@ -1018,9 +1238,11 @@ Generated on ${new Date().toLocaleDateString()}
 
                           {/* Instructions */}
                           <div>
-                            <h4 className={`font-semibold text-gray-800 mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>Instructions:</h4>
+                            <h4 className={`font-semibold text-gray-800 mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                              {isRTL ? "التعليمات:" : "Instructions:"}
+                            </h4>
                             <ol className={`list-decimal list-inside space-y-1 text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                              {recipe.instructions.map((instruction, index) => (
+                              {recipe.instructions.map((instruction: string, index: number) => (
                                 <li key={index}>{instruction}</li>
                               ))}
                             </ol>
@@ -1028,8 +1250,8 @@ Generated on ${new Date().toLocaleDateString()}
 
                           {/* Difficulty & Time */}
                           <div className={`flex items-center gap-4 text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                            <span>Difficulty: {recipe.difficulty}</span>
-                            <span>Time: {recipe.time}</span>
+                            <span>{isRTL ? "الصعوبة:" : "Difficulty:"} {recipe.difficulty}</span>
+                            <span>{isRTL ? "الوقت:" : "Time:"} {recipe.time}</span>
                           </div>
                         </div>
                       </div>
@@ -1046,10 +1268,10 @@ Generated on ${new Date().toLocaleDateString()}
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className={`text-4xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                Quick Recipe Tips
+                {isRTL ? "نصائح سريعة للوصفات" : "Quick Recipe Tips"}
               </h2>
               <p className={`text-xl text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                Master the art of perfect sparkling drinks with these essential tips
+                {isRTL ? "أتقن فن المشروبات المتلألئة المثالية مع هذه النصائح الأساسية" : "Master the art of perfect sparkling drinks with these essential tips"}
               </p>
             </div>
 
@@ -1059,11 +1281,10 @@ Generated on ${new Date().toLocaleDateString()}
                   <Clock className="w-8 h-8 text-white" />
                 </div>
                 <h3 className={`text-lg font-bold text-black mb-3 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                  Perfect Timing
+                  {isRTL ? "التوقيت المثالي" : "Perfect Timing"}
                 </h3>
                 <p className={`text-gray-600 text-sm leading-relaxed ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                  Carbonate water first, then add syrups and flavors. This prevents overflow and ensures consistent
-                  taste.
+                  {isRTL ? "أكربن الماء أولاً، ثم أضف الشراب والنكهات. هذا يمنع الفيضان ويضمن طعمًا متسقًا." : "Carbonate water first, then add syrups and flavors. This prevents overflow and ensures consistent taste."}
                 </p>
               </div>
 
@@ -1072,10 +1293,10 @@ Generated on ${new Date().toLocaleDateString()}
                   <Utensils className="w-8 h-8 text-white" />
                 </div>
                 <h3 className={`text-lg font-bold text-black mb-3 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                  Temperature Control
+                  {isRTL ? "التحكم في درجة الحرارة" : "Temperature Control"}
                 </h3>
                 <p className={`text-gray-600 text-sm leading-relaxed ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                  Use chilled water and ingredients. Cold liquids hold carbonation better and taste more refreshing.
+                  {isRTL ? "استخدم الماء البارد والمكونات. السوائل الباردة تحتفظ بالتكربنة بشكل أفضل وتكون أكثر انتعاشًا." : "Use chilled water and ingredients. Cold liquids hold carbonation better and taste more refreshing."}
                 </p>
               </div>
 
@@ -1084,10 +1305,10 @@ Generated on ${new Date().toLocaleDateString()}
                   <Star className="w-8 h-8 text-white" />
                 </div>
                 <h3 className={`text-lg font-bold text-black mb-3 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                  Flavor Balance
+                  {isRTL ? "توازن النكهة" : "Flavor Balance"}
                 </h3>
                 <p className={`text-gray-600 text-sm leading-relaxed ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                  Start with less syrup and adjust to taste. You can always add more, but you can't take it away.
+                  {isRTL ? "ابدأ بكمية أقل من الشراب وقم بالتعديل حسب الذوق. يمكنك دائمًا إضافة المزيد، لكن لا يمكنك إزالته." : "Start with less syrup and adjust to taste. You can always add more, but you can't take it away."}
                 </p>
               </div>
 
@@ -1096,10 +1317,10 @@ Generated on ${new Date().toLocaleDateString()}
                   <Heart className="w-8 h-8 text-white" />
                 </div>
                 <h3 className={`text-lg font-bold text-black mb-3 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                  Fresh Garnishes
+                  {isRTL ? "الزينة الطازجة" : "Fresh Garnishes"}
                 </h3>
                 <p className={`text-gray-600 text-sm leading-relaxed ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                  Add fresh fruits, herbs, or citrus zest after carbonation for enhanced flavor and visual appeal.
+                  {isRTL ? "أضف الفواكه الطازجة أو الأعشاب أو قشر الحمضيات بعد التكربنة لتعزيز النكهة والمظهر البصري." : "Add fresh fruits, herbs, or citrus zest after carbonation for enhanced flavor and visual appeal."}
                 </p>
               </div>
             </div>
@@ -1111,10 +1332,10 @@ Generated on ${new Date().toLocaleDateString()}
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className={`text-4xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                Community Recipes
+                {isRTL ? "وصفات المجتمع" : "Community Recipes"}
               </h2>
               <p className={`text-xl text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                Amazing recipes shared by our community
+                {isRTL ? "وصفات رائعة شاركها مجتمعنا" : "Amazing recipes shared by our community"}
               </p>
             </div>
 
@@ -1122,34 +1343,37 @@ Generated on ${new Date().toLocaleDateString()}
               {recipesData
                 .filter(recipe => recipe.rating >= 4.8)
                 .slice(0, 2)
-                .map((recipe, index) => (
-                  <div key={recipe.id} className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                .map((recipe, index) => {
+                  const convertedRecipe = language === 'AR' ? convertRecipeToArabic(recipe) : recipe;
+                  return (
+                  <div key={convertedRecipe.id} className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className={`text-xl font-bold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                        {recipe.title}
+                        {convertedRecipe.title}
                       </h3>
                       <div className="flex items-center space-x-1">
                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
                         <span className={`text-sm text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                          {recipe.rating}
+                          {language === 'AR' ? toArabicNumerals(convertedRecipe.rating.toString()) : convertedRecipe.rating}
                         </span>
                       </div>
                     </div>
                     <p className={`text-gray-600 mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                      {recipe.ingredients.slice(0, 3).join(", ")} with a refreshing twist
+                      {convertedRecipe.ingredients.slice(0, 3).join(", ")} {isRTL ? "بنكهة منعشة" : "with a refreshing twist"}
                     </p>
                     <div className="flex items-center justify-between">
                       <span className={`text-sm text-gray-500 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                        by {recipe.category === "cocktails" ? "Mixologist" : recipe.category === "mocktails" ? "Bartender" : "Chef"} {recipe.id % 2 === 0 ? "Sarah M." : "Ahmed K."}
+                        {isRTL ? "بواسطة" : "by"} {convertedRecipe.category === "cocktails" ? (isRTL ? "خبير كوكتيلات" : "Mixologist") : convertedRecipe.category === "mocktails" ? (isRTL ? "نادل" : "Bartender") : (isRTL ? "طباخ" : "Chef")} {convertedRecipe.id % 2 === 0 ? (isRTL ? "سارة م." : "Sarah M.") : (isRTL ? "أحمد ك." : "Ahmed K.")}
                       </span>
                       <span
                         className={`text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                       >
-                        Verified
+                        {isRTL ? "موثق" : "Verified"}
                       </span>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
             </div>
 
             <div className="text-center mt-8">
@@ -1157,7 +1381,9 @@ Generated on ${new Date().toLocaleDateString()}
                 onClick={() => setShowSubmitForm(true)}
                 className="bg-[#12d6fa] hover:bg-[#0fb8e6] text-white font-medium py-3 px-8 rounded-lg"
               >
-                <span className={isRTL ? "font-cairo" : "font-montserrat"}>Submit Your Recipe</span>
+                <span className={isRTL ? "font-cairo" : "font-montserrat"}>
+                  {isRTL ? "أرسل وصفتك" : "Submit Your Recipe"}
+                </span>
               </Button>
             </div>
           </div>
@@ -1168,10 +1394,10 @@ Generated on ${new Date().toLocaleDateString()}
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className={`text-4xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                Nutritional Information
+                {isRTL ? "المعلومات الغذائية" : "Nutritional Information"}
               </h2>
               <p className={`text-xl text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}>
-                Learn about the health benefits and nutritional content of our drinks
+                {isRTL ? "تعرف على الفوائد الصحية والمحتوى الغذائي لمشروباتنا" : "Learn about the health benefits and nutritional content of our drinks"}
               </p>
             </div>
 
@@ -1180,65 +1406,37 @@ Generated on ${new Date().toLocaleDateString()}
                 <h3
                   className={`text-lg md:text-xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}
                 >
-                  Calorie Content
+                  {isRTL ? "محتوى السعرات الحرارية" : "Calorie Content"}
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span
                       className={`text-sm md:text-base text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     >
-                      Plain Sparkling Water
+                      {isRTL ? "ماء متلألئ عادي" : "Plain Sparkling Water"}
                     </span>
-                    <span className={`font-semibold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>0 calories</span>
+                    <span className={`font-semibold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                      {isRTL ? toArabicNumerals("0") : "0"} {isRTL ? "سعرة حرارية" : "calories"}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span
                       className={`text-sm md:text-base text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     >
-                      With Natural Syrup
+                      {isRTL ? "مع شراب طبيعي" : "With Natural Syrup"}
                     </span>
-                    <span className={`font-semibold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>15-25 calories</span>
+                    <span className={`font-semibold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                      {isRTL ? toArabicNumerals("15-25") : "15-25"} {isRTL ? "سعرة حرارية" : "calories"}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span
                       className={`text-sm md:text-base text-gray-600 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     >
-                      Premium Syrup Mix
+                      {isRTL ? "خليط شراب ممتاز" : "Premium Syrup Mix"}
                     </span>
-                    <span className={`font-semibold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>30-45 calories</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white p-4 md:p-6 rounded-2xl shadow-lg">
-                <h3
-                  className={`text-lg md:text-xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}
-                >
-                  Health Benefits
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-start space-x-2">
-                    <div className="w-2 h-2 bg-[#a8f387] rounded-full mt-2 flex-shrink-0"></div>
-                    <span
-                      className={`text-sm md:text-base text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
-                    >
-                      Hydration without added sugars
-                    </span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <div className="w-2 h-2 bg-[#a8f387] rounded-full mt-2 flex-shrink-0"></div>
-                    <span
-                      className={`text-sm md:text-base text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
-                    >
-                      Natural flavors from real ingredients
-                    </span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <div className="w-2 h-2 bg-[#a8f387] rounded-full mt-2 flex-shrink-0"></div>
-                    <span
-                      className={`text-sm md:text-base text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
-                    >
-                      Low-calorie alternative to sodas
+                    <span className={`font-semibold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                      {isRTL ? toArabicNumerals("30-45") : "30-45"} {isRTL ? "سعرة حرارية" : "calories"}
                     </span>
                   </div>
                 </div>
@@ -1248,7 +1446,41 @@ Generated on ${new Date().toLocaleDateString()}
                 <h3
                   className={`text-lg md:text-xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}
                 >
-                  Allergen Information
+                  {isRTL ? "الفوائد الصحية" : "Health Benefits"}
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-start space-x-2">
+                    <div className="w-2 h-2 bg-[#a8f387] rounded-full mt-2 flex-shrink-0"></div>
+                    <span
+                      className={`text-sm md:text-base text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                    >
+                      {isRTL ? "ترطيب بدون إضافة سكريات" : "Hydration without added sugars"}
+                    </span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-2 h-2 bg-[#a8f387] rounded-full mt-2 flex-shrink-0"></div>
+                    <span
+                      className={`text-sm md:text-base text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                    >
+                      {isRTL ? "نكهات طبيعية من مكونات حقيقية" : "Natural flavors from real ingredients"}
+                    </span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-2 h-2 bg-[#a8f387] rounded-full mt-2 flex-shrink-0"></div>
+                    <span
+                      className={`text-sm md:text-base text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                    >
+                      {isRTL ? "بديل منخفض السعرات الحرارية للصودا" : "Low-calorie alternative to sodas"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 md:p-6 rounded-2xl shadow-lg">
+                <h3
+                  className={`text-lg md:text-xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}
+                >
+                  {isRTL ? "معلومات الحساسية" : "Allergen Information"}
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-start space-x-2">
@@ -1256,7 +1488,7 @@ Generated on ${new Date().toLocaleDateString()}
                     <span
                       className={`text-sm md:text-base text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     >
-                      All syrups are gluten-free
+                      {isRTL ? "جميع الشرابات خالية من الغلوتين" : "All syrups are gluten-free"}
                     </span>
                   </div>
                   <div className="flex items-start space-x-2">
@@ -1264,7 +1496,7 @@ Generated on ${new Date().toLocaleDateString()}
                     <span
                       className={`text-sm md:text-base text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     >
-                      Made with natural ingredients
+                      {isRTL ? "مصنوعة من مكونات طبيعية" : "Made with natural ingredients"}
                     </span>
                   </div>
                   <div className="flex items-start space-x-2">
@@ -1272,7 +1504,7 @@ Generated on ${new Date().toLocaleDateString()}
                     <span
                       className={`text-sm md:text-base text-gray-700 ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     >
-                      No artificial preservatives
+                      {isRTL ? "لا تحتوي على مواد حافظة صناعية" : "No artificial preservatives"}
                     </span>
                   </div>
                 </div>
@@ -1288,7 +1520,7 @@ Generated on ${new Date().toLocaleDateString()}
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className={`text-2xl font-bold text-black ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                    Submit Your Recipe
+                    {isRTL ? "أرسل وصفتك" : "Submit Your Recipe"}
                   </h2>
                   <button
                     onClick={() => setShowSubmitForm(false)}
@@ -1302,14 +1534,14 @@ Generated on ${new Date().toLocaleDateString()}
                   {/* Recipe Title */}
                   <div>
                     <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                      Recipe Title *
+                      {isRTL ? "عنوان الوصفة *" : "Recipe Title *"}
                     </label>
                     <input
                       type="text"
                       value={newRecipe.title}
                       onChange={(e) => setNewRecipe(prev => ({ ...prev, title: e.target.value }))}
                       className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#12d6fa] ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
-                      placeholder="Enter recipe title"
+                      placeholder={isRTL ? "أدخل عنوان الوصفة" : "Enter recipe title"}
                       required
                     />
                   </div>
@@ -1317,23 +1549,23 @@ Generated on ${new Date().toLocaleDateString()}
                   {/* Category */}
                   <div>
                     <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                      Category *
+                      {isRTL ? "الفئة *" : "Category *"}
                     </label>
                     <select
                       value={newRecipe.category}
                       onChange={(e) => setNewRecipe(prev => ({ ...prev, category: e.target.value }))}
                       className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#12d6fa] ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                     >
-                      <option value="cocktails">Cocktails</option>
-                      <option value="mocktails">Mocktails</option>
-                      <option value="infused">Infused Drinks</option>
+                      <option value="cocktails">{isRTL ? "كوكتيلات" : "Cocktails"}</option>
+                      <option value="mocktails">{isRTL ? "مشروبات غير كحولية" : "Mocktails"}</option>
+                      <option value="infused">{isRTL ? "مشروبات مغمسة" : "Infused Drinks"}</option>
                     </select>
                   </div>
 
                   {/* Ingredients */}
                   <div>
                     <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                      Ingredients *
+                      {isRTL ? "المكونات *" : "Ingredients *"}
                     </label>
                     {newRecipe.ingredients.map((ingredient, index) => (
                       <div key={index} className="flex gap-2 mb-2">
@@ -1346,7 +1578,7 @@ Generated on ${new Date().toLocaleDateString()}
                             setNewRecipe(prev => ({ ...prev, ingredients: newIngredients }))
                           }}
                           className={`flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#12d6fa] ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
-                          placeholder={`Ingredient ${index + 1}`}
+                          placeholder={isRTL ? `المكون ${index + 1}` : `Ingredient ${index + 1}`}
                           required={index === 0}
                         />
                         {index > 0 && (
@@ -1368,14 +1600,14 @@ Generated on ${new Date().toLocaleDateString()}
                       onClick={addIngredient}
                       className={`text-sm text-[#12d6fa] hover:text-[#0bc4e8] ${isRTL ? "font-cairo" : "font-montserrat"}`}
                     >
-                      + Add Ingredient
+                      {isRTL ? "+ أضف مكوناً" : "+ Add Ingredient"}
                     </button>
                   </div>
 
                   {/* Instructions */}
                   <div>
                     <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                      Instructions *
+                      {isRTL ? "التعليمات *" : "Instructions *"}
                     </label>
                     {newRecipe.instructions.map((instruction, index) => (
                       <div key={index} className="flex gap-2 mb-2">
@@ -1391,7 +1623,7 @@ Generated on ${new Date().toLocaleDateString()}
                             setNewRecipe(prev => ({ ...prev, instructions: newInstructions }))
                           }}
                           className={`flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#12d6fa] ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
-                          placeholder={`Step ${index + 1}`}
+                          placeholder={isRTL ? `الخطوة ${index + 1}` : `Step ${index + 1}`}
                           required={index === 0}
                         />
                         {index > 0 && (
@@ -1413,7 +1645,7 @@ Generated on ${new Date().toLocaleDateString()}
                       onClick={addInstruction}
                       className={`text-sm text-[#12d6fa] hover:text-[#0bc4e8] ${isRTL ? "font-cairo" : "font-montserrat"}`}
                     >
-                      + Add Step
+                      {isRTL ? "+ أضف خطوة" : "+ Add Step"}
                     </button>
                   </div>
 
@@ -1421,28 +1653,28 @@ Generated on ${new Date().toLocaleDateString()}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                        Difficulty
+                        {isRTL ? "الصعوبة" : "Difficulty"}
                       </label>
                       <select
                         value={newRecipe.difficulty}
                         onChange={(e) => setNewRecipe(prev => ({ ...prev, difficulty: e.target.value }))}
                         className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#12d6fa] ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
                       >
-                        <option value="Easy">Easy</option>
-                        <option value="Intermediate">Intermediate</option>
-                        <option value="Advanced">Advanced</option>
+                        <option value="Easy">{isRTL ? "سهل" : "Easy"}</option>
+                        <option value="Intermediate">{isRTL ? "متوسط" : "Intermediate"}</option>
+                        <option value="Advanced">{isRTL ? "متقدم" : "Advanced"}</option>
                       </select>
                     </div>
                     <div>
                       <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                        Time
+                        {isRTL ? "الوقت" : "Time"}
                       </label>
                       <input
                         type="text"
                         value={newRecipe.time}
                         onChange={(e) => setNewRecipe(prev => ({ ...prev, time: e.target.value }))}
                         className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#12d6fa] ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
-                        placeholder="e.g., 10 min"
+                        placeholder={isRTL ? "مثال: ١٠ دقيقة" : "e.g., 10 min"}
                       />
                     </div>
                   </div>
@@ -1450,7 +1682,7 @@ Generated on ${new Date().toLocaleDateString()}
                   {/* Tags */}
                   <div>
                     <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                      Tags
+                      {isRTL ? "العلامات" : "Tags"}
                     </label>
                     {newRecipe.tags.map((tag, index) => (
                       <div key={index} className="flex gap-2 mb-2">
@@ -1463,7 +1695,7 @@ Generated on ${new Date().toLocaleDateString()}
                             setNewRecipe(prev => ({ ...prev, tags: newTags }))
                           }}
                           className={`flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#12d6fa] ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
-                          placeholder="e.g., refreshing, summer"
+                          placeholder={isRTL ? "مثال: منعش، صيفي" : "e.g., refreshing, summer"}
                         />
                         {index > 0 && (
                           <button
@@ -1484,7 +1716,7 @@ Generated on ${new Date().toLocaleDateString()}
                       onClick={addTag}
                       className={`text-sm text-[#12d6fa] hover:text-[#0bc4e8] ${isRTL ? "font-cairo" : "font-montserrat"}`}
                     >
-                      + Add Tag
+                      {isRTL ? "+ أضف علامة" : "+ Add Tag"}
                     </button>
                   </div>
 
@@ -1494,7 +1726,9 @@ Generated on ${new Date().toLocaleDateString()}
                       type="submit"
                       className="flex-1 bg-[#12d6fa] hover:bg-[#0bc4e8] text-white"
                     >
-                      <span className={isRTL ? "font-cairo" : "font-montserrat"}>Submit Recipe</span>
+                      <span className={isRTL ? "font-cairo" : "font-montserrat"}>
+                        {isRTL ? "إرسال الوصفة" : "Submit Recipe"}
+                      </span>
                     </Button>
                     <Button
                       type="button"
@@ -1502,7 +1736,9 @@ Generated on ${new Date().toLocaleDateString()}
                       variant="outline"
                       className="flex-1"
                     >
-                      <span className={isRTL ? "font-cairo" : "font-montserrat"}>Cancel</span>
+                      <span className={isRTL ? "font-cairo" : "font-montserrat"}>
+                        {isRTL ? "إلغاء" : "Cancel"}
+                      </span>
                     </Button>
                   </div>
                 </form>

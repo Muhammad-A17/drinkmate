@@ -171,7 +171,7 @@ export default function Header({ currentPage }: HeaderProps) {
                     {/* Flavors */}
                     <Link
                       href="/shop/flavor"
-                      className="col-span-1 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl p-4 text-white hover:from-pink-600 hover:to-rose-700 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center"
+                      className="col-span-1 bg-[#a8f387] hover:bg-[#96e075] rounded-2xl p-4 text-white  transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center"
                       onClick={(e) => {
                         e.preventDefault()
                         setIsShopDropdownOpen(false)
@@ -465,7 +465,7 @@ export default function Header({ currentPage }: HeaderProps) {
                   {/* Flavors */}
                   <Link
                     href="/shop/flavor"
-                    className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl p-6 text-white hover:from-pink-600 hover:to-rose-700 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square"
+                    className="bg-[#a8f387] hover:bg-[#96e075] rounded-2xl p-6 text-white  transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square"
                     onClick={(e) => {
                       e.preventDefault()
                       setIsMobileMenuOpen(false)

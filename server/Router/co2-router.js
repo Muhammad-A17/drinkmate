@@ -11,6 +11,9 @@ router.get('/cylinders', co2Controller.getAllCylinders);
 // Get cylinder by ID (public)
 router.get('/cylinders/:id', co2Controller.getCylinderById);
 
+// Get cylinder by slug (public)
+router.get('/cylinders/slug/:slug', co2Controller.getCylinderBySlug);
+
 // Admin only routes for cylinder management
 router.post('/cylinders', authenticateToken, isAdmin, co2Controller.createCylinder);
 router.put('/cylinders/:id', authenticateToken, isAdmin, co2Controller.updateCylinder);

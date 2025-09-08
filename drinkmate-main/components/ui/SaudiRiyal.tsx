@@ -1,10 +1,12 @@
 import React from 'react';
+import { toArabicNumerals } from '@/lib/utils';
 
 interface SaudiRiyalProps {
   amount: number | undefined | null;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   showSymbol?: boolean;
+  language?: 'EN' | 'AR';
 }
 
 /**
@@ -20,18 +22,20 @@ interface SaudiRiyalProps {
  * <SaudiRiyal amount={599.00} className="text-green-600" />
  * <SaudiRiyal amount={99.99} showSymbol={false} />
  */
-const SaudiRiyal: React.FC<SaudiRiyalProps> = ({ 
-  amount, 
-  size = 'md', 
-  className = '', 
-  showSymbol = true 
+const SaudiRiyal: React.FC<SaudiRiyalProps> = ({
+  amount,
+  size = 'md',
+  className = '',
+  showSymbol = true,
+  language = 'EN'
 }) => {
   // Format the amount
   const formatAmount = (value: number | undefined | null): string => {
     if (value === undefined || value === null) {
-      return '0.00';
+      return language === 'AR' ? toArabicNumerals('0.00') : '0.00';
     }
-    return Number(value).toFixed(2);
+    const formatted = Number(value).toFixed(2);
+    return language === 'AR' ? toArabicNumerals(formatted) : formatted;
   };
 
   // Get size class

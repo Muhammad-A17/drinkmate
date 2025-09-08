@@ -810,9 +810,12 @@ export interface Translations {
       subtitle: string
       fullName: string
       email: string
+      phone: string
       subject: string
       message: string
       sendMessage: string
+      sending: string
+      optional: string
       subjects: {
         general: string
         product: string
@@ -824,6 +827,7 @@ export interface Translations {
       placeholders: {
         fullName: string
         email: string
+        phone: string
         subject: string
         message: string
       }
@@ -3732,9 +3736,12 @@ export const translations: Record<Language, Translations> = {
         subtitle: "Fill out the form and we'll respond ASAP",
         fullName: "Full Name *",
         email: "Email Address *",
+        phone: "Phone Number",
         subject: "Subject *",
         message: "Message *",
         sendMessage: "Send Message",
+        sending: "Sending...",
+        optional: "Optional",
         subjects: {
           general: "General Inquiry",
           product: "Product Question",
@@ -3746,6 +3753,7 @@ export const translations: Record<Language, Translations> = {
         placeholders: {
           fullName: "Enter your full name",
           email: "Enter your email",
+          phone: "Enter your phone number",
           subject: "Select a subject",
           message: "How can we help you?"
         }
@@ -5449,9 +5457,12 @@ export const translations: Record<Language, Translations> = {
         subtitle: "املأ النموذج وسنرد في أقرب وقت",
         fullName: "الاسم الكامل *",
         email: "عنوان البريد الإلكتروني *",
+        phone: "رقم الهاتف",
         subject: "الموضوع *",
         message: "الرسالة *",
         sendMessage: "أرسل الرسالة",
+        sending: "جار الإرسال...",
+        optional: "اختياري",
         subjects: {
           general: "استفسار عام",
           product: "سؤال عن المنتج",
@@ -5463,6 +5474,7 @@ export const translations: Record<Language, Translations> = {
         placeholders: {
           fullName: "أدخل اسمك الكامل",
           email: "أدخل بريدك الإلكتروني",
+          phone: "أدخل رقم هاتفك",
           subject: "اختر موضوعاً",
           message: "كيف يمكننا مساعدتك؟"
         }

@@ -16,6 +16,10 @@ const ReviewSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Bundle'
     },
+    co2Cylinder: {
+        type: Schema.Types.ObjectId,
+        ref: 'CO2Cylinder'
+    },
     rating: {
         type: Number,
         required: [true, 'Rating is required'],
@@ -71,24 +75,27 @@ const ReviewSchema = new Schema({
     }
 }, { timestamps: true });
 
-// Validation to ensure either product or bundle is provided
+// Validation to ensure either product, bundle, or co2Cylinder is provided
 ReviewSchema.pre('validate', function(next) {
-    if (!this.product && !this.bundle) {
-        this.invalidate('product', 'Either product or bundle must be provided');
+    if (!this.product && !this.bundle && !this.co2Cylinder) {
+        this.invalidate('product', 'Either product, bundle, or co2Cylinder must be provided');
     }
-    if (this.product && this.bundle) {
-        this.invalidate('product', 'Only one of product or bundle should be provided');
+    const providedCount = [this.product, this.bundle, this.co2Cylinder].filter(Boolean).length;
+    if (providedCount > 1) {
+        this.invalidate('product', 'Only one of product, bundle, or co2Cylinder should be provided');
     }
     next();
 });
 
-// Post-save hook to update product or bundle rating
+// Post-save hook to update product, bundle, or co2Cylinder rating
 ReviewSchema.post('save', async function() {
     if (this.status === 'approved') {
         if (this.product) {
             await this.updateProductRating();
         } else if (this.bundle) {
             await this.updateBundleRating();
+        } else if (this.co2Cylinder) {
+            await this.updateCO2CylinderRating();
         }
     }
 });
@@ -131,6 +138,25 @@ ReviewSchema.methods.updateBundleRating = async function() {
     }
 };
 
+// Method to update CO2 cylinder rating
+ReviewSchema.methods.updateCO2CylinderRating = async function() {
+    const CO2Cylinder = mongoose.model('CO2Cylinder');
+    const reviews = await mongoose.model('Review').find({ 
+        co2Cylinder: this.co2Cylinder,
+        status: 'approved'
+    });
+    
+    if (reviews.length > 0) {
+        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+        const averageRating = totalRating / reviews.length;
+        
+        await CO2Cylinder.findByIdAndUpdate(this.co2Cylinder, {
+            averageRating,
+            totalReviews: reviews.length
+        });
+    }
+};
+
 // Create compound indexes to prevent duplicate reviews and ensure efficient queries
 ReviewSchema.index({ user: 1, product: 1 }, { 
     unique: true, 
@@ -142,6 +168,12 @@ ReviewSchema.index({ user: 1, bundle: 1 }, {
     unique: true, 
     sparse: true,
     partialFilterExpression: { bundle: { $exists: true } }
+});
+
+ReviewSchema.index({ user: 1, co2Cylinder: 1 }, { 
+    unique: true, 
+    sparse: true,
+    partialFilterExpression: { co2Cylinder: { $exists: true } }
 });
 
 // Create a text index for search functionality
