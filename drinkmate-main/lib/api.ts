@@ -1268,5 +1268,87 @@ export const refillAPI = {
   }
 };
 
+// CO2 Cylinders API
+export const co2API = {
+  // Get all CO2 cylinders
+  getCylinders: async () => {
+    const cacheKey = 'co2-cylinders';
+    
+    return retryRequest(async () => {
+      const response = await api.get('/co2/cylinders');
+      return response.data;
+    }, cacheKey);
+  },
+  
+  // Get a single CO2 cylinder by ID
+  getCylinder: async (id: string) => {
+    const cacheKey = `co2-cylinder-${id}`;
+    
+    return retryRequest(async () => {
+      const response = await api.get(`/co2/cylinders/${id}`);
+      return response.data;
+    }, cacheKey);
+  },
+  
+  // Create a new CO2 cylinder
+  createCylinder: async (cylinderData: any) => {
+    return retryRequest(async () => {
+      const response = await api.post('/co2/cylinders', cylinderData);
+      return response.data;
+    });
+  },
+  
+  // Update a CO2 cylinder
+  updateCylinder: async (id: string, cylinderData: any) => {
+    return retryRequest(async () => {
+      const response = await api.put(`/co2/cylinders/${id}`, cylinderData);
+      return response.data;
+    });
+  },
+  
+  // Delete a CO2 cylinder
+  deleteCylinder: async (id: string) => {
+    return retryRequest(async () => {
+      const response = await api.delete(`/co2/cylinders/${id}`);
+      return response.data;
+    });
+  }
+};
+
 // Export the API instance as default
 export default api;
+
+// CO2 Orders API
+export const co2OrdersAPI = {
+  // Get all CO2 orders
+  getOrders: async () => {
+    return retryRequest(async () => {
+      const response = await api.get('/co2/orders');
+      return response.data;
+    });
+  },
+  
+  // Update order status
+  updateOrderStatus: async (orderId: string, status: string) => {
+    return retryRequest(async () => {
+      const response = await api.put(`/co2/orders/${orderId}/status`, { status });
+      return response.data;
+    });
+  },
+  
+  // Update pickup details
+  updatePickupDetails: async (orderId: string, pickupData: any) => {
+    return retryRequest(async () => {
+      const response = await api.put(`/co2/orders/${orderId}/pickup`, pickupData);
+      return response.data;
+    });
+  },
+  
+  // Update delivery details
+  updateDeliveryDetails: async (orderId: string, deliveryData: any) => {
+    return retryRequest(async () => {
+      const response = await api.put(`/co2/orders/${orderId}/delivery`, deliveryData);
+      return response.data;
+    });
+  }
+};

@@ -64,6 +64,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
+import { useCart } from "@/lib/cart-context"
+import { co2API } from "@/lib/api"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 
 interface CO2Cylinder {
@@ -414,42 +416,46 @@ export default function CO2ProductDetail() {
       try {
         setLoading(true)
 
-        // Simulate API delay for better UX
-        await new Promise((resolve) => setTimeout(resolve, 500))
-
-        // First try to get from localStorage (admin panel data)
-        const savedCylinders = localStorage.getItem("co2-cylinders")
-        if (savedCylinders) {
-          const cylinders = JSON.parse(savedCylinders)
-          const foundProduct = cylinders.find((p: CO2Cylinder) => p.slug === productSlug)
-          if (foundProduct) {
-            // Enhance with mock data structure
-            const enhancedProduct = {
-              ...mockCylinders[0],
-              ...foundProduct,
-              images: foundProduct.images && foundProduct.images.length > 0 ? foundProduct.images : (foundProduct.image ? [foundProduct.image] : mockCylinders[0].images),
-              specifications: foundProduct.specifications || mockCylinders[0].specifications,
-              videos: foundProduct.videos || mockCylinders[0].videos,
-              documents: foundProduct.documents || mockCylinders[0].documents,
-              certifications: foundProduct.certifications || mockCylinders[0].certifications,
-              dimensions: foundProduct.dimensions || mockCylinders[0].dimensions,
-              compatibility: foundProduct.compatibility || mockCylinders[0].compatibility,
-              safetyFeatures: foundProduct.safetyFeatures || mockCylinders[0].safetyFeatures,
-              averageRating: foundProduct.averageRating || 4.8,
-              totalReviews: foundProduct.totalReviews || 1247,
-            }
-            setProduct(enhancedProduct)
-            setLoading(false)
-            return
+        // Get cylinder details using co2API
+        const response = await co2API.getCylinder(productSlug);
+        
+        if (response.success && response.cylinder) {
+          const cylinderData = response.cylinder;
+          
+          // Ensure image URLs are absolute
+          const processedCylinder = {
+            ...cylinderData,
+            // Ensure image URL is absolute
+            image: cylinderData.image?.startsWith('http') ? cylinderData.image : 
+                   cylinderData.image?.startsWith('/') ? `${window.location.origin}${cylinderData.image}` : 
+                   '/placeholder.svg',
+            // Ensure image URLs in arrays are absolute
+            images: (cylinderData.images || []).map((img: string) => 
+              img?.startsWith('http') ? img : 
+              img?.startsWith('/') ? `${window.location.origin}${img}` : 
+              '/placeholder.svg'
+            ),
+            // Add any missing properties from mock data for backward compatibility
+            specifications: cylinderData.specifications || mockCylinders[0].specifications,
+            videos: cylinderData.videos || [],
+            documents: cylinderData.documents || mockCylinders[0].documents,
+            certifications: cylinderData.certifications || mockCylinders[0].certifications,
+            dimensions: cylinderData.dimensions || mockCylinders[0].dimensions,
+            compatibility: cylinderData.compatibility || mockCylinders[0].compatibility,
+            safetyFeatures: cylinderData.safetyFeatures || mockCylinders[0].safetyFeatures,
           }
+          
+          setProduct(processedCylinder)
+        } else {
+          console.error('Error fetching cylinder:', response.message || 'Product not found')
+          // Fallback to mock data if API fails
+          const mockProduct = mockCylinders.find((p) => p.slug === productSlug) || mockCylinders[0]
+          setProduct(mockProduct)
         }
-
-        // Fallback to enhanced mock data
-        const mockProduct = mockCylinders.find((p) => p.slug === productSlug) || mockCylinders[0]
-        setProduct(mockProduct)
         setLoading(false)
       } catch (error) {
-        console.error("Error fetching product:", error)
+        console.error("Error fetching cylinder:", error)
+        // Fallback to mock data if API fails
         const mockProduct = mockCylinders.find((p) => p.slug === productSlug) || mockCylinders[0]
         setProduct(mockProduct)
         setLoading(false)

@@ -7,6 +7,7 @@ import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
 import { useState, useEffect } from "react"
 import { useCart } from "@/lib/cart-context"
+import { co2API } from "@/lib/api"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 
 export default function CO2() {
@@ -106,11 +107,12 @@ export default function CO2() {
     const fetchCylinders = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/api/co2/cylinders')
-        if (response.ok) {
-          const data = await response.json()
+        // Use co2API instead of direct fetch
+        const response = await co2API.getCylinders();
+        
+        if (response.success) {
           // Transform API data to match the expected format
-          const transformedCylinders = data.cylinders.map((cylinder: any) => ({
+          const transformedCylinders = response.cylinders.map((cylinder: any) => ({
             id: cylinder._id,
             name: cylinder.name,
             image: cylinder.image,
@@ -125,7 +127,7 @@ export default function CO2() {
           }))
           setCylinderBrands(transformedCylinders)
         } else {
-          console.error('Failed to fetch cylinders')
+          console.error('Failed to fetch cylinders:', response.message)
         }
       } catch (error) {
         console.error('Error fetching cylinders:', error)

@@ -33,6 +33,8 @@ import {
 import { toast } from "sonner"
 import { backendImageService, uploadImageWithProgress } from "@/lib/cloud-storage"
 import { fetchWithRetry } from "@/lib/fetch-utils"
+import { co2API } from "@/lib/api"
+import api from "@/lib/api"
 
 // Import API URL constant for consistent endpoint usage
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'
@@ -365,32 +367,27 @@ export default function CO2CylindersPage() {
         return
       }
 
-      const response = await fetchWithRetry(`${API_URL}/api/co2/cylinders`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      }, 3)
+      // Set the authorization header for API calls
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       
-      if (response.status === 401) {
-        toast.error('Authentication failed. Please log in again.')
-        router.push('/login')
-        return
-      }
+      const response = await co2API.getCylinders()
       
-      if (response.ok) {
-        const data = await response.json()
-        const cylindersData = data.cylinders || []
+      if (response.success) {
+        const cylindersData = response.cylinders || []
         
         // Ensure each cylinder has proper image URLs
         const processedCylinders = cylindersData.map((cylinder: CO2Cylinder) => {
           return {
             ...cylinder,
             // Ensure image URL is absolute
-            image: cylinder.image?.startsWith('http') ? cylinder.image : `${API_URL}${cylinder.image}`,
+            image: cylinder.image?.startsWith('http') ? cylinder.image : 
+                   cylinder.image?.startsWith('/') ? `${API_URL}${cylinder.image}` : 
+                   '/placeholder.svg',
             // Ensure image URLs in arrays are absolute
             images: (cylinder.images || []).map((img: string) => 
-              img?.startsWith('http') ? img : `${API_URL}${img}`
+              img?.startsWith('http') ? img : 
+              img?.startsWith('/') ? `${API_URL}${img}` :
+              '/placeholder.svg'
             ),
             // Ensure video URLs are absolute (if not YouTube)
             videos: (cylinder.videos || []).map((video: string) => 
@@ -403,11 +400,19 @@ export default function CO2CylindersPage() {
         
         setCylinders(processedCylinders)
       } else {
-        toast.error('Failed to fetch cylinders')
+        console.error('Failed to fetch cylinders:', response.message || 'Unknown error')
+        toast.error(response.message || 'Failed to load cylinders')
+        setCylinders([])
       }
-    } catch (error) {
-      toast.error('Error fetching cylinders')
+    } catch (error: any) {
       console.error('Error fetching cylinders:', error)
+      if (error.response?.status === 401) {
+        toast.error('Authentication failed. Please log in again.')
+        router.push('/login')
+      } else {
+        toast.error(`Error loading cylinders: ${error.message || 'Unknown error'}`)
+      }
+      setCylinders([])
     } finally {
       setLoading(false)
     }
@@ -448,18 +453,15 @@ export default function CO2CylindersPage() {
     }
     
     try {
-      const url = editingCylinder 
-        ? `${API_URL}/api/co2/cylinders/${editingCylinder._id}`
-        : `${API_URL}/api/co2/cylinders`
-      
-      const method = editingCylinder ? 'PUT' : 'POST'
-      
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
       if (!token) {
         toast.error('No authentication token found. Please log in.')
         router.push('/login')
         return
       }
+
+      // Set the authorization header for API calls
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
       const requestData = {
         ...formData,
@@ -476,17 +478,14 @@ export default function CO2CylindersPage() {
 
       console.log('Submitting cylinder data:', requestData)
       
-      const response = await fetchWithRetry(url, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(requestData)
-      })
+      let response;
+      if (editingCylinder) {
+        response = await co2API.updateCylinder(editingCylinder._id, requestData);
+      } else {
+        response = await co2API.createCylinder(requestData);
+      }
       
-      if (response.ok) {
-        const data = await response.json()
+      if (response.success) {
         toast.success(editingCylinder ? 'Cylinder updated successfully' : 'Cylinder created successfully')
         setShowAddDialog(false)
         setEditingCylinder(null)
@@ -495,11 +494,9 @@ export default function CO2CylindersPage() {
         // Reload cylinders from the API
         fetchCylinders()
       } else {
-        // Handle error
-        const errorData = await response.json()
-        toast.error(errorData.message || 'Failed to save cylinder')
+        toast.error(response.message || 'Failed to save cylinder')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving cylinder:', error)
       toast.error(`Error saving cylinder: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
@@ -516,19 +513,17 @@ export default function CO2CylindersPage() {
         return
       }
 
-      const response = await fetchWithRetry(`${API_URL}/api/co2/cylinders/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      // Set the authorization header for API calls
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      
+      const response = await co2API.deleteCylinder(id);
 
-      if (response.ok) {
+      if (response.success) {
         toast.success('Cylinder deleted successfully')
         // Refresh cylinders from API
         fetchCylinders()
       } else {
-        toast.error('Failed to delete cylinder')
+        toast.error(response.message || 'Failed to delete cylinder')
       }
     } catch (error) {
       toast.error('Error deleting cylinder')

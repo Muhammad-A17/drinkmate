@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import { fetchWithRetry } from "@/lib/fetch-utils"
+import { co2API } from "@/lib/api"
 
 interface CO2Cylinder {
   _id: string
@@ -43,13 +44,12 @@ export function CylindersShopSection() {
       setLoading(true)
       setError(null)
       
-      // Make API call to fetch cylinders with retry
-      const response = await fetchWithRetry('/api/co2/cylinders', {}, 3);
+      // Use the co2API to fetch cylinders
+      const response = await co2API.getCylinders();
       
-      if (response.ok) {
-        const data = await response.json()
+      if (response.success) {
         // Filter only active cylinders and limit to 3 for display
-        const activeCylinders = data.cylinders
+        const activeCylinders = response.cylinders
           ?.filter((cylinder: CO2Cylinder) => cylinder.status === 'active')
           ?.slice(0, 3) || []
           
@@ -76,8 +76,8 @@ export function CylindersShopSection() {
         
         setCylinders(processedCylinders)
       } else {
-        console.error('Failed to fetch cylinders')
-        setError('Failed to load cylinders')
+        console.error('Failed to fetch cylinders:', response.message)
+        setError(response.message || 'Failed to load cylinders')
         setCylinders([])
       }
     } catch (error) {

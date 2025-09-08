@@ -3,6 +3,7 @@
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { co2API } from "@/lib/api"
 
 export default function AuthDebugPage() {
   const { user, isAuthenticated, isLoading } = useAuth()
@@ -32,15 +33,10 @@ export default function AuthDebugPage() {
     }
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
-      const response = await fetch(`${API_URL}/api/co2/cylinders`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
+      // Use co2API instead of direct fetch
+      const response = await co2API.getCylinders();
       
-      alert(`Response: ${response.status} ${response.statusText}`)
+      alert(`Response: ${response.success ? 'Success' : 'Failed'} - ${response.message || ''}`)
     } catch (error) {
       alert(`Error: ${error}`)
     }

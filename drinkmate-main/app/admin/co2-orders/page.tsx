@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useAdminTranslation } from "@/lib/use-admin-translation"
+import { co2OrdersAPI } from "@/lib/api"
 import AdminLayout from "@/components/layout/AdminLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -122,28 +123,17 @@ export default function CO2OrdersPage() {
         return
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
-      const response = await fetch(`${API_URL}/api/co2/orders`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
+      // Use co2OrdersAPI instead of direct fetch
+      const response = await co2OrdersAPI.getOrders();
       
-      if (response.status === 401) {
-        toast.error('Authentication failed. Please log in again.')
-        router.push('/login')
-        return
-      }
-      
-      if (response.ok) {
-        const data = await response.json()
-        setOrders(data.orders || [])
+      if (response.success) {
+        setOrders(response.orders || [])
       } else {
-        toast.error('Failed to fetch orders')
+        toast.error(response.message || 'Failed to fetch orders')
       }
     } catch (error) {
       toast.error('Error fetching orders')
+      console.error('Error fetching orders:', error)
     } finally {
       setLoading(false)
     }
@@ -158,26 +148,20 @@ export default function CO2OrdersPage() {
         return
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
-      const response = await fetch(`${API_URL}/api/co2/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status, notes })
-      })
+      // Use co2OrdersAPI instead of direct fetch
+      const response = await co2OrdersAPI.updateOrderStatus(orderId, status);
 
-      if (response.ok) {
+      if (response.success) {
         toast.success('Order status updated successfully')
         setShowStatusDialog(false)
         setStatusUpdateData({ status: "", notes: "" })
         fetchOrders()
       } else {
-        toast.error('Failed to update order status')
+        toast.error(response.message || 'Failed to update order status')
       }
     } catch (error) {
       toast.error('Error updating order status')
+      console.error('Error updating order status:', error)
     }
   }
 
@@ -190,24 +174,20 @@ export default function CO2OrdersPage() {
         return
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
-      const response = await fetch(`${API_URL}/api/co2/orders/${orderId}/pickup`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ pickupDate: pickupDate.toISOString() })
-      })
+      // Use co2OrdersAPI instead of direct fetch
+      const response = await co2OrdersAPI.updatePickupDetails(orderId, { 
+        pickupDate: pickupDate.toISOString() 
+      });
 
-      if (response.ok) {
+      if (response.success) {
         toast.success('Pickup scheduled successfully')
         fetchOrders()
       } else {
-        toast.error('Failed to schedule pickup')
+        toast.error(response.message || 'Failed to schedule pickup')
       }
     } catch (error) {
       toast.error('Error scheduling pickup')
+      console.error('Error scheduling pickup:', error)
     }
   }
 
@@ -220,25 +200,21 @@ export default function CO2OrdersPage() {
         return
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
-      const response = await fetch(`${API_URL}/api/co2/orders/${orderId}/delivery`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ deliveryDate: deliveryDate.toISOString() })
-      })
+      // Use co2OrdersAPI instead of direct fetch
+      const response = await co2OrdersAPI.updateDeliveryDetails(orderId, { 
+        deliveryDate: deliveryDate.toISOString() 
+      });
 
-      if (response.ok) {
+      if (response.success) {
         toast.success('Delivery scheduled successfully')
         fetchOrders()
       } else {
-        toast.error('Failed to schedule delivery')
+        toast.error(response.message || 'Failed to schedule delivery')
       }
     } catch (error) {
       toast.error('Error scheduling delivery')
-      }
+      console.error('Error scheduling delivery:', error)
+    }
   }
 
   const getStatusBadge = (status: string) => {
