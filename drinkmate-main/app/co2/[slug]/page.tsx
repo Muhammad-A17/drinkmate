@@ -109,7 +109,7 @@ interface CO2Cylinder {
 
 const mockCylinders: CO2Cylinder[] = [
   {
-    _id: "1",
+    _id: "60f1e5b5c2e74d001c9a8f01", // Using ObjectId-like format
     slug: "premium-co2-cylinder",
     name: "Premium CO2 Cylinder Pro Max",
     brand: "DrinkMate",
