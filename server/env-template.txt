@@ -1,0 +1,118 @@
+# ===========================================
+# DRINKMATE SECURE ENVIRONMENT CONFIGURATION
+# ===========================================
+# Copy this file to .env and update with your actual values
+# NEVER commit the actual .env file to version control
+
+# ===========================================
+# SERVER CONFIGURATION
+# ===========================================
+NODE_ENV=production
+PORT=3000
+
+# ===========================================
+# SECURITY CONFIGURATION
+# ===========================================
+# Generate strong JWT secret (minimum 32 characters)
+# Use: openssl rand -base64 32
+JWT_SECRET=your_super_secure_jwt_secret_here_minimum_32_characters_long
+
+# Session configuration
+SESSION_SECRET=your_session_secret_here_minimum_32_characters
+JWT_EXPIRES_IN=24h
+REFRESH_TOKEN_EXPIRES_IN=7d
+
+# Rate limiting configuration
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# ===========================================
+# DATABASE CONFIGURATION
+# ===========================================
+# Use MongoDB Atlas with proper authentication
+# Format: mongodb+srv://username:password@cluster.mongodb.net/database?options
+MONGODB_URI=mongodb+srv://your_username:your_password@your_cluster.mongodb.net/drinkmate?retryWrites=true&w=majority&authSource=admin
+
+# ===========================================
+# FRONTEND CONFIGURATION
+# ===========================================
+# Your production domain
+FRONTEND_URL=https://yourdomain.com
+CORS_ORIGIN=https://yourdomain.com
+
+# ===========================================
+# CLOUDINARY CONFIGURATION
+# ===========================================
+# Get these from your Cloudinary dashboard
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# ===========================================
+# EMAIL CONFIGURATION
+# ===========================================
+# SMTP settings for email functionality
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your_app_password
+
+# Alternative email variables (for backward compatibility)
+EMAIL_USER=${SMTP_USER}
+EMAIL_PASS=${SMTP_PASS}
+
+# ===========================================
+# PAYMENT GATEWAY CONFIGURATION
+# ===========================================
+# Urways Payment Gateway
+URWAYS_API_KEY=your_urways_api_key
+URWAYS_SECRET_KEY=your_urways_secret_key
+URWAYS_MERCHANT_ID=your_urways_merchant_id
+URWAYS_ENVIRONMENT=production
+
+# Tap Payment Gateway
+TAP_API_KEY=your_tap_api_key
+TAP_SECRET_KEY=your_tap_secret_key
+TAP_MERCHANT_ID=your_tap_merchant_id
+TAP_ENVIRONMENT=production
+
+# ===========================================
+# ADMIN CREDENTIALS
+# ===========================================
+# Strong passwords for admin accounts
+ADMIN_PASSWORD=your_strong_admin_password_here
+TEST_PASSWORD=your_strong_test_password_here
+
+# ===========================================
+# SECURITY MONITORING
+# ===========================================
+# Enable security logging
+SECURITY_LOGGING=true
+LOG_LEVEL=warn
+
+# ===========================================
+# BACKUP CONFIGURATION
+# ===========================================
+BACKUP_ENABLED=true
+BACKUP_SCHEDULE=0 2 * * *
+
+# ===========================================
+# ADDITIONAL SECURITY SETTINGS
+# ===========================================
+# File upload limits
+MAX_FILE_SIZE=10485760
+MAX_FILES_PER_REQUEST=5
+
+# Session settings
+SESSION_COOKIE_SECURE=true
+SESSION_COOKIE_HTTPONLY=true
+SESSION_COOKIE_SAMESITE=strict
+
+# ===========================================
+# DEVELOPMENT SETTINGS (for local development only)
+# ===========================================
+# Uncomment these for local development
+# NODE_ENV=development
+# FRONTEND_URL=http://localhost:3001
+# CORS_ORIGIN=http://localhost:3001
+# SESSION_COOKIE_SECURE=false

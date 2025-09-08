@@ -13,6 +13,7 @@ import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
 import { Star, Loader2, ShoppingCart, ChevronDown, Filter, X, Search } from "lucide-react"
 import { shopAPI } from "@/lib/api"
+import { logger } from "@/lib/logger"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 
 // Define product types
@@ -91,30 +92,30 @@ export default function FlavorPage() {
       setIsLoading(true)
 
       // Fetch bundles - try without category filter first
-      console.log("Fetching all bundles to check what's available...")
+      logger.debug("Fetching all bundles to check what's available...")
       const allBundlesResponse = await shopAPI.getBundles({
         limit: 20,
       })
-      console.log("All bundles response:", allBundlesResponse)
-      console.log("All bundles found:", allBundlesResponse.bundles?.length || 0)
+      logger.debug("All bundles response:", allBundlesResponse)
+      logger.debug("All bundles found:", allBundlesResponse.bundles?.length || 0)
       
       // Now fetch with flavors category
-      console.log("Fetching bundles for flavors category...")
+      logger.debug("Fetching bundles for flavors category...")
       const bundlesResponse = await shopAPI.getBundles({
         category: "flavors",
         featured: true,
         limit: 4,
       })
-      console.log("Flavors bundles response:", bundlesResponse)
-      console.log("Flavors bundles array:", bundlesResponse.bundles)
-      console.log("Number of flavors bundles found:", bundlesResponse.bundles?.length || 0)
+      logger.debug("Flavors bundles response:", bundlesResponse)
+      logger.debug("Flavors bundles array:", bundlesResponse.bundles)
+      logger.debug("Number of flavors bundles found:", bundlesResponse.bundles?.length || 0)
 
       // Format bundles data - use all bundles temporarily to test
       const bundlesToUse = bundlesResponse.bundles?.length > 0 ? bundlesResponse.bundles : allBundlesResponse.bundles || []
-      console.log("Using bundles:", bundlesToUse.length, "bundles")
+      logger.debug("Using bundles:", bundlesToUse.length, "bundles")
       
       const formattedBundles = bundlesToUse.map((bundle: any) => {
-        console.log("Processing bundle:", bundle.name, "Full bundle object:", bundle)
+        logger.debug("Processing bundle:", bundle.name, "Full bundle object:", bundle)
         return {
         _id: bundle._id,
         id: bundle._id,
@@ -514,7 +515,7 @@ export default function FlavorPage() {
                             onError={(e) => {
                               const target = e.currentTarget;
                               if (target) {
-                                console.log("Image failed to load:", bundle.image);
+                                logger.debug("Image failed to load:", bundle.image);
                                 target.src = "/images/01 - Flavors/Strawberry-Lemon-Flavor.png";
                               }
                             }}
@@ -727,18 +728,18 @@ export default function FlavorPage() {
                 const isDev = process.env.NODE_ENV === 'development';
                 
                 if (isDev) {
-                  console.log("Selected filter:", selectedFilter);
-                  console.log("Subcategory sections:", subcategorySections);
+                  logger.debug("Selected filter:", selectedFilter);
+                  logger.debug("Subcategory sections:", subcategorySections);
                 }
                 
                 const selectedSection = subcategorySections.find(section => section._id === selectedFilter);
                 
                 if (isDev) {
-                  console.log("Selected section:", selectedSection);
+                  logger.debug("Selected section:", selectedSection);
                 }
                 
                 if (!selectedSection) {
-                  if (isDev) console.log("No selected section found, returning null");
+                  logger.debug("No selected section found, returning null");
                   return null;
                 }
                 
@@ -746,8 +747,8 @@ export default function FlavorPage() {
                 let filteredProducts = [...selectedSection.products];
                 
                 if (isDev) {
-                  console.log("Selected section products:", selectedSection.products);
-                  console.log("Filtered products before search/sort:", filteredProducts);
+                  logger.debug("Selected section products:", selectedSection.products);
+                  logger.debug("Filtered products before search/sort:", filteredProducts);
                 }
                 
                 // Apply search

@@ -2,19 +2,26 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-// Optional performance/security middleware
+// Security and performance middleware
+const {
+  securityHeaders,
+  generalLimiter,
+  authLimiter,
+  uploadLimiter,
+  apiLimiter,
+  speedLimiter,
+  sanitizeInput,
+  securityLogger,
+  secureCORS
+} = require('./Middleware/security-middleware');
+
+// Optional performance middleware
 let compression;
-let helmet;
 let morgan;
 try {
   compression = require('compression');
 } catch (e) {
   console.log('compression module not installed; skipping gzip. Run: npm i compression');
-}
-try {
-  helmet = require('helmet');
-} catch (e) {
-  console.log('helmet module not installed; skipping security headers. Run: npm i helmet');
 }
 try {
   morgan = require('morgan');
@@ -37,6 +44,9 @@ const co2Router = require('./Router/co2-router');
 const refillRouter = require('./Router/refill-router');
 const app = express();
 
+// Trust proxy for accurate IP addresses
+app.set('trust proxy', 1);
+
 // Strong ETag for better caching/validation
 app.set('etag', 'strong');
 
@@ -45,55 +55,19 @@ if (compression) {
   app.use(compression({ level: 6 }));
 }
 
-// Secure headers (if available)
-if (helmet) {
-  app.use(helmet());
-}
+// Apply security headers
+app.use(securityHeaders);
 
-// Configure CORS to allow requests from the frontend
-app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl requests)
-    if (!origin) return callback(null, true);
-    
-    // List of allowed origins
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://drinkmates.vercel.app',
-      'https://drinkmates-git-main-devopsdrinkmate-6879s-projects.vercel.app',
-      'https://drinkmates-l64ifxvfr-devopsdrinkmate-6879s-projects.vercel.app',
-      'https://drinkmates-jm7rtm4hz-devopsdrinkmate-6879s-projects.vercel.app',
-      'https://drinkmates-1a8de3m4h-devopsdrinkmate-6879s-projects.vercel.app'
-    ];
-    
-    // Allow all Vercel preview deployments and main domains
-    if (
-      origin.includes('vercel.app') || 
-      origin.includes('netlify.app') ||
-      origin.includes('drinkmates') ||
-      origin.includes('devopsdrinkmate')
-    ) {
-      console.log(`✅ CORS allowed for origin: ${origin}`);
-      return callback(null, true);
-    }
-    
-    // Check if origin is in the allowed list
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      console.log(`✅ CORS allowed for origin: ${origin}`);
-      return callback(null, true);
-    }
-    
-    // Log blocked origins for debugging
-    console.log(`❌ CORS blocked for origin: ${origin}`);
-    callback(new Error('CORS not allowed for this origin'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  optionsSuccessStatus: 200
-}));
-app.use(express.json());
+// Apply security middleware
+app.use(securityLogger);
+app.use(sanitizeInput);
+app.use(speedLimiter);
+
+// Apply secure CORS
+app.use(secureCORS);
+// Body parsing with size limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging middleware (dev only)
 if (((process.env.NODE_ENV || 'development') !== 'production') && morgan) {
@@ -170,18 +144,18 @@ app.use((req, res, next) => {
 
 // Note: Static file serving for uploads removed - now using Cloudinary for image storage
 
-// API routes
-app.use('/admin', adminRouter);
-app.use('/auth', authRouter);
-app.use('/services', serviceRouter);
-app.use('/shop', productRouter);
-app.use('/checkout', orderRouter);
-app.use('/contact', contactRouter);
-app.use('/blog', blogRouter);
-app.use('/testimonials', testimonialRouter);
-app.use('/', categoryRouter);
-app.use('/co2', co2Router);
-app.use('/refill', refillRouter);
+// API routes with rate limiting
+app.use('/admin', generalLimiter, adminRouter);
+app.use('/auth', authLimiter, authRouter);
+app.use('/services', generalLimiter, serviceRouter);
+app.use('/shop', apiLimiter, productRouter);
+app.use('/checkout', apiLimiter, orderRouter);
+app.use('/contact', generalLimiter, contactRouter);
+app.use('/blog', generalLimiter, blogRouter);
+app.use('/testimonials', generalLimiter, testimonialRouter);
+app.use('/', generalLimiter, categoryRouter);
+app.use('/co2', generalLimiter, co2Router);
+app.use('/refill', generalLimiter, refillRouter);
 
 // Root route
 app.get('/', (req, res) => {
@@ -284,62 +258,42 @@ app.get('/test-apis', async (req, res) => {
   }
 });
 
-// Set environment variables if not set
-if (!process.env.JWT_SECRET) {
-  process.env.JWT_SECRET = 'drinkmate_secret_key_development';
-  console.log('JWT_SECRET not found in environment, using default development secret');
+// Security: Require proper environment configuration
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'drinkmate_secret_key_development') {
+  console.error('🚨 CRITICAL SECURITY ERROR: JWT_SECRET not properly configured!');
+  console.error('Please set a strong JWT_SECRET in your environment variables.');
+  process.exit(1);
 }
 
 // Start server
 const PORT = process.env.PORT || 3000;
 
-// Create a .env file with environment variables
-const fs = require('fs');
-if (!fs.existsSync('./.env')) {
-  try {
-    fs.writeFileSync('./.env', `PORT=3000
-JWT_SECRET=drinkmate_secret_key_development
-FRONTEND_URL=https://drinkmates-jm7rtm4hz-devopsdrinkmate-6879s-projects.vercel.app
-MONGODB_URI=mongodb+srv://faizanhassan608:jWnMYMNtJK0M79Fa@cluster0.rvqclhq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+// Security: Check for required environment variables
+const requiredEnvVars = [
+  'JWT_SECRET',
+  'MONGODB_URI',
+  'CLOUDINARY_CLOUD_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET'
+];
 
-# Cloudinary Configuration
-CLOUDINARY_CLOUD_NAME=da6dzmflp
-CLOUDINARY_API_KEY=694537626126534
-CLOUDINARY_API_SECRET=elu06tzJWrK_Yb_M8H2bmGNfUL0
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
-# Email Configuration (SMTP)
-# Uncomment and configure one of the email providers below:
+if (missingVars.length > 0) {
+  console.error('🚨 CRITICAL SECURITY ERROR: Missing required environment variables:');
+  missingVars.forEach(varName => {
+    console.error(`  - ${varName}`);
+  });
+  console.error('Please configure all required environment variables before starting the server.');
+  process.exit(1);
+}
 
-# Gmail (Recommended for testing)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=devops.drinkmate@gmail.com
-SMTP_PASS=ejfo bcdu fmmr wfwj
-
-# Outlook/Hotmail
-# SMTP_HOST=smtp-mail.outlook.com
-# SMTP_PORT=587
-# SMTP_USER=your-email@outlook.com
-# SMTP_PASS=your-password
-
-# Custom SMTP Server
-# SMTP_HOST=mail.yourdomain.com
-# SMTP_PORT=587
-# SMTP_USER=noreply@yourdomain.com
-# SMTP_PASS=your-smtp-password
-
-# Alternative Email Variables (for backward compatibility)
-EMAIL_USER=\${SMTP_USER}
-EMAIL_PASS=\${SMTP_PASS}
-
-# Environment
-NODE_ENV=development`);
-    console.log('Created .env file with default settings');
-    console.log('⚠️  Please update CLOUDINARY_* values in .env file with your actual Cloudinary credentials');
-    console.log('⚠️  Please configure email settings in .env file for password reset functionality');
-  } catch (err) {
-    console.log('Could not create .env file:', err);
-  }
+// Security: Validate JWT secret strength
+if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
+  console.error('🚨 CRITICAL SECURITY ERROR: JWT_SECRET is too weak!');
+  console.error('JWT_SECRET must be at least 32 characters long.');
+  console.error('Generate a strong secret: openssl rand -base64 32');
+  process.exit(1);
 }
 
 // Start server even if MongoDB connection fails

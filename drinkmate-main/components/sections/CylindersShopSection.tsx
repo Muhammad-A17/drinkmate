@@ -4,6 +4,8 @@ import Link from "next/link"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import { fetchWithRetry } from "@/lib/fetch-utils"
 import { co2API } from "@/lib/api"
+import { logger } from "@/lib/logger"
+import styles from "./CylindersShopSection.module.css"
 
 interface CO2Cylinder {
   _id: string
@@ -47,14 +49,19 @@ export function CylindersShopSection() {
       // Use the co2API to fetch cylinders
       const response = await co2API.getCylinders();
       
-      if (response.success) {
-        // Filter only active cylinders and limit to 3 for display
-        const activeCylinders = response.cylinders
-          ?.filter((cylinder: CO2Cylinder) => cylinder.status === 'active')
-          ?.slice(0, 3) || []
+      // Debug - check exactly what we're getting
+      logger.debug('CYLINDERS DEBUG - Raw Response:', JSON.stringify(response));
+      logger.debug('CYLINDERS DEBUG - Has success:', response.success !== undefined);
+      logger.debug('CYLINDERS DEBUG - Has cylinders:', response.cylinders !== undefined);
+      
+      // Handle the response regardless of whether success field is present
+      // as long as we have cylinders data
+      if (response.cylinders) {
+        // Get all cylinders from the database
+        const allCylinders = response.cylinders || []
           
         // Ensure image URLs are absolute
-        const processedCylinders = activeCylinders.map((cylinder: CO2Cylinder) => {
+        const processedCylinders = allCylinders.map((cylinder: CO2Cylinder) => {
           // Handle case where image might be undefined or null
           const safeImage = cylinder.image || '';
           const safeImages = cylinder.images || [];
@@ -76,13 +83,16 @@ export function CylindersShopSection() {
         
         setCylinders(processedCylinders)
       } else {
-        console.error('Failed to fetch cylinders:', response.message)
-        setError(response.message || 'Failed to load cylinders')
+        const errorMessage = response.message || response.error || 'Failed to load cylinders'
+        console.error('Failed to fetch cylinders:', errorMessage)
+        setError(errorMessage)
         setCylinders([])
       }
-    } catch (error) {
-      console.error('Error fetching cylinders:', error)
-      setError('Failed to load cylinders')
+    } catch (error: any) {
+      console.error('CYLINDERS DEBUG - Error object:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to load cylinders'
+      console.error('Error fetching cylinders:', errorMessage)
+      setError(errorMessage)
       setCylinders([])
     } finally {
       setLoading(false)
@@ -155,8 +165,8 @@ export function CylindersShopSection() {
             Choose the perfect CO2 solution for your needs
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[1, 2, 3].map((i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <SkeletonCard key={i} />
           ))}
         </div>
@@ -193,7 +203,7 @@ export function CylindersShopSection() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {cylinders.map((cylinder) => (
           <Link
             key={cylinder._id}
@@ -201,12 +211,12 @@ export function CylindersShopSection() {
             className="block"
           >
             <div
-              className="bg-white rounded-2xl p-6 transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg cursor-pointer"
+              className="bg-white rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 hover:scale-102 hover:shadow-lg cursor-pointer h-full"
               onMouseEnter={() => setHoveredCard(parseInt(cylinder._id))}
               onMouseLeave={() => setHoveredCard(null)}
             >
             <div className="text-center space-y-4">
-              <div className="w-48 h-48 bg-white rounded-2xl flex items-center justify-center mx-auto overflow-hidden">
+              <div className="w-36 h-36 bg-white rounded-2xl flex items-center justify-center mx-auto overflow-hidden">
                 <img 
                   src={cylinder.image || (getServiceType(cylinder.type) === "subscription" 
                     ? "/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
@@ -214,11 +224,13 @@ export function CylindersShopSection() {
                       ? "/images/02 - Soda Makers/Purple-Machine---Front.png" 
                       : "/images/02 - Soda Makers/Artic-Black-Machine---Front.png")} 
                   alt={cylinder.name}
-                  className="w-40 h-40 object-contain"
-                  onError={(e) => {
+                  width="120"
+                  height="120"
+                  className={`w-32 h-32 object-contain ${styles.productImage}`}
+                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                     // Fallback if image fails to load
-                    const target = e.target as HTMLImageElement;
-                    console.log("Image failed to load:", target.src);
+                    const target = e.currentTarget;
+                    logger.warn("Image failed to load:", target.src);
                     // Set a fallback image
                     target.src = "/placeholder.svg";
                   }}
@@ -226,8 +238,8 @@ export function CylindersShopSection() {
               </div>
 
               <div>
-                <h3 className="text-lg font-bold text-black mb-2 font-montserrat tracking-tight">{cylinder.name}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed font-noto-sans mb-4">{cylinder.description}</p>
+                <h3 className="text-base font-bold text-black mb-1 font-montserrat tracking-tight line-clamp-1">{cylinder.name}</h3>
+                <p className="text-gray-600 text-xs leading-relaxed font-noto-sans mb-3 line-clamp-2">{cylinder.description}</p>
               </div>
 
               <div className="space-y-3">

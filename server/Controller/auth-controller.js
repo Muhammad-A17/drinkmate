@@ -84,8 +84,9 @@ const login = async (req, res) => {
         const { email, password } = req.body;
         console.log("Received login request:", req.body);
 
-        // Hardcoded demo accounts for when MongoDB is not available
-        const demoAccounts = [
+        // Security: Demo accounts removed for production security
+        // Demo accounts are only available in development mode
+        const demoAccounts = process.env.NODE_ENV === 'development' ? [
             {
                 _id: "demo123",
                 username: "admin",
@@ -100,7 +101,7 @@ const login = async (req, res) => {
                 password: "test123",
                 isAdmin: false
             }
-        ];
+        ] : [];
 
         // Try to find user in MongoDB first
         try {
@@ -130,27 +131,29 @@ const login = async (req, res) => {
             console.error("MongoDB error during login, falling back to demo accounts:", mongoError);
         }
 
-        // If MongoDB fails or user not found, try demo accounts
-        const demoUser = demoAccounts.find(account => account.email === email && account.password === password);
-        
-        if (demoUser) {
-            // Generate a simple token
-            const token = jwt.sign(
-                { id: demoUser._id, isAdmin: demoUser.isAdmin },
-                process.env.JWT_SECRET || 'default_dev_secret',
-                { expiresIn: '2d' }
-            );
+        // Security: Only allow demo accounts in development mode
+        if (process.env.NODE_ENV === 'development' && demoAccounts.length > 0) {
+            const demoUser = demoAccounts.find(account => account.email === email && account.password === password);
+            
+            if (demoUser) {
+                // Generate a simple token
+                const token = jwt.sign(
+                    { id: demoUser._id, isAdmin: demoUser.isAdmin },
+                    process.env.JWT_SECRET || 'default_dev_secret',
+                    { expiresIn: '2d' }
+                );
 
-            return res.status(200).json({
-                message: 'Demo login successful',
-                token,
-                user: {
-                    _id: demoUser._id,
-                    username: demoUser.username,
-                    email: demoUser.email,
-                    isAdmin: demoUser.isAdmin,
-                },
-            });
+                return res.status(200).json({
+                    message: 'Demo login successful',
+                    token,
+                    user: {
+                        _id: demoUser._id,
+                        username: demoUser.username,
+                        email: demoUser.email,
+                        isAdmin: demoUser.isAdmin,
+                    },
+                });
+            }
         }
 
         // If no user found in either MongoDB or demo accounts

@@ -9,6 +9,7 @@ import { motion } from "framer-motion"
 import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
 import { useRouter } from "next/navigation"
+import { generateStructuredData } from "@/lib/seo"
 
 export default function Home() {
   const { t, isRTL } = useTranslation()
@@ -276,8 +277,23 @@ export default function Home() {
 
 
 
+  // Generate structured data for the home page
+  const homeStructuredData = generateStructuredData({
+    type: 'WebSite',
+    name: 'DrinkMate - Premium Soda Makers & Flavors',
+    description: 'Create delicious carbonated beverages at home with DrinkMate soda makers, premium Italian flavors, and CO2 cylinders. Free shipping and 30-day money-back guarantee.',
+    url: '/',
+  })
+
   return (
-    <PageLayout currentPage="home">
+    <>
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeStructuredData) }}
+      />
+      
+      <PageLayout currentPage="home">
       {/* Hero Section */}
       <section className="py-6 md:py-16 px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40 relative z-30">
         <div className="w-full bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-b-3xl relative overflow-hidden min-h-[600px] md:h-[600px] backdrop-blur-sm shadow-2xl shadow-gray-200/50 border border-white/20">
@@ -1274,6 +1290,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </PageLayout>
+      </PageLayout>
+    </>
   )
 }

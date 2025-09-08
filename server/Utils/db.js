@@ -34,7 +34,7 @@ const connect = async () => {
             const admin = new User({
                 username: 'admin',
                 email: 'admin@drinkmate.com',
-                password: 'admin123',
+                password: process.env.ADMIN_PASSWORD || 'admin123',
                 isAdmin: true
             });
             await admin.save();
@@ -48,7 +48,7 @@ const connect = async () => {
             const testUser = new User({
                 username: 'testuser',
                 email: 'test@example.com',
-                password: 'test123',
+                password: process.env.TEST_PASSWORD || 'test123',
                 isAdmin: false
             });
             await testUser.save();

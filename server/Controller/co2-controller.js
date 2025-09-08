@@ -44,13 +44,17 @@ const co2Controller = {
       const total = await CO2Cylinder.countDocuments(filter);
 
       res.json({
+        success: true,
         cylinders,
         totalPages: Math.ceil(total / limit),
         currentPage: page,
         total
       });
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ 
+        success: false,
+        message: error.message 
+      });
     }
   },
 
@@ -59,24 +63,43 @@ const co2Controller = {
     try {
       const cylinder = await CO2Cylinder.findById(req.params.id);
       if (!cylinder) {
-        return res.status(404).json({ message: 'Cylinder not found' });
+        return res.status(404).json({ 
+          success: false,
+          message: 'Cylinder not found' 
+        });
       }
-      res.json(cylinder);
+      res.json({
+        success: true,
+        cylinder
+      });
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ 
+        success: false,
+        message: error.message 
+      });
     }
   },
 
   // Get cylinder by slug
   getCylinderBySlug: async (req, res) => {
     try {
-      const cylinder = await CO2Cylinder.findBySlug(req.params.slug);
+      // Mongoose does not have a built-in findBySlug method, using findOne instead
+      const cylinder = await CO2Cylinder.findOne({ slug: req.params.slug });
       if (!cylinder) {
-        return res.status(404).json({ message: 'Cylinder not found' });
+        return res.status(404).json({ 
+          success: false,
+          message: 'Cylinder not found' 
+        });
       }
-      res.json(cylinder);
+      res.json({
+        success: true,
+        cylinder
+      });
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ 
+        success: false,
+        message: error.message 
+      });
     }
   },
 
@@ -85,9 +108,15 @@ const co2Controller = {
     try {
       const cylinder = new CO2Cylinder(req.body);
       const savedCylinder = await cylinder.save();
-      res.status(201).json(savedCylinder);
+      res.status(201).json({
+        success: true,
+        cylinder: savedCylinder
+      });
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ 
+        success: false,
+        message: error.message 
+      });
     }
   },
 
@@ -100,11 +129,20 @@ const co2Controller = {
         { new: true, runValidators: true }
       );
       if (!cylinder) {
-        return res.status(404).json({ message: 'Cylinder not found' });
+        return res.status(404).json({ 
+          success: false,
+          message: 'Cylinder not found' 
+        });
       }
-      res.json(cylinder);
+      res.json({
+        success: true,
+        cylinder: cylinder
+      });
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ 
+        success: false,
+        message: error.message 
+      });
     }
   },
 

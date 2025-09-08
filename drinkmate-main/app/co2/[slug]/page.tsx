@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import {
@@ -8,10 +8,6 @@ import {
   Heart,
   ShoppingCart,
   Share2,
-  Truck,
-  Shield,
-  RotateCcw,
-  Zap,
   Plus,
   Minus,
   Facebook,
@@ -24,11 +20,9 @@ import {
   ArrowLeft,
   Eye,
   Play,
-  Download,
   MessageCircle,
   Award,
   Clock,
-  Phone,
   CheckCircle,
   AlertCircle,
   Info,
@@ -46,8 +40,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize2,
-  Volume2,
-  VolumeX,
+  Truck,
+  Shield,
+  Zap,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -62,14 +57,18 @@ import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { YouTubeVideo, isYouTubeUrl, getYouTubeVideoId } from "@/components/ui/youtube-video"
 import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
 import { useCart } from "@/lib/cart-context"
+import { useRouter } from "next/navigation"
 import { co2API } from "@/lib/api"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
+import styles from "./styles.module.css"
 
 interface CO2Cylinder {
   _id: string
+  id?: string // For compatibility with mock data
   slug: string
   name: string
   brand: string
@@ -90,6 +89,7 @@ interface CO2Cylinder {
   features: string[]
   specifications: Record<string, string>
   images: string[]
+  image?: string // For compatibility with mock data
   videos: string[]
   documents: { name: string; url: string; type: string }[]
   certifications: string[]
@@ -105,154 +105,11 @@ interface CO2Cylinder {
   tags: string[]
   seoTitle?: string
   seoDescription?: string
+  rating?: number // For compatibility with mock data
+  reviews?: number // For compatibility with mock data
+  badge?: string // For compatibility with mock data
 }
 
-const mockCylinders: CO2Cylinder[] = [
-  {
-    _id: "60f1e5b5c2e74d001c9a8f01", // Using ObjectId-like format
-    slug: "premium-co2-cylinder",
-    name: "Premium CO2 Cylinder Pro Max",
-    brand: "DrinkMate",
-    type: "new",
-    price: 199.99,
-    originalPrice: 249.99,
-    discount: 20,
-    capacity: 80,
-    material: "steel",
-    stock: 25,
-    minStock: 5,
-    status: "active",
-    isBestSeller: true,
-    isFeatured: true,
-    isNew: true,
-    isEcoFriendly: true,
-    description:
-      "Experience the ultimate in carbonation technology with our Premium CO2 Cylinder Pro Max. Engineered with aerospace-grade materials and featuring our patented SafeFlow™ technology, this cylinder delivers consistent, high-quality carbonation for up to 80 liters of your favorite beverages. The advanced pressure regulation system ensures optimal performance while maintaining the highest safety standards.",
-    features: [
-      "Extended 80L capacity with precision engineering",
-      "Aerospace-grade steel construction with anti-corrosion coating",
-      "SafeFlow™ advanced safety valve system with pressure monitoring",
-      "Universal compatibility with all DrinkMate and major brand machines",
-      "Quick-connect refillable and exchangeable system",
-      "Halal and Kosher certified food-grade CO2",
-      "Ergonomic lightweight design with premium grip",
-      "Extended performance guarantee up to 5 years",
-      "Smart pressure indicator with color-coded status",
-      "Eco-friendly recyclable materials",
-    ],
-    specifications: {
-      Capacity: "80 Liters",
-      Material: "Aerospace-grade Steel",
-      "Pressure Rating": "850 PSI",
-      "Thread Type": 'Standard 3/8" UNF',
-      "Valve Type": "SafeFlow™ Advanced",
-      Certification: "DOT-3AL, CE, ISO 9001",
-      "Temperature Range": "-10°C to +60°C",
-      "Service Life": "15 Years",
-      "Refill Cycles": "Unlimited",
-      "Safety Features": "Burst Disc, Pressure Relief",
-    },
-    images: [
-      "/placeholder.svg",
-      "/placeholder.svg",
-      "/placeholder.svg",
-      "/placeholder.svg",
-      "/placeholder.svg",
-    ],
-    videos: [
-      "/placeholder.mp4?query=co2+cylinder+installation+tutorial",
-      "/placeholder.mp4?query=co2+cylinder+safety+demonstration",
-    ],
-    documents: [
-      { name: "Installation Guide", url: "/docs/installation-guide.pdf", type: "PDF" },
-      { name: "Safety Manual", url: "/docs/safety-manual.pdf", type: "PDF" },
-      { name: "Warranty Information", url: "/docs/warranty.pdf", type: "PDF" },
-      { name: "Compatibility Chart", url: "/docs/compatibility.pdf", type: "PDF" },
-    ],
-    certifications: ["DOT-3AL", "CE Mark", "ISO 9001", "Halal Certified", "Kosher Certified"],
-    warranty: "5 Years Limited Warranty",
-    dimensions: { width: 8.5, height: 42, depth: 8.5, weight: 1.2 },
-    compatibility: ["DrinkMate", "SodaStream", "Aarke", "Philips", "KitchenAid"],
-    safetyFeatures: ["Burst Disc Protection", "Pressure Relief Valve", "Anti-Tamper Design", "Leak Detection"],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    averageRating: 4.8,
-    totalReviews: 1247,
-    categoryId: "co2-cylinders",
-    tags: ["premium", "professional", "eco-friendly", "bestseller"],
-    seoTitle: "Premium CO2 Cylinder Pro Max - Professional Grade Carbonation",
-    seoDescription:
-      "Experience professional-grade carbonation with our Premium CO2 Cylinder Pro Max. 80L capacity, aerospace-grade steel, 5-year warranty.",
-  },
-]
-
-const relatedProducts = [
-  {
-    id: "2",
-    slug: "standard-co2-cylinder",
-    name: "Standard CO2 Cylinder",
-    price: 89.99,
-    originalPrice: 119.99,
-    image: "/placeholder.svg",
-    rating: 4.6,
-    reviews: 892,
-    badge: "Popular Choice",
-  },
-  {
-    id: "3",
-    slug: "compact-co2-cylinder",
-    name: "Compact CO2 Cylinder",
-    price: 149.99,
-    originalPrice: 179.99,
-    image: "/placeholder.svg",
-    rating: 4.4,
-    reviews: 456,
-    badge: "Space Saver",
-  },
-  {
-    id: "4",
-    slug: "drinkmate-carbonator",
-    name: "DrinkMate Carbonator Pro",
-    price: 299.99,
-    originalPrice: 399.99,
-    image: "/placeholder.svg",
-    rating: 4.8,
-    reviews: 1203,
-    badge: "Best Seller",
-  },
-  {
-    id: "5",
-    slug: "co2-refill-service",
-    name: "CO2 Refill Service Plan",
-    price: 45.99,
-    originalPrice: 59.99,
-    image: "/placeholder.svg",
-    rating: 4.7,
-    reviews: 2341,
-    badge: "Subscription",
-  },
-]
-
-const frequentlyBoughtTogether = [
-  {
-    id: "2",
-    slug: "standard-co2-cylinder",
-    name: "Standard CO2 Cylinder",
-    price: 89.99,
-    originalPrice: 119.99,
-    image: "/placeholder.svg",
-    savings: 15.0,
-  },
-  {
-    id: "6",
-    slug: "co2-refill-service",
-    name: "CO2 Refill Service Plan",
-    price: 45.99,
-    originalPrice: 59.99,
-    image: "/placeholder.svg",
-    savings: 10.0,
-  },
-]
 
 const productReviews = [
   {
@@ -355,13 +212,18 @@ const productQA = [
 export default function CO2ProductDetail() {
   const params = useParams()
   const { t } = useTranslation()
+  const { addItem } = useCart()
+  const router = useRouter()
 
   const productSlug = params?.slug as string
   const [product, setProduct] = useState<CO2Cylinder | null>(null)
   const [loading, setLoading] = useState(true)
+  const [relatedProducts, setRelatedProducts] = useState<CO2Cylinder[]>([])
+  const [loadingRelated, setLoadingRelated] = useState(true)
 
   // Enhanced state management with more features
   const [selectedImage, setSelectedImage] = useState(0)
+  const [isShowingVideo, setIsShowingVideo] = useState(false)
   const [quantity, setQuantity] = useState(1)
   const [isInCart, setIsInCart] = useState(false)
   const [isInWishlist, setIsInWishlist] = useState(false)
@@ -371,7 +233,6 @@ export default function CO2ProductDetail() {
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showNotifyMe, setShowNotifyMe] = useState(false)
   const [expandedQA, setExpandedQA] = useState<number[]>([])
-  const [showSizeGuide, setShowSizeGuide] = useState(false)
   const [notifyEmail, setNotifyEmail] = useState("")
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [newReview, setNewReview] = useState({
@@ -384,22 +245,20 @@ export default function CO2ProductDetail() {
   })
   const [reviews, setReviews] = useState(productReviews)
   const [qaData, setQAData] = useState(productQA)
+  const [showQuestionForm, setShowQuestionForm] = useState(false)
+  const [newQuestion, setNewQuestion] = useState({
+    question: "",
+    category: "Usage & Capacity",
+    tags: ""
+  })
 
   const [showImageGallery, setShowImageGallery] = useState(false)
-  const [showVideoPlayer, setShowVideoPlayer] = useState(false)
-  const [selectedVideo, setSelectedVideo] = useState("")
-  const [showComparison, setShowComparison] = useState(false)
-  const [showInstallationGuide, setShowInstallationGuide] = useState(false)
   const [reviewFilter, setReviewFilter] = useState("all")
   const [reviewSort, setReviewSort] = useState("newest")
   const [qaFilter, setQAFilter] = useState("all")
-  const [showPriceHistory, setShowPriceHistory] = useState(false)
-  const [showStockAlert, setShowStockAlert] = useState(false)
   const [isVideoMuted, setIsVideoMuted] = useState(true)
   const [cartAnimation, setCartAnimation] = useState(false)
   const [wishlistAnimation, setWishlistAnimation] = useState(false)
-  const [showQuickView, setShowQuickView] = useState(false)
-  const [selectedFrequentItems, setSelectedFrequentItems] = useState<string[]>([])
 
   const toggleQA = useCallback((id: number) => {
     setExpandedQA((prev) => {
@@ -410,17 +269,68 @@ export default function CO2ProductDetail() {
       }
     })
   }, [])
+  
+  // Function to fetch related products
+  const fetchRelatedProducts = useCallback(async (currentProductId: string) => {
+    try {
+      setLoadingRelated(true)
+      
+      // Get all cylinders
+      const response = await co2API.getCylinders();
+      
+      if (response.success && response.cylinders) {
+        // Filter out the current product and get up to 4 other products
+        const otherProducts = response.cylinders
+          .filter((cylinder: CO2Cylinder) => cylinder._id !== currentProductId)
+          .slice(0, 4);
+          
+        // Process images to ensure they have absolute URLs
+        const processedProducts = otherProducts.map((cylinder: CO2Cylinder) => {
+          // Handle case where image might be undefined or null
+          const safeImage = cylinder.image || '';
+          const safeImages = cylinder.images || [];
+          
+          return {
+            ...cylinder,
+            // Ensure image URL is absolute
+            image: safeImage.startsWith('http') ? safeImage : 
+                   safeImage.startsWith('/') ? `${window.location.origin}${safeImage}` : 
+                   '/placeholder.svg',
+            // Ensure image URLs in arrays are absolute
+            images: safeImages.map((img: string) => 
+              img?.startsWith('http') ? img : 
+              img?.startsWith('/') ? `${window.location.origin}${img}` : 
+              '/placeholder.svg'
+            )
+          }
+        });
+        
+        setRelatedProducts(processedProducts);
+      } else {
+        // No related products found
+        setRelatedProducts([]);
+      }
+    } catch (error) {
+      // Error fetching related products - continue without them
+      // Set empty array on error
+      setRelatedProducts([]);
+    } finally {
+      setLoadingRelated(false);
+    }
+  }, [])
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setLoading(true)
-
+        
         // Get cylinder details using co2API
         const response = await co2API.getCylinder(productSlug);
         
-        if (response.success && response.cylinder) {
-          const cylinderData = response.cylinder;
+        // Handle both response formats: { success: true, cylinder: data } and direct data
+        const cylinderData = response.success ? response.cylinder : response;
+        
+        if (cylinderData && (cylinderData._id || cylinderData.id)) {
           
           // Ensure image URLs are absolute
           const processedCylinder = {
@@ -435,37 +345,40 @@ export default function CO2ProductDetail() {
               img?.startsWith('/') ? `${window.location.origin}${img}` : 
               '/placeholder.svg'
             ),
-            // Add any missing properties from mock data for backward compatibility
-            specifications: cylinderData.specifications || mockCylinders[0].specifications,
+            // Add any missing properties with default values
+            specifications: cylinderData.specifications || {},
             videos: cylinderData.videos || [],
-            documents: cylinderData.documents || mockCylinders[0].documents,
-            certifications: cylinderData.certifications || mockCylinders[0].certifications,
-            dimensions: cylinderData.dimensions || mockCylinders[0].dimensions,
-            compatibility: cylinderData.compatibility || mockCylinders[0].compatibility,
-            safetyFeatures: cylinderData.safetyFeatures || mockCylinders[0].safetyFeatures,
+            documents: cylinderData.documents || [],
+            certifications: cylinderData.certifications || [],
+            dimensions: cylinderData.dimensions || { width: 0, height: 0, depth: 0, weight: 0 },
+            compatibility: cylinderData.compatibility || [],
+            safetyFeatures: cylinderData.safetyFeatures || [],
           }
           
           setProduct(processedCylinder)
+          
+          // Fetch related products after getting the current product
+          fetchRelatedProducts(cylinderData._id);
         } else {
-          console.error('Error fetching cylinder:', response.message || 'Product not found')
-          // Fallback to mock data if API fails
-          const mockProduct = mockCylinders.find((p) => p.slug === productSlug) || mockCylinders[0]
-          setProduct(mockProduct)
+          // Set empty product if API fails
+          setProduct(null)
+          
+          // No related products to fetch when product is null
         }
         setLoading(false)
       } catch (error) {
-        console.error("Error fetching cylinder:", error)
-        // Fallback to mock data if API fails
-        const mockProduct = mockCylinders.find((p) => p.slug === productSlug) || mockCylinders[0]
-        setProduct(mockProduct)
+        // Error fetching cylinder - show error state
+        setProduct(null)
         setLoading(false)
+        
+        // No related products to fetch when product is null
       }
     }
 
     if (productSlug) {
       fetchProduct()
     }
-  }, [productSlug])
+  }, [productSlug, fetchRelatedProducts])
 
   const handleAddToCart = useCallback(() => {
     if (!product) return
@@ -473,13 +386,23 @@ export default function CO2ProductDetail() {
     setCartAnimation(true)
     setIsInCart(true)
 
+    // Add item to cart context
+    addItem({
+      id: product._id || product.id || productSlug,
+      name: product.name,
+      price: product.price,
+      image: product.image || product.images?.[0] || '/placeholder.svg',
+      quantity: quantity,
+      category: 'co2-cylinder'
+    })
+
     // Simulate cart API call
     setTimeout(() => {
       setCartAnimation(false)
-      // Show success notification
-      console.log(`Added ${quantity} ${product.name} to cart`)
+      // Navigate to cart page
+      router.push('/cart')
     }, 1000)
-  }, [product, quantity])
+  }, [product, quantity, addItem, router])
 
   const handleAddToWishlist = useCallback(() => {
     if (!product) return
@@ -489,7 +412,6 @@ export default function CO2ProductDetail() {
 
     setTimeout(() => {
       setWishlistAnimation(false)
-      console.log(`${isInWishlist ? "Removed from" : "Added to"} wishlist: ${product.name}`)
     }, 500)
   }, [product, isInWishlist])
 
@@ -501,9 +423,32 @@ export default function CO2ProductDetail() {
     [quantity, product?.stock],
   )
 
+  // Create combined media array (images + videos)
+  const combinedMedia = useMemo(() => {
+    const media: Array<{ type: 'image' | 'video', src: string, index: number }> = []
+    
+    // Add images
+    if (product?.images) {
+      product.images.forEach((image, index) => {
+        media.push({ type: 'image', src: image, index })
+      })
+    }
+    
+    // Add videos
+    if (product?.videos) {
+      product.videos.forEach((video, index) => {
+        media.push({ type: 'video', src: video, index })
+      })
+    }
+    
+    return media
+  }, [product?.images, product?.videos])
+
   const handleImageSelect = useCallback((index: number) => {
     setSelectedImage(index)
-  }, [])
+    const media = combinedMedia[index]
+    setIsShowingVideo(media?.type === 'video')
+  }, [combinedMedia])
 
   const handleImageZoom = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -593,13 +538,41 @@ export default function CO2ProductDetail() {
     alert("Thank you for your review! It will be published after moderation.")
   }, [newReview, reviews])
 
-  const getStockMessage = useCallback(() => {
+  const handleSubmitQuestion = useCallback(() => {
+    if (!newQuestion.question.trim()) {
+      alert("Please enter your question")
+      return
+    }
+
+    const question = {
+      id: Date.now(),
+      category: newQuestion.category,
+      question: newQuestion.question,
+      answer: "",
+      helpful: 0,
+      date: new Date().toISOString().split("T")[0],
+      answeredBy: "",
+      tags: newQuestion.tags.split(",").map((t) => t.trim()).filter(Boolean),
+      isAnswered: false,
+    }
+
+    setQAData([question, ...qaData])
+    setNewQuestion({
+      question: "",
+      category: "Usage & Capacity",
+      tags: ""
+    })
+    setShowQuestionForm(false)
+    alert("Thank you for your question! We'll get back to you soon.")
+  }, [newQuestion, qaData])
+
+  const stockMessage = useMemo(() => {
     if (!product) return "In stock"
     if (product.stock === 0) return "Out of stock"
     if (product.stock <= 5) return `Only ${product.stock} left in stock!`
     if (product.stock <= 10) return `${product.stock} in stock`
     return "In stock"
-  }, [product])
+  }, [product?.stock])
 
   const getStockColor = useCallback(() => {
     if (!product) return "text-green-600"
@@ -608,7 +581,7 @@ export default function CO2ProductDetail() {
     return "text-green-600"
   }, [product])
 
-  const getDeliveryDate = useCallback(() => {
+  const getDeliveryDate = useMemo(() => {
     const today = new Date()
     const deliveryDate = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000)
     return deliveryDate.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })
@@ -711,8 +684,8 @@ export default function CO2ProductDetail() {
   }
 
   return (
-    <TooltipProvider>
-      <PageLayout>
+    <PageLayout>
+      <TooltipProvider>
         <div className="container mx-auto px-4 py-8">
           {/* Enhanced Back Button with breadcrumb */}
           <div className="mb-6 space-y-4">
@@ -747,6 +720,7 @@ export default function CO2ProductDetail() {
                   <button
                     className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
                     onClick={() => alert("3D View coming soon!")}
+                    aria-label="View product in 3D"
                   >
                     <svg
                       className="w-5 h-5 group-hover:scale-110 transition-transform"
@@ -762,20 +736,6 @@ export default function CO2ProductDetail() {
                 </TooltipContent>
               </Tooltip>
 
-              {/* Video Button */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
-                    onClick={() => setShowVideoPlayer(true)}
-                  >
-                    <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Watch Product Video</p>
-                </TooltipContent>
-              </Tooltip>
 
               {/* Enhanced Favorite Button */}
               <Tooltip>
@@ -787,6 +747,7 @@ export default function CO2ProductDetail() {
                         : "border-gray-300 hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white"
                     } ${wishlistAnimation ? "animate-pulse" : ""}`}
                     onClick={handleAddToWishlist}
+                    aria-label={isInWishlist ? "Remove from favorites" : "Add to favorites"}
                   >
                     <Heart
                       className={`w-5 h-5 group-hover:scale-110 transition-transform ${isInWishlist ? "fill-current" : ""}`}
@@ -803,7 +764,8 @@ export default function CO2ProductDetail() {
                 <TooltipTrigger asChild>
                   <button
                     className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
-                    onClick={() => setShowComparison(true)}
+                        onClick={() => {}}
+                    aria-label="Compare products"
                   >
                     <TrendingUp className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   </button>
@@ -818,7 +780,8 @@ export default function CO2ProductDetail() {
                 <TooltipTrigger asChild>
                   <button
                     className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
-                    onClick={() => setShowQuickView(true)}
+                        onClick={() => {}}
+                    aria-label="Quick view product details"
                   >
                     <Eye className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   </button>
@@ -831,30 +794,55 @@ export default function CO2ProductDetail() {
 
             {/* Main Content Area */}
             <div className="flex-1">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
                 {/* Enhanced Product Images */}
                 <div className="space-y-4">
                   <div
                     className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden cursor-zoom-in group shadow-lg"
-                    onMouseEnter={() => setIsZoomed(true)}
+                    onMouseEnter={() => !isShowingVideo && setIsZoomed(true)}
                     onMouseLeave={() => setIsZoomed(false)}
-                    onMouseMove={handleImageZoom}
+                    onMouseMove={!isShowingVideo ? handleImageZoom : undefined}
                     onClick={() => setShowImageGallery(true)}
                   >
-                    <img
-                      src={product.images?.[selectedImage] || "/placeholder.svg"}
-                      alt={product.name}
-                      className={`w-full h-full object-cover transition-all duration-500 ${
-                        isZoomed ? "scale-150" : "scale-100 group-hover:scale-105"
-                      }`}
-                      style={
-                        isZoomed
-                          ? {
-                              transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                            }
-                          : {}
-                      }
-                    />
+                    {isShowingVideo ? (
+                      <div className="w-full h-full">
+                        {combinedMedia[selectedImage] && isYouTubeUrl(combinedMedia[selectedImage].src) ? (
+                          <YouTubeVideo
+                            videoUrl={combinedMedia[selectedImage].src}
+                            title={`${product.name} - Product Video`}
+                            className="w-full h-full"
+                            showThumbnail={false}
+                            autoplay={true}
+                            controls={true}
+                          />
+                        ) : (
+                          <video
+                            className="w-full h-full object-cover"
+                            controls
+                            poster="/placeholder.svg"
+                          >
+                            <source src={combinedMedia[selectedImage]?.src} type="video/mp4" />
+                            <source src={combinedMedia[selectedImage]?.src} type="video/webm" />
+                            <source src={combinedMedia[selectedImage]?.src} type="video/ogg" />
+                            Your browser does not support the video tag.
+                          </video>
+                        )}
+                      </div>
+                    ) : (
+                      <img
+                        src={product.images?.[selectedImage] || "/placeholder.svg"}
+                        alt={product.name}
+                        className={`${styles.productImageZoom} ${
+                          isZoomed ? styles.zoomedImage : styles.defaultImage
+                        } ${isZoomed ? styles.customTransformOrigin : ''}`}
+                        ref={(el) => {
+                          if (el && isZoomed) {
+                            el.style.setProperty('--transform-origin-x', `${zoomPosition.x}%`);
+                            el.style.setProperty('--transform-origin-y', `${zoomPosition.y}%`);
+                          }
+                        }}
+                      />
+                    )}
 
                     {/* Enhanced Badges */}
                     <div className="absolute top-4 left-4 flex flex-col space-y-2">
@@ -889,23 +877,25 @@ export default function CO2ProductDetail() {
                     </div>
 
                     {/* Image Navigation */}
-                    {product.images && product.images.length > 1 && (
+                    {combinedMedia.length > 1 && (
                       <>
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
-                            handleImageSelect(selectedImage > 0 ? selectedImage - 1 : product.images!.length - 1)
+                            handleImageSelect(selectedImage > 0 ? selectedImage - 1 : combinedMedia.length - 1)
                           }}
                           className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
+                          aria-label="Previous media"
                         >
                           <ChevronLeft className="w-4 h-4" />
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
-                            handleImageSelect(selectedImage < product.images!.length - 1 ? selectedImage + 1 : 0)
+                            handleImageSelect(selectedImage < combinedMedia.length - 1 ? selectedImage + 1 : 0)
                           }}
                           className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
+                          aria-label="Next media"
                         >
                           <ChevronRight className="w-4 h-4" />
                         </button>
@@ -913,35 +903,50 @@ export default function CO2ProductDetail() {
                     )}
                   </div>
 
-                  {/* Enhanced Image Thumbnails */}
+                  {/* Enhanced Media Thumbnails */}
                   <div className="flex space-x-2 overflow-x-auto pb-2">
-                    {product.images?.map((image, index) => (
+                    {combinedMedia.map((media, index) => (
                       <button
                         key={index}
                         onClick={() => handleImageSelect(index)}
-                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                        className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 relative ${
                           selectedImage === index
                             ? "border-[#12d6fa] shadow-lg scale-105"
                             : "border-gray-200 hover:border-gray-300 hover:scale-102"
                         }`}
                       >
-                        <img
-                          src={image || "/placeholder.svg"}
-                          alt={`${product.name} ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
+                        {media.type === 'video' ? (
+                          <>
+                            {isYouTubeUrl(media.src) ? (
+                              <img
+                                src={`${process.env.NEXT_PUBLIC_YOUTUBE_THUMBNAIL_BASE || 'https://img.youtube.com/vi'}/${getYouTubeVideoId(media.src)}/mqdefault.jpg`}
+                                alt="Video thumbnail"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <video
+                                className="w-full h-full object-cover"
+                                muted
+                              >
+                                <source src={media.src} type="video/mp4" />
+                                <source src={media.src} type="video/webm" />
+                                <source src={media.src} type="video/ogg" />
+                              </video>
+                            )}
+                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                              <Play className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+                            </div>
+                          </>
+                        ) : (
+                          <img
+                            src={media.src || "/placeholder.svg"}
+                            alt={`${product.name} ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
                       </button>
                     ))}
 
-                    {/* Video Thumbnail */}
-                    {product.videos && product.videos.length > 0 && (
-                      <button
-                        onClick={() => setShowVideoPlayer(true)}
-                        className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-[#12d6fa] transition-all duration-200 bg-black/10 flex items-center justify-center group"
-                      >
-                        <Play className="w-6 h-6 text-[#12d6fa] group-hover:scale-110 transition-transform" />
-                      </button>
-                    )}
                   </div>
                 </div>
 
@@ -949,78 +954,83 @@ export default function CO2ProductDetail() {
                 <div className="space-y-6">
                   {/* Product Header */}
                   <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Badge variant="outline" className="text-[#12d6fa] border-[#12d6fa]">
+                    <div className="flex items-center flex-wrap gap-2 mb-2">
+                      <Badge variant="outline" className="text-[#12d6fa] border-[#12d6fa] text-xs sm:text-sm">
                         {product.brand}
                       </Badge>
-                      {product.tags?.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="capitalize">
+                      {product.tags?.slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="secondary" className="capitalize text-xs sm:text-sm">
                           {tag}
                         </Badge>
                       ))}
+                      {product.tags && product.tags.length > 3 && (
+                        <Badge variant="secondary" className="text-xs sm:text-sm">
+                          +{product.tags.length - 3} more
+                        </Badge>
+                      )}
                     </div>
 
-                    <h1 className="text-3xl font-bold mb-3 text-balance">{product.name}</h1>
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 text-balance leading-tight">{product.name}</h1>
 
                     {/* Enhanced Rating */}
-                    <div className="flex items-center space-x-4 mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-5 h-5 ${
+                              className={`w-4 h-4 sm:w-5 sm:h-5 ${
                                 i < Math.floor(product.averageRating) ? "text-yellow-400 fill-current" : "text-gray-300"
                               }`}
                             />
                           ))}
                         </div>
-                        <span className="font-semibold">{product.averageRating}</span>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="font-semibold text-sm sm:text-base">{product.averageRating}</span>
+                        <span className="text-xs sm:text-sm text-muted-foreground">
                           ({product.totalReviews.toLocaleString()} reviews)
                         </span>
                       </div>
-                      <Separator orientation="vertical" className="h-4" />
-                      <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                        <Users className="w-4 h-4" />
+                      <Separator orientation="vertical" className="h-4 hidden sm:block" />
+                      <div className="flex items-center space-x-1 text-xs sm:text-sm text-muted-foreground">
+                        <Users className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span>{Math.floor(product.totalReviews * 1.2).toLocaleString()} sold</span>
                       </div>
                     </div>
 
                     {/* Enhanced Pricing */}
-                    <div className="flex items-center space-x-4 mb-4">
-                      <span className="text-4xl font-bold text-[#12d6fa]">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
+                      <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#12d6fa]">
                         <SaudiRiyal amount={product.price} size="lg" />
                       </span>
                       {product.originalPrice > product.price && (
-                        <>
-                          <span className="text-xl text-muted-foreground line-through">
+                        <div className="flex items-center gap-2 sm:gap-4">
+                          <span className="text-lg sm:text-xl text-muted-foreground line-through">
                             <SaudiRiyal amount={product.originalPrice} size="md" />
                           </span>
-                          <Badge className="bg-green-100 text-green-800 border-green-200">
+                          <Badge className="bg-green-100 text-green-800 border-green-200 text-xs sm:text-sm">
                             Save <SaudiRiyal amount={calculateSavings()} size="sm" />
                           </Badge>
-                        </>
+                        </div>
                       )}
                     </div>
 
                     {/* Enhanced Stock and Badges */}
-                    <div className="flex items-center space-x-2 mb-6 flex-wrap gap-2">
-                      <Badge variant={product.stock > 0 ? "default" : "destructive"} className={getStockColor()}>
+                    <div className="flex items-center flex-wrap gap-2 mb-6">
+                      <Badge variant={product.stock > 0 ? "default" : "destructive"} className={`${getStockColor()} text-xs sm:text-sm`}>
                         <Package className="w-3 h-3 mr-1" />
-                        {getStockMessage()}
+                        {stockMessage}
                       </Badge>
-                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
+                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs sm:text-sm">
                         <Truck className="w-3 h-3 mr-1" />
                         Free Shipping
                       </Badge>
                       {product.isFeatured && (
-                        <Badge variant="outline" className="border-amber-200 text-amber-700">
+                        <Badge variant="outline" className="border-amber-200 text-amber-700 text-xs sm:text-sm">
                           <Award className="w-3 h-3 mr-1" />
                           Featured
                         </Badge>
                       )}
-                      <Badge variant="outline" className="border-blue-200 text-blue-700">
+                      <Badge variant="outline" className="border-blue-200 text-blue-700 text-xs sm:text-sm">
                         <Clock className="w-3 h-3 mr-1" />
                         {getEstimatedUsage()} usage
                       </Badge>
@@ -1029,13 +1039,13 @@ export default function CO2ProductDetail() {
 
                   {/* Enhanced Service Type */}
                   <Card className="border-l-4 border-l-[#12d6fa]">
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold mb-2 flex items-center">
-                        <Settings className="w-4 h-4 mr-2 text-[#12d6fa]" />
-                        Service Type: {getServiceTypeText(product.type)}
+                    <CardContent className="p-3 sm:p-4">
+                      <h3 className="font-semibold mb-2 flex items-center text-sm sm:text-base">
+                        <Settings className="w-4 h-4 mr-2 text-[#12d6fa] flex-shrink-0" />
+                        <span className="truncate">Service Type: {getServiceTypeText(product.type)}</span>
                       </h3>
                       <div className="bg-blue-50 p-3 rounded-lg">
-                        <p className="text-sm text-blue-800">
+                        <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">
                           {product.type === "new" && "Brand new CO2 cylinder with full warranty and premium packaging"}
                           {product.type === "refill" &&
                             "Professional refill service with quality guarantee and pickup/delivery"}
@@ -1048,18 +1058,18 @@ export default function CO2ProductDetail() {
 
                   {/* Enhanced Capacity Info */}
                   <Card className="border-l-4 border-l-green-500">
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold mb-2 flex items-center">
-                        <Gauge className="w-4 h-4 mr-2 text-green-500" />
-                        Capacity: {getCapacityText(product.capacity)}
+                    <CardContent className="p-3 sm:p-4">
+                      <h3 className="font-semibold mb-2 flex items-center text-sm sm:text-base">
+                        <Gauge className="w-4 h-4 mr-2 text-green-500 flex-shrink-0" />
+                        <span className="truncate">Capacity: {getCapacityText(product.capacity)}</span>
                       </h3>
                       <div className="bg-green-50 p-3 rounded-lg space-y-2">
-                        <p className="text-sm text-green-800">
+                        <p className="text-xs sm:text-sm text-green-800 leading-relaxed">
                           This cylinder can carbonate approximately {product.capacity} liters of water, lasting{" "}
                           {Math.round(product.capacity / 15)}-{Math.round(product.capacity / 10)} weeks for an average
                           family.
                         </p>
-                        <div className="flex items-center justify-between text-xs text-green-700">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0 text-xs text-green-700">
                           <span>Light Use: {Math.round(product.capacity / 10)} weeks</span>
                           <span>Heavy Use: {Math.round(product.capacity / 20)} weeks</span>
                         </div>
@@ -1070,20 +1080,22 @@ export default function CO2ProductDetail() {
 
                   {/* Enhanced Quantity and Actions */}
                   <div className="space-y-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center border-2 border-gray-200 rounded-lg hover:border-[#12d6fa] transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="flex items-center border-2 border-gray-200 rounded-lg hover:border-[#12d6fa] transition-colors w-fit">
                         <button
                           onClick={() => handleQuantityChange(-1)}
-                          className="p-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-2 sm:p-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           disabled={quantity <= 1}
+                          aria-label="Decrease quantity"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
-                        <span className="px-6 py-3 font-semibold text-lg min-w-[60px] text-center">{quantity}</span>
+                        <span className="px-4 sm:px-6 py-2 sm:py-3 font-semibold text-base sm:text-lg min-w-[50px] sm:min-w-[60px] text-center">{quantity}</span>
                         <button
                           onClick={() => handleQuantityChange(1)}
-                          className="p-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-2 sm:p-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           disabled={quantity >= (product.stock || 1)}
+                          aria-label="Increase quantity"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -1092,7 +1104,7 @@ export default function CO2ProductDetail() {
                       <div className="text-sm text-muted-foreground">
                         <div>
                           Total:{" "}
-                          <span className="font-semibold text-lg text-[#12d6fa]">
+                          <span className="font-semibold text-base sm:text-lg text-[#12d6fa]">
                             <SaudiRiyal amount={product.price * quantity} size="md" />
                           </span>
                         </div>
@@ -1105,18 +1117,17 @@ export default function CO2ProductDetail() {
                     </div>
 
                     {/* Enhanced Action Buttons */}
-                    <div className="flex space-x-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                       {product.stock > 0 ? (
                         <Button
-                          onClick={handleAddToCart}
+                          onClick={isInCart ? () => router.push('/cart') : handleAddToCart}
                           className={`flex-1 bg-[#12d6fa] hover:bg-[#0fb8d9] text-white shadow-lg hover:shadow-xl transition-all duration-200 ${
                             cartAnimation ? "animate-pulse" : ""
                           }`}
-                          disabled={isInCart}
                           size="lg"
                         >
-                          <ShoppingCart className="w-5 h-5 mr-2" />
-                          {isInCart ? "Added to Cart" : "Add to Cart"}
+                          <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                          <span className="text-sm sm:text-base">{isInCart ? "Go to Cart" : "Add to Cart"}</span>
                         </Button>
                       ) : (
                         <Dialog open={showNotifyMe} onOpenChange={setShowNotifyMe}>
@@ -1125,8 +1136,8 @@ export default function CO2ProductDetail() {
                               className="flex-1 bg-[#12d6fa] hover:bg-[#0fb8d9] text-white shadow-lg hover:shadow-xl transition-all duration-200"
                               size="lg"
                             >
-                              <Bell className="w-5 h-5 mr-2" />
-                              Notify When Available
+                              <Bell className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                              <span className="text-sm sm:text-base">Notify When Available</span>
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="sm:max-w-md">
@@ -1170,7 +1181,7 @@ export default function CO2ProductDetail() {
                         } ${wishlistAnimation ? "animate-pulse" : ""}`}
                         size="lg"
                       >
-                        <Heart className={`w-5 h-5 ${isInWishlist ? "fill-current" : ""}`} />
+                        <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isInWishlist ? "fill-current" : ""}`} />
                       </Button>
 
                       <div className="relative">
@@ -1180,13 +1191,13 @@ export default function CO2ProductDetail() {
                           className="border-2 hover:border-[#12d6fa] hover:text-[#12d6fa] transition-all duration-200"
                           size="lg"
                         >
-                          <Share2 className="w-5 h-5" />
+                          <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
                         </Button>
 
                         {showShareMenu && (
-                          <div className="absolute right-0 top-full mt-2 bg-white border-2 border-gray-100 rounded-xl shadow-xl p-3 z-10 min-w-[200px]">
+                          <div className="absolute right-0 top-full mt-2 bg-white border-2 border-gray-100 rounded-xl shadow-xl p-3 z-10 min-w-[180px] sm:min-w-[200px]">
                             <div className="space-y-2">
-                              <div className="text-sm font-medium text-gray-700 mb-2">Share this product</div>
+                              <div className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Share this product</div>
                               <div className="grid grid-cols-2 gap-2">
                                 <button
                                   onClick={() => handleShare("facebook")}
@@ -1223,169 +1234,104 @@ export default function CO2ProductDetail() {
                       </div>
                     </div>
 
-                    {/* Buy Now Button */}
-                    {product.stock > 0 && (
-                      <Button
-                        variant="outline"
-                        className="w-full border-2 border-[#12d6fa] text-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 bg-transparent"
-                        size="lg"
-                      >
-                        <Zap className="w-5 h-5 mr-2" />
-                        Buy Now - Express Checkout
-                      </Button>
-                    )}
                   </div>
 
-                  {/* Enhanced Delivery Info */}
-                  <Card className="bg-gradient-to-r from-gray-50 to-gray-100">
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-green-100 rounded-full">
-                          <Truck className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">Free Express Delivery</div>
-                          <div className="text-sm text-muted-foreground">
-                            Order by 2 PM for delivery by {getDeliveryDate()}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-blue-100 rounded-full">
-                          <Shield className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">{product.warranty}</div>
-                          <div className="text-sm text-muted-foreground">
-                            Full manufacturer warranty with premium support
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-orange-100 rounded-full">
-                          <RotateCcw className="w-5 h-5 text-orange-600" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">30 Days Easy Returns</div>
-                          <div className="text-sm text-muted-foreground">
-                            Hassle-free returns and exchanges with free pickup
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-purple-100 rounded-full">
-                          <Phone className="w-5 h-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">24/7 Premium Support</div>
-                          <div className="text-sm text-muted-foreground">
-                            Dedicated customer service and technical support
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Trust Indicators */}
-                  <div className="flex items-center justify-center space-x-6 py-4 border-t border-b">
-                    {product.certifications?.slice(0, 3).map((cert) => (
-                      <div key={cert} className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span>{cert}</span>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
 
               {/* Enhanced Product Details Tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-12">
-                <TabsList className="grid w-full grid-cols-5 h-12">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto sm:h-12 gap-1 sm:gap-0">
                   <TabsTrigger
                     value="description"
-                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
                   >
-                    <Info className="w-4 h-4 mr-2" />
-                    Description
+                    <Info className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Description</span>
+                    <span className="sm:hidden">Info</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="specifications"
-                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
                   >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Specifications
+                    <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Specifications</span>
+                    <span className="sm:hidden">Specs</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="reviews"
-                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
                   >
-                    <Star className="w-4 h-4 mr-2" />
-                    Reviews ({reviews.length})
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Reviews ({reviews.length})</span>
+                    <span className="sm:hidden">Reviews</span>
+                    <span className="sm:hidden text-xs ml-1">({reviews.length})</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="videos"
-                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
                   >
-                    <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z"/>
                     </svg>
-                    Videos ({product.videos?.length || 0})
+                    <span className="hidden sm:inline">Videos ({product.videos?.length || 0})</span>
+                    <span className="sm:hidden">Videos</span>
+                    <span className="sm:hidden text-xs ml-1">({product.videos?.length || 0})</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="qa"
-                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
                   >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Q&A ({qaData.length})
+                    <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Q&A ({qaData.length})</span>
+                    <span className="sm:hidden">Q&A</span>
+                    <span className="sm:hidden text-xs ml-1">({qaData.length})</span>
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="description" className="mt-8">
+                <TabsContent value="description" className="mt-6 sm:mt-8">
                   <div className="prose max-w-none">
-                    <div className="bg-gradient-to-r from-[#12d6fa]/10 to-blue-50 p-6 rounded-xl mb-6">
-                      <p className="text-lg leading-relaxed text-gray-700">{product.description}</p>
+                    <div className="bg-gradient-to-r from-[#12d6fa]/10 to-blue-50 p-4 sm:p-6 rounded-xl mb-6">
+                      <p className="text-base sm:text-lg leading-relaxed text-gray-700">{product.description}</p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                       <div>
-                        <h3 className="text-xl font-semibold mb-4 flex items-center">
-                          <Zap className="w-5 h-5 mr-2 text-[#12d6fa]" />
+                        <h3 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
+                          <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#12d6fa] flex-shrink-0" />
                           Key Features
                         </h3>
                         <ul className="space-y-3">
                           {product.features.map((feature, index) => (
                             <li key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                              <CheckCircle className="w-5 h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
-                              <span className="text-gray-700">{feature}</span>
+                              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
+                              <span className="text-sm sm:text-base text-gray-700">{feature}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
 
                       <div>
-                        <h3 className="text-xl font-semibold mb-4 flex items-center">
-                          <Shield className="w-5 h-5 mr-2 text-green-500" />
+                        <h3 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
+                          <Shield className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-500 flex-shrink-0" />
                           Safety Features
                         </h3>
                         <ul className="space-y-3">
                           {product.safetyFeatures?.map((feature, index) => (
                             <li key={index} className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                              <Shield className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span className="text-gray-700">{feature}</span>
+                              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm sm:text-base text-gray-700">{feature}</span>
                             </li>
                           ))}
                         </ul>
 
-                        <h3 className="text-xl font-semibold mb-4 mt-6 flex items-center">
-                          <Award className="w-5 h-5 mr-2 text-amber-500" />
+                        <h3 className="text-lg sm:text-xl font-semibold mb-4 mt-6 flex items-center">
+                          <Award className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-amber-500 flex-shrink-0" />
                           Certifications
                         </h3>
                         <div className="flex flex-wrap gap-2">
                           {product.certifications?.map((cert) => (
-                            <Badge key={cert} variant="outline" className="border-amber-200 text-amber-700">
+                            <Badge key={cert} variant="outline" className="border-amber-200 text-amber-700 text-xs sm:text-sm">
                               {cert}
                             </Badge>
                           ))}
@@ -1393,48 +1339,8 @@ export default function CO2ProductDetail() {
                       </div>
                     </div>
 
-                    {/* Product Images Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                      <img
-                        src="/placeholder.svg"
-                        alt="How to install CO2 cylinder"
-                        className="rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-                        onClick={() => setShowInstallationGuide(true)}
-                      />
-                      <img
-                        src="/co2-cylinder-maintenance-tips.jpg"
-                        alt="CO2 cylinder maintenance"
-                        className="rounded-lg shadow-md hover:shadow-lg transition-shadow"
-                      />
-                      <img
-                        src="/co2-cylinder-storage-safety.jpg"
-                        alt="CO2 cylinder storage"
-                        className="rounded-lg shadow-md hover:shadow-lg transition-shadow"
-                      />
-                    </div>
 
-                    {/* Documents Section */}
-                    <div className="mt-8">
-                      <h3 className="text-xl font-semibold mb-4 flex items-center">
-                        <Download className="w-5 h-5 mr-2 text-blue-500" />
-                        Documentation
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {product.documents?.map((doc) => (
-                          <Card key={doc.name} className="hover:shadow-md transition-shadow cursor-pointer">
-                            <CardContent className="p-4 flex items-center space-x-3">
-                              <div className="p-2 bg-blue-100 rounded">
-                                <Download className="w-5 h-5 text-blue-600" />
-                              </div>
-                              <div>
-                                <div className="font-medium">{doc.name}</div>
-                                <div className="text-sm text-muted-foreground">{doc.type}</div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </div>
+                   
                   </div>
                 </TabsContent>
 
@@ -1448,12 +1354,40 @@ export default function CO2ProductDetail() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        {Object.entries(product.specifications || {}).map(([key, value]) => (
-                          <div key={key} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
-                            <span className="font-medium text-gray-600">{key}</span>
-                            <span className="text-gray-900">{value}</span>
-                          </div>
-                        ))}
+                        {(() => {
+                          const specs = product.specifications || {};
+                          const specEntries = Object.entries(specs);
+                          
+                          if (specEntries.length === 0) {
+                            // Show default specifications if none are provided
+                            const defaultSpecs = {
+                              'Capacity': product.capacity ? `${product.capacity}L` : '80L',
+                              'Material': product.material || 'Aerospace-grade Steel',
+                              'Pressure Rating': '850 PSI',
+                              'Thread Type': 'Standard 3/8" UNF',
+                              'Valve Type': 'SafeFlow™ Advanced',
+                              'Certification': 'DOT-3AL, CE, ISO 9001',
+                              'Temperature Range': '-10°C to +60°C',
+                              'Service Life': '15 Years',
+                              'Refill Cycles': 'Unlimited',
+                              'Safety Features': 'Burst Disc, Pressure Relief'
+                            };
+                            
+                            return Object.entries(defaultSpecs).map(([key, value]) => (
+                              <div key={key} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                <span className="font-medium text-gray-600">{key}</span>
+                                <span className="text-gray-900">{value}</span>
+                              </div>
+                            ));
+                          }
+                          
+                          return specEntries.map(([key, value]) => (
+                            <div key={key} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
+                              <span className="font-medium text-gray-600">{key}</span>
+                              <span className="text-gray-900">{value}</span>
+                            </div>
+                          ));
+                        })()}
                       </CardContent>
                     </Card>
 
@@ -1468,25 +1402,25 @@ export default function CO2ProductDetail() {
                         <div className="flex justify-between py-2 border-b border-gray-100">
                           <span className="font-medium text-gray-600">Width</span>
                           <span className="text-gray-900">
-                            {product.dimensions?.width}" ({(product.dimensions?.width * 2.54).toFixed(1)} cm)
+                            {product.dimensions?.width ? `${product.dimensions.width}" (${(product.dimensions.width * 2.54).toFixed(1)} cm)` : 'Not specified'}
                           </span>
                         </div>
                         <div className="flex justify-between py-2 border-b border-gray-100">
                           <span className="font-medium text-gray-600">Height</span>
                           <span className="text-gray-900">
-                            {product.dimensions?.height}" ({(product.dimensions?.height * 2.54).toFixed(1)} cm)
+                            {product.dimensions?.height ? `${product.dimensions.height}" (${(product.dimensions.height * 2.54).toFixed(1)} cm)` : 'Not specified'}
                           </span>
                         </div>
                         <div className="flex justify-between py-2 border-b border-gray-100">
                           <span className="font-medium text-gray-600">Depth</span>
                           <span className="text-gray-900">
-                            {product.dimensions?.depth}" ({(product.dimensions?.depth * 2.54).toFixed(1)} cm)
+                            {product.dimensions?.depth ? `${product.dimensions.depth}" (${(product.dimensions.depth * 2.54).toFixed(1)} cm)` : 'Not specified'}
                           </span>
                         </div>
                         <div className="flex justify-between py-2">
                           <span className="font-medium text-gray-600">Weight</span>
                           <span className="text-gray-900">
-                            {product.dimensions?.weight} kg ({(product.dimensions?.weight * 2.2).toFixed(1)} lbs)
+                            {product.dimensions?.weight ? `${product.dimensions.weight} kg (${(product.dimensions.weight * 2.2).toFixed(1)} lbs)` : 'Not specified'}
                           </span>
                         </div>
                       </CardContent>
@@ -1655,6 +1589,7 @@ export default function CO2ProductDetail() {
                                       key={star}
                                       onClick={() => setNewReview({ ...newReview, rating: star })}
                                       className="focus:outline-none transition-transform hover:scale-110"
+                                      aria-label={`Rate ${star} stars`}
                                     >
                                       <Star
                                         className={`w-8 h-8 ${
@@ -1846,33 +1781,75 @@ export default function CO2ProductDetail() {
                 <TabsContent value="videos" className="mt-8">
                   <div className="space-y-6">
                     {product.videos && product.videos.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {product.videos.map((video, index) => (
-                          <Card key={index} className="overflow-hidden">
-                            <CardContent className="p-0">
-                              <div className="aspect-video bg-gray-100 relative">
-                                <video
-                                  controls
-                                  className="w-full h-full object-cover"
-                                  poster="/placeholder.svg"
-                                >
-                                  <source src={video} type="video/mp4" />
-                                  <source src={video} type="video/webm" />
-                                  <source src={video} type="video/ogg" />
-                                  Your browser does not support the video tag.
-                                </video>
-                              </div>
-                              <div className="p-4">
-                                <h3 className="font-semibold text-lg mb-2">
-                                  {video.split('/').pop()?.replace(/\.[^/.]+$/, '') || `Video ${index + 1}`}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+                        {product.videos.map((video, index) => {
+                          // Find the index in combinedMedia for this video
+                          const combinedIndex = combinedMedia.findIndex(media => 
+                            media.type === 'video' && media.src === video
+                          )
+                          return (
+                          <Card key={index} className="overflow-hidden cursor-pointer h-80 sm:h-96 lg:h-[28rem] xl:h-[32rem] border-0 shadow-lg">
+                            <CardContent className="p-0 h-full flex flex-col" onClick={() => {
+                              if (combinedIndex !== -1) {
+                                handleImageSelect(combinedIndex)
+                              }
+                            }}>
+                              {isYouTubeUrl(video) ? (
+                                <div className="flex-1 relative">
+                                  <YouTubeVideo
+                                    videoUrl={video}
+                                    title={`${product.name} - Video ${index + 1}`}
+                                    className="w-full h-full"
+                                    showThumbnail={true}
+                                  />
+                                </div>
+                              ) : (
+                                <div className="flex-1 aspect-video bg-gray-100 relative group">
+                                  <video
+                                    className="w-full h-full object-cover"
+                                    poster="/placeholder.svg"
+                                  >
+                                    <source src={video} type="video/mp4" />
+                                    <source src={video} type="video/webm" />
+                                    <source src={video} type="video/ogg" />
+                                    Your browser does not support the video tag.
+                                  </video>
+                                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
+                                    <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                      <Play className="w-6 h-6 text-gray-800 ml-1" />
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              <div className="p-3 sm:p-4 lg:p-6 bg-white border-t border-gray-100">
+                                <h3 className="font-semibold text-xs sm:text-sm lg:text-base mb-1 sm:mb-2 lg:mb-3 text-gray-800 line-clamp-1">
+                                  {isYouTubeUrl(video) 
+                                    ? `Video ${index + 1}`
+                                    : video.split('/').pop()?.replace(/\.[^/.]+$/, '') || `Video ${index + 1}`
+                                  }
                                 </h3>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-xs sm:text-sm lg:text-base text-gray-600 mb-2 sm:mb-3 lg:mb-4 leading-relaxed line-clamp-2">
                                   Product demonstration and usage guide
                                 </p>
+                                {isYouTubeUrl(video) && (
+                                  <a 
+                                    href={video} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 sm:gap-2 lg:gap-3 bg-red-600 text-white text-xs sm:text-sm lg:text-base px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 rounded-md font-medium w-full sm:w-auto justify-center"
+                                  >
+                                    <svg className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                    </svg>
+                                    <span className="hidden sm:inline">Watch on YouTube</span>
+                                    <span className="sm:hidden">YouTube</span>
+                                  </a>
+                                )}
                               </div>
                             </CardContent>
                           </Card>
-                        ))}
+                          )
+                        })}
                       </div>
                     ) : (
                       <Card>
@@ -1916,15 +1893,74 @@ export default function CO2ProductDetail() {
                           </Select>
 
                           <Button
+                            onClick={() => setShowQuestionForm(!showQuestionForm)}
                             variant="outline"
                             className="ml-auto border-[#12d6fa] text-[#12d6fa] hover:bg-[#12d6fa] hover:text-white bg-transparent"
                           >
                             <MessageCircle className="w-4 h-4 mr-2" />
-                            Ask a Question
+                            {showQuestionForm ? "Cancel" : "Ask a Question"}
                           </Button>
                         </div>
                       </CardContent>
                     </Card>
+
+                    {/* Ask a Question Form */}
+                    {showQuestionForm && (
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="space-y-6">
+                            <h3 className="text-lg font-semibold flex items-center">
+                              <MessageCircle className="w-5 h-5 mr-2 text-[#12d6fa]" />
+                              Ask a Question
+                            </h3>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-2">Your Question *</label>
+                              <Textarea
+                                value={newQuestion.question}
+                                onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
+                                placeholder="What would you like to know about this product?"
+                                className="min-h-[120px]"
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium mb-2">Category *</label>
+                                <Select value={newQuestion.category} onValueChange={(value) => setNewQuestion({ ...newQuestion, category: value })}>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Usage & Capacity">Usage & Capacity</SelectItem>
+                                    <SelectItem value="Installation & Safety">Installation & Safety</SelectItem>
+                                    <SelectItem value="Warranty & Support">Warranty & Support</SelectItem>
+                                    <SelectItem value="Certification & Quality">Certification & Quality</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium mb-2">Tags (comma separated)</label>
+                                <Input
+                                  value={newQuestion.tags}
+                                  onChange={(e) => setNewQuestion({ ...newQuestion, tags: e.target.value })}
+                                  placeholder="capacity, installation, safety"
+                                />
+                              </div>
+                            </div>
+
+                            <Button
+                              onClick={handleSubmitQuestion}
+                              className="w-full bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
+                              size="lg"
+                            >
+                              Submit Question
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
 
                     {/* Q&A List */}
                     <div className="space-y-4">
@@ -2003,8 +2039,23 @@ export default function CO2ProductDetail() {
                   <Sparkles className="w-6 h-6 mr-2 text-[#12d6fa]" />
                   You Might Also Like
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {relatedProducts.map((relatedProduct) => (
+                
+                {loadingRelated ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[1, 2, 3, 4].map((i) => (
+                      <Card key={i} className="h-full">
+                        <CardContent className="p-4">
+                          <div className="aspect-square bg-gray-200 animate-pulse rounded-lg mb-4"></div>
+                          <div className="h-5 bg-gray-200 animate-pulse rounded mb-2 w-3/4"></div>
+                          <div className="h-4 bg-gray-200 animate-pulse rounded mb-4 w-1/2"></div>
+                          <div className="h-8 bg-gray-200 animate-pulse rounded"></div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : relatedProducts.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {relatedProducts.map((relatedProduct) => (
                     <Link key={relatedProduct.id} href={`/co2/${relatedProduct.slug}`} className="block group">
                       <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 h-full">
                         <CardContent className="p-4">
@@ -2071,6 +2122,17 @@ export default function CO2ProductDetail() {
                       </Card>
                     </Link>
                   ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-10 bg-gray-50 rounded-lg">
+                    <Package className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No related products found</h3>
+                    <p className="text-gray-500">Check out our other products in the shop</p>
+                    <Button className="mt-4 bg-[#12d6fa] hover:bg-[#0fbfe0] text-white">
+                      <Link href="/co2">Browse All CO2 Products</Link>
+                    </Button>
+                  </div>
+                )}
                 </div>
               </div>
             </div>
@@ -2078,15 +2140,42 @@ export default function CO2ProductDetail() {
 
           {/* Enhanced Modals and Dialogs */}
 
-          {/* Image Gallery Modal */}
+          {/* Media Gallery Modal */}
           <Dialog open={showImageGallery} onOpenChange={setShowImageGallery}>
-            <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+            <DialogContent className="max-w-4xl max-h-[90vh] p-0 w-[95vw] sm:w-full">
               <div className="relative">
-                <img
-                  src={product.images?.[selectedImage] || "/placeholder.svg"}
-                  alt={product.name}
-                  className="w-full h-auto max-h-[80vh] object-contain"
-                />
+                {isShowingVideo ? (
+                  <div className="w-full h-[60vh] sm:h-[80vh]">
+                    {combinedMedia[selectedImage] && isYouTubeUrl(combinedMedia[selectedImage].src) ? (
+                      <YouTubeVideo
+                        videoUrl={combinedMedia[selectedImage].src}
+                        title={`${product.name} - Product Video`}
+                        className="w-full h-full"
+                        showThumbnail={false}
+                        autoplay={true}
+                        controls={true}
+                      />
+                    ) : (
+                      <video
+                        className="w-full h-full object-contain"
+                        controls
+                        autoPlay
+                        poster="/placeholder.svg"
+                      >
+                        <source src={combinedMedia[selectedImage]?.src} type="video/mp4" />
+                        <source src={combinedMedia[selectedImage]?.src} type="video/webm" />
+                        <source src={combinedMedia[selectedImage]?.src} type="video/ogg" />
+                        Your browser does not support the video tag.
+                      </video>
+                    )}
+                  </div>
+                ) : (
+                  <img
+                    src={product.images?.[selectedImage] || "/placeholder.svg"}
+                    alt={product.name}
+                    className="w-full h-auto max-h-[80vh] object-contain"
+                  />
+                )}
                 <Button
                   variant="outline"
                   size="icon"
@@ -2096,14 +2185,14 @@ export default function CO2ProductDetail() {
                   <X className="w-4 h-4" />
                 </Button>
 
-                {product.images && product.images.length > 1 && (
+                {combinedMedia.length > 1 && (
                   <>
                     <Button
                       variant="outline"
                       size="icon"
                       className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white"
                       onClick={() =>
-                        handleImageSelect(selectedImage > 0 ? selectedImage - 1 : product.images!.length - 1)
+                        handleImageSelect(selectedImage > 0 ? selectedImage - 1 : combinedMedia.length - 1)
                       }
                     >
                       <ChevronLeft className="w-4 h-4" />
@@ -2113,7 +2202,7 @@ export default function CO2ProductDetail() {
                       size="icon"
                       className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white"
                       onClick={() =>
-                        handleImageSelect(selectedImage < product.images!.length - 1 ? selectedImage + 1 : 0)
+                        handleImageSelect(selectedImage < combinedMedia.length - 1 ? selectedImage + 1 : 0)
                       }
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -2124,19 +2213,43 @@ export default function CO2ProductDetail() {
 
               <div className="p-4 border-t">
                 <div className="flex space-x-2 overflow-x-auto">
-                  {product.images?.map((image, index) => (
+                  {combinedMedia.map((media, index) => (
                     <button
                       key={index}
                       onClick={() => handleImageSelect(index)}
-                      className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden ${
+                      className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden relative ${
                         selectedImage === index ? "border-[#12d6fa]" : "border-gray-200"
                       }`}
                     >
-                      <img
-                        src={image || "/placeholder.svg"}
-                        alt={`${product.name} ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
+                      {media.type === 'video' ? (
+                        <>
+                          {isYouTubeUrl(media.src) ? (
+                            <img
+                              src={`https://img.youtube.com/vi/${getYouTubeVideoId(media.src)}/mqdefault.jpg`}
+                              alt="Video thumbnail"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <video
+                              className="w-full h-full object-cover"
+                              muted
+                            >
+                              <source src={media.src} type="video/mp4" />
+                              <source src={media.src} type="video/webm" />
+                              <source src={media.src} type="video/ogg" />
+                            </video>
+                          )}
+                          <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                            <Play className="w-4 h-4 text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <img
+                          src={media.src || "/placeholder.svg"}
+                          alt={`${product.name} ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -2144,43 +2257,8 @@ export default function CO2ProductDetail() {
             </DialogContent>
           </Dialog>
 
-          {/* Video Player Modal */}
-          <Dialog open={showVideoPlayer} onOpenChange={setShowVideoPlayer}>
-            <DialogContent className="max-w-4xl p-0">
-              <div className="relative bg-black rounded-lg overflow-hidden">
-                <video
-                  className="w-full h-auto"
-                  controls
-                  muted={isVideoMuted}
-                  autoPlay
-                  poster="/co2-cylinder-video-thumbnail.jpg"
-                >
-                  <source src="/placeholder.mp4?query=co2+cylinder+demo" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white border-white/20"
-                  onClick={() => setShowVideoPlayer(false)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="absolute top-4 left-4 bg-white/20 hover:bg-white/40 text-white border-white/20"
-                  onClick={() => setIsVideoMuted(!isVideoMuted)}
-                >
-                  {isVideoMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </PageLayout>
-    </TooltipProvider>
-  )
+      
+      </TooltipProvider>
+    </PageLayout>
+  );
 }

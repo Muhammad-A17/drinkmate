@@ -1,0 +1,12 @@
+/* CSS Module for refill-cylinder page */
+.multiImageContainer {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  /* Adjust height as needed */
+}
+
+.multiImage {
+  position: absolute;
+  object-fit: contain;
+}

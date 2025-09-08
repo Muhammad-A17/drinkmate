@@ -77,7 +77,7 @@ router.post('/create-admin', async (req, res) => {
     const adminUser = new User({
       username: 'admin',
       email: 'admin@drinkmate.com',
-      password: 'admin123',
+      password: process.env.ADMIN_PASSWORD || 'admin123',
       firstName: 'Admin',
       lastName: 'User',
       isAdmin: true,

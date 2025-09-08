@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { isImageAccessible, getCacheBustingUrl } from "@/lib/fetch-utils"
+import { logger } from "@/lib/logger"
 
 interface SafeImageProps {
   src: string | any
@@ -108,7 +109,7 @@ export function SafeImage({
     
     // Try to reload the image once with a slight delay in case of temporary server issues
     if (imageSrc !== fallbackSrc && imageSrc.includes('/uploads/')) {
-      console.log('Attempting to reload image after error:', imageSrc);
+      logger.warn('Attempting to reload image after error:', imageSrc);
       
       // Small delay before retry
       setTimeout(async () => {
@@ -116,11 +117,11 @@ export function SafeImage({
         const imageExists = await isImageAccessible(imageSrc);
         
         if (imageExists) {
-          console.log('Image exists on retry, attempting to reload');
+          logger.debug('Image exists on retry, attempting to reload');
           // Force reload by updating state with cache-busting query param
           setImageSrc(getCacheBustingUrl(imageSrc));
         } else {
-          console.log('Image still not available, falling back');
+          logger.warn('Image still not available, falling back');
           setImageSrc(fallbackSrc);
         }
       }, 1500);
@@ -134,7 +135,7 @@ export function SafeImage({
   }
 
   const handleLoad = () => {
-    console.log('Image loaded successfully:', imageSrc)
+    logger.debug('Image loaded successfully:', imageSrc)
     if (onLoad) {
       onLoad()
     }

@@ -9,6 +9,7 @@ import { useState, useEffect } from "react"
 import { useCart } from "@/lib/cart-context"
 import { co2API } from "@/lib/api"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
+import styles from "./refill-cylinder.module.css"
 
 export default function CO2() {
   const { t, isRTL } = useTranslation()
@@ -207,7 +208,7 @@ export default function CO2() {
           </Button>
 
           {/* Main Content Area */}
-          <div className="absolute" style={{ top: "44px", left: "125px" }}>
+          <div className={`absolute ${styles.sliderContentPosition}`}>
             <div className="w-[520px] h-[138px] flex flex-col justify-between">
               <div className="space-y-3">
                 <h2 className="text-4xl font-bold text-black leading-tight">{refillSlides[currentRefillSlide].headline}</h2>
@@ -254,7 +255,7 @@ export default function CO2() {
             </div>
           ) : (
             // Multi-image container for the third slide, positioned absolutely within the main gray container
-            <div className="absolute inset-0">
+            <div className={styles.multiImageContainer}>
               {refillSlides[currentRefillSlide].multiImages &&
                 refillSlides[currentRefillSlide].multiImages.map((img, index) => (
                   <Image
@@ -263,7 +264,7 @@ export default function CO2() {
                     alt={img.alt}
                     width={img.width}
                     height={img.height}
-                    className="absolute object-contain"
+                    className={`${styles.multiImage}`}
                     style={{ top: `${img.top}px`, left: `${img.left}px`, zIndex: img.zIndex }}
                   />
                 ))}
@@ -430,6 +431,7 @@ export default function CO2() {
                 <button 
                   onClick={() => handleQuantityChange(-1)}
                   className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                  aria-label="Decrease quantity"
                 >
                   <Minus className="w-5 h-5 text-gray-600" />
                 </button>
@@ -437,6 +439,7 @@ export default function CO2() {
                 <button 
                   onClick={() => handleQuantityChange(1)}
                   className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                  aria-label="Increase quantity"
                 >
                   <Plus className="w-5 h-5 text-gray-600" />
                 </button>

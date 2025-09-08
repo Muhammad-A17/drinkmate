@@ -909,6 +909,7 @@ export default function UsersPage() {
                     checked={selectedUsers.length === currentItems.length && currentItems.length > 0}
                     onChange={handleSelectAll}
                     className="rounded border-gray-300"
+                    aria-label="Select all users"
                   />
                 </TableHead>
                 <TableHead>User</TableHead>
@@ -937,6 +938,7 @@ export default function UsersPage() {
                         checked={selectedUsers.includes(user._id)}
                         onChange={() => handleSelectUser(user._id)}
                         className="rounded border-gray-300"
+                        aria-label={`Select user ${user.email || user.name || 'user'}`}
                       />
                     </TableCell>
                     <TableCell>

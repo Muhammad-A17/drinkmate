@@ -3,20 +3,69 @@ import axios from 'axios';
 import { getAuthToken } from './auth-context';
 
 // Base API URL - should be set in environment variables
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com';
+// For local development, use localhost:3000 where the backend server is running
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3000' 
+    : 'https://drinkmates.onrender.com');
+
+const FINAL_API_URL = API_URL;
+
+// Debug logging
+console.log('API Configuration:', {
+  originalAPI_URL: API_URL,
+  FINAL_API_URL,
+  hostname: typeof window !== 'undefined' ? window.location.hostname : 'server-side'
+});
 
 // Cache configuration
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
 const apiCache = new Map();
 
-  // Create axios instance with default config
+// Create axios instance with default config
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: FINAL_API_URL,
   headers: {
     'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+    'Accept': 'application/json',
   },
   timeout: 15000, // Reduced to 15 seconds for better UX
+  withCredentials: true, // Include cookies with cross-origin requests when needed
 });
+
+// Add security interceptors
+api.interceptors.request.use(
+  (config) => {
+    // Add CSRF protection if needed
+    const token = getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    // Add additional security headers
+    config.headers['X-Content-Type-Options'] = 'nosniff';
+    config.headers['X-Frame-Options'] = 'DENY';
+    
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Log security errors but not in production to avoid leaking sensitive info
+    if (process.env.NODE_ENV !== 'production' && error.response) {
+      if (error.response.status === 401 || error.response.status === 403) {
+        console.warn('Security error:', error.response.status, error.response.data);
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 // Helper function to implement retry mechanism with caching
 const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = 3, delay = 1000): Promise<any> => {
@@ -1272,28 +1321,66 @@ export const refillAPI = {
 export const co2API = {
   // Get all CO2 cylinders
   getCylinders: async () => {
+    // Clear cache to get fresh data
     const cacheKey = 'co2-cylinders';
+    apiCache.delete(cacheKey);
     
     return retryRequest(async () => {
-      const response = await api.get('/co2/cylinders');
+      // Get token for admin requests
+      const token = getAuthToken();
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      
+      // Debug logging
+      console.log('CO2API Debug:', {
+        baseURL: api.defaults.baseURL,
+        endpoint: '/co2/cylinders',
+        fullURL: `${api.defaults.baseURL}/co2/cylinders`,
+        hasToken: !!token,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Add cache-busting parameter to ensure fresh data
+      const response = await api.get('/co2/cylinders', { 
+        headers,
+        params: { _t: Date.now() } // Cache busting
+      });
+      console.log('CO2API Response:', response.data);
       return response.data;
     }, cacheKey);
   },
   
-  // Get a single CO2 cylinder by ID
-  getCylinder: async (id: string) => {
-    const cacheKey = `co2-cylinder-${id}`;
+  // Get a single CO2 cylinder by slug or ID
+  getCylinder: async (slugOrId: string) => {
+    if (!slugOrId) {
+      console.warn('getCylinder called with empty slugOrId');
+      return { success: false, message: 'No slug or ID provided' };
+    }
+    
+    const cacheKey = `co2-cylinder-${slugOrId}`;
     
     return retryRequest(async () => {
-      const response = await api.get(`/co2/cylinders/${id}`);
-      return response.data;
+      // Try to fetch by slug first
+      try {
+        console.log(`Fetching cylinder by slug: ${slugOrId}`);
+        const response = await api.get(`/co2/cylinders/slug/${slugOrId}`);
+        console.log('Slug response:', response.data);
+        return response.data;
+      } catch (error) {
+        // If slug fails, try by ID as fallback
+        console.log(`Trying to fetch cylinder by ID instead: ${slugOrId}`);
+        const response = await api.get(`/co2/cylinders/${slugOrId}`);
+        console.log('ID response:', response.data);
+        return response.data;
+      }
     }, cacheKey);
   },
   
   // Create a new CO2 cylinder
   createCylinder: async (cylinderData: any) => {
     return retryRequest(async () => {
+      console.log('API createCylinder called with:', cylinderData);
       const response = await api.post('/co2/cylinders', cylinderData);
+      console.log('API createCylinder response:', response.data);
       return response.data;
     });
   },
@@ -1301,7 +1388,9 @@ export const co2API = {
   // Update a CO2 cylinder
   updateCylinder: async (id: string, cylinderData: any) => {
     return retryRequest(async () => {
+      console.log('API updateCylinder called with:', { id, cylinderData });
       const response = await api.put(`/co2/cylinders/${id}`, cylinderData);
+      console.log('API updateCylinder response:', response.data);
       return response.data;
     });
   },
@@ -1309,7 +1398,9 @@ export const co2API = {
   // Delete a CO2 cylinder
   deleteCylinder: async (id: string) => {
     return retryRequest(async () => {
+      console.log('API deleteCylinder called with ID:', id);
       const response = await api.delete(`/co2/cylinders/${id}`);
+      console.log('API deleteCylinder response:', response.data);
       return response.data;
     });
   }

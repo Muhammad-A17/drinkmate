@@ -233,6 +233,7 @@ export default function FlavorDetailPage() {
                   className="border border-gray-300 rounded-l-md px-3 py-2"
                   onClick={() => handleQuantityChange(quantity - 1)}
                   disabled={quantity <= 1}
+                  aria-label="Decrease quantity"
                 >
                   -
                 </button>
@@ -243,11 +244,14 @@ export default function FlavorDetailPage() {
                   className="border-t border-b border-gray-300 text-center w-16 py-2"
                   min={1}
                   max={product.stock}
+                  aria-label="Quantity"
+                  placeholder="Quantity"
                 />
                 <button 
                   className="border border-gray-300 rounded-r-md px-3 py-2"
                   onClick={() => handleQuantityChange(quantity + 1)}
                   disabled={!!(product.stock && quantity >= product.stock)}
+                  aria-label="Increase quantity"
                 >
                   +
                 </button>

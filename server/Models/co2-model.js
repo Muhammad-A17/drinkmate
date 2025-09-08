@@ -98,9 +98,9 @@ const co2CylinderSchema = new mongoose.Schema({
     safetyFeatures: String
   },
   dimensions: {
-    length: Number,
     width: Number,
     height: Number,
+    depth: Number,
     weight: Number
   },
   safetyFeatures: [String],

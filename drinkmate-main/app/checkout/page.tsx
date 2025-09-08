@@ -205,6 +205,8 @@ export default function CheckoutPage() {
                      value={deliveryAddress.firstName}
                      onChange={(e) => handleAddressChange("firstName", e.target.value)}
                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                     aria-label="First Name"
+                     placeholder="First Name"
                      required
                    />
                  </div>
@@ -215,6 +217,8 @@ export default function CheckoutPage() {
                      value={deliveryAddress.lastName}
                      onChange={(e) => handleAddressChange("lastName", e.target.value)}
                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                     aria-label="Last Name"
+                     placeholder="Last Name"
                      required
                    />
                  </div>
@@ -227,6 +231,8 @@ export default function CheckoutPage() {
                    value={deliveryAddress.email}
                    onChange={(e) => handleAddressChange("email", e.target.value)}
                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                   aria-label="Email"
+                   placeholder="Email"
                    required
                  />
                </div>
@@ -238,6 +244,8 @@ export default function CheckoutPage() {
                    value={deliveryAddress.phone}
                    onChange={(e) => handleAddressChange("phone", e.target.value)}
                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                   aria-label="Phone"
+                   placeholder="Phone"
                    required
                  />
                </div>
@@ -249,6 +257,8 @@ export default function CheckoutPage() {
                    value={deliveryAddress.address1}
                    onChange={(e) => handleAddressChange("address1", e.target.value)}
                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                   aria-label="Address Line 1"
+                   placeholder="Address Line 1"
                    required
                  />
                </div>
@@ -260,6 +270,8 @@ export default function CheckoutPage() {
                    value={deliveryAddress.address2}
                    onChange={(e) => handleAddressChange("address2", e.target.value)}
                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                   aria-label="Address Line 2"
+                   placeholder="Address Line 2 (optional)"
                  />
                </div>
                
@@ -271,6 +283,8 @@ export default function CheckoutPage() {
                      value={deliveryAddress.city}
                      onChange={(e) => handleAddressChange("city", e.target.value)}
                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                     aria-label="City"
+                     placeholder="City"
                      required
                    />
                  </div>
@@ -281,6 +295,8 @@ export default function CheckoutPage() {
                      value={deliveryAddress.state}
                      onChange={(e) => handleAddressChange("state", e.target.value)}
                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                     aria-label="State"
+                     placeholder="State"
                      required
                    />
                  </div>
@@ -291,6 +307,8 @@ export default function CheckoutPage() {
                      value={deliveryAddress.postalCode}
                      onChange={(e) => handleAddressChange("postalCode", e.target.value)}
                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                     aria-label="Postal Code"
+                     placeholder="Postal Code"
                      required
                    />
                  </div>
@@ -568,6 +586,7 @@ export default function CheckoutPage() {
                          value={cardDetails.expiryMonth}
                          onChange={(e) => handleCardDetailsChange("expiryMonth", e.target.value)}
                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                         aria-label="Expiry Month"
                          required
                        >
                          <option value="">MM</option>
@@ -584,6 +603,7 @@ export default function CheckoutPage() {
                          value={cardDetails.expiryYear}
                          onChange={(e) => handleCardDetailsChange("expiryYear", e.target.value)}
                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                         aria-label="Expiry Year"
                          required
                        >
                          <option value="">YYYY</option>
