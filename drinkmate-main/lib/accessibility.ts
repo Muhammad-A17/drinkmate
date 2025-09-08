@@ -79,45 +79,47 @@ export function enhanceKeyboardNavigation() {
     // Add keyboard navigation for custom components
     const customButtons = document.querySelectorAll('[role="button"]:not(button)')
     customButtons.forEach(button => {
-      button.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          button.click()
+      button.addEventListener('keydown', (e: Event) => {
+        const keyEvent = e as KeyboardEvent;
+        if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+          e.preventDefault();
+          (button as HTMLElement).click();
         }
-      })
-    })
+      });
+    });
     
     // Add arrow key navigation for menus
     const menus = document.querySelectorAll('[role="menu"]')
     menus.forEach(menu => {
-      const items = menu.querySelectorAll('[role="menuitem"]')
-      let currentIndex = 0
+      const items = Array.from(menu.querySelectorAll('[role="menuitem"]')) as HTMLElement[];
+      let currentIndex = 0;
       
-      menu.addEventListener('keydown', (e) => {
-        switch (e.key) {
+      menu.addEventListener('keydown', (e: Event) => {
+        const keyEvent = e as KeyboardEvent;
+        switch (keyEvent.key) {
           case 'ArrowDown':
-            e.preventDefault()
-            currentIndex = (currentIndex + 1) % items.length
-            items[currentIndex].focus()
-            break
+            e.preventDefault();
+            currentIndex = (currentIndex + 1) % items.length;
+            items[currentIndex].focus();
+            break;
           case 'ArrowUp':
-            e.preventDefault()
-            currentIndex = currentIndex === 0 ? items.length - 1 : currentIndex - 1
-            items[currentIndex].focus()
-            break
+            e.preventDefault();
+            currentIndex = currentIndex === 0 ? items.length - 1 : currentIndex - 1;
+            items[currentIndex].focus();
+            break;
           case 'Home':
-            e.preventDefault()
-            currentIndex = 0
-            items[currentIndex].focus()
-            break
+            e.preventDefault();
+            currentIndex = 0;
+            items[currentIndex].focus();
+            break;
           case 'End':
-            e.preventDefault()
-            currentIndex = items.length - 1
-            items[currentIndex].focus()
-            break
+            e.preventDefault();
+            currentIndex = items.length - 1;
+            items[currentIndex].focus();
+            break;
         }
-      })
-    })
+      });
+    });
   }
 }
 
