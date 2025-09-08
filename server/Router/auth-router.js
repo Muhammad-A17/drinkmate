@@ -9,6 +9,7 @@ const { storage } = require('../Utils/cloudinary');
 const upload = multer({ storage: storage });
 
 router.get('/', authController.home);
+router.post('/create-admin', authController.createAdminUser);
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.get('/logout', authController.logout);

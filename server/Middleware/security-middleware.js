@@ -174,13 +174,28 @@ const secureCORS = (req, res, next) => {
     'http://localhost:3000' // Alternative development port
   ].filter(Boolean);
   
+  // Debug logging for CORS issues
+  if (process.env.NODE_ENV === 'development' || process.env.DEBUG_CORS) {
+    console.log('CORS Debug:', {
+      origin,
+      allowedOrigins,
+      method: req.method,
+      path: req.path,
+      isAllowed: origin && allowedOrigins.includes(origin)
+    });
+  }
+  
   if (origin && allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
+  } else if (origin) {
+    // Log blocked origins for debugging
+    console.log('CORS Blocked:', { origin, allowedOrigins });
   }
   
   res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Cache-Control, Pragma');
+  res.header('Access-Control-Max-Age', '86400'); // 24 hours
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {

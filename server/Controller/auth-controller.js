@@ -10,6 +10,59 @@ const home = (req, res) => {
     res.send('Hello World');
 };
 
+// Create admin user endpoint (for initial setup)
+const createAdminUser = async (req, res) => {
+    try {
+        const { email, password, secret } = req.body;
+        
+        // Security: Only allow this in production with a secret key
+        if (process.env.NODE_ENV !== 'production' || secret !== process.env.ADMIN_SETUP_SECRET) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+        
+        // Check if admin user already exists
+        const existingAdmin = await User.findOne({ email: email || 'admin@drinkmate.com' });
+        if (existingAdmin) {
+            return res.status(400).json({ 
+                error: 'Admin user already exists',
+                email: existingAdmin.email 
+            });
+        }
+        
+        // Create admin user
+        const adminUser = new User({
+            username: 'admin',
+            email: email || 'admin@drinkmate.com',
+            password: password || 'admin123',
+            firstName: 'Admin',
+            lastName: 'User',
+            isAdmin: true,
+            isActive: true,
+            emailVerified: true
+        });
+        
+        const savedUser = await adminUser.save();
+        
+        // Generate token
+        const token = savedUser.generateAuthToken();
+        
+        return res.status(201).json({
+            message: 'Admin user created successfully',
+            user: {
+                _id: savedUser._id,
+                username: savedUser.username,
+                email: savedUser.email,
+                isAdmin: savedUser.isAdmin,
+            },
+            token
+        });
+        
+    } catch (error) {
+        console.error('Error creating admin user:', error);
+        return res.status(500).json({ error: 'Failed to create admin user' });
+    }
+};
+
 // REGISTER new user
 const register = async (req, res) => {
     try {
@@ -703,6 +756,7 @@ const uploadAvatar = async (req, res) => {
 
 module.exports = {
     home,
+    createAdminUser,
     register,
     login,
     logout,
