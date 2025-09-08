@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 
@@ -37,85 +37,12 @@ export function CylindersShopSection() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Manual refresh function with useCallback for performance
-  const handleManualRefresh = useCallback(() => {
-    fetchCylinders()
-  }, [])
-
-  useEffect(() => {
-    fetchCylinders()
-    
-    // Listen for changes in localStorage from admin panel
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'co2-cylinders' && e.newValue) {
-        try {
-          const parsedCylinders = JSON.parse(e.newValue)
-          const activeCylinders = parsedCylinders
-            .filter((cylinder: CO2Cylinder) => cylinder.status === 'active')
-            .slice(0, 3)
-          setCylinders(activeCylinders)
-        } catch (error) {
-          console.error('Error parsing updated cylinders:', error)
-        }
-      }
-    }
-    
-    window.addEventListener('storage', handleStorageChange)
-    
-    // Also listen for custom events (for same-tab updates)
-    const handleCustomStorageChange = () => {
-      const savedCylinders = localStorage.getItem('co2-cylinders')
-      if (savedCylinders) {
-        try {
-          const parsedCylinders = JSON.parse(savedCylinders)
-          const activeCylinders = parsedCylinders
-            .filter((cylinder: CO2Cylinder) => cylinder.status === 'active')
-            .slice(0, 3)
-          setCylinders(activeCylinders)
-        } catch (error) {
-          console.error('Error parsing updated cylinders:', error)
-        }
-      }
-    }
-    
-    window.addEventListener('co2-cylinders-updated', handleCustomStorageChange)
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange)
-      window.removeEventListener('co2-cylinders-updated', handleCustomStorageChange)
-    }
-  }, [])
-
   const fetchCylinders = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
       
-      // Check if there are any cylinders saved in localStorage from admin panel
-      const savedCylinders = localStorage.getItem('co2-cylinders')
-      
-      if (savedCylinders) {
-        try {
-          const parsedCylinders = JSON.parse(savedCylinders)
-          
-          // Filter only active cylinders and limit to 3 for display
-          const activeCylinders = parsedCylinders
-            .filter((cylinder: CO2Cylinder) => cylinder.status === 'active')
-            .slice(0, 3)
-          
-          setCylinders(activeCylinders)
-          return
-        } catch (error) {
-          console.error('Error parsing saved cylinders:', error)
-          setError('Failed to load saved cylinders')
-        }
-      }
-      
-      // Fallback to default mock data if no saved cylinders
-      setCylinders(getMockCylinders)
-      
-      // Original API call (commented out for now)
-      /*
+      // Make API call to fetch cylinders
       const response = await fetch('http://localhost:3000/api/co2/cylinders')
       
       if (response.ok) {
@@ -124,88 +51,53 @@ export function CylindersShopSection() {
         const activeCylinders = data.cylinders
           ?.filter((cylinder: CO2Cylinder) => cylinder.status === 'active')
           ?.slice(0, 3) || []
-        setCylinders(activeCylinders)
+          
+        // Ensure image URLs are absolute
+        const processedCylinders = activeCylinders.map((cylinder: CO2Cylinder) => {
+          return {
+            ...cylinder,
+            // Ensure image URL is absolute
+            image: cylinder.image?.startsWith('http') ? cylinder.image : `http://localhost:3000${cylinder.image}`,
+            // Ensure image URLs in arrays are absolute
+            images: (cylinder.images || []).map((img: string) => 
+              img?.startsWith('http') ? img : `http://localhost:3000${img}`
+            )
+          }
+        })
+        
+        setCylinders(processedCylinders)
       } else {
         console.error('Failed to fetch cylinders')
-        // Fallback to mock data if API fails
-        setCylinders(getMockCylinders())
+        setError('Failed to load cylinders')
+        setCylinders([])
       }
-      */
     } catch (error) {
       console.error('Error fetching cylinders:', error)
       setError('Failed to load cylinders')
-      // Fallback to mock data if API fails
-      setCylinders(getMockCylinders)
+      setCylinders([])
     } finally {
       setLoading(false)
     }
   }, [])
 
-  const getMockCylinders = useMemo((): CO2Cylinder[] => [
-    {
-      _id: "1",
-      slug: "cylinder-subscription-service",
-      name: "Cylinder Subscription Service",
-      brand: "DrinkMate",
-      type: "subscription",
-      price: 150.00,
-      originalPrice: 200.00,
-      discount: 25,
-      capacity: 60,
-      material: "steel",
-      stock: 50,
-      minStock: 10,
-      status: "active",
-      isBestSeller: true,
-      isFeatured: true,
-      description: "A customised service that provides cylinder service as per your needs.",
-      features: ["Monthly delivery", "Quality guarantee", "24/7 support"],
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
-      createdAt: new Date().toISOString()
-    },
-    {
-      _id: "2",
-      slug: "refill-exchange-cylinder",
-      name: "Refill / Exchange Cylinder",
-      brand: "DrinkMate",
-      type: "refill",
-      price: 65.00,
-      originalPrice: 89.99,
-      discount: 28,
-      capacity: 60,
-      material: "steel",
-      stock: 25,
-      minStock: 5,
-      status: "active",
-      isBestSeller: true,
-      isFeatured: true,
-      description: "Refill / exchange your empty cylinder for a full cylinder and only pay for the refill.",
-      features: ["Quick refill", "Quality tested", "Safe handling"],
-      image: "/images/02 - Soda Makers/Purple-Machine---Front.png",
-      createdAt: new Date().toISOString()
-    },
-    {
-      _id: "3",
-      slug: "new-spare-cylinder",
-      name: "New / Spare Cylinder",
-      brand: "DrinkMate",
-      type: "new",
-      price: 175.00,
-      originalPrice: 199.99,
-      discount: 12,
-      capacity: 60,
-      material: "steel",
-      stock: 15,
-      minStock: 5,
-      status: "active",
-      isBestSeller: false,
-      isFeatured: true,
-      description: "Have a spare cylinder so you never run out of sparkling drinks.",
-      features: ["Brand new", "Full capacity", "Warranty included"],
-      image: "/images/02 - Soda Makers/Artic-Black-Machine---Front.png",
-      createdAt: new Date().toISOString()
+  // Manual refresh function with useCallback for performance
+  const handleManualRefresh = useCallback(() => {
+    setLoading(true)
+    fetchCylinders()
+  }, [fetchCylinders])
+
+  useEffect(() => {
+    fetchCylinders()
+    
+    // Setup a refresh interval
+    const refreshInterval = setInterval(() => {
+      fetchCylinders()
+    }, 300000) // Refresh every 5 minutes
+    
+    return () => {
+      clearInterval(refreshInterval)
     }
-  ], [])
+  }, [fetchCylinders])
 
   const getServiceType = (type: string) => {
     switch (type) {
@@ -314,6 +206,13 @@ export function CylindersShopSection() {
                       : "/images/02 - Soda Makers/Artic-Black-Machine---Front.png")} 
                   alt={cylinder.name}
                   className="w-40 h-40 object-contain"
+                  onError={(e) => {
+                    // Fallback if image fails to load
+                    const target = e.target as HTMLImageElement;
+                    console.log("Image failed to load:", target.src);
+                    // Set a fallback image
+                    target.src = "/placeholder.svg";
+                  }}
                 />
               </div>
 

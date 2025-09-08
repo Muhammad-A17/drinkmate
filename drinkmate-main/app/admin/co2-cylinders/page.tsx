@@ -78,6 +78,8 @@ export default function CO2CylindersPage() {
   const [uploadedVideos, setUploadedVideos] = useState<string[]>([])
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [isUploadingVideo, setIsUploadingVideo] = useState<boolean>(false)
+  const [youtubeLink, setYoutubeLink] = useState<string>("")
+  const [youtubeLinks, setYoutubeLinks] = useState<string[]>([])
   const [formData, setFormData] = useState({
     name: "",
     brand: "",
@@ -105,24 +107,8 @@ export default function CO2CylindersPage() {
       return
     }
     
-    // Check if there's existing data in localStorage
-    const existingCylinders = localStorage.getItem('co2-cylinders')
-    if (existingCylinders) {
-      try {
-        const parsedCylinders = JSON.parse(existingCylinders)
-        console.log('Loading existing cylinders from localStorage:', parsedCylinders)
-        setCylinders(parsedCylinders)
-        setLoading(false)
-      } catch (error) {
-        console.error('Error parsing existing cylinders:', error)
-        // Fallback to sample data
-        initializeSampleData()
-      }
-    } else {
-      // Initialize with sample data if localStorage is empty
-      console.log('No existing cylinders found, initializing with sample data')
-      initializeSampleData()
-    }
+    // Fetch cylinders from the API
+    fetchCylinders()
   }, [user, router])
 
   const initializeSampleData = () => {
@@ -334,6 +320,28 @@ export default function CO2CylindersPage() {
     setUploadedVideos(prev => prev.filter((_, i) => i !== index))
     toast.success('Video removed')
   }
+  
+  const addYoutubeLink = () => {
+    if (!youtubeLink.trim()) {
+      toast.error("Please enter a valid YouTube link")
+      return
+    }
+
+    // Basic validation to check if it's a YouTube link
+    if (!youtubeLink.includes("youtube.com/") && !youtubeLink.includes("youtu.be/")) {
+      toast.error("Please enter a valid YouTube link")
+      return
+    }
+
+    setYoutubeLinks([...youtubeLinks, youtubeLink])
+    setYoutubeLink("")
+    toast.success("YouTube link added")
+  }
+
+  const removeYoutubeLink = (index: number) => {
+    setYoutubeLinks(prev => prev.filter((_, i) => i !== index))
+    toast.success("YouTube link removed")
+  }
 
   const fetchCylinders = async () => {
     try {
@@ -362,14 +370,33 @@ export default function CO2CylindersPage() {
       if (response.ok) {
         const data = await response.json()
         const cylindersData = data.cylinders || []
-        setCylinders(cylindersData)
-        // Save to localStorage for shop section to read
-        localStorage.setItem('co2-cylinders', JSON.stringify(cylindersData))
+        
+        // Ensure each cylinder has proper image URLs
+        const processedCylinders = cylindersData.map((cylinder: CO2Cylinder) => {
+          return {
+            ...cylinder,
+            // Ensure image URL is absolute
+            image: cylinder.image?.startsWith('http') ? cylinder.image : `http://localhost:3000${cylinder.image}`,
+            // Ensure image URLs in arrays are absolute
+            images: (cylinder.images || []).map((img: string) => 
+              img?.startsWith('http') ? img : `http://localhost:3000${img}`
+            ),
+            // Ensure video URLs are absolute (if not YouTube)
+            videos: (cylinder.videos || []).map((video: string) => 
+              video?.includes('youtube.com') || video?.includes('youtu.be') || video?.startsWith('http') 
+                ? video 
+                : `http://localhost:3000${video}`
+            )
+          }
+        })
+        
+        setCylinders(processedCylinders)
       } else {
         toast.error('Failed to fetch cylinders')
       }
     } catch (error) {
       toast.error('Error fetching cylinders')
+      console.error('Error fetching cylinders:', error)
     } finally {
       setLoading(false)
     }
@@ -433,93 +460,34 @@ export default function CO2CylindersPage() {
         features: formData.features.split(',').map(f => f.trim()).filter(Boolean),
         image: uploadedImage || formData.image, // Use uploaded image or fallback to URL
         images: uploadedImages.length > 0 ? uploadedImages : (uploadedImage ? [uploadedImage] : []),
-        videos: uploadedVideos
+        videos: [...uploadedVideos, ...youtubeLinks]
       }
 
       console.log('Submitting cylinder data:', requestData)
-      console.log('API URL:', url)
-      console.log('Method:', method)
-
-      // For now, simulate API response since backend might not be running
-      // TODO: Remove this when backend is properly set up
-      console.log('Simulating API response for development...')
       
-      // Generate slug from name
-      const generateSlug = (name: string) => {
-        return name
-          .toLowerCase()
-          .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-          .replace(/\s+/g, '-') // Replace spaces with hyphens
-          .replace(/-+/g, '-') // Replace multiple hyphens with single
-          .trim()
-      }
-
-      // Simulate successful response
-      const mockResponse: CO2Cylinder = {
-        _id: Date.now().toString(),
-        slug: generateSlug(requestData.name),
-        ...requestData,
-        discount: 0,
-        isBestSeller: false,
-        isFeatured: false,
-        createdAt: new Date().toISOString()
-      }
-      
-      console.log('Mock response:', mockResponse)
-      toast.success(editingCylinder ? 'Cylinder updated successfully' : 'Cylinder created successfully')
-      setShowAddDialog(false)
-      setEditingCylinder(null)
-      resetForm()
-      
-      // Add to local state for immediate UI update
-      if (editingCylinder) {
-        const updatedCylinders = cylinders.map(cyl => 
-          cyl._id === editingCylinder._id ? { ...cyl, ...requestData, slug: generateSlug(requestData.name) } : cyl
-        )
-        setCylinders(updatedCylinders)
-        // Save to localStorage for shop section to read
-        localStorage.setItem('co2-cylinders', JSON.stringify(updatedCylinders))
-        // Dispatch custom event to notify shop section
-        window.dispatchEvent(new CustomEvent('co2-cylinders-updated'))
-      } else {
-        const newCylinders = [...cylinders, mockResponse]
-        setCylinders(newCylinders)
-        // Save to localStorage for shop section to read
-        localStorage.setItem('co2-cylinders', JSON.stringify(newCylinders))
-        // Dispatch custom event to notify shop section
-        window.dispatchEvent(new CustomEvent('co2-cylinders-updated'))
-      }
-      
-      return
-      
-      // Original API call (commented out for now)
-      /*
       const response = await fetch(url, {
-        method,
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(requestData)
       })
-
-      console.log('Response status:', response.status)
-      console.log('Response ok:', response.ok)
-
+      
       if (response.ok) {
-        const result = await response.json()
-        console.log('Success response:', result)
+        const data = await response.json()
         toast.success(editingCylinder ? 'Cylinder updated successfully' : 'Cylinder created successfully')
         setShowAddDialog(false)
         setEditingCylinder(null)
         resetForm()
+        
+        // Reload cylinders from the API
         fetchCylinders()
       } else {
-        const errorText = await response.text()
-        console.error('Error response:', errorText)
-        toast.error(`Failed to save cylinder: ${response.status} ${response.statusText}`)
+        // Handle error
+        const errorData = await response.json()
+        toast.error(errorData.message || 'Failed to save cylinder')
       }
-      */
     } catch (error) {
       console.error('Error saving cylinder:', error)
       toast.error(`Error saving cylinder: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -546,17 +514,14 @@ export default function CO2CylindersPage() {
 
       if (response.ok) {
         toast.success('Cylinder deleted successfully')
-        // Update local state and localStorage
-        const updatedCylinders = cylinders.filter(cyl => cyl._id !== id)
-        setCylinders(updatedCylinders)
-        localStorage.setItem('co2-cylinders', JSON.stringify(updatedCylinders))
-        // Dispatch custom event to notify shop section
-        window.dispatchEvent(new CustomEvent('co2-cylinders-updated'))
+        // Refresh cylinders from API
+        fetchCylinders()
       } else {
         toast.error('Failed to delete cylinder')
       }
     } catch (error) {
       toast.error('Error deleting cylinder')
+      console.error('Error deleting cylinder:', error)
     }
   }
 
@@ -581,7 +546,14 @@ export default function CO2CylindersPage() {
     setUploadedImage(cylinder.image)
     setImageFile(null)
     setUploadedImages(cylinder.images || [])
-    setUploadedVideos(cylinder.videos || [])
+    
+    // Split videos into file uploads and YouTube links
+    const videoFiles = (cylinder.videos || []).filter(v => !v.includes('youtube.com') && !v.includes('youtu.be'))
+    const ytLinks = (cylinder.videos || []).filter(v => v.includes('youtube.com') || v.includes('youtu.be'))
+    
+    setUploadedVideos(videoFiles)
+    setYoutubeLinks(ytLinks)
+    
     setShowAddDialog(true)
   }
 
@@ -609,6 +581,8 @@ export default function CO2CylindersPage() {
     setUploadedVideos([])
     setVideoFile(null)
     setIsUploadingVideo(false)
+    setYoutubeLink("")
+    setYoutubeLinks([])
     // Reset the file input
     const fileInput = document.getElementById('image-upload') as HTMLInputElement
     if (fileInput) {
@@ -1223,6 +1197,64 @@ export default function CO2CylindersPage() {
                     ))}
                   </div>
                 )}
+                
+                {/* YouTube Links */}
+                <div className="mt-4">
+                  <Label htmlFor="youtube-link">YouTube Video Links</Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      id="youtube-link"
+                      value={youtubeLink}
+                      onChange={(e) => setYoutubeLink(e.target.value)}
+                      placeholder="Paste YouTube link here"
+                      className="flex-1"
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={addYoutubeLink}
+                      variant="outline"
+                    >
+                      Add Link
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Paste YouTube video links like https://youtube.com/watch?v=xxxx or https://youtu.be/xxxx
+                  </p>
+                  
+                  {/* YouTube Links List */}
+                  {youtubeLinks.length > 0 && (
+                    <div className="space-y-2 mt-3">
+                      {youtubeLinks.map((link, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-red-100 rounded flex items-center justify-center">
+                              <svg className="w-4 h-4 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+                                <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+                              </svg>
+                            </div>
+                            <a 
+                              href={link} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-sm font-medium text-blue-600 hover:underline truncate max-w-xs"
+                            >
+                              {link}
+                            </a>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => removeYoutubeLink(index)}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             
