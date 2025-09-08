@@ -84,5 +84,8 @@
   },
   "overrides": {
     "is-arrayish": "0.3.2"
+  },
+  "resolutions": {
+    "is-arrayish": "0.3.2"
   }
 }

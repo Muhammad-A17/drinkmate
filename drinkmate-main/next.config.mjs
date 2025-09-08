@@ -3,6 +3,9 @@ const nextConfig = {
   // Security: Enable strict mode
   reactStrictMode: true,
   
+  // Performance: Disable font optimization during build to prevent network issues
+  optimizeFonts: false,
+  
   // Security: Disable X-Powered-By header
   poweredByHeader: false,
   

@@ -225,6 +225,8 @@ export interface AdminTranslations {
     payment: {
       title: string;
       methods: string;
+      urways: string;
+      tapPayment: string;
       creditCard: string;
       applePay: string;
       cashOnDelivery: string;
@@ -488,6 +490,8 @@ export const adminTranslations: Record<Language, AdminTranslations> = {
       payment: {
         title: "Payment Settings",
         methods: "Payment Methods",
+        urways: "Urways",
+        tapPayment: "Tap Payment",
         creditCard: "Credit Card",
         applePay: "Apple Pay",
         cashOnDelivery: "Cash on Delivery",

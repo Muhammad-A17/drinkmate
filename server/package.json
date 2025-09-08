@@ -57,5 +57,11 @@
     "@types/qrcode": "^1.5.5",
     "@types/speakeasy": "^2.0.10",
     "eslint-plugin-security": "^3.0.1"
+  },
+  "overrides": {
+    "is-arrayish": "0.3.2"
+  },
+  "resolutions": {
+    "is-arrayish": "0.3.2"
   }
 }

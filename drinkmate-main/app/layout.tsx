@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+// Temporarily disable Google Fonts to prevent build issues
+// import { Inter, Cairo, Montserrat, Noto_Sans, Noto_Sans_Arabic } from "next/font/google"
 import "./globals.css"
 import { TranslationProvider } from "@/lib/translation-context"
 import { CartProvider } from "@/lib/cart-context"
@@ -7,7 +8,11 @@ import { AuthProvider } from "@/lib/auth-context"
 import SWRProvider from "@/lib/swr-provider"
 import SecurityMiddleware from "./security-middleware"
 
-const inter = Inter({ subsets: ["latin"] })
+// Use system fonts only to avoid network issues during build
+const systemFonts = {
+  className: 'font-sans',
+  variable: '--font-system'
+}
 
 export const viewport = {
   width: 'device-width',
@@ -110,12 +115,9 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
         
         {/* Preconnect to important domains for performance */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://res.cloudinary.com" />
         
-        {/* Preload critical assets */}
-        <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        {/* Fonts are now handled by Next.js font optimization - no manual preloads needed */}
         
         {/* Security-related meta tags */}
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
@@ -188,7 +190,7 @@ export default function RootLayout({
           }
         }) }} />
       </head>
-      <body className={inter.className}>
+      <body className={systemFonts.className}>
         <SecurityMiddleware>
           <TranslationProvider>
             <CartProvider>

@@ -81,7 +81,7 @@ export function generateMetadata({
       },
     },
     openGraph: {
-      type,
+      type: type === 'product' ? 'website' : type,
       locale: 'en_US',
       url: fullUrl,
       siteName: 'DrinkMate',
@@ -129,13 +129,16 @@ export function generateMetadata({
 
   // Add product-specific metadata
   if (type === 'product') {
+    const productMetadata: Record<string, string> = {}
+    if (price) productMetadata['product:price:amount'] = price.toString()
+    if (currency) productMetadata['product:price:currency'] = currency
+    if (availability) productMetadata['product:availability'] = availability
+    if (brand) productMetadata['product:brand'] = brand
+    if (category) productMetadata['product:category'] = category
+    
     metadata.other = {
       ...metadata.other,
-      'product:price:amount': price?.toString(),
-      'product:price:currency': currency,
-      'product:availability': availability,
-      'product:brand': brand,
-      'product:category': category,
+      ...productMetadata,
     }
   }
 
