@@ -82,7 +82,7 @@ const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000, // 15 minutes
   delayAfter: 50, // Allow 50 requests per 15 minutes, then...
   delayMs: (used, req) => {
-    const delayAfter = req.slowDown.limit;
+    const delayAfter = req.slowDown?.limit || 50;
     return (used - delayAfter) * 500;
   }
 });
