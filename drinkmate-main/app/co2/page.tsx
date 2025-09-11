@@ -2,6 +2,7 @@
 import { CylindersShopSection } from "@/components/sections/CylindersShopSection"
 import PageLayout from "@/components/layout/PageLayout"
 import Image from "next/image"
+import { useTranslation } from "@/lib/translation-context"
 
 const faqCards = [
   {
@@ -89,11 +90,12 @@ const benefits = [
 ]
 
 export default function CO2() {
+  const { isRTL } = useTranslation()
 
   return (
     <PageLayout currentPage="co2">
       {/* Hero Section */}
-      <section className="relative py-16 bg-gradient-to-b from-white to-[#f3f3f3] overflow-hidden">
+      <section className="relative py-8 md:py-16 bg-white animate-fade-in-up overflow-hidden">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -107,11 +109,15 @@ export default function CO2() {
         </div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-4">
-          <div className="text-center space-y-6">
-            <h1 className="text-5xl font-bold text-white leading-tight tracking-tight font-montserrat">
+          <div className="text-center space-y-4 md:space-y-6">
+            <h1
+              className={`text-3xl md:text-5xl font-bold text-white leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-tight`}
+            >
               Refill / Exchange Cylinders
             </h1>
-            <p className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed font-noto-sans">
+            <p
+              className={`text-base md:text-xl text-gray-200 max-w-3xl mx-auto ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-up delay-200 leading-relaxed`}
+            >
               Never let your sparkling run out with our fast and amazing refill / exchange service.
             </p>
           </div>

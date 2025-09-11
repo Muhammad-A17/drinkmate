@@ -516,7 +516,7 @@ export default function AccessoriesPage() {
                 </div>
 
                 {/* Desktop filters */}
-                <div className={`${showFilters ? "block" : "hidden"} lg:block space-y-4 lg:space-y-0 lg:flex lg:items-center lg:gap-8`}>
+                <div className={`${showFilters ? "block" : "hidden"} lg:flex space-y-4 lg:space-y-0 lg:items-center lg:gap-8`}>
                   {/* Search */}
                   <div className="flex items-center gap-3">
                     <div className="relative flex-1">
@@ -545,6 +545,7 @@ export default function AccessoriesPage() {
                       value={selectedFilter}
                       onChange={(e) => setSelectedFilter(e.target.value)}
                       className="px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
+                      title="Filter accessories by category"
                     >
                       {filterOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -561,6 +562,7 @@ export default function AccessoriesPage() {
                       value={selectedSort}
                       onChange={(e) => setSelectedSort(e.target.value)}
                       className="px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
+                      title="Sort accessories by"
                     >
                       {sortOptions.map((option) => (
                         <option key={option.value} value={option.value}>

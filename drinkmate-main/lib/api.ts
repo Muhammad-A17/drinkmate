@@ -4,10 +4,7 @@ import { getAuthToken } from './auth-context';
 
 // Base API URL - should be set in environment variables
 // For local development, use localhost:3000 where the backend server is running
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 
-  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:3000' 
-    : 'https://drinkmates.onrender.com');
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 const FINAL_API_URL = API_URL;
 
@@ -404,7 +401,7 @@ export const shopAPI = {
           if (process.env.NODE_ENV === 'development') {
             // Trying slug product endpoint
           }
-          const bySlug = await api.get(`/shop/products/slug/${idOrSlug}`);
+          const bySlug = await api.get(`/shop/products/${idOrSlug}`);
           if (process.env.NODE_ENV === 'development') {
             // Slug product fetch successful
           }
@@ -422,7 +419,7 @@ export const shopAPI = {
     
     return retryRequest(async () => {
       try {
-        const response = await api.get(`/shop/products/slug/${slug}`);
+        const response = await api.get(`/shop/products/${slug}`);
         return response.data;
       } catch (error: any) {
         console.error('Error fetching product by slug:', error.response?.data || error.message);
@@ -501,7 +498,7 @@ export const shopAPI = {
           if (process.env.NODE_ENV === 'development') {
             // Trying slug bundle endpoint
           }
-          const bySlug = await api.get(`/shop/bundles/slug/${idOrSlug}`);
+          const bySlug = await api.get(`/shop/bundles/${idOrSlug}`);
           if (process.env.NODE_ENV === 'development') {
             // Slug bundle fetch successful
           }
@@ -665,15 +662,85 @@ export const shopAPI = {
     return response.data;
   },
 
-  getCategoryById: async (categoryId: string) => {
-    const response = await api.get(`/categories/${categoryId}`);
-    return response.data;
+  // Unified method to get all products (shop products, bundles, CO2 cylinders)
+  getAllProducts: async (params = {}) => {
+    const cacheKey = `all-products-${JSON.stringify(params)}`;
+
+    return retryRequest(async () => {
+      try {
+        // Fetch all product types in parallel
+        const [productsRes, bundlesRes, cylindersRes] = await Promise.all([
+          api.get('/shop/products', { params }),
+          api.get('/shop/bundles', { params }),
+          api.get('/co2/cylinders', { params })
+        ]);
+
+        // Combine and standardize the data
+        const allProducts = [
+          ...(productsRes.data.products || productsRes.data || []).map((product: any) => ({
+            ...product,
+            productType: 'product' as const
+          })),
+          ...(bundlesRes.data.bundles || bundlesRes.data || []).map((bundle: any) => ({
+            ...bundle,
+            productType: 'bundle' as const
+          })),
+          ...(cylindersRes.data.cylinders || cylindersRes.data || []).map((cylinder: any) => ({
+            ...cylinder,
+            productType: 'cylinder' as const
+          }))
+        ];
+
+        return {
+          success: true,
+          products: allProducts,
+          total: allProducts.length
+        };
+      } catch (error: any) {
+        console.error('Error fetching all products:', error.response?.data || error.message);
+        throw error;
+      }
+    }, cacheKey);
   },
 
-  getSubcategoryById: async (subcategoryId: string) => {
-    const response = await api.get(`/subcategories/${subcategoryId}`);
-    return response.data;
-  }
+  // Unified method to get product by slug (tries all product types)
+  getProductBySlugUnified: async (slug: string) => {
+    const cacheKey = `product-unified-${slug}`;
+
+    return retryRequest(async () => {
+      // Try to fetch from each product type
+      const endpoints = [
+        { type: 'product', url: `/shop/products/${slug}` },
+        { type: 'bundle', url: `/shop/bundles/${slug}` },
+        { type: 'cylinder', url: `/co2/cylinders/slug/${slug}` }
+      ];
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await api.get(endpoint.url);
+          if (response.data && (response.data.product || response.data.bundle || response.data.cylinder)) {
+            const product = response.data.product || response.data.bundle || response.data.cylinder;
+            return {
+              success: true,
+              product: {
+                ...product,
+                productType: endpoint.type
+              }
+            };
+          }
+        } catch (error) {
+          // Continue to next endpoint
+          continue;
+        }
+      }
+
+      // If no product found
+      return {
+        success: false,
+        message: 'Product not found'
+      };
+    }, cacheKey);
+  },
 };
 
 // Order API

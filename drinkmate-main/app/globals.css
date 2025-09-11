@@ -405,3 +405,42 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Additional animations for shop page */
+@keyframes float-animation {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.float-animation {
+  animation: float-animation 6s ease-in-out infinite;
+}
+
+.animate-spin-reverse {
+  animation: spin-reverse 0.8s linear infinite;
+}
+
+.delay-1000 {
+  animation-delay: 2s;
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}

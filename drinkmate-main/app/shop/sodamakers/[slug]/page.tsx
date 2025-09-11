@@ -1178,6 +1178,7 @@ export default function ProductDetailPage() {
                                     key={rating}
                                     onClick={() => setNewReview({...newReview, rating})}
                                     className="text-2xl hover:scale-110 transition-transform"
+                                    title={`Rate ${rating} star${rating > 1 ? 's' : ''}`}
                                   >
                                     <Star
                                       className={`w-8 h-8 ${

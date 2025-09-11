@@ -875,7 +875,6 @@ export default function Home() {
                     playsInline
                     preload="auto"
                     className="object-contain w-full h-full"
-                    style={{ width: '100%', height: '100%' }}
                   >
                     <source src="https://res.cloudinary.com/dw2h8hejn/video/upload/v1756559849/Cylinders_Animation_hw9gdc.webm" type="video/webm" />
                     Your browser does not support the video tag.
@@ -981,7 +980,6 @@ export default function Home() {
                     playsInline
                     preload="auto"
                     className="object-contain w-full h-full"
-                    style={{ width: '100%', height: '100%' }}
                   >
                     <source src="https://res.cloudinary.com/dw2h8hejn/video/upload/v1756559849/Cylinders_Animation_hw9gdc.webm" type="video/webm" />
                     Your browser does not support the video tag.

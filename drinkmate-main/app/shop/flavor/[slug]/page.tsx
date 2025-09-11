@@ -1280,6 +1280,7 @@ export default function FlavorDetailPage() {
                         key={star}
                         onClick={() => setNewReview({ ...newReview, rating: star })}
                         className="text-2xl"
+                        title={`Rate ${star} star${star > 1 ? 's' : ''}`}
                       >
                         <Star
                           className={`w-8 h-8 ${

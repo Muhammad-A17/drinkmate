@@ -122,7 +122,7 @@ export default function TrackOrderPage() {
       <Header />
       
       {/* Hero Section with Background */}
-      <section className="relative py-16 bg-gray-50 overflow-hidden">
+      <section className="relative py-8 md:py-16 bg-white animate-fade-in-up overflow-hidden">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -136,10 +136,18 @@ export default function TrackOrderPage() {
           <div className="absolute inset-0 bg-black/50"></div>
         </div>
         
-        <div className="relative z-10 max-w-4xl mx-auto px-4">
-          <div className="text-center space-y-6">
-            <h1 className="text-5xl font-bold text-white leading-tight tracking-tight">{t('trackOrder.hero.title')}</h1>
-            <p className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed">{t('trackOrder.hero.subtitle')}</p>
+        <div className="relative z-10 max-w-7xl mx-auto px-4">
+          <div className="text-center space-y-4 md:space-y-6">
+            <h1
+              className={`text-3xl md:text-5xl font-bold text-white leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-tight`}
+            >
+              {t('trackOrder.hero.title')}
+            </h1>
+            <p
+              className={`text-base md:text-xl text-gray-200 max-w-3xl mx-auto ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-up delay-200 leading-relaxed`}
+            >
+              {t('trackOrder.hero.subtitle')}
+            </p>
           </div>
         </div>
       </section>

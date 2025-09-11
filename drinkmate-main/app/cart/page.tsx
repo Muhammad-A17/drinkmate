@@ -113,8 +113,15 @@ export default function CartPage() {
   }
 
   const handleCheckout = () => {
+    console.log("Checkout clicked, cart items:", state.items.length)
+    console.log("Cart state:", state)
+    
     if (state.items.length > 0) {
+      console.log("Navigating to checkout...")
       router.push("/checkout")
+    } else {
+      console.log("Cart is empty, cannot checkout")
+      toast.error("Your cart is empty. Please add items before checkout.")
     }
   }
 
@@ -800,9 +807,14 @@ export default function CartPage() {
 
           <Button
             onClick={handleCheckout}
-            className="w-full bg-[#00D1FF] hover:bg-[#00bae0] text-white font-medium py-4 text-base rounded-lg mb-6"
+            disabled={state.items.length === 0}
+            className={`w-full font-medium py-4 text-base rounded-lg mb-6 ${
+              state.items.length === 0 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-[#00D1FF] hover:bg-[#00bae0] text-white'
+            }`}
           >
-            Checkout • <SaudiRiyal amount={finalTotal} />
+            {state.items.length === 0 ? 'Cart is Empty' : `Checkout • ${finalTotal} SAR`}
           </Button>
 
           <div>

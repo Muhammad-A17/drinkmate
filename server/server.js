@@ -266,7 +266,6 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'drinkmate_secret_key_
 }
 
 // Start server
-const PORT = process.env.PORT || 3000;
 
 // Security: Check for required environment variables
 const requiredEnvVars = [
@@ -346,8 +345,53 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`📋 API Status: http://localhost:${PORT}/api-status`);
-});
+// Start server on port 3000 (force port 3000)
+const PORT = parseInt(process.env.PORT, 10) || 3000;
+
+// Function to kill process on port 3000 if it exists
+function killProcessOnPort(port) {
+  const { exec } = require('child_process');
+  exec(`netstat -ano | findstr :${port}`, (error, stdout) => {
+    if (stdout) {
+      const lines = stdout.trim().split('\n');
+      lines.forEach(line => {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length >= 5) {
+          const pid = parts[parts.length - 1];
+          if (pid && pid !== '0') {
+            console.log(`🔄 Killing process ${pid} on port ${port}`);
+            exec(`taskkill /F /PID ${pid}`, (err) => {
+              if (err) {
+                console.log(`⚠️  Could not kill process ${pid}: ${err.message}`);
+              } else {
+                console.log(`✅ Successfully killed process ${pid}`);
+              }
+            });
+          }
+        }
+      });
+    }
+  });
+}
+
+// Kill any existing process on port 3000
+killProcessOnPort(3000);
+
+// Wait a moment for the port to be freed
+setTimeout(() => {
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(`📋 API Status: http://localhost:${PORT}/api-status`);
+  });
+  
+  server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`❌ Port ${PORT} is still in use. Please manually kill the process and restart.`);
+      console.error(`💡 Try: netstat -ano | findstr :${PORT} then taskkill /F /PID <PID>`);
+      process.exit(1);
+    } else {
+      throw error;
+    }
+  });
+}, 2000);

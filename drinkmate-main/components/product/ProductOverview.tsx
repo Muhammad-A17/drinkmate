@@ -137,6 +137,7 @@ export default function ProductOverview({
               onChange={(e) => handleQuantityChange(parseInt(e.target.value))}
               className="border-t border-b border-gray-300 text-center w-16 py-2"
               min={1}
+              aria-label="Product quantity"
               max={product.stock}
             />
             <button 

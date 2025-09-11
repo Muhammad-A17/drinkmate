@@ -91,7 +91,6 @@ export default function Header({ currentPage }: HeaderProps) {
               width={120}
               height={40}
               className="h-7 sm:h-8 md:h-10 w-auto filter drop-shadow-sm"
-              style={{ width: "auto", height: "auto" }}
               priority
             />
           </Link>
@@ -139,12 +138,12 @@ export default function Header({ currentPage }: HeaderProps) {
               {/* Dropdown Menu */}
               {isShopDropdownOpen && (
                 <div
-                  className={`shop-dropdown absolute ${isRTL ? "right-0" : "left-0"} mt-3 w-[720px] rounded-2xl shadow-2xl bg-white ring-1 ring-slate-200/50 border border-white/20 transition-all duration-300 opacity-100 translate-y-0 scale-100 z-50`}
+                  className={`shop-dropdown absolute ${isRTL ? "right-0" : "left-0"} mt-3 w-[960px] rounded-2xl shadow-2xl bg-white ring-1 ring-slate-200/50 border border-white/20 transition-all duration-300 opacity-100 translate-y-0 scale-100 z-50`}
                   onMouseLeave={() => setIsShopDropdownOpen(false)}
                   aria-label="Shop categories"
                 >
                 <div className="p-4">
-                  <div className="grid grid-cols-3 gap-4 h-64">
+                  <div className="grid grid-cols-4 gap-4 h-64">
                     {/* Soda Makers */}
                     <Link
                       href="/shop/sodamakers"
@@ -160,7 +159,6 @@ export default function Header({ currentPage }: HeaderProps) {
                             width={100}
                             height={100}
                             className="object-contain group-hover:scale-110 transition-transform duration-300"
-                            style={{ height: "auto" }}
                           />
                         </div>
                       </div>
@@ -182,7 +180,6 @@ export default function Header({ currentPage }: HeaderProps) {
                             width={80}
                             height={100}
                             className="object-contain group-hover:scale-110 transition-transform duration-300"
-                            style={{ height: "auto" }}
                           />
                         </div>
                       </div>
@@ -204,11 +201,31 @@ export default function Header({ currentPage }: HeaderProps) {
                             width={80}
                             height={100}
                             className="object-contain group-hover:scale-110 transition-transform duration-300"
-                            style={{ height: "auto" }}
                           />
                         </div>
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </Link>
+
+                    {/* CO2 Cylinders */}
+                    <Link
+                      href="/co2"
+                      className="col-span-1 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl p-4 text-white hover:from-orange-500 hover:to-orange-600 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center"
+                      onClick={() => setIsShopDropdownOpen(false)}
+                    >
+                      <div className="relative z-10 text-center">
+                        <h3 className={`text-xl font-bold mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.co2")}</h3>
+                        <div className="flex justify-center">
+                          <Image
+                            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892915/co2-cylinder_placeholder.png"
+                            alt="CO2 Cylinder"
+                            width={80}
+                            height={100}
+                            className="object-contain group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </Link>
                   </div>
                 </div>
@@ -216,19 +233,6 @@ export default function Header({ currentPage }: HeaderProps) {
               )}
             </div>
 
-            <Link
-              href="/co2"
-              className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${isRTL ? "font-cairo px-2" : "font-montserrat px-2"} ${
-                currentPage === "co2" ? "text-slate-900" : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              {t("header.co2")}
-              {currentPage === "co2" && (
-                <span
-                  className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}
-                ></span>
-              )}
-            </Link>
             <Link
               href="/recipes"
               className={`text-sm font-semibold tracking-wide transition-all duration-300 relative group cursor-pointer ${isRTL ? "font-cairo px-2" : "font-montserrat px-2"} ${
@@ -441,7 +445,6 @@ export default function Header({ currentPage }: HeaderProps) {
                           width={80}
                           height={80}
                           className="object-contain group-hover:scale-110 transition-transform duration-300"
-                          style={{ height: "auto" }}
                         />
                       </div>
                       <h3 className={`text-sm font-bold ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.sodamakers")}</h3>
@@ -465,7 +468,6 @@ export default function Header({ currentPage }: HeaderProps) {
                           width={60}
                           height={80}
                           className="object-contain group-hover:scale-110 transition-transform duration-300"
-                          style={{ height: "auto" }}
                         />
                       </div>
                       <h3 className={`text-sm font-bold ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.flavor")}</h3>
@@ -475,7 +477,7 @@ export default function Header({ currentPage }: HeaderProps) {
                   {/* Accessories */}
                   <Link
                     href="/shop/accessories"
-                    className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl p-6 hover:from-slate-200 hover:to-slate-300 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square col-span-2"
+                    className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl p-6 hover:from-slate-200 hover:to-slate-300 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square"
                     onClick={() => {
                       setIsMobileMenuOpen(false)
                       setShowMobileShopGrid(false)
@@ -489,10 +491,32 @@ export default function Header({ currentPage }: HeaderProps) {
                           width={60}
                           height={80}
                           className="object-contain group-hover:scale-110 transition-transform duration-300"
-                          style={{ height: "auto" }}
                         />
                       </div>
                       <h3 className={`text-sm font-bold text-slate-800 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.accessories")}</h3>
+                    </div>
+                  </Link>
+
+                  {/* CO2 Cylinders */}
+                  <Link
+                    href="/co2"
+                    className="bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl p-6 text-white hover:from-orange-500 hover:to-orange-600 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false)
+                      setShowMobileShopGrid(false)
+                    }}
+                  >
+                    <div className="relative z-10 text-center">
+                      <div className="flex justify-center mb-4">
+                        <Image
+                          src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892915/co2-cylinder_placeholder.png"
+                          alt="CO2 Cylinder"
+                          width={60}
+                          height={80}
+                          className="object-contain group-hover:scale-110 transition-transform duration-300"
+                        />
+                      </div>
+                      <h3 className={`text-sm font-bold ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.co2")}</h3>
                     </div>
                   </Link>
                 </div>
@@ -527,17 +551,7 @@ export default function Header({ currentPage }: HeaderProps) {
                   {t("header.shop")}
                 </button>
 
-                <Link
-                  href="/co2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`text-sm font-medium px-5 py-3 ${isRTL ? "text-right" : "text-left"} transition-all duration-200 cursor-pointer ${isRTL ? "font-cairo" : "font-montserrat"} ${
-                    currentPage === "co2"
-                      ? `text-slate-900 bg-slate-100 ${isRTL ? "border-r-4" : "border-l-4"} border-[#12d6fa]`
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                  }`}
-                >
-                  {t("header.co2")}
-                </Link>
+               
                 <Link
                   href="/recipes"
                   onClick={() => setIsMobileMenuOpen(false)}

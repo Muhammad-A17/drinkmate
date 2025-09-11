@@ -8,7 +8,7 @@
 
 .zoomedImage {
   scale: 1.5;
-  /* Note: transformOrigin needs to be set dynamically via inline style */
+  transform-origin: center center;
 }
 
 .defaultImage {
@@ -36,4 +36,11 @@
   border-radius: 0.75rem;
 }
 
-/* Add other styles as needed */
+/* Color selection button styles */
+.colorButton {
+  background-color: var(--color-hex);
+}
+
+.color-swatch {
+  background-color: var(--color-bg);
+}

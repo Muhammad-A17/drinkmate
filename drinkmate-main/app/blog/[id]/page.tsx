@@ -419,18 +419,24 @@ export default function BlogPost({ params }: { params: { id: string } }) {
                   <button
                     onClick={() => handleShare('facebook')}
                     className="w-10 h-10 bg-[#1877f2] hover:bg-[#166fe5] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg"
+                    aria-label="Share on Facebook"
+                    title="Share on Facebook"
                   >
                     <Facebook className="w-5 h-5 text-white" />
                   </button>
                   <button
                     onClick={() => handleShare('twitter')}
                     className="w-10 h-10 bg-[#1da1f2] hover:bg-[#1a91da] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg"
+                    aria-label="Share on Twitter"
+                    title="Share on Twitter"
                   >
                     <Twitter className="w-5 h-5 text-white" />
                   </button>
                   <button
                     onClick={() => handleShare('linkedin')}
                     className="w-10 h-10 bg-[#0077b5] hover:bg-[#005885] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg"
+                    aria-label="Share on LinkedIn"
+                    title="Share on LinkedIn"
                   >
                     <Linkedin className="w-5 h-5 text-white" />
                   </button>

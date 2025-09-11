@@ -1555,6 +1555,7 @@ export default function Recipes() {
                       value={newRecipe.category}
                       onChange={(e) => setNewRecipe(prev => ({ ...prev, category: e.target.value }))}
                       className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#12d6fa] ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                      aria-label={isRTL ? "اختر الفئة" : "Select category"}
                     >
                       <option value="cocktails">{isRTL ? "كوكتيلات" : "Cocktails"}</option>
                       <option value="mocktails">{isRTL ? "مشروبات غير كحولية" : "Mocktails"}</option>
@@ -1659,6 +1660,7 @@ export default function Recipes() {
                         value={newRecipe.difficulty}
                         onChange={(e) => setNewRecipe(prev => ({ ...prev, difficulty: e.target.value }))}
                         className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#12d6fa] ${isRTL ? "font-noto-arabic" : "font-noto-sans"}`}
+                        aria-label={isRTL ? "اختر مستوى الصعوبة" : "Select difficulty level"}
                       >
                         <option value="Easy">{isRTL ? "سهل" : "Easy"}</option>
                         <option value="Intermediate">{isRTL ? "متوسط" : "Intermediate"}</option>

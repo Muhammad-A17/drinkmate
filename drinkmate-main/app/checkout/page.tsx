@@ -21,6 +21,7 @@ export default function CheckoutPage() {
   
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("urways")
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isPageLoading, setIsPageLoading] = useState(true)
   
   // Card details state
   const [cardDetails, setCardDetails] = useState({
@@ -66,11 +67,16 @@ export default function CheckoutPage() {
   const total = subtotal + shippingCost + tax
 
   useEffect(() => {
-    if (state.items.length === 0) {
-      router.push("/cart")
-      toast.error("Your cart is empty")
-    }
-  }, [state.items.length, router])
+    console.log("Checkout page loaded, cart items:", state.items.length)
+    console.log("Cart state:", state)
+    
+    // Set loading to false after a short delay
+    const loadingTimer = setTimeout(() => {
+      setIsPageLoading(false)
+    }, 300)
+
+    return () => clearTimeout(loadingTimer)
+  }, [])
 
   const handleCardDetailsChange = (field: string, value: string) => {
     setCardDetails(prev => ({
@@ -179,7 +185,36 @@ export default function CheckoutPage() {
     }
   }
 
-  if (state.items.length === 0) return null
+  // Show loading screen while page initializes
+  if (isPageLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#12d6fa]" />
+          <p className="text-gray-600">Loading checkout...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show empty cart message if no items
+  if (state.items.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
+          <p className="text-gray-600 mb-6">Please add items to your cart before checkout</p>
+          <Button 
+            onClick={() => router.push("/shop")}
+            className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
+          >
+            Continue Shopping
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
