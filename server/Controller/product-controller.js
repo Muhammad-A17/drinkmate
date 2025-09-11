@@ -401,7 +401,10 @@ exports.getBundles = async (req, res) => {
         if (req.query.category) {
             const category = await Category.findOne({ slug: req.query.category });
             if (category) {
-                filter.category = category._id;
+                // Bundle category is stored as string, so match by slug or name
+                filter.category = {
+                    $in: [category.slug, category.name, category._id.toString()]
+                };
             }
         }
         

@@ -237,7 +237,10 @@ exports.deleteCategory = async (req, res) => {
 
         // Check if category has products or bundles
         const products = await Product.find({ category: id });
-        const bundles = await Bundle.find({ category: id });
+        const category = await Category.findById(id);
+        const bundles = category ? await Bundle.find({ 
+            category: { $in: [category.slug, category.name, category._id.toString()] }
+        }) : [];
         
         if (products.length > 0 || bundles.length > 0) {
             return res.status(400).json({
@@ -265,7 +268,9 @@ exports.deleteCategory = async (req, res) => {
             for (const subcategory of subcategories) {
                 // Check if subcategory has products or bundles
                 const subProducts = await Product.find({ subcategory: subcategory._id });
-                const subBundles = await Bundle.find({ subcategory: subcategory._id });
+                const subBundles = await Bundle.find({ 
+                    subcategory: { $in: [subcategory.slug, subcategory.name, subcategory._id.toString()] }
+                });
                 
                 if (subProducts.length > 0 || subBundles.length > 0) {
                     return res.status(400).json({
@@ -568,7 +573,10 @@ exports.deleteSubcategory = async (req, res) => {
 
         // Check if subcategory has products or bundles
         const products = await Product.find({ subcategory: id });
-        const bundles = await Bundle.find({ subcategory: id });
+        const subcategoryDoc = await Subcategory.findById(id);
+        const bundles = subcategoryDoc ? await Bundle.find({ 
+            subcategory: { $in: [subcategoryDoc.slug, subcategoryDoc.name, subcategoryDoc._id.toString()] }
+        }) : [];
         
         if (products.length > 0 || bundles.length > 0) {
             return res.status(400).json({
@@ -639,7 +647,9 @@ exports.updateItemCounts = async () => {
         const categories = await Category.find();
         for (const category of categories) {
             const productCount = await Product.countDocuments({ category: category._id });
-            const bundleCount = await Bundle.countDocuments({ category: category._id });
+            const bundleCount = await Bundle.countDocuments({ 
+                category: { $in: [category.slug, category.name, category._id.toString()] }
+            });
             
             await Category.findByIdAndUpdate(category._id, {
                 productCount,
@@ -651,7 +661,9 @@ exports.updateItemCounts = async () => {
         const subcategories = await Subcategory.find();
         for (const subcategory of subcategories) {
             const productCount = await Product.countDocuments({ subcategory: subcategory._id });
-            const bundleCount = await Bundle.countDocuments({ subcategory: subcategory._id });
+            const bundleCount = await Bundle.countDocuments({ 
+                subcategory: { $in: [subcategory.slug, subcategory.name, subcategory._id.toString()] }
+            });
             
             await Subcategory.findByIdAndUpdate(subcategory._id, {
                 productCount,
