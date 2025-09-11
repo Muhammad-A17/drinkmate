@@ -1128,9 +1128,9 @@ export const adminAPI = {
     return response.data;
   },
 
-  deleteCategory: async (categoryId: string) => {
+  deleteCategory: async (categoryId: string, force: boolean = false) => {
     const token = getAuthToken();
-    const response = await api.delete(`/admin/categories/${categoryId}`, {
+    const response = await api.delete(`/admin/categories/${categoryId}${force ? '?force=true' : ''}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

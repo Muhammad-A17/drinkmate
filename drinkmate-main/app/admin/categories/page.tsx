@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { adminAPI } from '@/lib/api';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Eye, EyeOff, FolderOpen, Tag, Settings, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, FolderOpen, Tag, Settings, Package, Search, Filter, SortAsc, SortDesc, Copy, MoreHorizontal, CheckSquare, Square, Download, Upload, X, FileText, BarChart3, Save, RotateCcw, Calendar, Hash, Zap, Layers, History, BookOpen, Keyboard } from 'lucide-react';
 
 interface Category {
   _id: string;
@@ -80,6 +80,44 @@ export default function AdminCategoriesPage() {
   });
   const [isSubcategoryDialogOpen, setIsSubcategoryDialogOpen] = useState(false);
   const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null);
+  
+  // Force delete confirmation state
+  const [isForceDeleteDialogOpen, setIsForceDeleteDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<{ id: string; name: string; subcategoryCount: number } | null>(null);
+  
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'createdAt' | 'sortOrder' | 'productCount'>('sortOrder');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  
+  // Bulk actions state
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [isBulkActionOpen, setIsBulkActionOpen] = useState(false);
+  
+  // Advanced features state
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [isBulkEditDialogOpen, setIsBulkEditDialogOpen] = useState(false);
+  const [isAnalyticsDialogOpen, setIsAnalyticsDialogOpen] = useState(false);
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false);
+  
+  // Advanced filters
+  const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: '', to: '' });
+  const [productCountRange, setProductCountRange] = useState<{ min: string; max: string }>({ min: '', max: '' });
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  
+  // Drag and drop
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  
+  // Auto-save
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  
+  // Templates
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [currentTemplate, setCurrentTemplate] = useState<any>(null);
 
   useEffect(() => {
     fetchData();
@@ -109,7 +147,7 @@ export default function AdminCategoriesPage() {
     try {
       const payload = {
         ...categoryForm,
-        parentCategory: categoryForm.parentCategory ? categoryForm.parentCategory : null,
+        parentCategory: categoryForm.parentCategory === 'none' || !categoryForm.parentCategory ? null : categoryForm.parentCategory,
       };
       if (editingCategory) {
         await adminAPI.updateCategory(editingCategory._id, payload);
@@ -130,11 +168,17 @@ export default function AdminCategoriesPage() {
     e.preventDefault();
     
     try {
+      // Convert "none" to empty string for category field
+      const formData = {
+        ...subcategoryForm,
+        category: subcategoryForm.category === 'none' ? '' : subcategoryForm.category
+      };
+      
       if (editingSubcategory) {
-        await adminAPI.updateSubcategory(editingSubcategory._id, subcategoryForm);
+        await adminAPI.updateSubcategory(editingSubcategory._id, formData);
         toast.success('Subcategory updated successfully');
       } else {
-        await adminAPI.createSubcategory(subcategoryForm);
+        await adminAPI.createSubcategory(formData);
         toast.success('Subcategory created successfully');
       }
       
@@ -146,16 +190,54 @@ export default function AdminCategoriesPage() {
   };
 
   const handleDeleteCategory = async (categoryId: string) => {
-    if (!confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
-      return;
-    }
-    
     try {
+      // First try to delete without force
       await adminAPI.deleteCategory(categoryId);
       toast.success('Category deleted successfully');
       fetchData();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to delete category');
+      // If error indicates subcategories exist, show force delete dialog
+      const errorMessage = error.response?.data?.message || '';
+      const hasSubcategories = error.response?.data?.hasSubcategories || 
+                              errorMessage.includes('existing subcategories');
+      
+      console.log('Delete error:', {
+        errorMessage,
+        hasSubcategories,
+        errorData: error.response?.data
+      });
+      
+      if (hasSubcategories) {
+        const subcategoryCount = error.response?.data?.subcategoryCount || 0;
+        const category = categories.find(c => c._id === categoryId);
+        console.log('Setting up force delete dialog:', {
+          categoryId,
+          categoryName: category?.name,
+          subcategoryCount
+        });
+        setCategoryToDelete({
+          id: categoryId,
+          name: category?.name || 'Unknown',
+          subcategoryCount
+        });
+        setIsForceDeleteDialogOpen(true);
+      } else {
+        toast.error(errorMessage || 'Failed to delete category');
+      }
+    }
+  };
+
+  const handleForceDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    
+    try {
+      await adminAPI.deleteCategory(categoryToDelete.id, true); // Force deletion
+      toast.success('Category and all subcategories deleted successfully');
+      fetchData();
+      setIsForceDeleteDialogOpen(false);
+      setCategoryToDelete(null);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to delete category with subcategories');
     }
   };
 
@@ -259,6 +341,473 @@ export default function AdminCategoriesPage() {
     setIsSubcategoryDialogOpen(true);
   };
 
+  // Filter and sort functions
+  const getFilteredCategories = () => {
+    let filtered = categories.filter(category => {
+      const matchesSearch = category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           category.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || 
+                           (statusFilter === 'active' && category.isActive) ||
+                           (statusFilter === 'inactive' && !category.isActive);
+      
+      // Advanced filters
+      const matchesDateRange = !dateRange.from || !dateRange.to || 
+        (new Date(category.createdAt) >= new Date(dateRange.from) && 
+         new Date(category.createdAt) <= new Date(dateRange.to));
+      
+      const matchesProductCount = (!productCountRange.min || category.productCount >= parseInt(productCountRange.min)) &&
+                                 (!productCountRange.max || category.productCount <= parseInt(productCountRange.max));
+      
+      return matchesSearch && matchesStatus && matchesDateRange && matchesProductCount;
+    });
+
+    // Sort the filtered results
+    filtered.sort((a, b) => {
+      let aValue, bValue;
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'createdAt':
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
+        case 'sortOrder':
+          aValue = a.sortOrder;
+          bValue = b.sortOrder;
+          break;
+        case 'productCount':
+          aValue = a.productCount;
+          bValue = b.productCount;
+          break;
+        default:
+          aValue = a.sortOrder;
+          bValue = b.sortOrder;
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+
+    return filtered;
+  };
+
+  const getFilteredSubcategories = () => {
+    let filtered = subcategories.filter(subcategory => {
+      const matchesSearch = subcategory.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           subcategory.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || 
+                           (statusFilter === 'active' && subcategory.isActive) ||
+                           (statusFilter === 'inactive' && !subcategory.isActive);
+      
+      // Advanced filters
+      const matchesDateRange = !dateRange.from || !dateRange.to || 
+        (new Date(subcategory.createdAt) >= new Date(dateRange.from) && 
+         new Date(subcategory.createdAt) <= new Date(dateRange.to));
+      
+      const matchesProductCount = (!productCountRange.min || subcategory.productCount >= parseInt(productCountRange.min)) &&
+                                 (!productCountRange.max || subcategory.productCount <= parseInt(productCountRange.max));
+      
+      return matchesSearch && matchesStatus && matchesDateRange && matchesProductCount;
+    });
+
+    // Sort the filtered results
+    filtered.sort((a, b) => {
+      let aValue, bValue;
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'createdAt':
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
+        case 'sortOrder':
+          aValue = a.sortOrder;
+          bValue = b.sortOrder;
+          break;
+        case 'productCount':
+          aValue = a.productCount;
+          bValue = b.productCount;
+          break;
+        default:
+          aValue = a.sortOrder;
+          bValue = b.sortOrder;
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+
+    return filtered;
+  };
+
+  // Bulk actions
+  const handleSelectItem = (itemId: string) => {
+    setSelectedItems(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    const currentItems = activeTab === 'categories' ? getFilteredCategories() : getFilteredSubcategories();
+    const allIds = currentItems.map(item => item._id);
+    setSelectedItems(selectedItems.length === allIds.length ? [] : allIds);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedItems.length === 0) return;
+    
+    const confirmMessage = `Are you sure you want to delete ${selectedItems.length} ${activeTab}? This action cannot be undone.`;
+    if (!confirm(confirmMessage)) return;
+
+    try {
+      for (const itemId of selectedItems) {
+        if (activeTab === 'categories') {
+          await adminAPI.deleteCategory(itemId, true); // Force delete for bulk
+        } else {
+          await adminAPI.deleteSubcategory(itemId);
+        }
+      }
+      toast.success(`${selectedItems.length} ${activeTab} deleted successfully`);
+      setSelectedItems([]);
+      fetchData();
+    } catch (error: any) {
+      toast.error(`Failed to delete ${activeTab}`);
+    }
+  };
+
+  const handleBulkToggleStatus = async () => {
+    if (selectedItems.length === 0) return;
+
+    try {
+      for (const itemId of selectedItems) {
+        if (activeTab === 'categories') {
+          await adminAPI.toggleCategoryStatus(itemId);
+        } else {
+          await adminAPI.toggleSubcategoryStatus(itemId);
+        }
+      }
+      toast.success(`${selectedItems.length} ${activeTab} status updated`);
+      setSelectedItems([]);
+      fetchData();
+    } catch (error: any) {
+      toast.error(`Failed to update ${activeTab} status`);
+    }
+  };
+
+  // Duplicate functionality
+  const handleDuplicateCategory = (category: Category) => {
+    setCategoryForm({
+      name: `${category.name} (Copy)`,
+      description: category.description,
+      image: category.image,
+      icon: category.icon,
+      color: category.color,
+      sortOrder: category.sortOrder + 1,
+      parentCategory: category.parentCategory || ''
+    });
+    setEditingCategory(null);
+    setIsCategoryDialogOpen(true);
+  };
+
+  const handleDuplicateSubcategory = (subcategory: Subcategory) => {
+    setSubcategoryForm({
+      name: `${subcategory.name} (Copy)`,
+      description: subcategory.description,
+      image: subcategory.image,
+      icon: subcategory.icon,
+      color: subcategory.color,
+      sortOrder: subcategory.sortOrder + 1,
+      category: typeof subcategory.category === 'string' ? subcategory.category : subcategory.category?._id || ''
+    });
+    setEditingSubcategory(null);
+    setIsSubcategoryDialogOpen(true);
+  };
+
+  // ==================== ADVANCED FUNCTIONALITIES ====================
+
+  // Export functionality
+  const handleExport = async (format: 'csv' | 'json') => {
+    try {
+      const data = activeTab === 'categories' ? getFilteredCategories() : getFilteredSubcategories();
+      
+      if (format === 'csv') {
+        const csvContent = convertToCSV(data);
+        downloadFile(csvContent, `categories_export.${format}`, 'text/csv');
+      } else {
+        const jsonContent = JSON.stringify(data, null, 2);
+        downloadFile(jsonContent, `categories_export.${format}`, 'application/json');
+      }
+      
+      toast.success(`Exported ${data.length} ${activeTab} successfully`);
+      setIsExportDialogOpen(false);
+    } catch (error) {
+      toast.error('Failed to export data');
+    }
+  };
+
+  const convertToCSV = (data: any[]) => {
+    if (data.length === 0) return '';
+    
+    const headers = Object.keys(data[0]).filter(key => key !== '_id');
+    const csvRows = [headers.join(',')];
+    
+    data.forEach(item => {
+      const values = headers.map(header => {
+        const value = item[header];
+        return typeof value === 'object' ? JSON.stringify(value) : `"${value}"`;
+      });
+      csvRows.push(values.join(','));
+    });
+    
+    return csvRows.join('\n');
+  };
+
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Import functionality
+  const handleImport = async (file: File) => {
+    try {
+      const content = await file.text();
+      let data;
+      
+      if (file.name.endsWith('.json')) {
+        data = JSON.parse(content);
+      } else if (file.name.endsWith('.csv')) {
+        data = parseCSV(content);
+      } else {
+        throw new Error('Unsupported file format');
+      }
+      
+      // Process imported data
+      for (const item of data) {
+        if (activeTab === 'categories') {
+          await adminAPI.createCategory(item);
+        } else {
+          await adminAPI.createSubcategory(item);
+        }
+      }
+      
+      toast.success(`Imported ${data.length} ${activeTab} successfully`);
+      setIsImportDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to import data');
+    }
+  };
+
+  const parseCSV = (csv: string) => {
+    const lines = csv.split('\n');
+    const headers = lines[0].split(',').map(h => h.replace(/"/g, ''));
+    const data = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].trim()) {
+        const values = lines[i].split(',').map(v => v.replace(/"/g, ''));
+        const item: any = {};
+        headers.forEach((header, index) => {
+          item[header] = values[index];
+        });
+        data.push(item);
+      }
+    }
+    
+    return data;
+  };
+
+  // Bulk edit functionality
+  const handleBulkEdit = async (updates: any) => {
+    try {
+      for (const itemId of selectedItems) {
+        if (activeTab === 'categories') {
+          await adminAPI.updateCategory(itemId, updates);
+        } else {
+          await adminAPI.updateSubcategory(itemId, updates);
+        }
+      }
+      toast.success(`Updated ${selectedItems.length} ${activeTab} successfully`);
+      setSelectedItems([]);
+      setIsBulkEditDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to update items');
+    }
+  };
+
+  // Drag and drop functionality
+  const handleDragStart = (e: React.DragEvent, itemId: string) => {
+    setDraggedItem(itemId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    
+    if (!draggedItem || draggedItem === targetId) return;
+    
+    try {
+      // Update sort order based on drop position
+      const items = activeTab === 'categories' ? getFilteredCategories() : getFilteredSubcategories();
+      const draggedIndex = items.findIndex(item => item._id === draggedItem);
+      const targetIndex = items.findIndex(item => item._id === targetId);
+      
+      if (draggedIndex === -1 || targetIndex === -1) return;
+      
+      const newSortOrder = targetIndex + 1;
+      
+      if (activeTab === 'categories') {
+        await adminAPI.updateCategory(draggedItem, { sortOrder: newSortOrder });
+      } else {
+        await adminAPI.updateSubcategory(draggedItem, { sortOrder: newSortOrder });
+      }
+      
+      toast.success('Order updated successfully');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to update order');
+    } finally {
+      setDraggedItem(null);
+    }
+  };
+
+  // Auto-save functionality
+  const handleFormChange = () => {
+    setHasUnsavedChanges(true);
+    
+    if (autoSaveTimeout) {
+      clearTimeout(autoSaveTimeout);
+    }
+    
+    const timeout = setTimeout(() => {
+      // Auto-save logic here
+      setHasUnsavedChanges(false);
+    }, 2000);
+    
+    setAutoSaveTimeout(timeout);
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case 'n':
+            e.preventDefault();
+            if (activeTab === 'categories') {
+              openCategoryCreate();
+            } else {
+              openSubcategoryCreate();
+            }
+            break;
+          case 'e':
+            e.preventDefault();
+            setIsExportDialogOpen(true);
+            break;
+          case 'i':
+            e.preventDefault();
+            setIsImportDialogOpen(true);
+            break;
+          case 'a':
+            e.preventDefault();
+            handleSelectAll();
+            break;
+          case 'd':
+            e.preventDefault();
+            if (selectedItems.length > 0) {
+              handleBulkDelete();
+            }
+            break;
+          case 's':
+            e.preventDefault();
+            setIsKeyboardShortcutsOpen(true);
+            break;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, selectedItems]);
+
+  // Analytics data
+  const getAnalyticsData = () => {
+    const totalCategories = categories.length;
+    const totalSubcategories = subcategories.length;
+    const activeCategories = categories.filter(c => c.isActive).length;
+    const activeSubcategories = subcategories.filter(s => s.isActive).length;
+    const totalProducts = categories.reduce((sum, c) => sum + c.productCount, 0);
+    const totalBundles = categories.reduce((sum, c) => sum + c.bundleCount, 0);
+    
+    return {
+      totalCategories,
+      totalSubcategories,
+      activeCategories,
+      activeSubcategories,
+      totalProducts,
+      totalBundles,
+      inactiveCategories: totalCategories - activeCategories,
+      inactiveSubcategories: totalSubcategories - activeSubcategories
+    };
+  };
+
+  // Template functionality
+  const handleApplyTemplate = async (templateType: 'ecommerce' | 'food') => {
+    try {
+      const templates = {
+        ecommerce: [
+          { name: 'Electronics', description: 'Electronic devices and accessories', color: '#3b82f6', sortOrder: 1 },
+          { name: 'Clothing', description: 'Fashion and apparel', color: '#ef4444', sortOrder: 2 },
+          { name: 'Home & Garden', description: 'Home improvement and garden supplies', color: '#10b981', sortOrder: 3 },
+          { name: 'Sports', description: 'Sports and fitness equipment', color: '#f59e0b', sortOrder: 4 }
+        ],
+        food: [
+          { name: 'Beverages', description: 'Drinks and liquid refreshments', color: '#8b5cf6', sortOrder: 1 },
+          { name: 'Snacks', description: 'Quick bites and treats', color: '#f97316', sortOrder: 2 },
+          { name: 'Fresh Produce', description: 'Fresh fruits and vegetables', color: '#22c55e', sortOrder: 3 },
+          { name: 'Pantry', description: 'Staple food items', color: '#6b7280', sortOrder: 4 }
+        ]
+      };
+
+      const templateCategories = templates[templateType];
+      
+      for (const categoryData of templateCategories) {
+        await adminAPI.createCategory(categoryData);
+      }
+      
+      toast.success(`${templateCategories.length} categories created from ${templateType} template`);
+      setIsTemplateDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to apply template');
+    }
+  };
+
   if (isLoading) {
     return (
       <AdminLayout>
@@ -277,37 +826,299 @@ export default function AdminCategoriesPage() {
             <h1 className="text-3xl font-bold">Category Management</h1>
             <p className="text-gray-600 mt-2">Manage product categories and subcategories</p>
           </div>
-          <div className="flex gap-2">
-            {/* Buttons are now part of the dialogs */}
+          <div className="flex gap-2 flex-wrap">
+            {/* Primary Actions */}
+            <Button onClick={openCategoryCreate} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Category
+            </Button>
+
+            <Button onClick={openSubcategoryCreate} variant="outline">
+              <Tag className="w-4 h-4 mr-2" />
+              Add Subcategory
+            </Button>
+
+            {/* Advanced Actions */}
+            <Button onClick={() => setIsExportDialogOpen(true)} variant="outline">
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+
+            <Button onClick={() => setIsImportDialogOpen(true)} variant="outline">
+              <Upload className="w-4 h-4 mr-2" />
+              Import
+            </Button>
+
+            {selectedItems.length > 0 && (
+              <Button onClick={() => setIsBulkEditDialogOpen(true)} variant="outline">
+                <Edit className="w-4 h-4 mr-2" />
+                Bulk Edit ({selectedItems.length})
+              </Button>
+            )}
+
+            <Button onClick={() => setIsAnalyticsDialogOpen(true)} variant="outline">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Analytics
+            </Button>
+
+            <Button onClick={() => setIsTemplateDialogOpen(true)} variant="outline">
+              <BookOpen className="w-4 h-4 mr-2" />
+              Templates
+            </Button>
+
+            <Button onClick={() => setIsKeyboardShortcutsOpen(true)} variant="outline">
+              <Keyboard className="w-4 h-4 mr-2" />
+              Shortcuts
+            </Button>
           </div>
         </div>
+
+        {/* Search and Filter Controls */}
+        <div className="bg-white p-4 rounded-lg border mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder={`Search ${activeTab}...`}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-10"
+                />
+                {searchTerm && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-6 w-6"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Status Filter */}
+            <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active Only</SelectItem>
+                <SelectItem value="inactive">Inactive Only</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Sort By */}
+            <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sortOrder">Sort Order</SelectItem>
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="createdAt">Created Date</SelectItem>
+                <SelectItem value="productCount">Product Count</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Sort Order */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="w-12"
+            >
+              {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+            </Button>
+
+            {/* Advanced Filters Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            >
+              <Filter className="w-4 h-4 mr-1" />
+              {showAdvancedFilters ? 'Hide' : 'Show'} Advanced
+            </Button>
+
+            {/* Bulk Actions */}
+            {selectedItems.length > 0 && (
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  Delete ({selectedItems.length})
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBulkToggleStatus}
+                >
+                  <Eye className="w-4 h-4 mr-1" />
+                  Toggle Status
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Advanced Filters */}
+        {showAdvancedFilters && (
+          <div className="bg-gray-50 p-4 rounded-lg border mb-6">
+            <h3 className="text-lg font-medium mb-4">Advanced Filters</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Date Range Filter */}
+              <div>
+                <Label htmlFor="dateFrom">Created From</Label>
+                <Input
+                  id="dateFrom"
+                  type="date"
+                  value={dateRange.from}
+                  onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="dateTo">Created To</Label>
+                <Input
+                  id="dateTo"
+                  type="date"
+                  value={dateRange.to}
+                  onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="productCountMin">Min Products</Label>
+                <Input
+                  id="productCountMin"
+                  type="number"
+                  placeholder="0"
+                  value={productCountRange.min}
+                  onChange={(e) => setProductCountRange({ ...productCountRange, min: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="productCountMax">Max Products</Label>
+                <Input
+                  id="productCountMax"
+                  type="number"
+                  placeholder="100"
+                  value={productCountRange.max}
+                  onChange={(e) => setProductCountRange({ ...productCountRange, max: e.target.value })}
+                />
+              </div>
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDateRange({ from: '', to: '' });
+                    setProductCountRange({ min: '', max: '' });
+                  }}
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="categories" className="flex items-center gap-2">
               <FolderOpen className="w-4 h-4" />
-              Categories ({categories.length})
+              Categories ({getFilteredCategories().length}/{categories.length})
             </TabsTrigger>
             <TabsTrigger value="subcategories" className="flex items-center gap-2">
               <Tag className="w-4 h-4" />
-              Subcategories ({subcategories.length})
+              Subcategories ({getFilteredSubcategories().length}/{subcategories.length})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="categories" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {categories.map((category) => (
-                <Card key={category._id} className="relative">
+            {/* Select All Checkbox */}
+            <div className="mb-4 flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSelectAll}
+                className="p-1"
+              >
+                {selectedItems.length === getFilteredCategories().length && getFilteredCategories().length > 0 ? (
+                  <CheckSquare className="w-4 h-4" />
+                ) : (
+                  <Square className="w-4 h-4" />
+                )}
+              </Button>
+              <span className="text-sm text-gray-600">
+                {selectedItems.length > 0 ? `${selectedItems.length} selected` : 'Select all'}
+              </span>
+            </div>
+
+            {getFilteredCategories().length === 0 ? (
+              <div className="text-center py-12">
+                <FolderOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No categories found</h3>
+                <p className="text-gray-500 mb-4">
+                  {searchTerm || statusFilter !== 'all' 
+                    ? 'Try adjusting your search or filter criteria.' 
+                    : 'Get started by creating your first category.'}
+                </p>
+                {(!searchTerm && statusFilter === 'all') && (
+                  <Button onClick={openCategoryCreate} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Category
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {getFilteredCategories().map((category) => (
+                <Card 
+                  key={category._id} 
+                  className={`relative ${selectedItems.includes(category._id) ? 'ring-2 ring-blue-500' : ''} ${draggedItem === category._id ? 'opacity-50' : ''} cursor-move`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, category._id)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, category._id)}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <div 
-                          className="w-4 h-4 rounded-full" 
-                          style={{ backgroundColor: category.color }}
-                        />
-                        {category.name}
-                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSelectItem(category._id)}
+                          className="p-1"
+                        >
+                          {selectedItems.includes(category._id) ? (
+                            <CheckSquare className="w-4 h-4" />
+                          ) : (
+                            <Square className="w-4 h-4" />
+                          )}
+                        </Button>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <div 
+                            className="w-4 h-4 rounded-full" 
+                            style={{ backgroundColor: category.color }}
+                          />
+                          {category.name}
+                        </CardTitle>
+                      </div>
                       <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDuplicateCategory(category)}
+                          title="Duplicate Category"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -368,24 +1179,90 @@ export default function AdminCategoriesPage() {
                     )}
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="subcategories" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {subcategories.map((subcategory) => (
-                <Card key={subcategory._id} className="relative">
+            {/* Select All Checkbox */}
+            <div className="mb-4 flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSelectAll}
+                className="p-1"
+              >
+                {selectedItems.length === getFilteredSubcategories().length && getFilteredSubcategories().length > 0 ? (
+                  <CheckSquare className="w-4 h-4" />
+                ) : (
+                  <Square className="w-4 h-4" />
+                )}
+              </Button>
+              <span className="text-sm text-gray-600">
+                {selectedItems.length > 0 ? `${selectedItems.length} selected` : 'Select all'}
+              </span>
+            </div>
+
+            {getFilteredSubcategories().length === 0 ? (
+              <div className="text-center py-12">
+                <Tag className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No subcategories found</h3>
+                <p className="text-gray-500 mb-4">
+                  {searchTerm || statusFilter !== 'all' 
+                    ? 'Try adjusting your search or filter criteria.' 
+                    : 'Get started by creating your first subcategory.'}
+                </p>
+                {(!searchTerm && statusFilter === 'all') && (
+                  <Button onClick={openSubcategoryCreate} variant="outline">
+                    <Tag className="w-4 h-4 mr-2" />
+                    Add Subcategory
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {getFilteredSubcategories().map((subcategory) => (
+                <Card 
+                  key={subcategory._id} 
+                  className={`relative ${selectedItems.includes(subcategory._id) ? 'ring-2 ring-blue-500' : ''} ${draggedItem === subcategory._id ? 'opacity-50' : ''} cursor-move`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, subcategory._id)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, subcategory._id)}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <div 
-                          className="w-4 h-4 rounded-full" 
-                          style={{ backgroundColor: subcategory.color }}
-                        />
-                        {subcategory.name}
-                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSelectItem(subcategory._id)}
+                          className="p-1"
+                        >
+                          {selectedItems.includes(subcategory._id) ? (
+                            <CheckSquare className="w-4 h-4" />
+                          ) : (
+                            <Square className="w-4 h-4" />
+                          )}
+                        </Button>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <div 
+                            className="w-4 h-4 rounded-full" 
+                            style={{ backgroundColor: subcategory.color }}
+                          />
+                          {subcategory.name}
+                        </CardTitle>
+                      </div>
                       <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDuplicateSubcategory(subcategory)}
+                          title="Duplicate Subcategory"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -447,19 +1324,14 @@ export default function AdminCategoriesPage() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
         {/* Category Dialog */}
         <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openCategoryCreate} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Category
-            </Button>
-          </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>
@@ -497,7 +1369,7 @@ export default function AdminCategoriesPage() {
                     <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {categories
                       .filter(c => !editingCategory || c._id !== editingCategory._id)
                       .map((category) => (
@@ -552,12 +1424,6 @@ export default function AdminCategoriesPage() {
 
         {/* Subcategory Dialog */}
         <Dialog open={isSubcategoryDialogOpen} onOpenChange={setIsSubcategoryDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openSubcategoryCreate} variant="outline">
-              <Tag className="w-4 h-4 mr-2" />
-              Add Subcategory
-            </Button>
-          </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>
@@ -644,6 +1510,254 @@ export default function AdminCategoriesPage() {
                 </Button>
               </div>
             </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Force Delete Confirmation Dialog */}
+        <Dialog open={isForceDeleteDialogOpen} onOpenChange={setIsForceDeleteDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-red-600">Delete Category with Subcategories</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                The category <strong>"{categoryToDelete?.name}"</strong> has {categoryToDelete?.subcategoryCount} subcategories.
+              </p>
+              <p className="text-sm text-gray-600">
+                Deleting this category will also delete all its subcategories. This action cannot be undone.
+              </p>
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-sm text-red-800 font-medium">Warning:</p>
+                <p className="text-sm text-red-700">
+                  Make sure there are no products or bundles assigned to this category or its subcategories before proceeding.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button 
+                onClick={handleForceDeleteCategory}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              >
+                Delete Category & Subcategories
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsForceDeleteDialogOpen(false);
+                  setCategoryToDelete(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Export Dialog */}
+        <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Export {activeTab}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Choose the format for exporting {getFilteredCategories().length} {activeTab}
+              </p>
+              <div className="flex gap-2">
+                <Button onClick={() => handleExport('csv')} className="flex-1">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Export as CSV
+                </Button>
+                <Button onClick={() => handleExport('json')} className="flex-1">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Export as JSON
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Import Dialog */}
+        <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Import {activeTab}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Select a CSV or JSON file to import {activeTab}
+              </p>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                <input
+                  type="file"
+                  accept=".csv,.json"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleImport(file);
+                  }}
+                  className="hidden"
+                  id="import-file"
+                />
+                <label htmlFor="import-file" className="cursor-pointer">
+                  <span className="text-sm text-gray-600">Click to select file</span>
+                </label>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Bulk Edit Dialog */}
+        <Dialog open={isBulkEditDialogOpen} onOpenChange={setIsBulkEditDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Bulk Edit {selectedItems.length} {activeTab}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const updates = {
+                color: formData.get('color') as string,
+                isActive: formData.get('isActive') === 'on'
+              };
+              handleBulkEdit(updates);
+            }} className="space-y-4">
+              <div>
+                <Label htmlFor="bulkColor">Color</Label>
+                <Input
+                  id="bulkColor"
+                  name="color"
+                  type="color"
+                  defaultValue="#12d6fa"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  id="bulkActive"
+                  name="isActive"
+                  type="checkbox"
+                  defaultChecked
+                />
+                <Label htmlFor="bulkActive">Active</Label>
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button type="submit" className="flex-1">
+                  Update All
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setIsBulkEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Analytics Dialog */}
+        <Dialog open={isAnalyticsDialogOpen} onOpenChange={setIsAnalyticsDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Category Analytics</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6">
+              {(() => {
+                const analytics = getAnalyticsData();
+                return (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{analytics.totalCategories}</div>
+                      <div className="text-sm text-blue-600">Total Categories</div>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{analytics.activeCategories}</div>
+                      <div className="text-sm text-green-600">Active Categories</div>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">{analytics.totalSubcategories}</div>
+                      <div className="text-sm text-purple-600">Total Subcategories</div>
+                    </div>
+                    <div className="bg-orange-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">{analytics.totalProducts}</div>
+                      <div className="text-sm text-orange-600">Total Products</div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Templates Dialog */}
+        <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Category Templates</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Use predefined templates to quickly create common category structures
+              </p>
+              <div className="grid gap-4">
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-medium">E-commerce Template</h3>
+                  <p className="text-sm text-gray-600">Electronics, Clothing, Home & Garden, Sports</p>
+                  <Button 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => handleApplyTemplate('ecommerce')}
+                  >
+                    Apply Template
+                  </Button>
+                </div>
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-medium">Food & Beverage Template</h3>
+                  <p className="text-sm text-gray-600">Beverages, Snacks, Fresh Produce, Pantry</p>
+                  <Button 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => handleApplyTemplate('food')}
+                  >
+                    Apply Template
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Keyboard Shortcuts Dialog */}
+        <Dialog open={isKeyboardShortcutsOpen} onOpenChange={setIsKeyboardShortcutsOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Keyboard Shortcuts</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Create New</span>
+                  <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl+N</kbd>
+                </div>
+                <div className="flex justify-between">
+                  <span>Export</span>
+                  <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl+E</kbd>
+                </div>
+                <div className="flex justify-between">
+                  <span>Import</span>
+                  <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl+I</kbd>
+                </div>
+                <div className="flex justify-between">
+                  <span>Select All</span>
+                  <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl+A</kbd>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delete Selected</span>
+                  <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl+D</kbd>
+                </div>
+                <div className="flex justify-between">
+                  <span>Show Shortcuts</span>
+                  <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Ctrl+S</kbd>
+                </div>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

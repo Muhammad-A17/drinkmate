@@ -74,7 +74,7 @@ const BundleSchema = new Schema({
     },
     subcategory: {
         type: String,
-        required: [true, 'Subcategory is required']
+        required: false
     },
     stock: {
         type: Number,

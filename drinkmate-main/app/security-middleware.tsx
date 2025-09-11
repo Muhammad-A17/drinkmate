@@ -20,16 +20,18 @@ export default function SecurityMiddleware({ children }: SecurityMiddlewareProps
 
     // Disable browser features that could be security risks
     // Note: These can be set via meta tags as well
-    if (navigator.plugins && !Object.getOwnPropertyDescriptor(navigator, 'plugins')?.configurable) {
-      try {
+    try {
+      // Check if plugins property exists and is configurable
+      const pluginsDescriptor = Object.getOwnPropertyDescriptor(navigator, 'plugins');
+      if (pluginsDescriptor && pluginsDescriptor.configurable) {
         Object.defineProperty(navigator, 'plugins', {
           get: () => [],
           configurable: false
         });
-      } catch (error) {
-        // Property already defined or not configurable, skip
-        console.warn('Could not redefine navigator.plugins:', error);
       }
+    } catch (error) {
+      // Property already defined or not configurable, skip silently
+      // This is expected behavior in modern browsers
     }
 
     // Add runtime protection against XSS

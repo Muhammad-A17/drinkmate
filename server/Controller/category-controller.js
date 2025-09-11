@@ -233,15 +233,7 @@ exports.updateCategory = async (req, res) => {
 exports.deleteCategory = async (req, res) => {
     try {
         const { id } = req.params;
-
-        // Check if category has subcategories
-        const subcategories = await Subcategory.find({ category: id });
-        if (subcategories.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Cannot delete category with existing subcategories. Please delete subcategories first.'
-            });
-        }
+        const { force } = req.query; // Allow force deletion
 
         // Check if category has products or bundles
         const products = await Product.find({ category: id });
@@ -252,6 +244,44 @@ exports.deleteCategory = async (req, res) => {
                 success: false,
                 message: 'Cannot delete category with existing products or bundles. Please reassign or delete them first.'
             });
+        }
+
+        // If force deletion is not requested, check for subcategories
+        if (force !== 'true') {
+            const subcategories = await Subcategory.find({ category: id });
+            if (subcategories.length > 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Cannot delete category with existing subcategories. Please delete subcategories first or use force deletion.',
+                    hasSubcategories: true,
+                    subcategoryCount: subcategories.length
+                });
+            }
+        }
+
+        // If force deletion is requested, delete all subcategories first
+        if (force === 'true') {
+            const subcategories = await Subcategory.find({ category: id });
+            for (const subcategory of subcategories) {
+                // Check if subcategory has products or bundles
+                const subProducts = await Product.find({ subcategory: subcategory._id });
+                const subBundles = await Bundle.find({ subcategory: subcategory._id });
+                
+                if (subProducts.length > 0 || subBundles.length > 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Cannot delete category. Subcategory "${subcategory.name}" has existing products or bundles. Please reassign or delete them first.`
+                    });
+                }
+
+                // Remove subcategory from category's subcategories array
+                await Category.findByIdAndUpdate(id, {
+                    $pull: { subcategories: subcategory._id }
+                });
+
+                // Delete the subcategory
+                await Subcategory.findByIdAndDelete(subcategory._id);
+            }
         }
 
         await Category.findByIdAndDelete(id);

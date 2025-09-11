@@ -81,13 +81,6 @@ interface Bundle {
   originalPrice?: number
   bundleDiscount: number
   category: string
-  subcategory: string
-  items: Array<{
-    product: string
-    name: string
-    price: number
-    image?: string
-  }>
   images: string[]
   isActive: boolean
   isFeatured: boolean
@@ -102,12 +95,6 @@ interface BundleFormData {
   originalPrice: string
   bundleDiscount: string
   category: string
-  subcategory: string
-  items: Array<{
-    product: string
-    name: string
-    price: number
-  }>
   images: string[]
   isActive: boolean
   isFeatured: boolean
@@ -125,7 +112,6 @@ export default function BundlesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
-  const [selectedSubcategory, setSelectedSubcategory] = useState("all")
 
 
   // Flag to prevent multiple category creation attempts
@@ -134,12 +120,8 @@ export default function BundlesPage() {
   // Categories management states
   const [isCategoriesDialogOpen, setIsCategoriesDialogOpen] = useState(false)
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false)
-  const [isAddSubcategoryDialogOpen, setIsAddSubcategoryDialogOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
-  const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null)
-  const [selectedCategoryForSubcategory, setSelectedCategoryForSubcategory] = useState<string>("")
   const [isCategorySubmitting, setIsCategorySubmitting] = useState(false)
-  const [isSubcategorySubmitting, setIsSubcategorySubmitting] = useState(false)
 
   const [formData, setFormData] = useState<BundleFormData>({
     name: "",
@@ -148,27 +130,17 @@ export default function BundlesPage() {
     originalPrice: "",
     bundleDiscount: "",
     category: "",
-    subcategory: "",
-    items: [],
     images: [],
     isActive: true,
     isFeatured: false,
     stock: ""
   })
 
-  // Category and subcategory form data
+  // Category form data
   const [categoryFormData, setCategoryFormData] = useState({
     name: "",
     slug: "",
     description: "",
-    isActive: true
-  })
-
-  const [subcategoryFormData, setSubcategoryFormData] = useState({
-    name: "",
-    slug: "",
-    description: "",
-    categoryId: "",
     isActive: true
   })
 
@@ -178,15 +150,6 @@ export default function BundlesPage() {
     fetchCategories()
   }, [])
 
-  // Auto-set category when adding subcategory from categories dialog
-  useEffect(() => {
-    if (selectedCategoryForSubcategory && isAddSubcategoryDialogOpen && !editingSubcategory) {
-      setSubcategoryFormData(prev => ({
-        ...prev,
-        categoryId: selectedCategoryForSubcategory
-      }))
-    }
-  }, [selectedCategoryForSubcategory, isAddSubcategoryDialogOpen, editingSubcategory])
 
   // Set first category as default when categories are loaded
   useEffect(() => {
@@ -267,12 +230,6 @@ export default function BundlesPage() {
             originalPrice: 499.99,
             bundleDiscount: 20,
             category: "starter",
-            subcategory: "sodamakers",
-            items: [
-              { product: "1", name: "Artic Black Soda Maker", price: 299.99 },
-              { product: "2", name: "CO2 Cylinder", price: 19.99 },
-              { product: "3", name: "Cola Flavor Pack", price: 24.99 }
-            ],
             images: ["/images/starter-kit.jpg"],
             isActive: true,
             isFeatured: true,
@@ -287,12 +244,6 @@ export default function BundlesPage() {
             originalPrice: 199.99,
             bundleDiscount: 25,
             category: "premium",
-            subcategory: "flavors",
-            items: [
-              { product: "4", name: "Strawberry Lemon Flavor", price: 24.99 },
-              { product: "5", name: "Mojito Mocktail", price: 24.99 },
-              { product: "6", name: "Premium Bottle Set", price: 49.99 }
-            ],
             images: ["/images/flavor-collection.jpg"],
             isActive: true,
             isFeatured: false,
@@ -305,28 +256,22 @@ export default function BundlesPage() {
       console.error("Error fetching bundles:", error)
       toast.error("Failed to fetch bundles")
       // Add sample data for testing
-      setBundles([
-        {
-          _id: "1",
-          name: "Starter Kit Bundle",
-          description: "Perfect starter kit for beginners including soda maker, CO2 cylinder, and flavor pack",
-          price: 399.99,
-          originalPrice: 499.99,
-          bundleDiscount: 20,
-          category: "starter",
-          subcategory: "sodamakers",
-          items: [
-            { product: "1", name: "Artic Black Soda Maker", price: 299.99 },
-            { product: "2", name: "CO2 Cylinder", price: 19.99 },
-            { product: "3", name: "Cola Flavor Pack", price: 24.99 }
-          ],
-          images: ["/images/starter-kit.jpg"],
-          isActive: true,
-          isFeatured: true,
-          stock: 15,
-          createdAt: new Date().toISOString()
-        }
-      ])
+        setBundles([
+          {
+            _id: "1",
+            name: "Starter Kit Bundle",
+            description: "Perfect starter kit for beginners including soda maker, CO2 cylinder, and flavor pack",
+            price: 399.99,
+            originalPrice: 499.99,
+            bundleDiscount: 20,
+            category: "starter",
+            images: ["/images/starter-kit.jpg"],
+            isActive: true,
+            isFeatured: true,
+            stock: 15,
+            createdAt: new Date().toISOString()
+          }
+        ])
     } finally {
       setLoading(false)
     }
@@ -355,12 +300,6 @@ export default function BundlesPage() {
     }
     console.log('✅ Category validation passed')
     
-    if (!formData.subcategory) {
-      console.log('❌ Validation failed: Subcategory is required')
-      toast.error("Subcategory is required")
-      return
-    }
-    console.log('✅ Subcategory validation passed')
     
     if (!formData.description.trim()) {
       console.log('❌ Validation failed: Bundle description is required')
@@ -390,21 +329,6 @@ export default function BundlesPage() {
     }
     console.log('✅ Stock validation passed')
     
-    console.log('Items array:', formData.items)
-    console.log('Items length:', formData.items.length)
-    
-    if (formData.items.length === 0) {
-      console.log('❌ Validation failed: At least one bundle item is required')
-      toast.error("At least one bundle item is required")
-      return
-    }
-    console.log('✅ Items validation passed')
-    
-    if (!validateBundleItems()) {
-      console.log('❌ Validation failed: Bundle items validation failed')
-      return
-    }
-    console.log('✅ Bundle items validation passed')
 
     console.log('Form validation passed')
 
@@ -416,6 +340,7 @@ export default function BundlesPage() {
         price: parseFloat(formData.price),
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
         bundleDiscount: parseFloat(formData.bundleDiscount),
+        subcategory: "default", // Temporary fix until backend is deployed
         stock: parseInt(formData.stock)
       }
 
@@ -467,8 +392,6 @@ export default function BundlesPage() {
       originalPrice: bundle.originalPrice?.toString() || "",
       bundleDiscount: bundle.bundleDiscount.toString(),
       category: bundle.category,
-      subcategory: bundle.subcategory,
-      items: bundle.items,
       images: bundle.images,
       isActive: bundle.isActive,
       isFeatured: bundle.isFeatured,
@@ -503,8 +426,6 @@ export default function BundlesPage() {
       originalPrice: "",
       bundleDiscount: "",
       category: "",
-      subcategory: "",
-      items: [],
       images: [],
       isActive: true,
       isFeatured: false,
@@ -514,59 +435,6 @@ export default function BundlesPage() {
 
   }
 
-  const handleAddItem = () => {
-    console.log('Adding bundle item...')
-    console.log('Current items before adding:', formData.items)
-    
-    setFormData(prev => {
-      const newItems = [...prev.items, { product: "", name: "", price: 0 }]
-      console.log('New items array:', newItems)
-      return {
-        ...prev,
-        items: newItems
-      }
-    })
-    
-    console.log('Item added successfully')
-  }
-
-  const handleRemoveItem = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      items: prev.items.filter((_, i) => i !== index)
-    }))
-  }
-
-  const handleItemChange = (index: number, field: string, value: string | number) => {
-    console.log(`Updating item ${index}, field: ${field}, value:`, value)
-    console.log('Current items before update:', formData.items)
-    
-    setFormData(prev => {
-      const updatedItems = prev.items.map((item, i) => 
-        i === index ? { ...item, [field]: value } : item
-      )
-      console.log('Updated items array:', updatedItems)
-      return {
-        ...prev,
-        items: updatedItems
-      }
-    })
-  }
-
-  const validateBundleItems = () => {
-    for (let i = 0; i < formData.items.length; i++) {
-      const item = formData.items[i]
-      if (!item.name.trim()) {
-        toast.error(`Item ${i + 1}: Product name is required`)
-        return false
-      }
-      if (!item.price || item.price <= 0) {
-        toast.error(`Item ${i + 1}: Valid price is required`)
-        return false
-      }
-    }
-    return true
-  }
 
 
 
@@ -576,25 +444,10 @@ export default function BundlesPage() {
     return category ? category.name : categoryId
   }
 
-  const getSubcategoryName = (categoryId: string, subcategoryId: string) => {
-    const category = categories.find(cat => cat._id === categoryId)
-    if (category) {
-      const subcategory = category.subcategories.find(sub => sub._id === subcategoryId)
-      return subcategory ? subcategory.name : subcategoryId
-    }
-    return subcategoryId
-  }
-
-  const getSubcategoriesForCategory = (categoryId: string) => {
-    const category = categories.find(cat => cat._id === categoryId)
-    return category ? category.subcategories : []
-  }
-
   const handleCategoryChange = (categoryId: string) => {
     setFormData(prev => ({
       ...prev,
-      category: categoryId,
-      subcategory: "" // Reset subcategory when category changes
+      category: categoryId
     }))
   }
 
@@ -617,19 +470,23 @@ export default function BundlesPage() {
 
     setIsCategorySubmitting(true)
     try {
-      const newCategory: Category = {
-        _id: `cat${Date.now()}`,
+      // Call the API to create the category
+      const response = await adminAPI.createCategory({
         name: categoryFormData.name.trim(),
         slug: categoryFormData.slug.trim().toLowerCase().replace(/\s+/g, '-'),
         description: categoryFormData.description.trim(),
-        isActive: categoryFormData.isActive,
-        subcategories: []
-      }
+        isActive: categoryFormData.isActive
+      })
 
-      setCategories(prev => [...prev, newCategory])
-      toast.success("Category added successfully")
-      setIsAddCategoryDialogOpen(false)
-      resetCategoryForm()
+      if (response.success) {
+        toast.success("Category added successfully")
+        setIsAddCategoryDialogOpen(false)
+        resetCategoryForm()
+        // Refresh categories to get the updated data
+        await fetchCategories()
+      } else {
+        throw new Error(response.message || "Failed to create category")
+      }
     } catch (error: any) {
       console.error("Error adding category:", error)
       toast.error(error.message || "Failed to add category")
@@ -658,21 +515,24 @@ export default function BundlesPage() {
 
     setIsCategorySubmitting(true)
     try {
-      const updatedCategory: Category = {
-        ...editingCategory,
+      // Call the API to update the category
+      const response = await adminAPI.updateCategory(editingCategory._id, {
         name: categoryFormData.name.trim(),
         slug: categoryFormData.slug.trim().toLowerCase().replace(/\s+/g, '-'),
         description: categoryFormData.description.trim(),
         isActive: categoryFormData.isActive
-      }
+      })
 
-      setCategories(prev => prev.map(cat => 
-        cat._id === editingCategory._id ? updatedCategory : cat
-      ))
-      toast.success("Category updated successfully")
-      setIsAddCategoryDialogOpen(false)
-      resetCategoryForm()
-      setEditingCategory(null)
+      if (response.success) {
+        toast.success("Category updated successfully")
+        setIsAddCategoryDialogOpen(false)
+        resetCategoryForm()
+        setEditingCategory(null)
+        // Refresh categories to get the updated data
+        await fetchCategories()
+      } else {
+        throw new Error(response.message || "Failed to update category")
+      }
     } catch (error: any) {
       console.error("Error updating category:", error)
       toast.error(error.message || "Failed to update category")
@@ -685,127 +545,22 @@ export default function BundlesPage() {
     if (!confirm("Are you sure you want to delete this category? This will also delete all its subcategories.")) return
 
     try {
-      setCategories(prev => prev.filter(cat => cat._id !== categoryId))
-      toast.success("Category deleted successfully")
+      // Call the API to delete the category
+      const response = await adminAPI.deleteCategory(categoryId, true) // Force delete with subcategories
+      
+      if (response.success) {
+        toast.success("Category deleted successfully")
+        // Refresh categories to get the updated data
+        await fetchCategories()
+      } else {
+        throw new Error(response.message || "Failed to delete category")
+      }
     } catch (error: any) {
       console.error("Error deleting category:", error)
       toast.error(error.message || "Failed to delete category")
     }
   }
 
-  const handleAddSubcategory = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!subcategoryFormData.name.trim()) {
-      toast.error("Subcategory name is required")
-      return
-    }
-    if (!subcategoryFormData.slug.trim()) {
-      toast.error("Subcategory slug is required")
-      return
-    }
-    if (!subcategoryFormData.description.trim()) {
-      toast.error("Subcategory description is required")
-      return
-    }
-    if (!subcategoryFormData.categoryId) {
-      toast.error("Please select a category")
-      return
-    }
-
-    setIsSubcategorySubmitting(true)
-    try {
-      const newSubcategory: Subcategory = {
-        _id: `sub${Date.now()}`,
-        name: subcategoryFormData.name.trim(),
-        slug: subcategoryFormData.slug.trim().toLowerCase().replace(/\s+/g, '-'),
-        description: subcategoryFormData.description.trim(),
-        categoryId: subcategoryFormData.categoryId,
-        isActive: subcategoryFormData.isActive
-      }
-
-      setCategories(prev => prev.map(cat => 
-        cat._id === subcategoryFormData.categoryId 
-          ? { ...cat, subcategories: [...cat.subcategories, newSubcategory] }
-          : cat
-      ))
-      toast.success("Subcategory added successfully")
-      setIsAddSubcategoryDialogOpen(false)
-      resetSubcategoryForm()
-    } catch (error: any) {
-      console.error("Error adding subcategory:", error)
-      toast.error(error.message || "Failed to add subcategory")
-    } finally {
-      setIsSubcategorySubmitting(false)
-    }
-  }
-
-  const handleEditSubcategory = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!editingSubcategory) return
-    
-    if (!subcategoryFormData.name.trim()) {
-      toast.error("Subcategory name is required")
-      return
-    }
-    if (!subcategoryFormData.slug.trim()) {
-      toast.error("Subcategory slug is required")
-      return
-    }
-    if (!subcategoryFormData.description.trim()) {
-      toast.error("Subcategory description is required")
-      return
-    }
-    if (!subcategoryFormData.categoryId) {
-      toast.error("Please select a category")
-      return
-    }
-
-    setIsSubcategorySubmitting(true)
-    try {
-      const updatedSubcategory: Subcategory = {
-        ...editingSubcategory,
-        name: subcategoryFormData.name.trim(),
-        slug: subcategoryFormData.slug.trim().toLowerCase().replace(/\s+/g, '-'),
-        description: subcategoryFormData.description.trim(),
-        categoryId: subcategoryFormData.categoryId,
-        isActive: subcategoryFormData.isActive
-      }
-
-      setCategories(prev => prev.map(cat => ({
-        ...cat,
-        subcategories: cat.subcategories.map(sub => 
-          sub._id === editingSubcategory._id ? updatedSubcategory : sub
-        )
-      })))
-      toast.success("Subcategory updated successfully")
-      setIsAddSubcategoryDialogOpen(false)
-      resetSubcategoryForm()
-      setEditingSubcategory(null)
-    } catch (error: any) {
-      console.error("Error updating subcategory:", error)
-      toast.error(error.message || "Failed to update subcategory")
-    } finally {
-      setIsSubcategorySubmitting(false)
-    }
-  }
-
-  const handleDeleteSubcategory = async (categoryId: string, subcategoryId: string) => {
-    if (!confirm("Are you sure you want to delete this subcategory?")) return
-
-    try {
-      setCategories(prev => prev.map(cat => 
-        cat._id === categoryId 
-          ? { ...cat, subcategories: cat.subcategories.filter(sub => sub._id !== subcategoryId) }
-          : cat
-      ))
-      toast.success("Subcategory deleted successfully")
-    } catch (error: any) {
-      console.error("Error deleting subcategory:", error)
-      toast.error(error.message || "Failed to delete subcategory")
-    }
-  }
 
   const resetCategoryForm = () => {
     setCategoryFormData({
@@ -817,17 +572,6 @@ export default function BundlesPage() {
     setEditingCategory(null)
   }
 
-  const resetSubcategoryForm = () => {
-    setSubcategoryFormData({
-      name: "",
-      slug: "",
-      description: "",
-      categoryId: "",
-      isActive: true
-    })
-    setEditingSubcategory(null)
-  }
-
   const openEditCategory = (category: Category) => {
     setEditingCategory(category)
     setCategoryFormData({
@@ -837,18 +581,6 @@ export default function BundlesPage() {
       isActive: category.isActive
     })
     setIsAddCategoryDialogOpen(true)
-  }
-
-  const openEditSubcategory = (subcategory: Subcategory) => {
-    setEditingSubcategory(subcategory)
-    setSubcategoryFormData({
-      name: subcategory.name,
-      slug: subcategory.slug,
-      description: subcategory.description,
-      categoryId: subcategory.categoryId,
-      isActive: subcategory.isActive
-    })
-    setIsAddSubcategoryDialogOpen(true)
   }
 
   // Auto-generate slug from name
@@ -864,20 +596,12 @@ export default function BundlesPage() {
     }))
   }
 
-  const handleSubcategoryNameChange = (name: string) => {
-    setSubcategoryFormData(prev => ({
-      ...prev,
-      name,
-      slug: generateSlug(name)
-    }))
-  }
 
   const filteredBundles = bundles.filter(bundle => {
     const matchesSearch = bundle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          bundle.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategory === "all" || bundle.category === selectedCategory
-    const matchesSubcategory = selectedSubcategory === "all" || bundle.subcategory === selectedSubcategory
-    return matchesSearch && matchesCategory && matchesSubcategory
+    return matchesSearch && matchesCategory
   })
 
   if (loading) {
@@ -942,7 +666,7 @@ export default function BundlesPage() {
             <CardTitle>Filters</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="search">Search</Label>
                 <Input
@@ -954,10 +678,7 @@ export default function BundlesPage() {
               </div>
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Select value={selectedCategory} onValueChange={(value) => {
-                  setSelectedCategory(value)
-                  setSelectedSubcategory("all") // Reset subcategory when category changes
-                }}>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger>
                     <SelectValue placeholder="All categories" />
                   </SelectTrigger>
@@ -968,28 +689,6 @@ export default function BundlesPage() {
                         {category.name}
                       </SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="subcategory">Subcategory</Label>
-                <Select 
-                  value={selectedSubcategory} 
-                  onValueChange={setSelectedSubcategory}
-                  disabled={selectedCategory === "all"}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={selectedCategory === "all" ? "Select category first" : "All subcategories"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All subcategories</SelectItem>
-                    {selectedCategory !== "all" && 
-                      getSubcategoriesForCategory(selectedCategory).map((subcategory) => (
-                        <SelectItem key={subcategory._id} value={subcategory._id}>
-                          {subcategory.name}
-                        </SelectItem>
-                      ))
-                    }
                   </SelectContent>
                 </Select>
               </div>
@@ -1009,7 +708,6 @@ export default function BundlesPage() {
               <p>Total categories: {categories.length}</p>
               <p>Search term: "{searchTerm}"</p>
               <p>Selected category: {selectedCategory}</p>
-              <p>Selected subcategory: {selectedSubcategory}</p>
               <p>Dialog open: {isDialogOpen ? 'Yes' : 'No'}</p>
               <p>Editing bundle: {editingBundle ? editingBundle.name : 'None'}</p>
               <p>Viewing bundle: {viewingBundle ? viewingBundle.name : 'None'}</p>
@@ -1035,7 +733,6 @@ export default function BundlesPage() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead>Subcategory</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Discount</TableHead>
                     <TableHead>Stock</TableHead>
@@ -1057,9 +754,6 @@ export default function BundlesPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary">{getCategoryName(bundle.category)}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{getSubcategoryName(bundle.category, bundle.subcategory)}</Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -1182,36 +876,15 @@ export default function BundlesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="subcategory">Subcategory</Label>
-                  <Select 
-                    value={formData.subcategory} 
-                    onValueChange={(value) => setFormData({ ...formData, subcategory: value })}
-                    disabled={!formData.category}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={formData.category ? "Select subcategory" : "Select category first"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {formData.category && getSubcategoriesForCategory(formData.category).map((subcategory) => (
-                        <SelectItem key={subcategory._id} value={subcategory._id}>
-                          {subcategory.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={4}
-                    required
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={4}
+                  required
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -1259,58 +932,6 @@ export default function BundlesPage() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Label>Bundle Items</Label>
-                    <Badge variant="secondary">{formData.items.length} item(s)</Badge>
-                  </div>
-                  <Button type="button" variant="outline" onClick={handleAddItem}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Item
-                  </Button>
-                </div>
-                
-                {formData.items.length === 0 && (
-                  <div className="text-center py-4 text-sm text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
-                    <p>No bundle items added yet</p>
-                    <p>Click "Add Item" to add products to this bundle</p>
-                  </div>
-                )}
-                
-                {formData.items.map((item, index) => (
-                  <div key={index} className="flex gap-4 items-end p-4 border rounded-lg bg-gray-50">
-                    <div className="flex-1">
-                      <Label>Product Name</Label>
-                      <Input
-                        value={item.name}
-                        onChange={(e) => handleItemChange(index, "name", e.target.value)}
-                        placeholder="Product name"
-                        required
-                      />
-                    </div>
-                    <div className="w-40">
-                      <Label>Price (﷼)</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={item.price}
-                        onChange={(e) => handleItemChange(index, "price", parseFloat(e.target.value))}
-                        placeholder="0.00"
-                        required
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveItem(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
 
               {/* Image Management */}
               <CloudinaryImageUpload
@@ -1406,10 +1027,6 @@ export default function BundlesPage() {
                       <Label className="text-sm font-medium text-gray-600">Category</Label>
                       <Badge variant="secondary">{getCategoryName(viewingBundle.category)}</Badge>
                     </div>
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">Subcategory</Label>
-                      <Badge variant="outline">{getSubcategoryName(viewingBundle.category, viewingBundle.subcategory)}</Badge>
-                    </div>
                   </div>
                   <div className="space-y-4">
                     <div>
@@ -1440,27 +1057,6 @@ export default function BundlesPage() {
                   </div>
                 </div>
 
-                {/* Bundle Items */}
-                <div className="space-y-4">
-                  <Label className="text-lg font-semibold">Bundle Items</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {viewingBundle.items.map((item, index) => (
-                      <div key={index} className="p-4 border rounded-lg bg-gray-50">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{item.name}</p>
-                            <p className="text-sm text-gray-600">Item {index + 1}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-green-600">
-                              <SaudiRiyal amount={item.price} size="sm" />
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
                 {/* Bundle Status */}
                 <div className="space-y-4">
@@ -1516,12 +1112,12 @@ export default function BundlesPage() {
         <Dialog open={isCategoriesDialogOpen} onOpenChange={setIsCategoriesDialogOpen}>
           <DialogContent className="max-w-[99vw] w-[99vw] max-h-[99vh] h-[99vh] overflow-y-auto">
             <DialogHeader className="pb-4">
-              <DialogTitle>Categories & Subcategories Management</DialogTitle>
+              <DialogTitle>Categories Management</DialogTitle>
             </DialogHeader>
             
             <div className="space-y-6 pb-6">
               {/* Statistics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2">
@@ -1529,19 +1125,6 @@ export default function BundlesPage() {
                       <div>
                         <p className="text-2xl font-bold">{categories.length}</p>
                         <p className="text-sm text-gray-600">Total Categories</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Package className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="text-2xl font-bold">
-                          {categories.reduce((total, cat) => total + cat.subcategories.length, 0)}
-                        </p>
-                        <p className="text-sm text-gray-600">Total Subcategories</p>
                       </div>
                     </div>
                   </CardContent>
@@ -1599,17 +1182,6 @@ export default function BundlesPage() {
                             Edit
                           </Button>
                           <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedCategoryForSubcategory(category._id)
-                              setIsAddSubcategoryDialogOpen(true)
-                            }}
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Add Subcategory
-                          </Button>
-                          <Button
                             variant="destructive"
                             size="sm"
                             onClick={() => handleDeleteCategory(category._id)}
@@ -1623,50 +1195,6 @@ export default function BundlesPage() {
                       <p className="text-gray-600">{category.description}</p>
                     </CardHeader>
                     
-                    {/* Subcategories */}
-                    <CardContent className="pt-0">
-                      <div className="space-y-3">
-                        <h5 className="font-medium text-gray-700">Subcategories ({category.subcategories.length})</h5>
-                        {category.subcategories.length === 0 ? (
-                          <p className="text-sm text-gray-500 italic">No subcategories yet</p>
-                        ) : (
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {category.subcategories.map((subcategory) => (
-                              <div key={subcategory._id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <Badge variant={subcategory.isActive ? "outline" : "secondary"}>
-                                      {subcategory.isActive ? "Active" : "Inactive"}
-                                    </Badge>
-                                    <span className="font-medium truncate">{subcategory.name}</span>
-                                  </div>
-                                  <p className="text-sm text-gray-600 line-clamp-2">{subcategory.description}</p>
-                                  <span className="text-xs text-gray-500">({subcategory.slug})</span>
-                                </div>
-                                <div className="flex gap-1 ml-2 flex-shrink-0">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => openEditSubcategory(subcategory)}
-                                    title="Edit Subcategory"
-                                  >
-                                    <Edit className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => handleDeleteSubcategory(category._id, subcategory._id)}
-                                    title="Delete Subcategory"
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
                   </Card>
                 ))}
               </div>
@@ -1756,109 +1284,6 @@ export default function BundlesPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Add/Edit Subcategory Dialog */}
-        <Dialog open={isAddSubcategoryDialogOpen} onOpenChange={(open) => {
-          setIsAddSubcategoryDialogOpen(open)
-          if (!open) {
-            resetSubcategoryForm()
-          }
-        }}>
-          <DialogContent className="max-w-[99vw] w-[99vw] max-h-[99vh] h-[99vh] overflow-y-auto">
-            <DialogHeader className="pb-4">
-              <DialogTitle>
-                {editingSubcategory ? "Edit Subcategory" : "Add New Subcategory"}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={editingSubcategory ? handleEditSubcategory : handleAddSubcategory} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="subcategoryCategory">Parent Category</Label>
-                  <Select 
-                    value={subcategoryFormData.categoryId} 
-                    onValueChange={(value) => setSubcategoryFormData({ ...subcategoryFormData, categoryId: value })}
-                    disabled={!!editingSubcategory}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category._id} value={category._id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="subcategoryName">Subcategory Name</Label>
-                  <Input
-                    id="subcategoryName"
-                    value={subcategoryFormData.name}
-                    onChange={(e) => handleSubcategoryNameChange(e.target.value)}
-                    placeholder="e.g., Artic Series"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="subcategorySlug">Subcategory Slug</Label>
-                  <Input
-                    id="subcategorySlug"
-                    value={subcategoryFormData.slug}
-                    onChange={(e) => setSubcategoryFormData({ ...subcategoryFormData, slug: e.target.value })}
-                    placeholder="e.g., artic-series"
-                    required
-                  />
-                  <p className="text-xs text-gray-500">URL-friendly version of the name (lowercase, hyphens instead of spaces)</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="subcategoryDescription">Description</Label>
-                  <Textarea
-                    id="subcategoryDescription"
-                    value={subcategoryFormData.description}
-                    onChange={(e) => setSubcategoryFormData({ ...subcategoryFormData, description: e.target.value })}
-                    placeholder="Brief description of this subcategory"
-                    rows={4}
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="subcategoryIsActive" 
-                  checked={subcategoryFormData.isActive}
-                  onCheckedChange={(checked) => 
-                    setSubcategoryFormData({...subcategoryFormData, isActive: checked === true})
-                  }
-                />
-                <Label htmlFor="subcategoryIsActive">Active</Label>
-              </div>
-              
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsAddSubcategoryDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={isSubcategorySubmitting}
-                  className="bg-[#12d6fa] hover:bg-[#0fb8d9]"
-                >
-                  {isSubcategorySubmitting ? "Saving..." : editingSubcategory ? "Update Subcategory" : "Add Subcategory"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
     </AdminLayout>
   )

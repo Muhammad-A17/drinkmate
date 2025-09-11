@@ -1,0 +1,39 @@
+/* Flavor detail page specific styles */
+.productImageZoom {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 500ms;
+}
+
+.zoomedImage {
+  scale: 1.5;
+  /* Note: transformOrigin needs to be set dynamically via inline style */
+}
+
+.defaultImage {
+  scale: 1;
+}
+
+.defaultImage:hover {
+  scale: 1.05;
+}
+
+.productImage {
+  height: auto;
+}
+
+/* Custom class for zoomed image with transform origin */
+.customTransformOrigin {
+  transform-origin: var(--transform-origin-x) var(--transform-origin-y);
+}
+
+/* Image Zoom Styles */
+.imageWrapper {
+  position: relative;
+  cursor: zoom-in;
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+
+/* Add other styles as needed */
