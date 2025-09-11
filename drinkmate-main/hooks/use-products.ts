@@ -33,7 +33,7 @@ export function useProducts(options: UseProductsOptions = {}): UseProductsReturn
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(PAGINATION.DEFAULT_PAGE)
+  const [page, setPage] = useState<number>(PAGINATION.DEFAULT_PAGE)
   const [total, setTotal] = useState(0)
   const [currentFilters, setCurrentFilters] = useState<ProductFilters>(filters)
 

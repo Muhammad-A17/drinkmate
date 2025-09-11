@@ -428,6 +428,18 @@ export const shopAPI = {
     });
   },
   
+  // Search products
+  searchProducts: async (query: string, filters = {}) => {
+    const cacheKey = `search-${query}-${JSON.stringify(filters)}`;
+    
+    return retryRequest(async () => {
+      const response = await api.get('/shop/search', { 
+        params: { q: query, ...filters } 
+      });
+      return response.data;
+    }, cacheKey);
+  },
+  
   // Categories
   getCategories: async () => {
     const cacheKey = 'categories';
@@ -509,6 +521,16 @@ export const shopAPI = {
         }
       }
     });
+  },
+
+  // CO2 Cylinders
+  getCO2Cylinders: async (params = {}) => {
+    const cacheKey = `cylinders-${JSON.stringify(params)}`;
+    
+    return retryRequest(async () => {
+      const response = await api.get('/co2/cylinders', { params });
+      return response.data;
+    }, cacheKey);
   },
 
   // Reviews
