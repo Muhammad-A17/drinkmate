@@ -91,9 +91,24 @@ const config: Config = {
         mono: ['var(--geist-mono)', 'monospace'],
         
       },
+      aspectRatio: {
+        'auto': 'auto',
+        'square': '1 / 1',
+        'video': '16 / 9',
+        '4/3': '4 / 3',
+        '3/2': '3 / 2',
+        '2/3': '2 / 3',
+        '9/16': '9 / 16',
+      },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/container-queries'),
+    require('tailwindcss-rtl'),
+  ],
 }
 
 export default config

@@ -6,6 +6,8 @@ import { ShoppingCart } from "lucide-react"
 import { fmt } from "@/lib/money"
 import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "sonner"
 
 interface Recommendation {

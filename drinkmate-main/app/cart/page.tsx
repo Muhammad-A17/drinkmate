@@ -3,6 +3,13 @@
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useCart } from "@/lib/cart-context"
 import { Truck, CheckCircle, AlertCircle, ShoppingCart, LockIcon, Gift, Tag } from "lucide-react"
 import { useState, useCallback, useEffect } from "react"
@@ -25,7 +32,7 @@ type RecommendedItem = {
   id: number
   name: string
   price: number
-  originalPrice: number
+  originalPrice?: number
   image: string
   reviews: number
   rating: number // 0-5
@@ -726,7 +733,7 @@ export default function CartPage() {
                 ) : (
                   <FreeGiftGrid
                     options={freeGiftState.options}
-                    selectedId={selectedFreeGift?.id}
+                    selectedId={null}
                     onSelect={handleSelectFreeGift}
                     placement="sidebar"
                   />

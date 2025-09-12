@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect, useRef } from "react"
 import { useDebouncedCallback } from "use-debounce"
+import { Button } from "@/components/ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface QuantityControlProps {
   quantity: number

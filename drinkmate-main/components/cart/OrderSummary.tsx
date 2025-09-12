@@ -6,6 +6,10 @@ import { fmt } from "@/lib/money"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "sonner"
 
 interface OrderSummaryProps {
@@ -118,7 +122,7 @@ export default function OrderSummary({
               <span className="text-emerald-600 font-medium">FREE</span>
             ) : shipping !== null ? (
               <span className="tabular-nums flex items-center gap-1">
-                {fmt(shipping, 'SAR')} <SaudiRiyalSymbol size="sm" />
+                {fmt(shipping!, 'SAR')} <SaudiRiyalSymbol size="sm" />
               </span>
             ) : (
               <span className="text-black/60">Calculated at checkout</span>

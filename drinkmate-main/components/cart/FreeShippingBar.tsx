@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { motion, useSpring, useTransform } from "framer-motion"
 import { fmt } from "@/lib/money"
 import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface FreeShippingBarProps {
   subtotal: number

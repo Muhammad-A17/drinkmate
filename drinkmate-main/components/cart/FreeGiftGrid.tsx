@@ -3,6 +3,8 @@
 import Image from "next/image"
 import { Tag, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Skeleton } from "@/components/ui/skeleton"
 import { FreeGiftProduct } from "@/lib/freeGift"
 import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
 

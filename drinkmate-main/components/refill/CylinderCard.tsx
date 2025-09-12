@@ -67,7 +67,7 @@ export default function CylinderCard({
             </span>
             {originalPrice && originalPrice > price && (
               <span className="text-xs text-gray-500 line-through">
-                <SaudiRiyal amount={originalPrice} size="xs" />
+                <SaudiRiyal amount={originalPrice} size="sm" />
               </span>
             )}
             {discount && discount > 0 && (

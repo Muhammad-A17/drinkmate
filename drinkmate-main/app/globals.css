@@ -480,7 +480,7 @@
   }
 
   .tile img, .hero-tile img {
-    @apply w-full aspect-square object-contain transition-transform duration-300 pointer-events-none;
+    @apply w-full h-full object-contain transition-transform duration-300 pointer-events-none;
   }
 
   .tile:hover img, .hero-tile:hover img {

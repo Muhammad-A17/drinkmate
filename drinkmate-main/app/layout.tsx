@@ -7,6 +7,7 @@ import { AuthProvider } from "@/lib/auth-context"
 import SWRProvider from "@/lib/swr-provider"
 import SecurityMiddleware from "./security-middleware"
 import FontProvider from "@/components/layout/FontProvider"
+import { Providers } from "@/components/providers"
 
 export const viewport = {
   width: 'device-width',
@@ -200,7 +201,9 @@ export default function RootLayout({
             <CartProvider>
               <AuthProvider>
                 <SWRProvider>
-                  {children}
+                  <Providers>
+                    {children}
+                  </Providers>
                 </SWRProvider>
               </AuthProvider>
             </CartProvider>
