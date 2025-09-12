@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { ChevronUp } from "lucide-react"
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { useTranslation } from "@/lib/translation-context"
 import { FaFacebook, FaTwitter, FaInstagram, FaWhatsapp } from "react-icons/fa"
 
@@ -11,6 +12,12 @@ export default function Footer() {
   const { t, isRTL, isHydrated } = useTranslation()
   const [scrollProgress, setScrollProgress] = useState(0)
   const [showScrollTop, setShowScrollTop] = useState(false)
+  
+  // Newsletter form state
+  const [email, setEmail] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [newsletterStatus, setNewsletterStatus] = useState<"idle" | "success" | "error">("idle")
+  const [errorMessage, setErrorMessage] = useState("")
 
   useEffect(() => {
     let ticking = false
@@ -39,6 +46,36 @@ export default function Footer() {
       top: 0,
       behavior: "smooth",
     })
+  }
+
+  // Newsletter form handler
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setErrorMessage("Please enter a valid email address")
+      setNewsletterStatus("error")
+      return
+    }
+
+    setLoading(true)
+    setErrorMessage("")
+    
+    try {
+      // Simulate API call - replace with actual newsletter subscription endpoint
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // For demo purposes, always succeed
+      setNewsletterStatus("success")
+      setEmail("")
+    } catch (error) {
+      setErrorMessage("Something went wrong. Please try again.")
+      setNewsletterStatus("error")
+    } finally {
+      setLoading(false)
+    }
   }
 
      // Don't render translated content until hydration is complete
@@ -108,289 +145,367 @@ export default function Footer() {
   }
 
   return (
-    <footer className={`bg-gray-100 py-12 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`} dir={isHydrated && isRTL ? 'rtl' : 'ltr'}>
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-          {/* Company Info Column */}
-          <div className="lg:col-span-1">
-            <div className="mb-8">
-              <Image
-                src="/images/drinkmate-logo.png"
-                alt="Drinkmate"
-                width={140}
-                height={40}
-                className="h-8 sm:h-10 md:h-12 w-auto filter drop-shadow-sm"
-                style={{ width: "auto", height: "auto" }}
-                priority
-              />
-            </div>
-            <p className={`text-gray-600 leading-relaxed mb-6 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+    <footer className={`border-t border-black/10 bg-white py-8 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`} dir={isHydrated && isRTL ? 'rtl' : 'ltr'}>
+      <div className="max-w-[1100px] mx-auto px-4 md:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+          {/* Brand + contact */}
+          <section className="md:col-span-4" itemScope itemType="https://schema.org/Organization">
+            <Image
+              src="/images/drinkmate-logo.png"
+              alt="Drinkmate"
+              width={140}
+              height={40}
+              className="h-8 w-auto filter drop-shadow-sm"
+              priority
+            />
+            <p className={`mt-3 text-sm text-black/70 leading-snug ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
               {t("footer.companyDescription")}
             </p>
-            <div className="space-y-2">
-              <p className={`text-sm text-gray-600 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                📞 {t("footer.phone")}
-              </p>
-              <p className={`text-sm text-gray-600 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                ✉️ {t("footer.email")}
-              </p>
-              <p className={`text-sm text-gray-600 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-                📍 {t("footer.address")}
-              </p>
-            </div>
-          </div>
+            <ul className={`mt-4 space-y-1 text-sm ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+              <li>
+                <a 
+                  href="tel:+966501234567" 
+                  className="text-black/70 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500"
+                  itemProp="telephone"
+                >
+                  +966 50 123 4567
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="mailto:info@drinkmate.sa" 
+                  className="text-black/70 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500"
+                  itemProp="email"
+                >
+                  info@drinkmate.sa
+                </a>
+              </li>
+              <li>
+                <address className="not-italic text-black/70" itemProp="address">
+                  Riyadh, Saudi Arabia
+                </address>
+              </li>
+            </ul>
+          </section>
 
-          {/* Products Column */}
-          <div>
-            <h3 className={`text-xl font-bold text-black mb-6 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>
+          {/* Products - Desktop */}
+          <nav className="hidden md:block md:col-span-3" aria-labelledby="f-products">
+            <h3 id="f-products" className={`font-semibold mb-3 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
               {t("footer.products.title")}
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-2 text-sm leading-snug">
               <li>
-                <a href="/shop/sodamakers" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/shop/sodamakers" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.products.sodaMakers")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/co2" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/co2" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.products.co2Cylinders")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/shop/flavor" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/shop/flavor" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.products.italianSyrups")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/shop/accessories" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/shop/accessories" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.products.accessories")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/shop/bundles" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/shop/bundles" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.products.giftBundles")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/contact" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/contact" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.products.bulkOrders")}
-                </a>
+                </Link>
               </li>
             </ul>
-          </div>
+          </nav>
 
-          {/* Information Column */}
-          <div>
-            <h3 className={`text-xl font-bold text-black mb-6 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>
+          {/* Information - Desktop */}
+          <nav className="hidden md:block md:col-span-3" aria-labelledby="f-info">
+            <h3 id="f-info" className={`font-semibold mb-3 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
               {t("footer.information.title")}
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-2 text-sm leading-snug">
               <li>
-                <a href="/contact" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/contact" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.information.support")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.information.reprintReturnLabel")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/terms-of-service" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/terms-of-service" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.information.legalTerms")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/privacy-policy" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/privacy-policy" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.information.privacyPolicy")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/cookie-policy" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/cookie-policy" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.information.cookiePolicy")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/recipes" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/recipes" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.information.drinkmateRecipe")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/blog" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/blog" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.information.blogs")}
-                </a>
+                </Link>
               </li>
-            </ul>
-          </div>
-
-          {/* More Column */}
-          <div>
-            <h3 className={`text-xl font-bold text-black mb-6 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>
-              {t("footer.more.title")}
-            </h3>
-            <ul className="space-y-3">
               <li>
-                <a href="/track-order" className={`text-gray-600 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                <Link href="/track-order" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.more.trackOrder")}
-                </a>
+                </Link>
               </li>
             </ul>
-          </div>
+          </nav>
 
-          {/* Newsletter Signup */}
-          <div className="lg:max-w-sm">
-            <h3 className={`text-lg font-bold text-black mb-2 leading-tight ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>
+          {/* Newsletter */}
+          <section className="md:col-span-2 min-w-0">
+            <h3 className={`font-semibold mb-3 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
               {t("footer.newsletter.title")}
             </h3>
-            
-            <p className={`text-sm text-gray-600 mb-4 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+            <p className={`text-sm text-black/70 mb-3 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
               {t("footer.newsletter.disclaimer")}
             </p>
             
-            <div className="space-y-3">
-              <input
-                type="email"
-                placeholder={t("footer.newsletter.emailPlaceholder")}
-                className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#a8f387] focus:border-[#a8f387] transition-colors duration-200 text-sm ${isHydrated && isRTL ? 'font-noto-arabic text-right' : 'font-noto-sans'}`}
+            {newsletterStatus === "success" ? (
+              <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <p className="text-sm text-emerald-800 font-medium">
+                  Thanks! Please check your inbox to confirm.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleNewsletterSubmit} noValidate className="w-full max-w-sm grid grid-cols-1 gap-2 mt-3">
+                <label htmlFor="nl-email" className="sr-only">Email address</label>
+                <input
+                  id="nl-email"
+                  type="email"
+                  inputMode="email"
+                  required
+                  placeholder="Enter your email"
+                  aria-describedby="nl-help"
+                  className={`h-10 w-full rounded-lg border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                {/* Honeypot (bot trap) */}
+                <input type="text" name="company" tabIndex={-1} autoComplete="off" className="hidden" />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="h-10 w-full rounded-lg bg-emerald-600 text-white text-sm font-semibold disabled:opacity-50 hover:bg-emerald-700 transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500"
+                >
+                  {loading ? 'Subscribing…' : 'Subscribe to Newsletter'}
+                </button>
+                <p id="nl-help" className="sr-only">We'll send occasional emails. You can unsubscribe anytime.</p>
+              </form>
+            )}
+            
+            {newsletterStatus === "error" && errorMessage && (
+              <p className="text-xs text-rose-600 mt-1" role="alert">
+                {errorMessage}
+              </p>
+            )}
+          </section>
+
+          {/* Mobile Collapsible Groups */}
+          <div className="md:hidden space-y-0">
+            <details className="border-t border-black/10">
+              <summary className={`py-3 font-medium cursor-pointer ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                {t("footer.products.title")}
+              </summary>
+              <ul className="pb-3 space-y-2 pl-2 text-sm leading-snug">
+                <li>
+                  <Link href="/shop/sodamakers" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.products.sodaMakers")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/co2" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.products.co2Cylinders")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/shop/flavor" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.products.italianSyrups")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/shop/accessories" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.products.accessories")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/shop/bundles" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.products.giftBundles")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.products.bulkOrders")}
+                  </Link>
+                </li>
+              </ul>
+            </details>
+
+            <details className="border-t border-black/10">
+              <summary className={`py-3 font-medium cursor-pointer ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                {t("footer.information.title")}
+              </summary>
+              <ul className="pb-3 space-y-2 pl-2 text-sm leading-snug">
+                <li>
+                  <Link href="/contact" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.information.support")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.information.reprintReturnLabel")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms-of-service" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.information.legalTerms")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy-policy" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.information.privacyPolicy")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/cookie-policy" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.information.cookiePolicy")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/recipes" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.information.drinkmateRecipe")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.information.blogs")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/track-order" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                    {t("footer.more.trackOrder")}
+                  </Link>
+                </li>
+              </ul>
+            </details>
+          </div>
+        </div>
+
+        {/* Lower bar */}
+        <div className="mt-8 border-t border-black/10 pt-4 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className={`flex items-center gap-3 text-sm text-black/60 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>
+            <span>Payment:</span>
+            <div className="flex items-center gap-2">
+              <Image
+                src="/images/payment-logos/Mada Logo Vector.svg"
+                alt="Mada"
+                width={250}
+                height={250}
+                className="h-6 w-auto md:h-7"
+                loading="lazy"
               />
-              
-              <Button 
-                onClick={() => alert('Thank you for subscribing to our newsletter!')}
-                className={`w-full bg-[#a8f387] hover:bg-[#9ae374] text-black font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}
-              >
-                {t("footer.newsletter.subscribeButton")}
-              </Button>
+              <Image
+                src="/images/payment-logos/visa.png"
+                alt="VISA"
+                width={250}
+                height={250}
+                className="h-6 w-auto md:h-7"
+                loading="lazy"
+              />
+              <Image
+                src="/images/payment-logos/mastercard.png"
+                alt="Mastercard"
+                width={250}
+                height={250}
+                className="h-6 w-auto md:h-7"
+                loading="lazy"
+              />
+              <Image
+                src="/images/payment-logos/american-express.png"
+                alt="American Express"
+                width={250}
+                height={250}
+                className="h-6 w-auto md:h-7"
+                loading="lazy"
+              />
             </div>
+            <span className="ml-6">Delivery partner:</span>
+            <Image
+              src="/images/delivery-logos/aramex-seeklogo.png"
+              alt="Aramex"
+              width={250}
+              height={250}
+              className="h-7 w-auto"
+              loading="lazy"
+            />
           </div>
+
+          <nav aria-label="Follow us" className="flex items-center gap-3">
+            <a 
+              href="https://wa.me/966501234567" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="h-9 w-9 grid place-items-center rounded-full bg-emerald-50 hover:bg-emerald-100 transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500"
+              aria-label="WhatsApp"
+            >
+              <FaWhatsapp className="h-5 w-5 text-emerald-600" />
+            </a>
+            <a 
+              href="https://www.facebook.com/drinkmate.sa" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="h-9 w-9 grid place-items-center rounded-full bg-blue-50 hover:bg-blue-100 transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500"
+              aria-label="Facebook"
+            >
+              <FaFacebook className="h-5 w-5 text-blue-600" />
+            </a>
+            <a 
+              href="https://www.instagram.com/drinkmate.sa" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="h-9 w-9 grid place-items-center rounded-full bg-pink-50 hover:bg-pink-100 transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500"
+              aria-label="Instagram"
+            >
+              <FaInstagram className="h-5 w-5 text-pink-600" />
+            </a>
+            <a 
+              href="https://twitter.com/drinkmate_sa" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="h-9 w-9 grid place-items-center rounded-full bg-sky-50 hover:bg-sky-100 transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500"
+              aria-label="Twitter"
+            >
+              <FaTwitter className="h-5 w-5 text-sky-600" />
+            </a>
+          </nav>
         </div>
 
-        {/* Bottom Section */}
-        <div className="mt-12 md:mt-16 pt-8 md:pt-10 border-t border-gray-200">
-          <div className="flex flex-col lg:flex-row gap-8 md:gap-12 lg:gap-16 items-center justify-between">
-            {/* Payment Methods */}
-            <div className={`text-center ${isHydrated && isRTL ? 'lg:text-right' : 'lg:text-left'}`}>
-              <p className={`text-sm font-medium text-gray-700 mb-4 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>{t("footer.payment.title")}</p>
-              <div className={`flex flex-wrap gap-3 justify-center ${isHydrated && isRTL ? 'lg:justify-end' : 'lg:justify-start'}`}>
-                <Image
-                  src="/images/payment-logos/Mada Logo Vector.svg"
-                  alt="Mada"
-                  width={50}
-                  height={30}
-                  className="h-7 sm:h-8 md:h-9 w-auto"
-                />
-                <Image
-                  src="/images/payment-logos/visa.png"
-                  alt="VISA"
-                  width={50}
-                  height={30}
-                  className="h-7 sm:h-8 md:h-9 w-auto"
-                />
-                <Image
-                  src="/images/payment-logos/mastercard.png"
-                  alt="Mastercard"
-                  width={50}
-                  height={30}
-                  className="h-7 sm:h-8 md:h-9 w-auto"
-                />
-                <Image
-                  src="/images/payment-logos/american-express.png"
-                  alt="American Express"
-                  width={50}
-                  height={30}
-                  className="h-7 sm:h-8 md:h-9 w-auto"
-                />
-                <Image
-                  src="/images/payment-logos/google-pay.png"
-                  alt="Google Pay"
-                  width={50}
-                  height={30}
-                  className="h-7 sm:h-8 md:h-9 w-auto"
-                />
-                <Image
-                  src="/images/payment-logos/apple-pay.png"
-                  alt="Apple Pay"
-                  width={50}
-                  height={30}
-                  className="h-7 sm:h-8 md:h-9 w-auto"
-                />
-                <Image
-                  src="/images/payment-logos/samsung-pay.svg"
-                  alt="Samsung Pay"
-                  width={50}
-                  height={30}
-                  className="h-7 sm:h-8 md:h-9 w-auto"
-                />
-              </div>
-            </div>
-
-            {/* Delivery Partner */}
-            <div className="text-center">
-              <p className={`text-sm font-medium text-gray-700 mb-4 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>{t("footer.delivery.title")}</p>
-              <div className="flex justify-center">
-                <Image
-                  src="/images/delivery-logos/aramex-seeklogo.png"
-                  alt="Aramex"
-                  width={120}
-                  height={50}
-                  className="h-10 sm:h-12 md:h-14 w-auto"
-                  style={{ width: 'auto' }}
-                />
-              </div>
-            </div>
-
-            {/* Social Media Icons */}
-            <div className={`text-center ${isHydrated && isRTL ? 'lg:text-right' : 'lg:text-left'}`}>
-              <p className={`text-sm font-medium text-gray-700 mb-4 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>{t("footer.social.followUs")}</p>
-              <div className={`flex flex-wrap justify-center gap-3 ${isHydrated && isRTL ? 'lg:justify-start' : 'lg:justify-start'}`}>
-                <a 
-                  href="https://wa.me/966501234567" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 transform hover:scale-110 shadow-lg"
-                  aria-label="WhatsApp"
-                >
-                  <FaWhatsapp size={20} />
-                </a>
-                <a 
-                  href="https://www.facebook.com/drinkmate.sa" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 bg-[#1877F2] text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 transform hover:scale-110 shadow-lg"
-                  aria-label="Facebook"
-                >
-                  <FaFacebook size={20} />
-                </a>
-                <a 
-                  href="https://www.instagram.com/drinkmate.sa" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 transform hover:scale-110 shadow-lg"
-                  aria-label="Instagram"
-                >
-                  <FaInstagram size={20} />
-                </a>
-                <a 
-                  href="https://twitter.com/drinkmate_sa" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 bg-[#1DA1F2] text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all duration-300 transform hover:scale-110 shadow-lg"
-                  aria-label="Twitter"
-                >
-                  <FaTwitter size={20} />
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Copyright Section */}
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <div className="text-center">
-            <p className={`text-sm text-gray-600 ${isHydrated && isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
-              {t("footer.copyright")}
-            </p>
-          </div>
+        <div className="text-xs text-black/60 text-center">
+          © {new Date().getFullYear()} Drinkmate. All rights reserved.
         </div>
       </div>
 
