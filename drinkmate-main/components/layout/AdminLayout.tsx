@@ -312,6 +312,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   width={120}
                   height={40}
                   className="h-8 w-auto"
+                  style={{ width: "auto", height: "auto" }}
                 />
               ) : (
                 <div className="w-8 h-8 bg-[#12d6fa] rounded-full flex items-center justify-center text-white font-bold">
@@ -571,7 +572,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     className={`px-3 py-2 flex items-center gap-2 transition-colors ${language === "EN" ? "bg-[#12d6fa] text-white" : "bg-white hover:bg-gray-50 text-gray-700"}`}
                     title="Switch to English"
                   >
-                    <Flag className="w-4 w-4" />
+                    <Flag className="w-4 h-4" />
                     <span className="font-medium">EN</span>
                   </button>
                   <div className="w-px h-6 bg-gray-300"></div>
@@ -580,7 +581,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     className={`px-3 py-2 flex items-center gap-2 transition-colors ${language === "AR" ? "bg-[#12d6fa] text-white" : "bg-white hover:bg-gray-50 text-gray-700"}`}
                     title="Switch to Arabic"
                   >
-                    <Flag className="w-4 w-4" />
+                    <Flag className="w-4 h-4" />
                     <span className="font-medium">عربي</span>
                   </button>
                 </div>
@@ -629,6 +630,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 width={120}
                 height={40}
                 className="h-8 w-auto"
+                style={{ width: "auto", height: "auto" }}
               />
             </Link>
             <button 

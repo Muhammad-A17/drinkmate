@@ -159,7 +159,8 @@ export default function LoginPageContent() {
           <CardHeader className="space-y-2 pb-6">
             <div className="mx-auto mb-2">
               <Image 
-                src="/images/drinkmate-logo.png" 
+                src="/images/drinkmate-logo.png"
+                style={{ width: "auto", height: "auto" }} 
                 alt="Drinkmate" 
                 width={150} 
                 height={50} 
@@ -241,6 +242,8 @@ export default function LoginPageContent() {
                       type="button"
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      title={showPassword ? "Hide password" : "Show password"}
                     >
                       <Image
                         src={showPassword ? "/images/miscellaneous/hide.png" : "/images/miscellaneous/view.png"}

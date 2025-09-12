@@ -8,6 +8,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Suspense } from "react"
 import { shopAPI } from "@/lib/api"
+import styles from './styles.module.css'
 import { useCart } from "@/lib/cart-context"
 import { useTranslation } from "@/lib/translation-context"
 import { Button } from "@/components/ui/button"
@@ -1085,8 +1086,8 @@ export default function ShopProductDetail() {
                                     >
                                       {colorHex && (
                                         <div 
-                                          className="w-3 h-3 rounded-full border border-gray-300" 
-                                          style={{ backgroundColor: colorHex }}
+                                          className={`w-3 h-3 rounded-full border border-gray-300 ${styles.colorSwatch}`}
+                                          style={{ '--color-hex': colorHex } as React.CSSProperties}
                                         />
                                       )}
                                       {colorName}

@@ -5,14 +5,14 @@ echo Starting frontend server...
 start cmd /k "cd drinkmate-main && npm install && npm run dev"
 echo Both servers should be starting now.
 echo Backend: http://localhost:3000
-echo Frontend: http://localhost:3000
+echo Frontend: http://localhost:3001
 echo.
 echo Waiting for servers to be ready...
 echo Checking if servers are running...
 
 :wait_loop
 echo Checking frontend server...
-curl -s http://localhost:3000 >nul 2>&1
+curl -s http://localhost:3001 >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     echo Frontend server is ready!
     goto open_browser
