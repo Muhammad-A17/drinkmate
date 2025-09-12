@@ -442,12 +442,12 @@ export default function SodamakerProductDetail() {
             ...productData,
             // Ensure image URLs are absolute
             image: productData.image?.startsWith('http') ? productData.image : 
-                   productData.image?.startsWith('/') ? `${window.location.origin}${productData.image}` : 
+                   productData.image?.startsWith('/') ? `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}${productData.image}` : 
                    '/placeholder.svg',
             // Ensure image URLs in arrays are absolute
             images: (productData.images || []).map((img: any) => 
               img?.url?.startsWith('http') ? img.url : 
-              img?.url?.startsWith('/') ? `${window.location.origin}${img.url}` : 
+              img?.url?.startsWith('/') ? `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}${img.url}` : 
               '/placeholder.svg'
             ),
             // Add any missing properties with default values
@@ -480,12 +480,12 @@ export default function SodamakerProductDetail() {
             ...productData,
             // Ensure image URL is absolute
             image: productData.image?.startsWith('http') ? productData.image : 
-                   productData.image?.startsWith('/') ? `${window.location.origin}${productData.image}` : 
+                   productData.image?.startsWith('/') ? `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}${productData.image}` : 
                    '/placeholder.svg',
             // Ensure image URLs in arrays are absolute
             images: (productData.images || []).map((img: string) => 
               img?.startsWith('http') ? img : 
-              img?.startsWith('/') ? `${window.location.origin}${img}` : 
+              img?.startsWith('/') ? `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}${img}` : 
               '/placeholder.svg'
             ),
             // Add any missing properties with default values

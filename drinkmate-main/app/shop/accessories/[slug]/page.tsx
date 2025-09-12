@@ -333,13 +333,13 @@ export default function AccessoryDetailPage() {
             ...productData,
             // Ensure image URL is absolute
             image: productData.image?.startsWith('http') ? productData.image :
-                   productData.image?.startsWith('/') ? `http://localhost:3000${productData.image}` :
+                   productData.image?.startsWith('/') ? `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}${productData.image}` :
                    '/placeholder.svg',
             // Ensure image URLs in arrays are absolute
             images: (productData.images || []).map((img: any) => {
               const imageUrl = typeof img === 'string' ? img : img?.url || img
               return imageUrl?.startsWith('http') ? imageUrl :
-                     imageUrl?.startsWith('/') ? `http://localhost:3000${imageUrl}` :
+                     imageUrl?.startsWith('/') ? `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}${imageUrl}` :
                      '/placeholder.svg'
             }),
             // Add any missing properties with default values
