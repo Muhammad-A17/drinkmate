@@ -12,9 +12,14 @@ import Banner from "@/components/layout/Banner"
 import { toast } from "sonner"
 import { fmt } from "@/lib/money"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
+import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
 import FreeShippingBar from "@/components/cart/FreeShippingBar"
 import CartLineItem from "@/components/cart/CartLineItem"
 import OrderSummary from "@/components/cart/OrderSummary"
+import RecommendationsGrid from "@/components/cart/RecommendationsGrid"
+import FreeGiftGrid from "@/components/cart/FreeGiftGrid"
+import FreeGiftSelectedCard from "@/components/cart/FreeGiftSelectedCard"
+import { getFreeGiftState, FreeGiftProduct } from "@/lib/freeGift"
 
 type RecommendedItem = {
   id: number
@@ -76,6 +81,8 @@ export default function CartPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
   const [couponError, setCouponError] = useState("")
   const [isSavingInstructions, setIsSavingInstructions] = useState(false)
+  const [selectedFreeGift, setSelectedFreeGift] = useState<FreeGiftProduct | null>(null)
+  const [showFreeGiftGrid, setShowFreeGiftGrid] = useState(false)
 
   const handleQuantityChange = useCallback((id: string | number, newQuantity: number) => {
     updateQuantity(id, newQuantity)
@@ -107,6 +114,13 @@ export default function CartPage() {
       quantity: 1,
       image: item.image,
     })
+
+    // Trigger cart count pulse animation
+    const cartIcon = document.querySelector('[data-cart-count]')
+    if (cartIcon) {
+      cartIcon.classList.add('animate-pulse')
+      setTimeout(() => cartIcon.classList.remove('animate-pulse'), 600)
+    }
 
     if (existingItem) {
       toast.success(`${item.name} quantity increased to ${existingItem.quantity + 1}`, {
@@ -250,11 +264,60 @@ export default function CartPage() {
     })
   }
 
+  // Free gift handlers
+  const handleSelectFreeGift = (product: FreeGiftProduct) => {
+    setSelectedFreeGift(product)
+    setShowFreeGiftGrid(false)
+    
+    // Add free gift to cart with price 0
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: 0, // Free item
+      quantity: 1,
+      image: product.image,
+    })
+    
+    toast.success(`${product.name} added as free gift!`, {
+      duration: 3000,
+      icon: <Gift className="h-5 w-5" />,
+    })
+  }
+
+  const handleReplaceFreeGift = () => {
+    setShowFreeGiftGrid(true)
+  }
+
+  const handleRemoveFreeGift = () => {
+    if (selectedFreeGift) {
+      // Remove the free gift from cart
+      removeItem(selectedFreeGift.id)
+      setSelectedFreeGift(null)
+      toast.info("Free gift removed", {
+        duration: 3000,
+      })
+    }
+  }
+
   // Calculate discount amount if coupon is applied
   const discountAmount = appliedCoupon ? (state.total * appliedCoupon.discount) / 100 : 0
 
   // Calculate final total after discount
   const finalTotal = state.total - discountAmount
+
+  // Get free gift state
+  const freeGiftState = getFreeGiftState({
+    total: state.total,
+    promotions: {
+      freeGift: {
+        eligible: state.total >= 100 && state.total < 150,
+        selectedItem: selectedFreeGift,
+        options: [],
+        maxQty: 1,
+        threshold: 100
+      }
+    }
+  })
 
   if (state.items.length === 0) {
     return (
@@ -436,91 +499,6 @@ export default function CartPage() {
           ))}
         </div>
 
-        {state.total >= 100 && state.total < 150 && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-            <div className="flex items-center mb-4">
-              <Tag className="h-5 w-5 text-green-600 mr-2" />
-              <h3 className="text-lg font-medium text-green-800">Select a FREE product</h3>
-            </div>
-            <p className="text-sm text-green-700 mb-6">
-              You qualify for one free product! Choose from the options below.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                {
-                  id: 101,
-                  name: "Drinkmate Flavor Sachet - Cherry",
-                  image: "/images/italian-strawberry-lemon-syrup.png",
-                  originalPrice: 15.0,
-                },
-                {
-                  id: 102,
-                  name: "Drinkmate Flavor Sachet - Lemon",
-                  image: "/images/italian-strawberry-lemon-syrup.png",
-                  originalPrice: 15.0,
-                },
-                {
-                  id: 103,
-                  name: "Drinkmate Flavor Sachet - Peach",
-                  image: "/images/italian-strawberry-lemon-syrup.png",
-                  originalPrice: 15.0,
-                },
-              ].map((freeItem) => (
-                <div
-                  key={freeItem.id}
-                  className="bg-white rounded-3xl transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
-                >
-                  <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
-                    <Image
-                      src={freeItem.image || "/placeholder.svg"}
-                      alt={freeItem.name}
-                      width={180}
-                      height={180}
-                      className="object-contain h-44 transition-transform duration-300 hover:scale-105"
-                    />
-                  </div>
-                  <h4 className="font-medium text-lg mb-3 text-gray-900">{freeItem.name}</h4>
-                  <div className="flex items-center mb-3">
-                    <span className="text-green-600 font-medium mr-3">FREE</span>
-                    <span className="text-xs text-gray-400 line-through">
-                      <SaudiRiyal amount={freeItem.originalPrice} size="sm" />
-                    </span>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      // Check if item already exists in cart
-                      const existingItem = state.items.find((cartItem) => cartItem.id === freeItem.id)
-
-                      addItem({
-                        id: freeItem.id,
-                        name: freeItem.name,
-                        price: 0,
-                        quantity: 1,
-                        image: freeItem.image,
-                        isFree: true,
-                      })
-
-                      if (existingItem) {
-                        toast.success(`${freeItem.name} quantity increased to ${existingItem.quantity + 1}`, {
-                          duration: 3000,
-                          icon: <CheckCircle className="h-5 w-5" />,
-                        })
-                      } else {
-                        toast.success(`${freeItem.name} added to cart`, {
-                          duration: 3000,
-                          icon: <Gift size={20} />,
-                        })
-                      }
-                    }}
-                    className="w-full bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-medium rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-                  >
-                    <Gift size={20} /> Add Free Item
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {savedItems.length > 0 && (
           <div className="bg-white rounded-lg p-6 border border-gray-200 mb-6">
@@ -594,9 +572,9 @@ export default function CartPage() {
         </div>
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column - Cart Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-8 space-y-6">
             {/* Free Product Section */}
             {state.total >= 100 && state.total < 150 && (
               <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
@@ -724,81 +702,51 @@ export default function CartPage() {
 
             {/* Recommendations */}
             <section aria-labelledby="you-may-like" className="bg-white rounded-2xl p-6 border border-black/10">
-              <h2 id="you-may-like" className="text-lg font-semibold mb-6 text-black tracking-tight">Items you may like</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {recommended.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-gray-50 rounded-2xl p-4 border border-gray-200 hover:border-gray-300 transition-all duration-200"
-                  >
-                    <div className="relative h-24 bg-white rounded-xl mb-3 flex items-center justify-center overflow-hidden">
-                      <Image 
-                        src={item.image || "/placeholder.svg"} 
-                        alt={item.name} 
-                        width={60}
-                        height={60}
-                        className="object-contain"
-                      />
-                    </div>
-                    <h3 className="font-medium text-sm mb-2 text-black line-clamp-2">{item.name}</h3>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex text-yellow-400">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <span key={i} className="text-xs">★</span>
-                        ))}
-                      </div>
-                      <span className="text-xs text-gray-600">({item.reviews})</span>
-                    </div>
-                    <div className="mb-3">
-                      {item.originalPrice ? (
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-black text-sm">
-                            <SaudiRiyal amount={item.price} size="sm" />
-                          </span>
-                          <span className="text-xs text-gray-400 line-through">
-                            <SaudiRiyal amount={item.originalPrice} size="xs" />
-                          </span>
-                          <span className="bg-red-100 text-red-600 text-xs font-medium px-2 py-0.5 rounded-full">
-                            {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% OFF
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="font-semibold text-black text-sm">
-                          <SaudiRiyal amount={item.price} size="sm" />
-                        </span>
-                      )}
-                    </div>
-                    <Button
-                      onClick={() => handleAddRecommended(item)}
-                      className="w-full bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-xl px-3 py-2 text-xs"
-                    >
-                      <ShoppingCart size={14} className="mr-1" />
-                      ADD
-                    </Button>
-                  </div>
-                ))}
-              </div>
+              <h2 id="you-may-like" className="text-xl font-semibold tracking-tight mb-4 text-black">Items you may like</h2>
+              <RecommendationsGrid 
+                items={recommended} 
+                maxItems={3}
+                onAddToCart={handleAddRecommended}
+              />
             </section>
 
           </div>
 
           {/* Right Column - Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="lg:sticky lg:top-24">
-              <OrderSummary
-                subtotal={state.total}
-                itemCount={state.itemCount}
-                shipping={state.total >= 150 ? 0 : null}
-                discount={discountAmount}
-                total={finalTotal}
-                freeShippingThreshold={150}
-                appliedCoupon={appliedCoupon}
-                onApplyCoupon={handleApplyCoupon}
-                onRemoveCoupon={handleRemoveCoupon}
-                onCheckout={handleCheckout}
-                isCheckoutDisabled={state.items.length === 0}
-              />
-            </div>
+          <div className="lg:col-span-4 space-y-6">
+            {/* Free Gift Section */}
+            {freeGiftState.eligible && (
+              <>
+                {selectedFreeGift ? (
+                  <FreeGiftSelectedCard
+                    item={selectedFreeGift}
+                    onReplace={handleReplaceFreeGift}
+                    onRemove={handleRemoveFreeGift}
+                  />
+                ) : (
+                  <FreeGiftGrid
+                    options={freeGiftState.options}
+                    selectedId={selectedFreeGift?.id}
+                    onSelect={handleSelectFreeGift}
+                    placement="sidebar"
+                  />
+                )}
+              </>
+            )}
+
+            <OrderSummary
+              subtotal={state.total}
+              itemCount={state.itemCount}
+              shipping={state.total >= 150 ? 0 : null}
+              discount={discountAmount}
+              total={finalTotal}
+              freeShippingThreshold={150}
+              appliedCoupon={appliedCoupon}
+              onApplyCoupon={handleApplyCoupon}
+              onRemoveCoupon={handleRemoveCoupon}
+              onCheckout={handleCheckout}
+              isCheckoutDisabled={state.items.length === 0}
+            />
           </div>
         </div>
       </main>

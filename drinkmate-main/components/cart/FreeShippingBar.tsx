@@ -1,7 +1,9 @@
 "use client"
 
-import { motion, useSpring } from "framer-motion"
+import { useEffect } from "react"
+import { motion, useSpring, useTransform } from "framer-motion"
 import { fmt } from "@/lib/money"
+import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
 
 interface FreeShippingBarProps {
   subtotal: number
@@ -14,12 +16,20 @@ export default function FreeShippingBar({ subtotal, threshold, className = "" }:
   const remaining = Math.max(0, threshold - subtotal)
   const isUnlocked = remaining <= 0
 
-  // Smooth spring animation for progress bar
-  const width = useSpring(percentage, { 
+  // Create a spring value that starts at 0
+  const springValue = useSpring(0, { 
     stiffness: 140, 
     damping: 22, 
     mass: 0.6 
   })
+
+  // Update the spring value when percentage changes
+  useEffect(() => {
+    springValue.set(percentage)
+  }, [percentage, springValue])
+
+  // Transform the spring value to a percentage string
+  const width = useTransform(springValue, (value) => `${value}%`)
 
   return (
     <div className={`space-y-2 ${className}`}>
@@ -30,7 +40,9 @@ export default function FreeShippingBar({ subtotal, threshold, className = "" }:
           </span>
         ) : (
           <>
-            Only <strong className="font-semibold tabular-nums text-sky-600">{fmt(remaining, 'SAR')}</strong> away from free shipping
+            Only <strong className="font-semibold tabular-nums text-sky-600 flex items-center gap-1">
+              {fmt(remaining, 'SAR')} <SaudiRiyalSymbol size="sm" className="text-sky-600" />
+            </strong> away from free shipping
           </>
         )}
       </p>
@@ -47,7 +59,7 @@ export default function FreeShippingBar({ subtotal, threshold, className = "" }:
           className={`absolute left-0 top-0 h-full rounded-full ${
             isUnlocked ? 'bg-emerald-500' : 'bg-sky-500'
           }`}
-          style={{ width: width.to(v => `${v}%`) }}
+          style={{ width }}
         />
         {/* Subtle shine effect */}
         <div 

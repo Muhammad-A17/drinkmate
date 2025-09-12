@@ -24,6 +24,7 @@
   --font-secondary: var(--font-noto-sans);
 }
 
+
 /* Arabic/RTL overrides */
 :root[lang^="ar"], :root[dir="rtl"] {
   --font-primary: var(--font-cairo);

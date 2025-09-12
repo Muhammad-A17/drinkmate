@@ -4,6 +4,7 @@ import Image from "next/image"
 import { useState } from "react"
 import { Trash2, Bookmark } from "lucide-react"
 import { fmt } from "@/lib/money"
+import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
 import QuantityControl from "./QuantityControl"
 import { toast } from "sonner"
 
@@ -81,7 +82,9 @@ export default function CartLineItem({
         </h3>
         <div className="text-sm text-black/60 mt-1">
           {item.category && `${item.category} • `}
-          Unit price: {fmt(item.price, 'SAR')}
+          Unit price: <span className="flex items-center gap-1">
+            {fmt(item.price, 'SAR')} <SaudiRiyalSymbol size="xs" />
+          </span>
         </div>
         <div className="mt-2 flex gap-3 text-sm">
           <button 
@@ -122,7 +125,9 @@ export default function CartLineItem({
         <div className={`text-sm text-black/80 font-semibold tabular-nums transition-all duration-120 ${
           isHighlighting ? 'bg-yellow-50 animate-pulse' : ''
         }`}>
-          {fmt(lineTotal, 'SAR')}
+          <span className="flex items-center gap-1">
+            {fmt(lineTotal, 'SAR')} <SaudiRiyalSymbol size="sm" />
+          </span>
         </div>
       </div>
     </article>

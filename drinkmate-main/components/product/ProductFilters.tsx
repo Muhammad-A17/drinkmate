@@ -5,6 +5,7 @@ import { Slider } from '@/components/ui/slider'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import SaudiRiyalSymbol from '@/components/ui/SaudiRiyalSymbol'
 import { ProductFilters as ProductFiltersType } from '@/lib/types'
 import { SORT_OPTIONS, FILTER_OPTIONS, RATING_OPTIONS, PRICE_RANGES } from '@/lib/constants'
 import { 
@@ -222,10 +223,14 @@ export default function ProductFilters({
             />
             <div className="flex justify-between text-sm text-gray-600 mt-3">
               <div className="flex items-center gap-1">
-                <span className="font-medium">SAR {localFilters.priceRange?.[0] || 0}</span>
+                <span className="font-medium flex items-center gap-1">
+                  {localFilters.priceRange?.[0] || 0} <SaudiRiyalSymbol size="xs" />
+                </span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="font-medium">SAR {localFilters.priceRange?.[1] || 10000}</span>
+                <span className="font-medium flex items-center gap-1">
+                  {localFilters.priceRange?.[1] || 10000} <SaudiRiyalSymbol size="xs" />
+                </span>
               </div>
             </div>
           </div>

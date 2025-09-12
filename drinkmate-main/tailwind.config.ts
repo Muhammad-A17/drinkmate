@@ -89,6 +89,7 @@ const config: Config = {
         // Fallback system fonts
         sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         mono: ['var(--geist-mono)', 'monospace'],
+        
       },
     },
   },

@@ -7,9 +7,8 @@ export const fmt = (amount: number, currency: 'SAR' | 'USD' = 'SAR', locale = 'e
     return '0.00'
   }
   
+  // Return just the number without currency symbol since we use SVG symbols
   return new Intl.NumberFormat(locale, { 
-    style: 'currency', 
-    currency, 
     maximumFractionDigits: 2,
     minimumFractionDigits: 2
   }).format(amount)

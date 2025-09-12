@@ -51,6 +51,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -1095,7 +1096,7 @@ export default function AccessoryDetailPage() {
                       <span className="font-medium text-gray-900">Free Delivery</span>
                     </div>
                     <p className="text-sm text-gray-600">
-                      Get free delivery on orders over 200 SAR. Estimated delivery: 2-3 business days.
+                      Get free delivery on orders over 200 <SaudiRiyalSymbol size="xs" />. Estimated delivery: 2-3 business days.
                     </p>
                   </div>
                 </div>

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { CheckCircle, Truck, Tag, Gift } from "lucide-react"
 import { fmt } from "@/lib/money"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
+import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 
@@ -72,37 +73,41 @@ export default function OrderSummary({
   }
 
   return (
-    <aside className={`rounded-2xl border border-black/10 p-5 shadow-sm bg-white space-y-4 ${className}`}>
+    <aside className={`lg:sticky lg:top-24 rounded-2xl border border-black/10 bg-white p-5 w-full max-w-[360px] ${className}`}>
       {/* Free Shipping Status */}
-      {isFreeShipping ? (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-          <div className="flex items-center gap-2 text-emerald-700">
+      <div className="mb-3 rounded-xl bg-sky-50 text-sky-800 text-sm px-3 py-2">
+        {isFreeShipping ? (
+          <div className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
-            <span className="text-sm font-medium">Free Shipping Unlocked!</span>
+            <span className="font-medium">You've unlocked free shipping!</span>
           </div>
-        </div>
-      ) : (
-        <div className="p-3 bg-sky-50 border border-sky-200 rounded-lg">
-          <div className="flex items-center gap-2 text-sky-700">
+        ) : (
+          <div className="flex items-center gap-2">
             <Truck className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              Add <SaudiRiyal amount={remainingForFreeShipping} size="sm" /> more for free shipping
+            <span>
+              Add <strong className="tabular-nums flex items-center gap-1">
+                {fmt(remainingForFreeShipping, 'SAR')} <SaudiRiyalSymbol size="sm" className="text-sky-800" />
+              </strong> more for free shipping
             </span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Order Breakdown */}
       <dl className="text-sm space-y-2">
         <div className="flex justify-between items-center">
           <dt className="text-black/80">Subtotal ({itemCount} items)</dt>
-          <dd className="font-medium text-black"><SaudiRiyal amount={subtotal} size="sm" /></dd>
+          <dd className="font-medium text-black tabular-nums flex items-center gap-1">
+            {fmt(subtotal, 'SAR')} <SaudiRiyalSymbol size="sm" />
+          </dd>
         </div>
 
         {discount > 0 && (
           <div className="flex justify-between items-center text-emerald-600">
             <dt>Discount {appliedCoupon && `(${appliedCoupon.code})`}</dt>
-            <dd className="font-medium">-<SaudiRiyal amount={discount} size="sm" /></dd>
+            <dd className="font-medium tabular-nums flex items-center gap-1">
+              -{fmt(discount, 'SAR')} <SaudiRiyalSymbol size="sm" />
+            </dd>
           </div>
         )}
 
@@ -112,7 +117,9 @@ export default function OrderSummary({
             {isFreeShipping ? (
               <span className="text-emerald-600 font-medium">FREE</span>
             ) : shipping !== null ? (
-              <SaudiRiyal amount={shipping} size="sm" />
+              <span className="tabular-nums flex items-center gap-1">
+                {fmt(shipping, 'SAR')} <SaudiRiyalSymbol size="sm" />
+              </span>
             ) : (
               <span className="text-black/60">Calculated at checkout</span>
             )}
@@ -122,7 +129,9 @@ export default function OrderSummary({
         {tax > 0 && (
           <div className="flex justify-between items-center">
             <dt className="text-black/80">Tax</dt>
-            <dd className="font-medium text-black"><SaudiRiyal amount={tax} size="sm" /></dd>
+            <dd className="font-medium text-black tabular-nums flex items-center gap-1">
+              {fmt(tax, 'SAR')} <SaudiRiyalSymbol size="sm" />
+            </dd>
           </div>
         )}
 
@@ -130,34 +139,35 @@ export default function OrderSummary({
         
         <div className="flex justify-between items-center">
           <dt className="text-lg font-semibold text-black">Total</dt>
-          <dd className="text-xl font-bold text-black"><SaudiRiyal amount={total} size="lg" /></dd>
+          <dd className="text-xl font-bold text-black tabular-nums flex items-center gap-1">
+            {fmt(total, 'SAR')} <SaudiRiyalSymbol size="lg" />
+          </dd>
         </div>
       </dl>
 
       {/* Coupon Code */}
       {onApplyCoupon && (
-        <div className="space-y-2">
+        <div className="mt-3 space-y-2">
           <div className="flex gap-2">
             <input
               type="text"
               value={couponCode}
               onChange={(e) => setCouponCode(e.target.value)}
               placeholder="Coupon code"
-              className="flex-1 border border-black/20 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+              className="input flex-1 h-10 rounded-xl border border-black/20 px-3 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
               disabled={isApplyingCoupon}
             />
             <Button
               onClick={handleApplyCoupon}
               disabled={!couponCode.trim() || isApplyingCoupon}
-              className="px-4 py-2 text-sm"
-              size="sm"
+              className="h-10 px-4 rounded-xl border font-medium disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500"
             >
               {isApplyingCoupon ? "..." : "Apply"}
             </Button>
           </div>
           
           {couponError && (
-            <p className="text-red-600 text-xs">{couponError}</p>
+            <p className="mt-1 text-xs text-rose-600">{couponError}</p>
           )}
           
           {appliedCoupon && (
@@ -180,19 +190,27 @@ export default function OrderSummary({
       <Button
         onClick={onCheckout}
         disabled={isCheckoutDisabled}
-        className={`w-full font-semibold py-3 text-base rounded-2xl ${
+        className={`mt-4 h-11 w-full rounded-xl font-semibold hover:bg-emerald-700 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-500 transition-all duration-200 ${
           isCheckoutDisabled 
             ? 'bg-gray-400 cursor-not-allowed' 
-            : 'bg-sky-500 hover:bg-sky-600 text-white'
+            : 'bg-emerald-600 text-white'
         }`}
       >
-        {isCheckoutDisabled ? 'Cart is Empty' : `Secure Checkout • `}<SaudiRiyal amount={total} size="sm" />
+        {isCheckoutDisabled ? (
+          'Cart is Empty'
+        ) : (
+          <>
+            Secure Checkout • <span className="tabular-nums flex items-center gap-1">
+              {fmt(total, 'SAR')} <SaudiRiyalSymbol size="sm" />
+            </span>
+          </>
+        )}
       </Button>
 
       {/* Security Note */}
-      <div className="text-xs text-black/60 text-center">
+      <p className="mt-2 text-xs text-black/60">
         Taxes and discount codes calculated at checkout
-      </div>
+      </p>
     </aside>
   )
 }
