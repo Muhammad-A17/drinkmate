@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart-context"
 import { useAuth } from "@/lib/auth-context"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
+import ShopMegaMenu from "./ShopMegaMenu"
 
 interface HeaderProps {
   currentPage?: string
@@ -34,7 +35,7 @@ export default function Header({ currentPage }: HeaderProps) {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element
-      if (!target.closest(".shop-dropdown") && !target.closest(".shop-button")) {
+      if (!target.closest("[data-radix-popper-content-wrapper]") && !target.closest(".shop-button")) {
         setIsShopDropdownOpen(false)
       }
       if (!target.closest(".user-dropdown") && !target.closest(".user-button")) {
@@ -114,128 +115,11 @@ export default function Header({ currentPage }: HeaderProps) {
                 ></span>
               )}
             </Link>
-            <div className="relative group">
-              <button
-                onClick={() => setIsShopDropdownOpen(!isShopDropdownOpen)}
-                onMouseEnter={() => setIsShopDropdownOpen(true)}
-                onFocus={() => setIsShopDropdownOpen(true)}
-                aria-label={t("header.shop")}
-                aria-expanded="false"
-                aria-haspopup="true"
-                className={`shop-button flex items-center text-sm font-semibold tracking-wide transition-all duration-300 relative group ${isRTL ? "font-cairo px-2" : "font-montserrat px-2"} ${
-                  currentPage === "shop" || currentPage?.startsWith("shop-")
-                    ? "text-slate-900"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                {t("header.shop")}
-                <ChevronDown
-                  className={`${isRTL ? "mr-1" : "ml-1"} w-4 h-4 transition-all duration-300 ${isShopDropdownOpen ? "rotate-180" : ""}`}
-                />
-                {(currentPage === "shop" || currentPage?.startsWith("shop-")) && (
-                  <span
-                    className={`absolute -bottom-1 w-full h-0.5 bg-[#12d6fa] hover:bg-[#0bc4e8] rounded-full ${isRTL ? "right-0" : "left-0"}`}
-                  ></span>
-                )}
-              </button>
-
-              {/* Dropdown Menu */}
-              {isShopDropdownOpen && (
-                <div
-                  className={`shop-dropdown absolute ${isRTL ? "right-0" : "left-0"} mt-3 w-[960px] rounded-2xl shadow-2xl bg-white ring-1 ring-slate-200/50 border border-white/20 transition-all duration-300 opacity-100 translate-y-0 scale-100 z-50`}
-                  onMouseLeave={() => setIsShopDropdownOpen(false)}
-                  aria-label="Shop categories"
-                >
-                <div className="p-4">
-                  <div className="grid grid-cols-4 gap-4 h-64">
-                    {/* Soda Makers */}
-                    <Link
-                      href="/shop/sodamakers"
-                      className="col-span-1 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-2xl p-4 text-white hover:from-[#12d6fa] hover:to-[#0bc4e8] transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center"
-                      onClick={() => setIsShopDropdownOpen(false)}
-                    >
-                      <div className="relative z-10 text-center">
-                        <h3 className={`text-xl font-bold mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.sodamakers")}</h3>
-                        <div className="flex justify-center">
-                          <Image
-                            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559855/Artic-Black-Machine---Front_pxsies.png"
-                            alt="Sample Soda Maker"
-                            width={100}
-                            height={100}
-                            className="object-contain group-hover:scale-110 transition-transform duration-300"
-                          />
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </Link>
-
-                    {/* Flavors */}
-                    <Link
-                      href="/shop/flavor"
-                      className="col-span-1 bg-[#a8f387] hover:bg-[#96e075] rounded-2xl p-4 text-white transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center"
-                      onClick={() => setIsShopDropdownOpen(false)}
-                    >
-                      <div className="relative z-10 text-center">
-                        <h3 className={`text-xl font-bold mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.flavor")}</h3>
-                        <div className="flex justify-center">
-                          <Image
-                            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892917/italian-strawberry-lemon-syrup_x0cz9h.png"
-                            alt="Sample Flavor"
-                            width={80}
-                            height={100}
-                            className="object-contain group-hover:scale-110 transition-transform duration-300"
-                          />
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </Link>
-
-                    {/* Accessories */}
-                    <Link
-                      href="/shop/accessories"
-                      className="col-span-1 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl p-4 hover:from-slate-200 hover:to-slate-300 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center"
-                      onClick={() => setIsShopDropdownOpen(false)}
-                    >
-                      <div className="relative z-10 text-center">
-                        <h3 className={`text-xl font-bold text-slate-800 mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.accessories")}</h3>
-                        <div className="flex justify-center">
-                          <Image
-                            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892916/empty-drinkmate-bottle_dkmtzo.png"
-                            alt="Sample Accessory"
-                            width={80}
-                            height={100}
-                            className="object-contain group-hover:scale-110 transition-transform duration-300"
-                          />
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </Link>
-
-                    {/* CO2 Cylinders */}
-                    <Link
-                      href="/co2"
-                      className="col-span-1 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl p-4 text-white hover:from-orange-500 hover:to-orange-600 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center"
-                      onClick={() => setIsShopDropdownOpen(false)}
-                    >
-                      <div className="relative z-10 text-center">
-                        <h3 className={`text-xl font-bold mb-4 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.co2")}</h3>
-                        <div className="flex justify-center">
-                          <Image
-                            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892915/co2-cylinder_placeholder.png"
-                            alt="CO2 Cylinder"
-                            width={80}
-                            height={100}
-                            className="object-contain group-hover:scale-110 transition-transform duration-300"
-                          />
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </Link>
-                  </div>
-                </div>
-                </div>
-              )}
-            </div>
+            <ShopMegaMenu
+              isOpen={isShopDropdownOpen}
+              onOpenChange={setIsShopDropdownOpen}
+              isRTL={isRTL}
+            />
 
             <Link
               href="/recipes"
