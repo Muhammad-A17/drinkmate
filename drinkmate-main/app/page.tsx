@@ -10,6 +10,57 @@ import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
 import { useRouter } from "next/navigation"
 import { generateStructuredData } from "@/lib/seo"
+import Balancer from "react-wrap-balancer"
+import { useAutoPlayOnView } from "@/hooks/use-auto-play-on-view"
+
+// StepCard component for mobile-optimized cards
+function StepCard({ 
+  title, 
+  videoSrc, 
+  step, 
+  description, 
+  alt 
+}: { 
+  title: string; 
+  videoSrc: string; 
+  step: number; 
+  description: string;
+  alt: string;
+}) {
+  const vref = useAutoPlayOnView<HTMLVideoElement>();
+  
+  return (
+    <article className="rounded-2xl border border-black/10 bg-white overflow-hidden shadow-[0_6px_20px_rgba(0,0,0,.06)] transition hover:shadow-[0_10px_28px_rgba(0,0,0,.10)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500">
+      {/* Keep videos compact on mobile */}
+      <div className="aspect-[4/5] md:aspect-[3/4] overflow-hidden">
+        <motion.div
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.98 }}
+          className="relative w-full h-full group"
+        >
+          <Image
+            src={videoSrc}
+            alt={alt}
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 20vw"
+            className="object-cover"
+            unoptimized
+          />
+          {/* Gradient and overlayed text - Hidden by default, shown on hover */}
+          <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <p className="text-white font-extrabold text-xs">{`Step ${step}: ${title}`}</p>
+            <p className="text-white/90 text-[10px] leading-snug">{description}</p>
+          </div>
+        </motion.div>
+      </div>
+      <div className="px-2.5 py-2">
+        <p className="text-[12px] sm:text-sm font-semibold text-center tabular-nums">
+          Step {step}: {title}
+        </p>
+      </div>
+    </article>
+  );
+}
 
 export default function Home() {
   const { t, isRTL } = useTranslation()
@@ -778,59 +829,41 @@ export default function Home() {
 
       {/* Second Card - How does it work */}
 
-      <div className="py-6 md:py-16 px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40">
-        {/* Container Card */}
-        <div className="max-w-full mx-auto bg-white rounded-2xl py-6 md:py-8 px-8 md:px-20 lg:px-24 relative overflow-hidden shadow-lg shadow-gray-200/20">
-          <div className="flex flex-col lg:flex-row gap-8 items-start">
-            {/* Left Side - Text Content */}
-            <div className="lg:w-1/4 flex-shrink-0" dir={isRTL ? "rtl" : "ltr"}>
-              <h2 className={`text-3xl md:text-4xl lg:text-5xl font-semibold text-[#12d6fa] leading-tight mb-6 ${isRTL ? "font-cairo text-right" : "font-montserrat"}`}>
-                {t("home.howItWorks.title")}
-              </h2>
-              <p className={`text-lg md:text-xl text-gray-600 ${isRTL ? "font-noto-arabic text-right" : "font-noto-sans"}`}>
-                {t("home.howItWorks.description")}
-              </p>
-            </div>
+      <section className="max-w-screen-xl mx-auto px-4 md:px-6 py-6 md:py-16 overflow-x-clip">
+        <div className="grid gap-6 lg:grid-cols-12 items-start">
+          {/* Left copy */}
+          <div className="lg:col-span-5" dir={isRTL ? "rtl" : "ltr"}>
+            <h2 className={`font-bold leading-tight text-[#12d6fa] text-[clamp(22px,6vw,44px)] ${isRTL ? "font-cairo text-end" : "font-montserrat text-start"}`}>
+              <Balancer>{t("home.howItWorks.title")}</Balancer>
+            </h2>
+            <p className={`mt-2 text-sm text-black/70 ${isRTL ? "font-noto-arabic text-end" : "font-noto-sans text-start"}`}>
+              {t("home.howItWorks.description")}
+            </p>
+          </div>
 
-            {/* Right Side - Steps Grid */}
-            <div className="lg:w-3/4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 w-full overflow-x-visible">
+          {/* Cards */}
+          <div className="lg:col-span-7">
+            <ul className="grid gap-3 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
               {steps.map((step, index) => (
-                <motion.div
+                <motion.li
                   key={step.id}
-                  className="flex flex-col items-center text-center group"
                   initial={{ opacity: 0, y: 50 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.2, duration: 0.6 }}
-                  aria-label={`Step ${step.id}: ${step.title}`}
                 >
-                  {/* Step Image */}
-                  <div className="relative w-full h-[220px] sm:h-[250px] md:h-[280px] lg:h-[320px] mb-4">
-                    <motion.div
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="relative w-full h-full"
-                    >
-                      <Image
-                        src={step.img || "/placeholder.svg"}
-                        alt={step.alt}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
-                        priority={index < 2}
-                        className="object-cover rounded-2xl shadow-lg"
-                      />
-                      {/* Gradient and overlayed text - Hidden by default, shown on hover */}
-                      <div className="absolute inset-x-0 bottom-0 p-4 rounded-b-2xl bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <p className="text-white font-extrabold text-lg">{`Step ${step.id}: ${step.title}`}</p>
-                        <p className="text-white/90 text-sm leading-snug">{step.description}</p>
-                      </div>
-                    </motion.div>
-                  </div>
-                </motion.div>
+                  <StepCard 
+                    title={step.title}
+                    videoSrc={step.img || "/placeholder.svg"}
+                    step={step.id}
+                    description={step.description}
+                    alt={step.alt}
+                  />
+                </motion.li>
               ))}
-            </div>
+            </ul>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Horizontal Border */}
       <div className="w-full px-12 md:px-20 lg:px-24 xl:px-32 2xl:px-40 py-4">
