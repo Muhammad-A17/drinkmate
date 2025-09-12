@@ -448,24 +448,24 @@
 /* Mega Menu Styles */
 @layer components {
   .mega-panel {
-    @apply w-[min(980px,96vw)] bg-white rounded-2xl shadow-2xl border border-slate-200/60 p-6 z-50;
+    @apply w-[min(980px,96vw)] bg-white rounded-2xl shadow-2xl border border-slate-200/60 p-4 sm:p-6 z-50 max-h-[90vh] overflow-y-auto;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
 
   .mega-grid {
-    @apply grid grid-cols-[1.3fr,1fr] gap-6 mb-6;
+    @apply grid grid-cols-1 lg:grid-cols-[1.3fr,1fr] gap-4 sm:gap-6 mb-4 sm:mb-6;
   }
 
   .cat-grid {
-    @apply grid grid-cols-2 gap-4;
+    @apply grid grid-cols-2 gap-3 sm:gap-4;
   }
 
   .tile, .hero-tile {
-    @apply relative block rounded-2xl p-4 bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200/60 overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:border-slate-300/80;
+    @apply relative block rounded-2xl p-3 sm:p-4 bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200/60 overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:border-slate-300/80;
   }
 
   .hero-tile {
-    @apply p-6 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] text-white hover:shadow-xl hover:scale-[1.02];
+    @apply p-4 sm:p-6 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] text-white hover:shadow-xl hover:scale-[1.02] min-h-[200px] sm:min-h-[240px];
   }
 
   .tile img, .hero-tile img {
@@ -543,5 +543,70 @@
     .tile:hover img, .hero-tile:hover img {
       @apply scale-100;
     }
+  }
+
+  /* Refill Cylinder Page Styles */
+  .refill-cylinder-card {
+    @apply relative block rounded-2xl p-4 bg-white border border-black/10 overflow-hidden transition-all duration-200 hover:shadow-md hover:scale-[1.02] hover:border-black/20;
+  }
+
+  .refill-cylinder-card.selected {
+    @apply border-emerald-400 ring-2 ring-emerald-200 bg-emerald-50/50;
+  }
+
+  .refill-cylinder-card:hover {
+    @apply shadow-md;
+  }
+
+  .refill-cylinder-card:focus-visible {
+    @apply outline-2 outline-offset-2 outline-emerald-400;
+  }
+
+  /* Quantity control animations */
+  .quantity-animate {
+    animation: quantityPulse 0.15s ease-out;
+  }
+
+  @keyframes quantityPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); color: theme('colors.emerald.600'); }
+    100% { transform: scale(1); }
+  }
+
+  /* Order summary sticky behavior */
+  .order-summary-sticky {
+    @apply lg:sticky lg:top-24;
+  }
+
+  /* Mobile optimizations */
+  @media (max-width: 640px) {
+    .refill-cylinder-card {
+      @apply p-3;
+    }
+    
+    .order-summary-sticky {
+      @apply sticky top-4;
+    }
+  }
+
+  /* Entry animations */
+  .refill-fade-in {
+    animation: refillFadeIn 0.3s ease-out;
+  }
+
+  @keyframes refillFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Skeleton loading for order summary */
+  .skeleton {
+    @apply animate-pulse bg-gray-200 rounded;
   }
 }

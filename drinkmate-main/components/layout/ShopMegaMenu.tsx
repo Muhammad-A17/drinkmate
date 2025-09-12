@@ -41,27 +41,27 @@ function MenuTile({
   return (
     <Link 
       href={href} 
-      className={`tile group relative block rounded-2xl p-4 bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200/60 overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:border-slate-300/80 ${className}`}
+      className={`tile group relative block rounded-2xl p-3 sm:p-4 bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200/60 overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:border-slate-300/80 min-h-[120px] sm:min-h-[140px] ${className}`}
       onMouseEnter={onMouseEnter}
       onClick={onClick}
       onPointerDown={(e) => e.preventDefault()}
     >
       {badge && (
-        <span className={`badge absolute top-3 left-3 z-10 text-xs font-semibold px-2 py-1 rounded-full text-white ${badgeColor}`}>
+        <span className={`badge absolute top-2 left-2 sm:top-3 sm:left-3 z-10 text-xs font-semibold px-2 py-1 rounded-full text-white ${badgeColor}`}>
           {badge}
         </span>
       )}
-      <div className="aspect-square flex items-center justify-center mb-3">
+      <div className="aspect-square flex items-center justify-center mb-2 sm:mb-3">
         <Image
           src={img}
           alt={alt}
-          width={80}
-          height={80}
-          className="object-contain group-hover:scale-110 transition-transform duration-300"
+          width={60}
+          height={60}
+          className="object-contain group-hover:scale-110 transition-transform duration-300 sm:w-[80px] sm:h-[80px]"
           priority={false}
         />
       </div>
-      <span className="title block text-sm font-bold text-slate-800 mb-1">
+      <span className="title block text-xs sm:text-sm font-bold text-slate-800 mb-1">
         {title}
       </span>
       <span className="subcta opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs text-slate-600 font-medium flex items-center">
@@ -151,29 +151,29 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
             {/* Featured Hero Tile */}
             <Link
               href="/shop/sodamakers/artic-black"
-              className="hero-tile group relative block rounded-2xl p-6 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] text-white overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+              className="hero-tile group relative block rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] text-white overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02] min-h-[200px] sm:min-h-[240px]"
               onMouseEnter={() => handlePrefetch("/shop/sodamakers/artic-black")}
               onClick={() => onOpenChange(false)}
               onPointerDown={(e) => e.preventDefault()}
             >
-              <span className="badge absolute top-4 left-4 z-10 text-xs font-bold px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm">
+              <span className="badge absolute top-3 left-3 sm:top-4 sm:left-4 z-10 text-xs font-bold px-2 py-1 sm:px-3 sm:py-1 rounded-full bg-white/20 backdrop-blur-sm">
                 New
               </span>
-              <div className="flex items-center justify-between h-full">
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold mb-2">Artic Black</h3>
-                  <p className="text-sm opacity-90 mb-4">Crisper fizz, zero mess.</p>
-                  <span className="cta inline-flex items-center text-sm font-semibold bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/30 transition-colors duration-200">
+              <div className="flex flex-col sm:flex-row items-center justify-between h-full">
+                <div className="flex-1 text-center sm:text-left">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2">Artic Black</h3>
+                  <p className="text-sm opacity-90 mb-3 sm:mb-4">Crisper fizz, zero mess.</p>
+                  <span className="cta inline-flex items-center text-sm font-semibold bg-white/20 backdrop-blur-sm px-3 py-2 sm:px-4 sm:py-2 rounded-full hover:bg-white/30 transition-colors duration-200">
                     Shop now <ArrowRight className="w-4 h-4 ml-2" />
                   </span>
                 </div>
-                <div className="flex-shrink-0 ml-4">
+                <div className="flex-shrink-0 mt-4 sm:mt-0 sm:ml-4">
                   <Image
                     src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559855/Artic-Black-Machine---Front_pxsies.png"
                     alt="Artic Black Soda Maker"
-                    width={120}
-                    height={120}
-                    className="object-contain group-hover:scale-110 transition-transform duration-300"
+                    width={100}
+                    height={100}
+                    className="object-contain group-hover:scale-110 transition-transform duration-300 sm:w-[120px] sm:h-[120px]"
                     priority={false}
                   />
                 </div>
@@ -181,7 +181,7 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
             </Link>
 
             {/* Category Grid - 2x2 */}
-            <div className="cat-grid grid grid-cols-2 gap-4">
+            <div className="cat-grid grid grid-cols-2 gap-3 sm:gap-4">
               <MenuTile
                 href="/shop/sodamakers"
                 title="Soda Makers"
@@ -224,7 +224,7 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
           </div>
 
           {/* Quick Links Rail */}
-          <nav className="quick-links flex flex-wrap gap-4 mb-4" aria-label="Shop quick links">
+          <nav className="quick-links flex flex-wrap gap-2 sm:gap-4 mb-3 sm:mb-4" aria-label="Shop quick links">
             <Link
               href="/shop"
               className="quick text-sm text-slate-600 hover:text-slate-900 hover:underline transition-colors duration-200"
@@ -268,7 +268,7 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
           </nav>
 
           {/* Mini Promo Slot */}
-          <div className="promo flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200/60 rounded-xl p-4">
+          <div className="promo flex flex-col sm:flex-row items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200/60 rounded-xl p-3 sm:p-4 gap-2 sm:gap-0">
             <div className="flex items-center">
               <Gift className="w-5 h-5 text-green-600 mr-2" />
               <span className="text-sm font-medium text-green-800">
