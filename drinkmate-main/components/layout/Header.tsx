@@ -37,11 +37,15 @@ export default function Header({ currentPage }: HeaderProps) {
       if (!target.closest(".shop-dropdown") && !target.closest(".shop-button")) {
         setIsShopDropdownOpen(false)
       }
+      if (!target.closest(".user-dropdown") && !target.closest(".user-button")) {
+        setIsUserDropdownOpen(false)
+      }
     }
 
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsShopDropdownOpen(false)
+        setIsUserDropdownOpen(false)
       }
     }
 
@@ -310,18 +314,20 @@ export default function Header({ currentPage }: HeaderProps) {
             <div className="relative">
               <button
                 onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                onBlur={() => setTimeout(() => setIsUserDropdownOpen(false), 100)}
                 aria-label={t("header.userMenu")}
-                aria-expanded="false"
+                aria-expanded={isUserDropdownOpen}
                 aria-haspopup="true"
-                className="p-3 rounded-lg hover:bg-slate-50 transition-all duration-200 group hover:shadow-sm border border-transparent hover:border-slate-200"
+                className="user-button p-3 rounded-lg hover:bg-slate-50 transition-all duration-200 group hover:shadow-sm border border-transparent hover:border-slate-200"
               >
                 <User className="w-5 h-5 text-slate-700 group-hover:text-slate-900 transition-colors duration-200" />
               </button>
 
               {/* User Dropdown Menu */}
               {isUserDropdownOpen && (
-                <div className="absolute right-0 mt-3 w-56 rounded-xl shadow-2xl bg-white/95 backdrop-blur-md ring-1 ring-slate-200">
+                <div 
+                  className="user-dropdown absolute right-0 mt-3 w-56 rounded-xl shadow-2xl bg-white/95 backdrop-blur-md ring-1 ring-slate-200"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="py-2">
                     {isAuthenticated ? (
                       <>
@@ -332,7 +338,11 @@ export default function Header({ currentPage }: HeaderProps) {
                         <Link
                           href="/profile"
                           className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                          onClick={() => setIsUserDropdownOpen(false)}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            setIsUserDropdownOpen(false)
+                            router.push('/profile')
+                          }}
                         >
                           <div className="flex items-center">
                             <User className="w-4 h-4 mr-3" />
@@ -344,14 +354,21 @@ export default function Header({ currentPage }: HeaderProps) {
                           <Link
                             href="/admin"
                             className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                            onClick={() => setIsUserDropdownOpen(false)}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setIsUserDropdownOpen(false)
+                              router.push('/admin')
+                            }}
                           >
                             Admin Dashboard
                           </Link>
                         )}
 
                         <button
-                          onClick={handleLogout}
+                          onClick={() => {
+                            setIsUserDropdownOpen(false)
+                            handleLogout()
+                          }}
                           className={`block w-full ${isRTL ? "text-right" : "text-left"} px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200`}
                         >
                           <div className="flex items-center">
@@ -365,14 +382,22 @@ export default function Header({ currentPage }: HeaderProps) {
                         <Link
                           href="/login"
                           className="block px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                          onClick={() => setIsUserDropdownOpen(false)}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            setIsUserDropdownOpen(false)
+                            router.push('/login')
+                          }}
                         >
                           Sign in
                         </Link>
                         <Link
                           href="/register"
                           className="block px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                          onClick={() => setIsUserDropdownOpen(false)}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            setIsUserDropdownOpen(false)
+                            router.push('/register')
+                          }}
                         >
                           Create account
                         </Link>
