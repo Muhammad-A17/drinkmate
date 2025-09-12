@@ -75,8 +75,13 @@ export default function CheckoutPage() {
       setIsPageLoading(false)
     }, 300)
 
+    if (state.items.length === 0) {
+      toast.error("Your cart is empty")
+      // Don't redirect - let user stay on checkout page
+    }
+
     return () => clearTimeout(loadingTimer)
-  }, [])
+  }, [state.items.length, router])
 
   const handleCardDetailsChange = (field: string, value: string) => {
     setCardDetails(prev => ({
@@ -150,22 +155,30 @@ export default function CheckoutPage() {
         orderId: orderResponse.orderId || `ORDER-${Date.now()}`,
         customerEmail: deliveryAddress.email,
         customerName: `${deliveryAddress.firstName} ${deliveryAddress.lastName}`,
-        description: `DrinkMate Order - ${state.itemCount} items`
+        description: `DrinkMate Order - ${state.itemCount} items`,
+        returnUrl: `${window.location.origin}/payment/success`,
+        cancelUrl: `${window.location.origin}/payment/cancel`
       }
 
       let paymentResponse
       if (selectedPaymentMethod === "urways") {
-        paymentResponse = await fetch('/api/payments/urways', {
+        // Call backend API directly
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+        paymentResponse = await fetch(`${backendUrl}/payments/urways`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
           body: JSON.stringify(paymentRequest)
         })
       } else {
-        paymentResponse = await fetch('/api/payments/tap', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(paymentRequest)
-        })
+        // For Tap, use the payment service
+        paymentResponse = await paymentService.processTapPayment(paymentRequest)
+        // Convert to Response-like object for consistency
+        paymentResponse = {
+          json: () => Promise.resolve(paymentResponse)
+        }
       }
 
       const paymentData = await paymentResponse.json()
@@ -351,144 +364,52 @@ export default function CheckoutPage() {
              </div>
            </div>
 
-           {/* Delivery Options */}
+           {/* Order Summary */}
            <div className="bg-white rounded-2xl p-6 shadow-lg">
-             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-               <Truck className="w-6 h-6" />
-               Delivery Options
-             </h2>
+             <h3 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h3>
              
              <div className="space-y-4">
-               {/* Aramex Standard Delivery */}
-               <div
-                 className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                   selectedDeliveryOption === "standard"
-                     ? "border-[#12d6fa] bg-[#12d6fa]/5"
-                     : "border-gray-200 hover:border-gray-300"
-                 }`}
-                 onClick={() => setSelectedDeliveryOption("standard")}
-               >
-                 <div className="flex items-center justify-between">
-                   <div className="flex items-center space-x-4">
-                     <div className="w-12 h-8 rounded flex items-center justify-center">
-                       <Image
-                         src="/images/payment-logos/aramex-logo.svg"
-                         alt="Aramex"
-                         width={48}
-                         height={32}
-                         className="object-contain"
-                       />
+               <div className="flex justify-between text-sm">
+                 <span className="text-gray-600">Subtotal ({state.itemCount} items)</span>
+                 <span className="font-medium"><SaudiRiyal amount={subtotal} /></span>
                      </div>
-                     <div>
-                       <h3 className="font-semibold text-gray-900">Standard Delivery</h3>
-                       <p className="text-sm text-gray-600">3-5 business days</p>
-                     </div>
-                   </div>
-                   <div className="text-right">
-                     <p className="font-semibold text-gray-900">
-                       {subtotal >= 150 ? "FREE" : <SaudiRiyal amount={50} />}
-                     </p>
-                   </div>
-                 </div>
-                 <div className={`w-5 h-5 rounded-full border-2 mt-2 ${
-                   selectedDeliveryOption === "standard"
-                     ? "border-[#12d6fa] bg-[#12d6fa]"
-                     : "border-gray-300"
-                 }`}>
-                   {selectedDeliveryOption === "standard" && (
-                     <div className="w-full h-full rounded-full bg-[#12d6fa] flex items-center justify-center">
-                       <div className="w-2 h-2 bg-white rounded-full"></div>
-                     </div>
+               
+               <div className="flex justify-between text-sm">
+                 <span className="text-gray-600">
+                   {selectedDeliveryOption === "express" ? "Express Delivery (Aramex)" :
+                    selectedDeliveryOption === "economy" ? "Economy Delivery (Aramex)" :
+                    "Standard Delivery (Aramex)"}
+                 </span>
+                 <span className="font-medium">
+                   {shippingCost === 0 ? (
+                     <span className="text-green-600">FREE</span>
+                   ) : (
+                     <SaudiRiyal amount={shippingCost} />
                    )}
-                 </div>
+                 </span>
                </div>
 
-               {/* Aramex Express Delivery */}
-               <div
-                 className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                   selectedDeliveryOption === "express"
-                     ? "border-[#12d6fa] bg-[#12d6fa]/5"
-                     : "border-gray-200 hover:border-gray-300"
-                 }`}
-                 onClick={() => setSelectedDeliveryOption("express")}
-               >
-                 <div className="flex items-center justify-between">
-                   <div className="flex items-center space-x-4">
-                                           <div className="w-12 h-8 rounded flex items-center justify-center">
-                        <Image
-                          src="/images/payment-logos/aramex-logo.svg"
-                          alt="Aramex"
-                          width={48}
-                          height={32}
-                          className="object-contain"
-                        />
-                      </div>
-                     <div>
-                       <h3 className="font-semibold text-gray-900">Express Delivery</h3>
-                       <p className="text-sm text-gray-600">1-2 business days</p>
-                     </div>
-                   </div>
-                   <div className="text-right">
-                     <p className="font-semibold text-gray-900">
-                       <SaudiRiyal amount={75} />
-                     </p>
-                   </div>
-                 </div>
-                 <div className={`w-5 h-5 rounded-full border-2 mt-2 ${
-                   selectedDeliveryOption === "express"
-                     ? "border-[#12d6fa] bg-[#12d6fa]"
-                     : "border-gray-300"
-                 }`}>
-                   {selectedDeliveryOption === "express" && (
-                     <div className="w-full h-full rounded-full bg-[#12d6fa] flex items-center justify-center">
-                       <div className="w-2 h-2 bg-white rounded-full"></div>
-                     </div>
-                   )}
-                 </div>
+               <div className="flex justify-between text-sm">
+                 <span className="text-gray-600">Tax (15% VAT)</span>
+                 <span className="font-medium"><SaudiRiyal amount={tax} /></span>
                </div>
 
-               {/* Aramex Economy Delivery */}
-               <div
-                 className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                   selectedDeliveryOption === "economy"
-                     ? "border-[#12d6fa] bg-[#12d6fa]/5"
-                     : "border-gray-200 hover:border-gray-300"
-                 }`}
-                 onClick={() => setSelectedDeliveryOption("economy")}
-               >
-                 <div className="flex items-center justify-between">
-                   <div className="flex items-center space-x-4">
-                     <div className="w-12 h-8 rounded flex items-center justify-center">
-                       <Image
-                         src="/images/payment-logos/aramex-logo.svg"
-                         alt="Aramex"
-                         width={48}
-                         height={32}
-                         className="object-contain"
-                       />
-                     </div>
-                     <div>
-                       <h3 className="font-semibold text-gray-900">Economy Delivery</h3>
-                       <p className="text-sm text-gray-600">5-7 business days</p>
-                     </div>
-                   </div>
-                   <div className="text-right">
-                     <p className="font-semibold text-gray-900">
-                       <SaudiRiyal amount={25} />
-                     </p>
-                   </div>
+               <div className="border-t border-gray-200 pt-4">
+                 <div className="flex justify-between text-lg font-bold">
+                   <span>Total</span>
+                   <span><SaudiRiyal amount={total} /></span>
                  </div>
-                 <div className={`w-5 h-5 rounded-full border-2 mt-2 ${
-                   selectedDeliveryOption === "economy"
-                     ? "border-[#12d6fa] bg-[#12d6fa]"
-                     : "border-gray-300"
-                 }`}>
-                   {selectedDeliveryOption === "economy" && (
-                     <div className="w-full h-full rounded-full bg-[#12d6fa] flex items-center justify-center">
-                       <div className="w-2 h-2 bg-white rounded-full"></div>
-                     </div>
-                   )}
-                 </div>
+               </div>
+             </div>
+
+             <div className="mt-6 space-y-3 text-sm text-gray-600">
+               <div className="flex items-center gap-2">
+                 <Truck className="w-4 h-4" />
+                 <p>Delivery by Aramex</p>
+               </div>
+               <div className="flex items-center gap-2">
+                 <LockIcon className="w-4 h-4" />
+                 <p>Secure payment via {selectedPaymentMethod === "urways" ? "Urways" : "Tap Payment"}</p>
                </div>
              </div>
            </div>
@@ -685,55 +606,6 @@ export default function CheckoutPage() {
              </Button>
            </div>
 
-                     {/* Order Summary */}
-           <div className="bg-white rounded-2xl p-6 shadow-lg">
-             <h3 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h3>
-             
-             <div className="space-y-4">
-               <div className="flex justify-between text-sm">
-                 <span className="text-gray-600">Subtotal ({state.itemCount} items)</span>
-                 <span className="font-medium"><SaudiRiyal amount={subtotal} /></span>
-               </div>
-               
-               <div className="flex justify-between text-sm">
-                 <span className="text-gray-600">
-                   {selectedDeliveryOption === "express" ? "Express Delivery (Aramex)" :
-                    selectedDeliveryOption === "economy" ? "Economy Delivery (Aramex)" :
-                    "Standard Delivery (Aramex)"}
-                 </span>
-                 <span className="font-medium">
-                   {shippingCost === 0 ? (
-                     <span className="text-green-600">FREE</span>
-                   ) : (
-                     <SaudiRiyal amount={shippingCost} />
-                   )}
-                 </span>
-               </div>
-               
-               <div className="flex justify-between text-sm">
-                 <span className="text-gray-600">Tax (15% VAT)</span>
-                 <span className="font-medium"><SaudiRiyal amount={tax} /></span>
-               </div>
-               
-               <div className="border-t border-gray-200 pt-4">
-                 <div className="flex justify-between text-lg font-bold">
-                   <span>Total</span>
-                   <span><SaudiRiyal amount={total} /></span>
-                 </div>
-               </div>
-             </div>
-
-             <div className="mt-6 space-y-3 text-sm text-gray-600">
-               <div className="flex items-center gap-2">
-                 <Truck className="w-4 h-4" />
-                 <p>Delivery by Aramex</p>
-               </div>
-               <div className="flex items-center gap-2">
-                 <LockIcon className="w-4 h-4" />
-                 <p>Secure payment via {selectedPaymentMethod === "urways" ? "Urways" : "Tap Payment"}</p>
-               </div>
-             </div>
-           </div>
         </div>
       </div>
       

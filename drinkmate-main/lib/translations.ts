@@ -1892,7 +1892,7 @@ export const translations: Record<Language, Translations> = {
         slide2: {
           headline: "GET ENERGY DRINK & COLA FLAVOR FOR 79",
           description: "Beat the summer heat with our best sellers.",
-          buttonText: "Refill Now"
+          buttonText: "Shop Now"
         },
         slide3: {
           headline: "5% OFF ON FIRST ORDER FOR OUR NEW CUSTOMERS",
@@ -1944,7 +1944,7 @@ export const translations: Record<Language, Translations> = {
         slide1: {
           headline: "REFILL MORE. SAVE MORE.",
           description: "Now refill 4 cylinders all together for the price of 55 each cylinder.",
-          buttonText: "Refill Now",
+          buttonText: "Shop Now",
           offerText: "*Offer valid for whole year*",
           carbonatesUpto: "Carbonates upto",
           liters: "60",
@@ -1953,7 +1953,7 @@ export const translations: Record<Language, Translations> = {
         slide2: {
           headline: "GET ENERGY DRINK & COLA FLAVOR FOR 79",
           description: "Beat the summer heat with our best sellers.",
-          buttonText: "Refill Now"
+          buttonText: "Shop Now"
         },
         slide3: {
           headline: "5% OFF ON FIRST ORDER FOR OUR NEW CUSTOMERS",
@@ -2068,7 +2068,7 @@ export const translations: Record<Language, Translations> = {
         slide2: {
           headline: "GET ENERGY DRINK & COLA FLAVOR FOR 79 {SAR_SYMBOL}",
           description: "Beat the summer heat with our best sellers.",
-          buttonText: "Refill Now"
+          buttonText: "Shop Now"
         },
         slide3: {
           headline: "5% OFF ON FIRST ORDER FOR OUR NEW CUSTOMERS",

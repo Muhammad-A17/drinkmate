@@ -42,6 +42,7 @@ const testimonialRouter = require('./Router/testimonial-router');
 const categoryRouter = require('./Router/category-router');
 const co2Router = require('./Router/co2-router');
 const refillRouter = require('./Router/refill-router');
+const paymentRouter = require('./Router/payment-router');
 const app = express();
 
 // Trust proxy for accurate IP addresses
@@ -156,6 +157,7 @@ app.use('/testimonials', generalLimiter, testimonialRouter);
 app.use('/', generalLimiter, categoryRouter);
 app.use('/co2', generalLimiter, co2Router);
 app.use('/refill', generalLimiter, refillRouter);
+app.use('/payments', apiLimiter, paymentRouter);
 
 // Root route
 app.get('/', (req, res) => {

@@ -1,101 +1,218 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');   
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const { Schema } = mongoose;
 
-const UserSchema = new Schema({
-    username: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
+const userSchema = new mongoose.Schema({
+  // Basic Information
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 30
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+  },
+  password: {
+    type: String,
+    required: true,
+    minlength: 8
+  },
+  
+  // Personal Information
+  firstName: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 50
+  },
+  lastName: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 50
+  },
+  phone: {
+    type: String,
+    trim: true,
+    match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
+  },
+  
+  // Address Information
+  addresses: [{
+    type: {
+      type: String,
+      enum: ['home', 'work', 'other'],
+      default: 'home'
     },
-    password: {
-        type: String,
-        required: true,
+    street: {
+      type: String,
+      required: true,
+      trim: true
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
+    city: {
+      type: String,
+      required: true,
+      trim: true
     },
-    firstName: {
-        type: String,
-        trim: true,
+    state: {
+      type: String,
+      required: true,
+      trim: true
     },
-    lastName: {
-        type: String,
-        trim: true,
+    postalCode: {
+      type: String,
+      required: true,
+      trim: true
     },
-    phone: {
-        type: String,
-        trim: true,
+    country: {
+      type: String,
+      default: 'Saudi Arabia',
+      trim: true
     },
-    avatar: {
-        type: String,
-        default: '/images/default-avatar.png'
+    isDefault: {
+      type: Boolean,
+      default: false
+    }
+  }],
+  
+  // Account Status
+  status: {
+    type: String,
+    enum: ['active', 'inactive', 'blocked', 'pending'],
+    default: 'active'
+  },
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  phoneVerified: {
+    type: Boolean,
+    default: false
+  },
+  
+  // Role and Permissions
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'moderator'],
+    default: 'user'
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false
+  },
+  
+  // Activity Tracking
+  lastLogin: {
+    type: Date,
+    default: Date.now
+  },
+  loginCount: {
+    type: Number,
+    default: 0
+  },
+  lastActivity: {
+    type: Date,
+    default: Date.now
+  },
+  
+  // Preferences
+  preferences: {
+    language: {
+      type: String,
+      enum: ['en', 'ar'],
+      default: 'en'
     },
-    status: {
-        type: String,
-        enum: ['active', 'inactive', 'blocked'],
-        default: 'active'
+    currency: {
+      type: String,
+      default: 'SAR'
     },
-    isAdmin: {
+    notifications: {
+      email: {
         type: Boolean,
-        default: false,
-    },
-    lastLogin: {
-        type: Date,
-    },
-    resetPasswordToken: {
-        type: String,
-    },
-    resetPasswordExpires: {
-        type: Date,
+        default: true
+      },
+      sms: {
+        type: Boolean,
+        default: false
+      },
+      push: {
+        type: Boolean,
+        default: true
+      }
     }
-}, { timestamps: true });
-
-// Hash password before saving user
-UserSchema.pre('save', async function (next) {
-    if (this.isModified('password')) {
-        this.password = await bcrypt.hash(this.password, 10);
-    }
-    next();
+  },
+  
+  // Social Login (if implemented later)
+  socialLogins: [{
+    provider: {
+      type: String,
+      enum: ['google', 'facebook', 'apple']
+    },
+    providerId: String,
+    providerEmail: String
+  }],
+  
+  // Security
+  passwordResetToken: String,
+  passwordResetExpires: Date,
+  emailVerificationToken: String,
+  emailVerificationExpires: Date,
+  
+  // Timestamps
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
-// Compare password method
-UserSchema.methods.comparePassword = async function (password) {
-    return await bcrypt.compare(password, this.password);
+// Virtual for full name
+userSchema.virtual('fullName').get(function() {
+  return `${this.firstName} ${this.lastName}`;
+});
+
+// Virtual for default address
+userSchema.virtual('defaultAddress').get(function() {
+  return this.addresses.find(addr => addr.isDefault) || this.addresses[0];
+});
+
+// Indexes for better performance (email and username already have unique indexes)
+userSchema.index({ status: 1 });
+userSchema.index({ createdAt: -1 });
+
+// Pre-save middleware
+userSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+// Method to get public profile (without sensitive data)
+userSchema.methods.getPublicProfile = function() {
+  const userObject = this.toObject();
+  delete userObject.password;
+  delete userObject.passwordResetToken;
+  delete userObject.passwordResetExpires;
+  delete userObject.emailVerificationToken;
+  delete userObject.emailVerificationExpires;
+  return userObject;
 };
 
-// Generate JWT token method    
-UserSchema.methods.generateAuthToken = function () {
-    const token = jwt.sign(
-        { id: this._id, isAdmin: this.isAdmin },
-        process.env.JWT_SECRET || 'default_dev_secret',
-        { expiresIn: '2d' }
-    );
-    return token;
+// Method to check if user is active
+userSchema.methods.isActive = function() {
+  return this.status === 'active' && this.emailVerified;
 };
 
-// Generate password reset token
-UserSchema.methods.generatePasswordResetToken = function() {
-    const resetToken = crypto.randomBytes(20).toString('hex');
-    
-    this.resetPasswordToken = crypto
-        .createHash('sha256')
-        .update(resetToken)
-        .digest('hex');
-        
-    // Token expires in 1 hour
-    this.resetPasswordExpires = Date.now() + 3600000; 
-    
-    return resetToken;
-};
-
-// Create User model
-const User = mongoose.model('User', UserSchema);
-
-module.exports = User;
+module.exports = mongoose.model('User', userSchema);

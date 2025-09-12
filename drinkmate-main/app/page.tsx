@@ -87,7 +87,7 @@ export default function Home() {
     {
       headline: t("home.carousel.slide2.headline"),
       description: t("home.carousel.slide2.description"),
-      buttonText: "",
+      buttonText: t("home.carousel.slide2.buttonText"),
       offerText: "",
       imageSrc: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657902/energy-cola-flavors_lx3fvx.png",
       imageAlt: "Energy Drink & Cola Flavor",
@@ -110,9 +110,14 @@ export default function Home() {
           alt: "Drinkmate Machine",
           width: 193,
           height: 493,
-          top:  28, // Relative to the main gray container
+          top: 28, // Relative to the main gray container
           left: 1160, // Relative to the main gray container
           zIndex: 2, // Machine is in front
+          // Responsive positioning using percentages
+          responsiveTop: "20%",
+          responsiveLeft: "60%",
+          responsiveWidth: 60,
+          responsiveHeight: 150,
         },
         {
           src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893591/co2-cylinder-single_dcrdnx.png",
@@ -122,6 +127,11 @@ export default function Home() {
           top: 28, // Relative to the main gray container
           left: 1170, // Relative to the main gray container
           zIndex: 1, // Cylinder is behind machine
+          // Responsive positioning using percentages
+          responsiveTop: "20%",
+          responsiveLeft: "62%",
+          responsiveWidth: 100,
+          responsiveHeight: 100,
         },
         {
           src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559866/Strawberry-Lemon-Flavor_sjdzju.png",
@@ -131,10 +141,16 @@ export default function Home() {
           top: 135, // Relative to the main gray container
           left: 1350, // Relative to the main gray container
           zIndex: 3, // Strawberry is in front of machine
+          // Responsive positioning using percentages
+          responsiveTop: "40%",
+          responsiveLeft: "70%",
+          responsiveWidth: 30,
+          responsiveHeight: 80,
         },
       ],
     },
   ]
+  
   const steps = [
     {
       id: 1,
@@ -510,9 +526,15 @@ export default function Home() {
                       if (slide.buttonText === "Refill Now") {
                         router.push("/co2")
                       } else if (slide.buttonText === "Shop Now") {
-                        router.push("/shop")
+                        // Check if this is the second slide by looking at the slide content
+                        if (slide.headline && slide.headline.includes("ENERGY DRINK & COLA FLAVOR")) {
+                          // Second slide - navigate directly to flavor page
+                          router.push("/shop/flavor")
+                        } else {
+                          router.push("/shop/sodamakers")
+                        }
                       } else {
-                        router.push("/shop")
+                        router.push("/shop/sodamakers")
                       }
                     }}
                     className={`font-medium px-6 py-3 rounded-full min-w-[140px] ${
@@ -549,21 +571,59 @@ export default function Home() {
               )}
             </div>
           ) : (
-            // Multi-image container for the third slide
-            <div className="hidden md:block absolute inset-0">
-              {slide.multiImages &&
-                slide.multiImages.map((img, index) => (
-                  <Image
-                    key={index}
-                    src={img.src || "/placeholder.svg"}
-                    alt={img.alt}
-                    width={img.width}
-                    height={img.height}
-                    className="absolute object-contain"
-                    style={{ top: `${img.top}px`, left: `${img.left}px`, zIndex: img.zIndex }}
-                  />
-                ))}
-            </div>
+            <>
+              {/* Multi-image container for the third slide - Desktop */}
+              <div className="hidden md:block absolute inset-0 overflow-hidden">
+                <div className="relative w-full h-full">
+                  {slide.multiImages &&
+                    slide.multiImages.map((img, index) => (
+                      <Image
+                        key={index}
+                        src={img.src || "/placeholder.svg"}
+                        alt={img.alt}
+                        width={img.width}
+                        height={img.height}
+                        className="absolute object-contain"
+                        style={{ 
+                          top: `${img.top}px`, 
+                          left: `${img.left}px`, 
+                          zIndex: img.zIndex,
+                          // Ensure images stay within container bounds
+                          maxWidth: '100%',
+                          maxHeight: '100%'
+                        }}
+                      />
+                    ))}
+                </div>
+              </div>
+              {/* Mobile responsive multi-image container for the third slide */}
+              <div className="block md:hidden absolute inset-0 overflow-hidden">
+                <div className="relative w-full h-full flex items-end justify-end pr-4 pb-4">
+                  {slide.multiImages &&
+                    slide.multiImages.map((img, index) => (
+                      <Image
+                        key={index}
+                        src={img.src || "/placeholder.svg"}
+                        alt={img.alt}
+                        width={img.responsiveWidth || img.width}
+                        height={img.responsiveHeight || img.height}
+                        className="absolute object-contain"
+                        style={{ 
+                          top: img.responsiveTop || '50%', 
+                          left: img.responsiveLeft || '50%', 
+                          zIndex: img.zIndex,
+                          // Ensure images stay within container bounds
+                          maxWidth: '80%',
+                          maxHeight: '80%',
+                          // Use transform to center and scale properly
+                          transform: 'translate(-50%, -50%)',
+                          transformOrigin: 'center center'
+                        }}
+                      />
+                    ))}
+                </div>
+              </div>
+            </>
           )}
 
           {/* Right Navigation Button */}

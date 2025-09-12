@@ -19,51 +19,32 @@ export interface PaymentResponse {
 }
 
 class PaymentService {
-  // Urways Payment Integration
+  // Urways Payment Integration - Now calls backend API
   async processUrwaysPayment(request: PaymentRequest): Promise<PaymentResponse> {
     try {
-      const baseUrl = 'https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest'
-
-             const payload = {
-         merchantID: process.env.URWAYS_MERCHANT_ID || 'e51ef25d3448a823888e3f38f9ffcc3693a40e3590cf4bb6e7ac5b352a00f30d',
-         amount: request.amount,
-         currency: request.currency || 'SAR',
-         orderID: request.orderId,
-         customerEmail: request.customerEmail,
-         customerName: request.customerName,
-         description: request.description,
-         returnURL: request.returnUrl,
-         cancelURL: request.cancelUrl,
-         terminalID: process.env.URWAYS_TERMINAL_ID || 'aqualinesa',
-         password: process.env.URWAYS_PASSWORD || 'URWAY@026_a',
-         action: '1', // 1 for payment
-         trackID: `TRACK_${Date.now()}`,
-         udf1: 'DrinkMate',
-         udf2: request.orderId,
-         udf3: request.customerEmail
-       }
-
-      const response = await fetch(baseUrl, {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+      
+      const response = await fetch(`${backendUrl}/payments/urways`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(request)
       })
 
       const data = await response.json()
 
-      if (data.result === 'SUCCESS' || data.result === 'A') {
+      if (data.success) {
         return {
           success: true,
-          transactionId: data.transactionID || data.payid,
-          paymentUrl: data.targetURL || data.paymentURL
+          transactionId: data.transactionId,
+          paymentUrl: data.paymentUrl
         }
       } else {
         return {
           success: false,
-          error: data.errorText || data.errorMessage || 'Payment initiation failed'
+          error: data.message || 'Payment initiation failed'
         }
       }
     } catch (error) {
@@ -156,29 +137,29 @@ class PaymentService {
   }
 
   private async verifyUrwaysPayment(transactionId: string): Promise<PaymentResponse> {
-    const baseUrl = 'https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest'
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+      
+      const response = await fetch(`${backendUrl}/payments/urways/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ transactionId })
+      })
 
-         const payload = {
-       merchantID: process.env.URWAYS_MERCHANT_ID || 'e51ef25d3448a823888e3f38f9ffcc3693a40e3590cf4bb6e7ac5b352a00f30d',
-       action: '8', // 8 for inquiry
-       trackID: transactionId,
-       terminalID: process.env.URWAYS_TERMINAL_ID || 'aqualinesa',
-       password: process.env.URWAYS_PASSWORD || 'URWAY@026_a'
-     }
-
-    const response = await fetch(baseUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    })
-
-    const data = await response.json()
-    return {
-      success: data.result === 'SUCCESS' || data.result === 'A',
-      transactionId: data.transactionID || transactionId
+      const data = await response.json()
+      return {
+        success: data.success && data.isPaid,
+        transactionId: data.transactionId || transactionId
+      }
+    } catch (error) {
+      console.error('Urways verification error:', error)
+      return {
+        success: false,
+        error: 'Verification failed'
+      }
     }
   }
 

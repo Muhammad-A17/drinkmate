@@ -1,222 +1,296 @@
 const mongoose = require('mongoose');
-const { Schema } = mongoose;
 
-// Define the order schema
-const OrderSchema = new Schema({
-    orderNumber: {
-        type: String,
-        required: true,
-        unique: true
+const orderSchema = new mongoose.Schema({
+  // Order Identification
+  orderNumber: {
+    type: String,
+    unique: true,
+    uppercase: true
+  },
+  
+  // Customer Information
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  
+  // Items (matches controller format)
+  items: [{
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product'
     },
-    user: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+    bundle: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Bundle'
     },
-    items: [{
-        product: {
-            type: Schema.Types.ObjectId,
-            ref: 'Product'
-        },
-        bundle: {
-            type: Schema.Types.ObjectId,
-            ref: 'Bundle'
-        },
-        name: {
-            type: String,
-            required: true
-        },
-        price: {
-            type: Number,
-            required: true
-        },
-        quantity: {
-            type: Number,
-            required: true,
-            min: [1, 'Quantity must be at least 1']
-        },
-        color: String,
-        image: String,
-        sku: String
-    }],
-    shippingAddress: {
-        firstName: {
-            type: String,
-            required: true
-        },
-        lastName: {
-            type: String,
-            required: true
-        },
-        address1: {
-            type: String,
-            required: true
-        },
-        address2: String,
-        city: {
-            type: String,
-            required: true
-        },
-        state: {
-            type: String,
-            required: true
-        },
-        postalCode: {
-            type: String,
-            required: true
-        },
-        country: {
-            type: String,
-            required: true,
-            default: 'Saudi Arabia'
-        },
-        phone: {
-            type: String,
-            required: true
-        },
-        email: {
-            type: String,
-            required: true
-        }
+    name: String,
+    price: Number,
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1
     },
-    billingAddress: {
-        sameAsShipping: {
-            type: Boolean,
-            default: true
-        },
-        firstName: String,
-        lastName: String,
-        address1: String,
-        address2: String,
-        city: String,
-        state: String,
-        postalCode: String,
-        country: String,
-        phone: String,
-        email: String
+    color: String,
+    image: String,
+    sku: String
+  }],
+  
+  // Addresses (matches controller format)
+  shippingAddress: {
+    firstName: String,
+    lastName: String,
+    email: String,
+    phone: String,
+    street: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    country: {
+      type: String,
+      default: 'Saudi Arabia'
     },
-    paymentMethod: {
-        type: String,
-        enum: ['urways', 'tap_payment', 'credit_card', 'debit_card', 'apple_pay', 'google_pay', 'samsung_pay', 'bank_transfer', 'cash_on_delivery'],
-        required: true
+    specialInstructions: String
+  },
+  
+  billingAddress: {
+    sameAsShipping: {
+      type: Boolean,
+      default: true
     },
-    deliveryOption: {
-        type: String,
-        enum: ['standard', 'express', 'economy'],
-        default: 'standard'
+    firstName: String,
+    lastName: String,
+    email: String,
+    phone: String,
+    street: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    country: String
+  },
+  
+  // Payment Information (matches controller format)
+  paymentMethod: {
+    type: String,
+    required: true,
+    enum: ['urways', 'tap', 'cash_on_delivery', 'bank_transfer']
+  },
+  
+  paymentDetails: {
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'paid', 'failed', 'refunded'],
+      default: 'pending'
     },
-    cardDetails: {
-        cardNumber: String,
-        cardholderName: String,
-        expiryMonth: String,
-        expiryYear: String,
-        cvv: String
-    },
-    paymentDetails: {
-        transactionId: String,
-        paymentStatus: {
-            type: String,
-            enum: ['pending', 'paid', 'failed', 'refunded', 'partially_refunded'],
-            default: 'pending'
-        },
-        paymentDate: Date,
-        cardLast4: String,
-        cardBrand: String,
-        receiptUrl: String
-    },
-    subtotal: {
-        type: Number,
-        required: true
-    },
-    shippingCost: {
-        type: Number,
-        required: true,
-        default: 0
-    },
-    tax: {
-        type: Number,
-        required: true,
-        default: 0
-    },
-    discount: {
-        type: Number,
-        default: 0
-    },
-    coupon: {
-        code: String,
-        discountAmount: Number,
-        couponId: {
-            type: Schema.Types.ObjectId,
-            ref: 'Coupon'
-        }
-    },
-    total: {
-        type: Number,
-        required: true
-    },
-    status: {
-        type: String,
-        enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'on_hold'],
-        default: 'pending'
-    },
-    trackingNumber: String,
-    trackingUrl: String,
-    carrier: String,
-    estimatedDeliveryDate: Date,
-    deliveredDate: Date,
-    cancelReason: String,
-    notes: String,
-    packingInstructions: String,
-    giftMessage: String,
-    isGift: {
-        type: Boolean,
-        default: false
-    },
-    refunds: [{
-        amount: Number,
-        reason: String,
-        date: {
-            type: Date,
-            default: Date.now
-        },
-        transactionId: String
-    }]
-}, { timestamps: true });
-
-// Generate order number before saving
-OrderSchema.pre('save', async function(next) {
-    if (!this.orderNumber) {
-        // Generate a unique order number with year, month, day and a random 4-digit number
-        const date = new Date();
-        const year = date.getFullYear().toString().slice(-2);
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        const random = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
-        
-        this.orderNumber = `DM${year}${month}${day}-${random}`;
-        
-        // Check if the order number already exists
-        const Order = mongoose.model('Order');
-        const existingOrder = await Order.findOne({ orderNumber: this.orderNumber });
-        
-        if (existingOrder) {
-            // If it exists, generate a new random number and try again
-            return this.pre('save', next);
-        }
+    transactionId: String,
+    paymentDate: Date
+  },
+  
+  // Pricing (matches controller format)
+  subtotal: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  discount: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  shippingCost: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  tax: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  total: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  
+  // Coupon Information
+  coupon: {
+    code: String,
+    discountAmount: Number,
+    couponId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Coupon'
     }
-    next();
+  },
+  
+  // Order Status
+  status: {
+    type: String,
+    enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'],
+    default: 'pending'
+  },
+  
+  // Additional Order Details
+  packingInstructions: String,
+  isGift: {
+    type: Boolean,
+    default: false
+  },
+  giftMessage: String,
+  
+  // Order Timeline
+  timeline: [{
+    status: {
+      type: String,
+      required: true
+    },
+    description: String,
+    timestamp: {
+      type: Date,
+      default: Date.now
+    },
+    updatedBy: {
+      type: String,
+      enum: ['system', 'customer', 'admin'],
+      default: 'system'
+    }
+  }],
+  
+  // Notes and Comments
+  notes: {
+    customer: String,
+    admin: String,
+    internal: String
+  },
+  
+  // Timestamps
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+// Virtual for customer full name
+orderSchema.virtual('customerFullName').get(function() {
+  if (this.shippingAddress && this.shippingAddress.firstName && this.shippingAddress.lastName) {
+    return `${this.shippingAddress.firstName} ${this.shippingAddress.lastName}`;
+  }
+  return 'Unknown Customer';
+});
+
+// Virtual for total items count
+orderSchema.virtual('totalItems').get(function() {
+  return this.items.reduce((total, item) => total + item.quantity, 0);
 });
 
 // Virtual for order age in days
-OrderSchema.virtual('ageInDays').get(function() {
-    const now = new Date();
-    const createdAt = new Date(this.createdAt);
-    const diffTime = Math.abs(now - createdAt);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+orderSchema.virtual('ageInDays').get(function() {
+  return Math.floor((Date.now() - this.createdAt) / (1000 * 60 * 60 * 24));
 });
 
-// Create the Order model
-const Order = mongoose.model('Order', OrderSchema);
+// Indexes for better performance (orderNumber already has unique index)
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ 'paymentDetails.paymentStatus': 1 });
+orderSchema.index({ 'shippingAddress.email': 1 });
 
-module.exports = Order;
+// Pre-save middleware
+orderSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  
+  // Generate order number if not provided
+  if (!this.orderNumber) {
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substr(2, 5).toUpperCase();
+    this.orderNumber = `DM${timestamp}${random}`;
+  }
+  
+  next();
+});
+
+// Method to add timeline entry
+orderSchema.methods.addTimelineEntry = function(status, description, updatedBy = 'system') {
+  this.timeline.push({
+    status,
+    description,
+    timestamp: new Date(),
+    updatedBy
+  });
+  return this.save();
+};
+
+// Method to update status
+orderSchema.methods.updateStatus = function(newStatus, description, updatedBy = 'system') {
+  this.status = newStatus;
+  this.addTimelineEntry(newStatus, description, updatedBy);
+  return this.save();
+};
+
+// Method to update payment status
+orderSchema.methods.updatePaymentStatus = function(newStatus, transactionId = null) {
+  this.paymentDetails.paymentStatus = newStatus;
+  
+  if (transactionId) {
+    this.paymentDetails.transactionId = transactionId;
+  }
+  
+  if (newStatus === 'paid') {
+    this.paymentDetails.paymentDate = new Date();
+  }
+  
+  this.addTimelineEntry(`payment_${newStatus}`, `Payment ${newStatus}`, 'system');
+  return this.save();
+};
+
+// Method to cancel order
+orderSchema.methods.cancelOrder = function(reason, cancelledBy = 'customer') {
+  this.status = 'cancelled';
+  this.addTimelineEntry('cancelled', `Order cancelled: ${reason}`, cancelledBy);
+  return this.save();
+};
+
+// Method to check if order can be cancelled
+orderSchema.methods.canBeCancelled = function() {
+  return ['pending', 'confirmed'].includes(this.status) && 
+         this.paymentDetails.paymentStatus !== 'paid';
+};
+
+// Method to check if order can be returned
+orderSchema.methods.canBeReturned = function() {
+  return this.status === 'delivered' && 
+         this.ageInDays <= 30; // 30-day return policy
+};
+
+// Static method to get order statistics
+orderSchema.statics.getOrderStats = function(startDate, endDate) {
+  const match = {};
+  if (startDate && endDate) {
+    match.createdAt = { $gte: startDate, $lte: endDate };
+  }
+  
+  return this.aggregate([
+    { $match: match },
+    {
+      $group: {
+        _id: null,
+        totalOrders: { $sum: 1 },
+        totalRevenue: { $sum: '$total' },
+        averageOrderValue: { $avg: '$total' },
+        completedOrders: {
+          $sum: { $cond: [{ $eq: ['$status', 'delivered'] }, 1, 0] }
+        }
+      }
+    }
+  ]);
+};
+
+module.exports = mongoose.model('Order', orderSchema);

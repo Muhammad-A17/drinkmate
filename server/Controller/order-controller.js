@@ -171,15 +171,32 @@ exports.createOrder = async (req, res) => {
         
         await order.save();
         
-        // In a real application, you would process payment here
-        // For now, we'll just simulate a successful payment
-        order.paymentDetails = {
-            transactionId: `TRANS-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
-            paymentStatus: 'paid',
-            paymentDate: new Date()
-        };
+        // Process payment based on payment method
+        if (paymentMethod === 'urways') {
+            // For Urways, we'll create the order first and process payment separately
+            // The frontend will handle the payment flow
+            order.paymentDetails = {
+                paymentStatus: 'pending',
+                paymentDate: new Date()
+            };
+            order.status = 'pending';
+        } else if (paymentMethod === 'cash_on_delivery') {
+            // For cash on delivery, mark as pending
+            order.paymentDetails = {
+                paymentStatus: 'pending',
+                paymentDate: new Date()
+            };
+            order.status = 'pending';
+        } else {
+            // For other payment methods, simulate successful payment
+            order.paymentDetails = {
+                transactionId: `TRANS-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+                paymentStatus: 'paid',
+                paymentDate: new Date()
+            };
+            order.status = 'processing';
+        }
         
-        order.status = 'processing';
         await order.save();
         
         res.status(201).json({
