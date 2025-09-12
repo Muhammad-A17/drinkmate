@@ -1,0 +1,4 @@
+/* Image zoom styles */
+.imageZoomed {
+  transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%);
+}

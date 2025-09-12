@@ -424,6 +424,7 @@ export default function SodamakersPage() {
                   src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559856/Banner-Omni-Fiz_yjehil.png"
                   alt="OmniFizz Soda Maker"
                   fill
+                  sizes="(max-width: 768px) 96px, 128px"
                   className="object-contain hover:scale-105 transition-transform duration-300"
                 />
               </div>
@@ -442,6 +443,7 @@ export default function SodamakersPage() {
                   src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559856/Banner-Luxe-Machine_obvfmq.png"
                   alt="Luxe Soda Maker"
                   fill
+                  sizes="(max-width: 768px) 96px, 128px"
                   className="object-contain hover:scale-105 transition-transform duration-300"
                 />
               </div>

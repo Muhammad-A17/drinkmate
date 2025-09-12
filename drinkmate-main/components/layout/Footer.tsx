@@ -121,7 +121,7 @@ export default function Footer() {
                 width={140}
                 height={40}
                 className="h-8 sm:h-10 md:h-12 w-auto filter drop-shadow-sm"
-                style={{ width: 'auto' }}
+                style={{ width: "auto", height: "auto" }}
                 priority
               />
             </div>

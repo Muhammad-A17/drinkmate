@@ -84,30 +84,60 @@ export default function AccessoriesPage() {
       try {
         setIsLoading(true)
 
-        // Fetch bundles
+        // Fetch bundles - try without category filter first
+        console.log("Fetching all bundles to check what's available...")
+        const allBundlesResponse = await shopAPI.getBundles({
+          limit: 20,
+        })
+        console.log("All bundles response:", allBundlesResponse)
+        console.log("All bundles found:", allBundlesResponse.bundles?.length || 0)
+        
+        // Now fetch with accessories category
+        console.log("Fetching bundles for accessories category...")
         const bundlesResponse = await shopAPI.getBundles({
           category: "accessories",
           featured: true,
           limit: 4,
         })
+        console.log("Accessories bundles response:", bundlesResponse)
+        console.log("Accessories bundles array:", bundlesResponse.bundles)
+        console.log("Number of accessories bundles found:", bundlesResponse.bundles?.length || 0)
 
-        // Format bundles data
-        const formattedBundles = bundlesResponse.bundles.map((bundle: any) => ({
+        // Format bundles data - use all bundles temporarily to test
+        const bundlesToUse = bundlesResponse.bundles?.length > 0 ? bundlesResponse.bundles : allBundlesResponse.bundles || []
+        console.log("Using bundles:", bundlesToUse.length, "bundles")
+        
+        const formattedBundles = bundlesToUse.map((bundle: any) => {
+          console.log("Processing bundle:", bundle.name, "Full bundle object:", bundle)
+          return {
           _id: bundle._id,
           id: bundle._id,
           slug: bundle.slug,
           name: bundle.name,
           price: bundle.price,
           originalPrice: bundle.originalPrice,
-          image:
-            bundle.images && bundle.images.length > 0 ? bundle.images[0].url : "/images/empty-drinkmate-bottle.png",
+          image: (() => {
+            console.log("Bundle image data:", bundle.images)
+            if (bundle.images && bundle.images.length > 0) {
+              // Handle different image formats
+              const firstImage = bundle.images[0]
+              if (typeof firstImage === 'string') {
+                return firstImage
+              } else if (firstImage && firstImage.url) {
+                return firstImage.url
+              }
+            }
+            return "/images/empty-drinkmate-bottle.png"
+          })(),
           description: bundle.shortDescription || "Accessories bundle pack",
           rating: bundle.averageRating || 5,
           reviews: bundle.reviewCount || 320,
           badge: bundle.isFeatured ? "POPULAR" : bundle.isLimited ? "SALE" : undefined,
-        }))
+        }
+        })
 
         setBundles(formattedBundles)
+        console.log("Formatted bundles for accessories:", formattedBundles)
 
         // Get categories using public API (no login required)
         let categoriesResponse
@@ -431,9 +461,9 @@ export default function AccessoriesPage() {
         ) : (
           <>
             {/* Bundles & Promotions Section */}
-            {bundles.length > 0 && (
-              <div className="mb-16">
-                <h2 className="text-2xl font-medium mb-6 text-gray-900">Bundles & Promotions</h2>
+            <div className="mb-16">
+              <h2 className="text-2xl font-medium mb-6 text-gray-900">Bundles & Promotions</h2>
+              {bundles.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                   {bundles.map((bundle) => (
                     <div
@@ -494,8 +524,13 @@ export default function AccessoriesPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-8 bg-gray-50 rounded-2xl">
+                  <p className="text-gray-600">No bundles available for accessories at the moment.</p>
+                  <p className="text-sm text-gray-500 mt-2">Check back soon for exciting bundle deals!</p>
+                </div>
+              )}
+            </div>
 
             {/* Filter Bar */}
             <div className="bg-white rounded-2xl p-6 mb-8">

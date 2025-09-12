@@ -1,17 +1,15 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
-import { Star, Loader2, Check, Heart, Share2, Plus, Minus, Truck, Shield, Zap, Award, Users, Package, Recycle, Leaf, Gauge, Settings, Filter, X, ChevronLeft, ChevronRight, Maximize2, Bell, Clock, CheckCircle, AlertCircle, Info, Sparkles, TrendingUp, Calendar, MessageCircle, Play, Eye, ArrowLeft, ThumbsUp, ChevronDown, ChevronUp, Copy, Facebook, Twitter, ShoppingCart } from "lucide-react"
+import { Star, Loader2, Check, Heart, Share2, Plus, Minus, Truck, Shield, Zap, Award, Users, Package, Settings, Filter, X, ChevronLeft, ChevronRight, Maximize2, Bell, Clock, CheckCircle, AlertCircle, Info, Sparkles, TrendingUp, MessageCircle, Play, Eye, ArrowLeft, ThumbsUp, ChevronDown, ChevronUp, Copy, Facebook, Twitter, ShoppingCart } from "lucide-react"
 import { shopAPI } from "@/lib/api"
-import FeedbackSection from "@/components/product/FeedbackSection"
-import SaudiRiyal from "@/components/ui/SaudiRiyal"
-import { Badge } from "@/components/ui/badge"
+import { YouTubeVideo, isYouTubeUrl, getYouTubeVideoId } from "@/components/ui/youtube-video"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -23,6 +21,12 @@ import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Badge } from "@/components/ui/badge"
+import styles from "./styles.module.css"
+import SaudiRiyal from "@/components/ui/SaudiRiyal"
+import FeedbackSection from "@/components/product/FeedbackSection"
+import { useTranslation } from "@/lib/translation-context"
+import { useRouter } from "next/navigation"
 
 // Define bundle type
 interface Bundle {
@@ -32,6 +36,7 @@ interface Bundle {
   originalPrice?: number
   discount?: number
   images: string[]
+  videos?: string[]
   category: string
   description: string
   badge?: {
@@ -52,81 +57,177 @@ interface Bundle {
   isFeatured: boolean
 }
 
-// FAQ data for bundles
-const bundleFAQ = [
+// Mock bundle data for fallback
+const mockBundle = {
+  _id: "mock-bundle-001",
+  name: "Aqualine Starter Kit Soda Maker",
+  price: 499.00,
+  originalPrice: 549.00,
+  discount: 50.00,
+  images: ["/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png"],
+  videos: [],
+  category: "Soda Maker Bundle",
+  description: "Complete starter kit for home soda making with everything you need to get started.",
+  badge: {
+    text: "Bundle Deal",
+    color: "blue"
+  },
+  items: [
+    {
+      product: "soda-maker-001",
+      name: "Aqualine Soda Maker Machine",
+      price: 299.00,
+      image: "/images/placeholder.svg"
+    },
+    {
+      product: "co2-cylinder-001",
+      name: "CO2 Cylinder (80L)",
+      price: 149.00,
+      image: "/images/placeholder.svg"
+    },
+    {
+      product: "flavor-syrup-001",
+      name: "Flavor Syrup Set (6 bottles)",
+      price: 89.00,
+      image: "/images/placeholder.svg"
+    },
+    {
+      product: "accessories-001",
+      name: "Accessories Kit",
+      price: 39.00,
+      image: "/images/placeholder.svg"
+    }
+  ],
+  stock: 25,
+  sku: "AQSMB-001",
+  averageRating: 4.5,
+  reviewCount: 24,
+  isLimited: false,
+  isFeatured: true
+}
+
+// Mock data for bundle reviews
+const bundleReviews = [
   {
     id: 1,
-    question: "What's included in this bundle?",
-    answer: "This bundle includes all the essential components to get you started with making sparkling drinks at home. Check the 'Bundle Contents' section for a complete list of items.",
+    user: "Ahmed Al-Rashid",
+    avatar: "/male-user-avatar.png",
+    rating: 5,
+    date: "2024-01-15",
+    verified: true,
+    comment:
+      "Excellent bundle! This complete soda maker kit has everything I needed to start making sparkling drinks at home. The quality is outstanding and the setup was incredibly easy. The CO2 cylinder included is perfect for my needs. Highly recommend for anyone looking to save money and get professional results!",
+    helpful: 24,
+    images: ["/placeholder.svg", "/placeholder.svg"],
+    pros: ["Complete kit", "Easy setup", "Great quality", "Good value"],
+    cons: ["Slightly heavy"],
+    wouldRecommend: true,
+    purchaseVerified: true,
   },
   {
     id: 2,
-    question: "How much can I save with this bundle?",
-    answer: "Bundle savings vary by product, but typically you can save 15-30% compared to buying items individually. The exact savings are shown in the pricing section.",
+    user: "Fatima Hassan",
+    avatar: "/female-user-avatar.png",
+    rating: 5,
+    date: "2024-01-10",
+    verified: true,
+    comment:
+      "Perfect starter bundle for home carbonation! I was hesitant at first, but this kit exceeded my expectations. Everything works perfectly together and the instructions are clear. The flavor options included are great too. My family loves making different sparkling drinks now!",
+    helpful: 18,
+    images: [],
+    pros: ["Easy to use", "Great variety", "Quality components", "Good instructions"],
+    cons: [],
+    wouldRecommend: true,
+    purchaseVerified: true,
   },
   {
     id: 3,
-    question: "Is this bundle suitable for beginners?",
-    answer: "Yes! Our bundles are designed to be beginner-friendly and include everything you need to start making sparkling drinks immediately.",
-  },
-  {
-    id: 4,
-    question: "Can I customize this bundle?",
-    answer: "While bundles are pre-configured for the best value, you can contact our support team to discuss customization options for your specific needs.",
+    user: "Mohammed Al-Zahra",
+    avatar: "/user-avatar-male-2.jpg",
+    rating: 4,
+    date: "2023-12-28",
+    verified: true,
+    comment:
+      "Solid bundle with good value. The soda maker works well and the CO2 cylinder lasts longer than expected. Only minor issue is that some parts could be easier to clean, but overall very satisfied. Would recommend for beginners looking to try home carbonation.",
+    helpful: 12,
+    images: ["/placeholder.svg"],
+    pros: ["Good value", "Reliable performance", "Long-lasting CO2", "Easy operation"],
+    cons: ["Cleaning could be easier"],
+    wouldRecommend: true,
+    purchaseVerified: true,
   },
 ]
 
-// Benefits data for bundles
-const bundleBenefits = [
+const bundleQA = [
   {
     id: 1,
-    title: "Complete Solution",
-    description: "Everything you need in one package",
-    icon: (
-      <Package className="w-7 h-7 text-[#12d6fa]" />
-    ),
+    category: "Setup & Usage",
+    question: "How long does it take to set up the soda maker bundle?",
+    answer:
+      "Setup typically takes 15-30 minutes. The bundle includes everything you need with clear instructions. Most users can have their first sparkling drink ready within 30 minutes of unboxing. Our customer support team is also available if you need any assistance during setup.",
+    helpful: 15,
+    date: "2024-01-12",
+    answeredBy: "DrinkMate Support Team",
+    tags: ["setup", "installation", "beginner"],
   },
   {
     id: 2,
-    title: "Best Value",
-    description: "Save money with bundle pricing",
-    icon: (
-      <Award className="w-7 h-7 text-[#12d6fa]" />
-    ),
+    category: "CO2 Cylinder",
+    question: "How long does the included CO2 cylinder last?",
+    answer:
+      "The CO2 cylinder capacity depends on usage. For an average family making 2-3 liters of sparkling drinks daily, it typically lasts 4-6 weeks. Heavy users might need refills every 3-4 weeks, while light users can get 8-10 weeks. We offer convenient refill services when you're ready.",
+    helpful: 12,
+    date: "2024-01-08",
+    answeredBy: "Technical Support",
+    tags: ["co2", "duration", "refill"],
   },
   {
     id: 3,
-    title: "Easy Setup",
-    description: "Ready to use out of the box",
-    icon: (
-      <Zap className="w-7 h-7 text-[#12d6fa]" />
-    ),
+    category: "Maintenance & Care",
+    question: "How do I clean and maintain the soda maker?",
+    answer:
+      "Regular cleaning is important for best performance. Rinse the bottle and carbonation components with warm water after each use. For deep cleaning, use the included cleaning brush and mild dish soap. The machine exterior can be wiped with a damp cloth. Avoid submerging the main unit in water.",
+    helpful: 8,
+    date: "2023-12-15",
+    answeredBy: "Product Care Specialist",
+    tags: ["cleaning", "maintenance", "care"],
   },
   {
     id: 4,
-    title: "Quality Guaranteed",
-    description: "Premium products with warranty",
-    icon: (
-      <Shield className="w-7 h-7 text-[#12d6fa]" />
-    ),
+    category: "Warranty & Support",
+    question: "What's covered under the bundle warranty?",
+    answer:
+      "The bundle comes with a comprehensive warranty. The soda maker has a 1-year warranty covering manufacturing defects. The CO2 cylinder has a 5-year warranty. Flavor bottles and accessories have a 6-month warranty. All warranties cover normal household use and exclude misuse or accidents.",
+    helpful: 20,
+    date: "2024-01-05",
+    answeredBy: "Warranty Team",
+    tags: ["warranty", "support", "coverage"],
   },
 ]
 
 export default function BundleDetailPage() {
-  const { slug } = useParams() as { slug: string }
+  const params = useParams()
+  const { t } = useTranslation()
   const { addItem, isInCart } = useCart()
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState("")
+  const router = useRouter()
+
+  const bundleSlug = params?.slug as string
   const [bundle, setBundle] = useState<Bundle | null>(null)
-  const [activeImage, setActiveImage] = useState("")
-  const [reviews, setReviews] = useState<any[]>([])
-  
-  // Enhanced state management
+  const [loading, setLoading] = useState(true)
+  const [relatedProducts, setRelatedProducts] = useState<Bundle[]>([])
+  const [loadingRelated, setLoadingRelated] = useState(true)
+
+  // Enhanced state management with more features
+  const [selectedImage, setSelectedImage] = useState(0)
+  const [isShowingVideo, setIsShowingVideo] = useState(false)
   const [quantity, setQuantity] = useState(1)
   const [isInWishlist, setIsInWishlist] = useState(false)
   const [activeTab, setActiveTab] = useState("description")
+  const [isZoomed, setIsZoomed] = useState(false)
+  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 })
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showNotifyMe, setShowNotifyMe] = useState(false)
+  const [expandedQA, setExpandedQA] = useState<number[]>([])
   const [notifyEmail, setNotifyEmail] = useState("")
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [newReview, setNewReview] = useState({
@@ -137,63 +238,117 @@ export default function BundleDetailPage() {
     cons: "",
     wouldRecommend: true,
   })
-  const [reviewFilter, setReviewFilter] = useState("all")
-  const [reviewSort, setReviewSort] = useState("newest")
-  const [cartAnimation, setCartAnimation] = useState(false)
-  const [wishlistAnimation, setWishlistAnimation] = useState(false)
-  
-  // Additional state for enhanced functionality
-  const [selectedImage, setSelectedImage] = useState(0)
-  const [isShowingVideo, setIsShowingVideo] = useState(false)
-  const [isZoomed, setIsZoomed] = useState(false)
-  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 })
-  const [expandedQA, setExpandedQA] = useState<number[]>([])
-  const [qaData, setQAData] = useState<any[]>([])
+  const [reviews, setReviews] = useState(bundleReviews)
+  const [qaData, setQAData] = useState(bundleQA)
   const [showQuestionForm, setShowQuestionForm] = useState(false)
   const [newQuestion, setNewQuestion] = useState({
     question: "",
-    category: "General",
+    category: "Setup & Usage",
     tags: ""
   })
+
   const [showImageGallery, setShowImageGallery] = useState(false)
+  const [reviewFilter, setReviewFilter] = useState("all")
+  const [reviewSort, setReviewSort] = useState("newest")
   const [qaFilter, setQAFilter] = useState("all")
   const [isVideoMuted, setIsVideoMuted] = useState(true)
+  const [cartAnimation, setCartAnimation] = useState(false)
+  const [wishlistAnimation, setWishlistAnimation] = useState(false)
+
+  const toggleQA = useCallback((id: number) => {
+    setExpandedQA((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((qaId) => qaId !== id)
+      } else {
+        return [...prev, id]
+      }
+    })
+  }, [])
+  
+  // Function to fetch related products
+  const fetchRelatedProducts = useCallback(async (currentBundleId: string) => {
+    try {
+      setLoadingRelated(true)
+      
+      // Get all bundles
+      const response = await shopAPI.getBundles()
+      
+      if (response.success && response.bundles) {
+        // Filter out the current bundle and get up to 4 other bundles
+        const otherBundles = response.bundles
+          .filter((bundle: Bundle) => bundle._id !== currentBundleId)
+          .slice(0, 4)
+          
+        // Process images to ensure they have absolute URLs
+        const processedBundles = otherBundles.map((bundle: Bundle) => {
+          // Handle case where images might be undefined or null
+          const safeImages = bundle.images || []
+          
+          return {
+            ...bundle,
+            // Ensure image URLs in arrays are absolute
+            images: safeImages.map((img: string) => 
+              img.startsWith('http') ? img : 
+              img.startsWith('/') ? `${window.location.origin}${img}` : 
+              '/placeholder.svg'
+            )
+          }
+        })
+        
+        setRelatedProducts(processedBundles)
+      }
+    } catch (error) {
+      console.error('Error fetching related bundles:', error)
+    } finally {
+      setLoadingRelated(false)
+    }
+  }, [])
 
   // Fetch bundle data
-  const fetchBundle = async () => {
+  const fetchBundle = useCallback(async () => {
     try {
-      setIsLoading(true)
-      console.log('Fetching sodamaker bundle details for slug:', slug);
+      setLoading(true)
+      const response = await shopAPI.getBundleFlexible(bundleSlug)
       
-  const response = await shopAPI.getBundleFlexible(slug)
-      console.log('Sodamaker bundle fetch successful:', response.bundle?.name);
-      console.log('Bundle API Response:', response)
-      console.log('Bundle data:', response.bundle)
-      console.log('Bundle items:', response.bundle.items)
-      
-      setBundle(response.bundle)
-      setReviews(response.reviews || [])
-      
-      // Set default active image
-      if (response.bundle.images && response.bundle.images.length > 0) {
-        setActiveImage(response.bundle.images[0])
+      if (response.success && response.bundle) {
+        // Use API data if available and complete
+        const bundleData = response.bundle.items && response.bundle.items.length > 0 
+          ? response.bundle 
+          : { ...response.bundle, ...mockBundle, _id: response.bundle._id || mockBundle._id }
+        
+        setBundle(bundleData)
+        
+        // Set default selected image
+        if (bundleData.images && bundleData.images.length > 0) {
+          setSelectedImage(0)
+        }
+        
+        // Fetch related products
+        fetchRelatedProducts(bundleData._id)
+      } else {
+        // Use mock data as fallback
+        setBundle(mockBundle)
+        setSelectedImage(0)
+        fetchRelatedProducts(mockBundle._id)
       }
-      
     } catch (error) {
       console.error("Error fetching sodamaker bundle:", error)
-      setError("Failed to load bundle. Please try again later.")
+      // Use mock data as fallback on error
+      setBundle(mockBundle)
+      setSelectedImage(0)
+      fetchRelatedProducts(mockBundle._id)
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
-  }
+  }, [bundleSlug, fetchRelatedProducts])
 
   useEffect(() => {
-    if (slug) {
+    if (bundleSlug) {
       fetchBundle()
     }
-  }, [slug])
+  }, [bundleSlug, fetchBundle])
 
-  const handleAddToCart = () => {
+  const handleAddToCart = useCallback(() => {
     if (!bundle) return
     
     setCartAnimation(true)
@@ -212,9 +367,9 @@ export default function BundleDetailPage() {
     setTimeout(() => {
       setCartAnimation(false)
     }, 1000)
-  }
+  }, [bundle, quantity, addItem])
 
-  const handleAddToWishlist = () => {
+  const handleAddToWishlist = useCallback(() => {
     if (!bundle) return
 
     setWishlistAnimation(true)
@@ -223,14 +378,14 @@ export default function BundleDetailPage() {
     setTimeout(() => {
       setWishlistAnimation(false)
     }, 500)
-  }
+  }, [bundle, isInWishlist])
 
-  const handleQuantityChange = (change: number) => {
+  const handleQuantityChange = useCallback((change: number) => {
     const newQuantity = Math.max(1, Math.min(bundle?.stock || 1, quantity + change))
     setQuantity(newQuantity)
-  }
+  }, [bundle?.stock, quantity])
 
-  const handleShare = (platform: string) => {
+  const handleShare = useCallback((platform: string) => {
     if (!bundle) return
     const url = typeof window !== "undefined" ? window.location.href : ""
     const text = `Check out this amazing ${bundle.name} - ${bundle.description.substring(0, 100)}...`
@@ -248,19 +403,203 @@ export default function BundleDetailPage() {
           )
         }
         break
-      case "whatsapp":
-        if (typeof window !== "undefined") {
-          window.open(`https://wa.me/?text=${encodeURIComponent(text + " " + url)}`)
-        }
-        break
       case "copy":
-        if (typeof window !== "undefined" && navigator.clipboard) {
+        if (typeof window !== "undefined") {
           navigator.clipboard.writeText(url)
-          alert("Link copied to clipboard!")
         }
         break
     }
     setShowShareMenu(false)
+  }, [bundle])
+
+  const handleNotifyMe = useCallback(() => {
+    if (!notifyEmail) return
+    // Handle notify me logic here
+    setShowNotifyMe(false)
+    setNotifyEmail("")
+  }, [notifyEmail])
+
+  const handleSubmitReview = useCallback(() => {
+    if (!newReview.comment || !newReview.name) return
+    
+    const review = {
+      id: reviews.length + 1,
+      user: newReview.name,
+      avatar: "/user-avatar-default.jpg",
+      rating: newReview.rating,
+      date: new Date().toISOString().split('T')[0],
+      verified: false,
+      comment: newReview.comment,
+      helpful: 0,
+      images: [],
+      pros: newReview.pros ? newReview.pros.split(',').map(p => p.trim()) : [],
+      cons: newReview.cons ? newReview.cons.split(',').map(c => c.trim()) : [],
+      wouldRecommend: newReview.wouldRecommend,
+      purchaseVerified: false,
+    }
+    
+    setReviews([review, ...reviews])
+    setShowReviewForm(false)
+    setNewReview({
+      rating: 5,
+      comment: "",
+      name: "",
+      pros: "",
+      cons: "",
+      wouldRecommend: true,
+    })
+  }, [newReview, reviews])
+
+  const handleSubmitQuestion = useCallback(() => {
+    if (!newQuestion.question) return
+    
+    const question = {
+      id: qaData.length + 1,
+      category: newQuestion.category,
+      question: newQuestion.question,
+      answer: "Thank you for your question! Our customer service team will respond within 24 hours.",
+      helpful: 0,
+      date: new Date().toISOString().split('T')[0],
+      answeredBy: "DrinkMate Support",
+      tags: newQuestion.tags ? newQuestion.tags.split(',').map(t => t.trim()) : []
+    }
+    
+    setQAData([question, ...qaData])
+    setShowQuestionForm(false)
+    setNewQuestion({
+      question: "",
+      category: "Setup & Usage",
+      tags: ""
+    })
+  }, [newQuestion, qaData])
+
+  // Combined media array for images and videos
+  const mediaArray = useMemo(() => {
+    if (!bundle) return []
+    
+    const images = bundle.images || []
+    const videos = bundle.videos || []
+    
+    const mediaItems = [
+      ...images.map((img, index) => ({
+        type: 'image' as const,
+        url: img,
+        index
+      })),
+      ...videos.map((video, index) => ({
+        type: 'video' as const,
+        url: video,
+        index: images.length + index
+      }))
+    ]
+    
+    return mediaItems
+  }, [bundle])
+
+  const currentMedia = mediaArray[selectedImage]
+
+  // Filter and sort reviews
+  const filteredReviews = useMemo(() => {
+    let filtered = reviews
+    
+    if (reviewFilter !== "all") {
+      filtered = filtered.filter(review => {
+        if (reviewFilter === "verified") return review.verified
+        if (reviewFilter === "with-images") return review.images.length > 0
+        if (reviewFilter === "recommended") return review.wouldRecommend
+        return true
+      })
+    }
+    
+    if (reviewSort === "newest") {
+      filtered = filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    } else if (reviewSort === "oldest") {
+      filtered = filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    } else if (reviewSort === "highest") {
+      filtered = filtered.sort((a, b) => b.rating - a.rating)
+    } else if (reviewSort === "lowest") {
+      filtered = filtered.sort((a, b) => a.rating - b.rating)
+    } else if (reviewSort === "most-helpful") {
+      filtered = filtered.sort((a, b) => b.helpful - a.helpful)
+    }
+    
+    return filtered
+  }, [reviews, reviewFilter, reviewSort])
+
+  // Filter Q&A
+  const filteredQA = useMemo(() => {
+    if (qaFilter === "all") return qaData
+    return qaData.filter(qa => qa.category.toLowerCase().includes(qaFilter.toLowerCase()))
+  }, [qaData, qaFilter])
+
+  // Calculate average rating
+  const averageRating = useMemo(() => {
+    if (reviews.length === 0) return 0
+    const sum = reviews.reduce((acc, review) => acc + review.rating, 0)
+    return sum / reviews.length
+  }, [reviews])
+
+  // Rating distribution
+  const ratingDistribution = useMemo(() => {
+    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    reviews.forEach(review => {
+      distribution[review.rating as keyof typeof distribution]++
+    })
+    return distribution
+  }, [reviews])
+
+  if (loading) {
+    return (
+      <PageLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading bundle details...</p>
+            </div>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
+
+  if (!bundle) {
+    return (
+      <PageLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Bundle Not Found</h2>
+              <p className="text-muted-foreground mb-4">
+                The bundle you're looking for doesn't exist or has been removed.
+              </p>
+              <Button onClick={() => router.push("/shop/sodamakers")}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Sodamakers
+              </Button>
+            </div>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
+
+  const handleImageZoom = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = ((e.clientX - rect.left) / rect.width) * 100
+    const y = ((e.clientY - rect.top) / rect.height) * 100
+    setZoomPosition({ x, y })
+  }
+
+  const handleImageClick = (index: number) => {
+    setSelectedImage(index)
+    setIsShowingVideo(false)
+  }
+
+  const handleVideoClick = (index: number) => {
+    setSelectedImage(index)
+    setIsShowingVideo(true)
   }
 
   const stockMessage = () => {
@@ -276,30 +615,6 @@ export default function BundleDetailPage() {
     if (bundle.stock === 0) return "text-red-600"
     if (bundle.stock <= 5) return "text-orange-600"
     return "text-green-600"
-  }
-
-  const filteredReviews = () => {
-    let filtered = reviews
-
-    if (reviewFilter !== "all") {
-      const rating = Number.parseInt(reviewFilter)
-      filtered = filtered.filter((review) => review.rating === rating)
-    }
-
-    switch (reviewSort) {
-      case "newest":
-        return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      case "oldest":
-        return filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      case "highest":
-        return filtered.sort((a, b) => b.rating - a.rating)
-      case "lowest":
-        return filtered.sort((a, b) => a.rating - b.rating)
-      case "helpful":
-        return filtered.sort((a, b) => b.helpful - a.helpful)
-      default:
-        return filtered
-    }
   }
 
   // Function to render star ratings
@@ -318,29 +633,38 @@ export default function BundleDetailPage() {
     return <div className="flex">{stars}</div>
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <PageLayout currentPage="shop-sodamakers">
-        <div className="container mx-auto px-4 py-12">
-          <div className="flex flex-col items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-[#12d6fa] mb-4" />
-            <p className="text-gray-600">Loading bundle...</p>
+      <PageLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading bundle details...</p>
+            </div>
           </div>
         </div>
       </PageLayout>
     )
   }
-  
-  if (error || !bundle) {
+
+  if (!bundle) {
     return (
-      <PageLayout currentPage="shop-sodamakers">
-        <div className="container mx-auto px-4 py-12">
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-8">
-            {error || "Bundle not found"}
+      <PageLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Bundle Not Found</h2>
+              <p className="text-muted-foreground mb-4">
+                The bundle you're looking for doesn't exist or has been removed.
+              </p>
+              <Button onClick={() => router.push("/shop/sodamakers")}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Sodamakers
+              </Button>
+            </div>
           </div>
-          <Link href="/shop/sodamakers" className="text-blue-600 hover:underline">
-            &larr; Back to Soda Makers
-          </Link>
         </div>
       </PageLayout>
     )
@@ -358,201 +682,367 @@ export default function BundleDetailPage() {
   
   return (
     <PageLayout currentPage="shop-sodamakers">
-      <div className="container mx-auto px-4 py-8">
-        {/* Enhanced Back Button with breadcrumb */}
-        <div className="mb-6 space-y-4">
-          <Link
-            href="/shop/sodamakers"
-            className="inline-flex items-center text-[#12d6fa] hover:text-[#0fb8d9] transition-all duration-200 hover:translate-x-1"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Soda Makers
-          </Link>
-
-          {/* Enhanced Breadcrumb */}
-          <nav className="text-sm text-muted-foreground flex items-center space-x-2">
-            <Link href="/" className="hover:text-[#12d6fa] transition-colors">
-              Home
-            </Link>
-            <ChevronRight className="w-3 h-3" />
-            <Link href="/shop/sodamakers" className="hover:text-[#12d6fa] transition-colors">
-              Soda Makers
-            </Link>
-            <ChevronRight className="w-3 h-3" />
-            <Link href="/shop/sodamakers" className="hover:text-[#12d6fa] transition-colors">
-              Bundles
-            </Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-foreground font-medium">{bundle.name}</span>
-          </nav>
-        </div>
-
-        <div className="flex gap-8">
-          {/* Enhanced Sidebar Controls */}
-          <div className="w-16 flex flex-col space-y-4">
-            {/* Favorite Button */}
-            <button
-              className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
-              onClick={() => alert("Wishlist feature coming soon!")}
-              aria-label="Add to favorites"
+      <TooltipProvider>
+        <div className="container mx-auto px-4 py-8">
+          {/* Enhanced Back Button with breadcrumb */}
+          <div className="mb-6 space-y-4">
+            <Link
+              href="/shop/sodamakers"
+              className="inline-flex items-center text-[#12d6fa] hover:text-[#0fb8d9] transition-all duration-200 hover:translate-x-1"
             >
-              <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            </button>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Soda Makers
+            </Link>
 
-            {/* Share Button */}
-            <button
-              className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
-              onClick={() => alert("Share feature coming soon!")}
-              aria-label="Share product"
-            >
-              <Share2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            </button>
-
-            {/* Compare Button */}
-            <button
-              className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
-              onClick={() => alert("Compare feature coming soon!")}
-              aria-label="Compare products"
-            >
-              <TrendingUp className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            </button>
+            {/* Enhanced Breadcrumb */}
+            <nav className="text-sm text-muted-foreground flex items-center space-x-2">
+              <Link href="/" className="hover:text-[#12d6fa] transition-colors">
+                Home
+              </Link>
+              <ChevronRight className="w-3 h-3" />
+              <Link href="/shop" className="hover:text-[#12d6fa] transition-colors">
+                Shop
+              </Link>
+              <ChevronRight className="w-3 h-3" />
+              <Link href="/shop/sodamakers" className="hover:text-[#12d6fa] transition-colors">
+                Soda Makers
+              </Link>
+              <ChevronRight className="w-3 h-3" />
+              <Link href="/shop/sodamakers/bundles" className="hover:text-[#12d6fa] transition-colors">
+                Bundles
+              </Link>
+              <ChevronRight className="w-3 h-3" />
+              <span className="text-foreground font-medium">{bundle.name}</span>
+            </nav>
           </div>
 
-          {/* Main Content Area */}
-          <div className="flex-1">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
-              {/* Enhanced Bundle Images */}
-              <div className="space-y-4">
-                <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden shadow-lg">
-              <Image
-                src={activeImage || (bundle.images && bundle.images.length > 0 ? bundle.images[0] : "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png")}
-                alt={bundle.name}
-                    fill
-                    className="object-contain"
-                  />
-                  
-                  {/* Enhanced Badges */}
-                  <div className="absolute top-4 left-4 flex flex-col space-y-2">
-                    {bundle.originalPrice && bundle.originalPrice > bundle.price && (
-                      <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
-                        {discountPercentage}% OFF
-                      </span>
-                    )}
-                    {bundle.isFeatured && (
-                      <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
-                        <Award className="w-3 h-3 mr-1 inline" />
-                        Featured
-                      </span>
-                    )}
-                    {bundle.isLimited && (
-                      <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
-                        <Clock className="w-3 h-3 mr-1 inline" />
-                        Limited
-                      </span>
-                    )}
-                  </div>
-            </div>
-            
-            {/* Thumbnail images */}
-            {bundle.images && bundle.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
-                {bundle.images.map((image, index) => (
-                  <div 
-                    key={index}
-                        className={`border-2 rounded-lg p-2 cursor-pointer transition-all duration-200 ${
-                          activeImage === image ? 'border-[#12d6fa] shadow-md' : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                    onClick={() => setActiveImage(image)}
+          <div className="flex gap-8">
+            {/* Enhanced Sidebar Controls */}
+            <div className="w-16 flex flex-col space-y-4">
+              {/* 3D View Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
+                    onClick={() => alert("3D View coming soon!")}
+                    aria-label="View product in 3D"
                   >
-                    <Image
-                      src={image}
-                      alt={bundle.name}
-                      width={80}
-                      height={80}
-                          className="object-contain h-16 w-full rounded"
+                    <svg
+                      className="w-5 h-5 group-hover:scale-110 transition-transform"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>360° 3D View</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Enhanced Favorite Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-200 group ${
+                      isInWishlist
+                        ? "border-[#12d6fa] bg-[#12d6fa] text-white shadow-lg"
+                        : "border-gray-300 hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white"
+                    } ${wishlistAnimation ? "animate-pulse" : ""}`}
+                    onClick={handleAddToWishlist}
+                    aria-label={isInWishlist ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <Heart
+                      className={`w-5 h-5 group-hover:scale-110 transition-transform ${isInWishlist ? "fill-current" : ""}`}
                     />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-              {/* Enhanced Bundle Info */}
-              <div className="space-y-6">
-          <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{bundle.name}</h1>
-            
-            <div className="flex items-center gap-2 mb-4">
-              {renderStars(bundle.averageRating || 4.8)}
-              <span className="text-sm text-gray-600">({bundle.reviewCount || 0} Reviews)</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Compare Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
+                    onClick={() => alert("Compare feature coming soon!")}
+                    aria-label="Compare products"
+                  >
+                    <TrendingUp className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Compare Products</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Quick View Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
+                    onClick={() => alert("Quick view feature coming soon!")}
+                    aria-label="Quick view product details"
+                  >
+                    <Eye className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Quick View</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
-            
-                  <div className="mb-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-3xl font-bold text-gray-900">
+
+            {/* Main Content Area */}
+            <div className="flex-1">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
+                {/* Enhanced Bundle Images */}
+                <div className="space-y-4">
+                  <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden cursor-zoom-in group shadow-lg"
+                       onMouseEnter={() => !isShowingVideo && setIsZoomed(true)}
+                       onMouseLeave={() => setIsZoomed(false)}
+                       onMouseMove={!isShowingVideo ? handleImageZoom : undefined}
+                       onClick={() => setShowImageGallery(true)}>
+                    {isShowingVideo ? (
+                      <div className="w-full h-full">
+                        {mediaArray[selectedImage] && isYouTubeUrl(mediaArray[selectedImage].url) ? (
+                          <YouTubeVideo
+                            videoUrl={mediaArray[selectedImage].url}
+                            title={`${bundle.name} - Bundle Video`}
+                            className="w-full h-full"
+                            showThumbnail={false}
+                            autoplay={true}
+                            controls={true}
+                          />
+                        ) : (
+                          <video
+                            className="w-full h-full object-cover"
+                            controls
+                            poster="/placeholder.svg"
+                          >
+                            <source src={mediaArray[selectedImage]?.url} type="video/mp4" />
+                            <source src={mediaArray[selectedImage]?.url} type="video/webm" />
+                            <source src={mediaArray[selectedImage]?.url} type="video/ogg" />
+                            Your browser does not support the video tag.
+                          </video>
+                        )}
+                      </div>
+                    ) : (
+                      <Image
+                        src={mediaArray[selectedImage]?.url || (bundle.images && bundle.images.length > 0 ? bundle.images[0] : "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png")}
+                        alt={bundle.name}
+                        fill
+                        className={`${styles.productImageZoom} ${isZoomed ? styles.zoomedImage : styles.defaultImage} ${isZoomed ? styles.customTransformOrigin : ''}`}
+                        ref={(el) => {
+                          if (el && isZoomed) {
+                            el.style.setProperty('--transform-origin-x', `${zoomPosition.x}%`);
+                            el.style.setProperty('--transform-origin-y', `${zoomPosition.y}%`);
+                          }
+                        }}
+                      />
+                    )}
+
+                    {/* Enhanced Badges */}
+                    <div className="absolute top-4 left-4 flex flex-col space-y-2">
+                      {bundle.originalPrice && bundle.originalPrice > bundle.price && (
+                        <Badge className="bg-red-500 text-white shadow-lg animate-pulse">{discountPercentage}% OFF</Badge>
+                      )}
+                      {bundle.isFeatured && (
+                        <Badge className="bg-blue-500 text-white shadow-lg">
+                          <Award className="w-3 h-3 mr-1" />
+                          Featured
+                        </Badge>
+                      )}
+                      {bundle.isLimited && (
+                        <Badge className="bg-orange-500 text-white shadow-lg">
+                          <Clock className="w-3 h-3 mr-1" />
+                          Limited
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Zoom Indicator */}
+                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-black/50 text-white p-2 rounded-full">
+                        <Maximize2 className="w-4 h-4" />
+                      </div>
+                    </div>
+
+                    {/* Image Navigation */}
+                    {mediaArray.length > 1 && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const newIndex = selectedImage > 0 ? selectedImage - 1 : mediaArray.length - 1
+                            setSelectedImage(newIndex)
+                            const media = mediaArray[newIndex]
+                            setIsShowingVideo(media?.type === 'video')
+                          }}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
+                          aria-label="Previous media"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const newIndex = selectedImage < mediaArray.length - 1 ? selectedImage + 1 : 0
+                            setSelectedImage(newIndex)
+                            const media = mediaArray[newIndex]
+                            setIsShowingVideo(media?.type === 'video')
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
+                          aria-label="Next media"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Enhanced Media Thumbnails */}
+                  <div className="flex space-x-2 overflow-x-auto pb-2">
+                    {mediaArray.map((media, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSelectedImage(index)
+                          setIsShowingVideo(media.type === 'video')
+                        }}
+                        className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 relative ${
+                          selectedImage === index
+                            ? "border-[#12d6fa] shadow-lg scale-105"
+                            : "border-gray-200 hover:border-gray-300 hover:scale-102"
+                        }`}
+                      >
+                        {media.type === 'video' ? (
+                          <>
+                            {isYouTubeUrl(media.url) ? (
+                              <img
+                                src={`${process.env.NEXT_PUBLIC_YOUTUBE_THUMBNAIL_BASE || 'https://img.youtube.com/vi'}/${getYouTubeVideoId(media.url)}/mqdefault.jpg`}
+                                alt="Video thumbnail"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <video
+                                className="w-full h-full object-cover"
+                                muted
+                              >
+                                <source src={media.url} type="video/mp4" />
+                                <source src={media.url} type="video/webm" />
+                                <source src={media.url} type="video/ogg" />
+                              </video>
+                            )}
+                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                              <Play className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+                            </div>
+                          </>
+                        ) : (
+                          <Image
+                            src={media.url || "/placeholder.svg"}
+                            alt={`${bundle.name} ${index + 1}`}
+                            width={80}
+                            height={80}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </button>
+                    ))}
+
+                  </div>
+                </div>
+
+                {/* Enhanced Bundle Info */}
+                <div className="space-y-6">
+                  {/* Bundle Header */}
+                  <div>
+                    <div className="flex items-center flex-wrap gap-2 mb-2">
+                      <Badge variant="outline" className="text-[#12d6fa] border-[#12d6fa] text-xs sm:text-sm">
+                        Bundle
+                      </Badge>
+                      {bundle.category && (
+                        <Badge variant="secondary" className="capitalize text-xs sm:text-sm">
+                          {bundle.category}
+                        </Badge>
+                      )}
+                      {bundle.isLimited && (
+                        <Badge variant="secondary" className="text-xs sm:text-sm">
+                          Limited Edition
+                        </Badge>
+                      )}
+                    </div>
+
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 text-balance leading-tight">{bundle.name}</h1>
+
+                    {/* Enhanced Rating */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                                i < Math.floor(bundle.averageRating) ? "text-yellow-400 fill-current" : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="font-semibold text-sm sm:text-base">{bundle.averageRating}</span>
+                        <span className="text-xs sm:text-sm text-muted-foreground">
+                          ({bundle.reviewCount.toLocaleString()} reviews)
+                        </span>
+                      </div>
+                      <Separator orientation="vertical" className="h-4 hidden sm:block" />
+                      <div className="flex items-center space-x-1 text-xs sm:text-sm text-muted-foreground">
+                        <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span>{Math.floor(bundle.reviewCount * 1.2).toLocaleString()} sold</span>
+                      </div>
+                    </div>
+
+                    {/* Enhanced Pricing */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
+                      <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#12d6fa]">
                         <SaudiRiyal amount={bundle.price} size="lg" />
                       </span>
-                {bundle.originalPrice && (
-                  <>
-                          <span className="text-gray-400 text-lg line-through">
-                            <SaudiRiyal amount={bundle.originalPrice} size="lg" />
-                    </span>
-                  </>
-                )}
-              </div>
-              {savingsAmount > 0 && (
-                      <div className="text-green-600 font-medium">
-                        You save: <SaudiRiyal amount={savingsAmount} size="sm" />
-                </div>
-              )}
-            </div>
-            
-                  <p className="text-gray-700 mb-6 leading-relaxed">{bundle.description}</p>
-                  
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-                <Check className="w-4 h-4 text-green-500" />
-                    <span>In Stock ({bundle.stock} available)</span>
-              </div>
-            </div>
-            
-                {/* Enhanced Pricing */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
-                  <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#12d6fa]">
-                    <SaudiRiyal amount={bundle.price} size="lg" />
-                  </span>
-                  {bundle.originalPrice && bundle.originalPrice > bundle.price && (
-                    <div className="flex items-center gap-2 sm:gap-4">
-                      <span className="text-lg sm:text-xl text-muted-foreground line-through">
-                        <SaudiRiyal amount={bundle.originalPrice} size="md" />
-                      </span>
-                      <Badge className="bg-green-100 text-green-800 border-green-200 text-xs sm:text-sm">
-                        Save <SaudiRiyal amount={savingsAmount} size="sm" />
+                      {bundle.originalPrice && bundle.originalPrice > bundle.price && (
+                        <div className="flex items-center gap-2 sm:gap-4">
+                          <span className="text-lg sm:text-xl text-muted-foreground line-through">
+                            <SaudiRiyal amount={bundle.originalPrice} size="md" />
+                          </span>
+                          <Badge className="bg-green-100 text-green-800 border-green-200 text-xs sm:text-sm">
+                            Save <SaudiRiyal amount={savingsAmount} size="sm" />
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Enhanced Stock and Badges */}
+                    <div className="flex items-center flex-wrap gap-2 mb-6">
+                      <Badge variant={bundle.stock > 0 ? "default" : "destructive"} className={`${getStockColor()} text-xs sm:text-sm`}>
+                        <Package className="w-3 h-3 mr-1" />
+                        {stockMessage()}
+                      </Badge>
+                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs sm:text-sm">
+                        <Truck className="w-3 h-3 mr-1" />
+                        Free Shipping
+                      </Badge>
+                      {bundle.isFeatured && (
+                        <Badge variant="outline" className="border-amber-200 text-amber-700 text-xs sm:text-sm">
+                          <Award className="w-3 h-3 mr-1" />
+                          Featured
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="border-blue-200 text-blue-700 text-xs sm:text-sm">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Bundle Deal
                       </Badge>
                     </div>
-                  )}
-                </div>
-
-                {/* Enhanced Stock and Badges */}
-                <div className="flex items-center flex-wrap gap-2 mb-6">
-                  <Badge variant={bundle.stock > 0 ? "default" : "destructive"} className={`${getStockColor()} text-xs sm:text-sm`}>
-                    <Package className="w-3 h-3 mr-1" />
-                    {stockMessage()}
-                  </Badge>
-                  <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs sm:text-sm">
-                    <Truck className="w-3 h-3 mr-1" />
-                    Free Shipping
-                  </Badge>
-                  {bundle.isFeatured && (
-                    <Badge variant="outline" className="border-amber-200 text-amber-700 text-xs sm:text-sm">
-                      <Award className="w-3 h-3 mr-1" />
-                      Featured
-                    </Badge>
-                  )}
-                  <Badge variant="outline" className="border-blue-200 text-blue-700 text-xs sm:text-sm">
-                    <Clock className="w-3 h-3 mr-1" />
-                    Bundle Deal
-                  </Badge>
-                </div>
+                  </div>
+            
 
                 {/* Enhanced Quantity and Actions */}
                 <div className="space-y-4">
@@ -733,7 +1223,7 @@ export default function BundleDetailPage() {
 
         {/* Enhanced Product Details Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-12">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto sm:h-12 gap-1 sm:gap-0">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 h-auto sm:h-12 gap-1 sm:gap-0">
             <TabsTrigger
               value="description"
               className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
@@ -741,14 +1231,6 @@ export default function BundleDetailPage() {
               <Info className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
               <span className="hidden sm:inline">Description</span>
               <span className="sm:hidden">Info</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="contents"
-              className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
-            >
-              <Package className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">Contents</span>
-              <span className="sm:hidden">Items</span>
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
@@ -840,75 +1322,6 @@ export default function BundleDetailPage() {
                       <span className="text-sm sm:text-base text-gray-700">User manual and guides</span>
                     </li>
                   </ul>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="contents" className="mt-8">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-bold text-gray-900">Bundle Contents</h2>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Package className="w-5 h-5" />
-                  <span>{bundle.items?.length || 0} items included</span>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                <div className="p-6">
-                  <div className="grid grid-cols-1 gap-6">
-                    {bundle.items?.map((item, index) => (
-                      <div key={index} className="flex items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                        <div className="w-20 h-20 bg-white rounded-lg mr-6 flex items-center justify-center shadow-sm">
-                    <Image
-                      src={item.image || "/images/placeholder.svg"}
-                      alt={item.name}
-                            width={60}
-                            height={60}
-                      className="object-contain"
-                    />
-                  </div>
-                  <div className="flex-grow">
-                          <h3 className="font-semibold text-gray-900 mb-1">{item.name}</h3>
-                          <p className="text-sm text-gray-600">Individual item</p>
-                  </div>
-                  <div className="text-right">
-                          <div className="font-bold text-lg">
-                            <SaudiRiyal amount={item.price} size="sm" />
-                          </div>
-                          <div className="text-sm text-gray-500">1x included</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-                  <div className="mt-8 pt-6 border-t border-gray-200">
-                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6">
-                      <div className="flex justify-between items-center mb-4">
-                        <div className="text-lg font-semibold text-gray-900">Total Individual Value:</div>
-                        <div className="text-2xl font-bold text-gray-900">
-                          <SaudiRiyal amount={bundle.originalPrice || bundle.price} size="lg" />
-                        </div>
-              </div>
-              {bundle.originalPrice && (
-                        <div className="flex justify-between items-center mb-4">
-                          <div className="text-lg font-semibold text-[#12d6fa]">Bundle Price:</div>
-                          <div className="text-2xl font-bold text-[#12d6fa]">
-                            <SaudiRiyal amount={bundle.price} size="lg" />
-                          </div>
-                </div>
-              )}
-                      {savingsAmount > 0 && (
-                        <div className="flex justify-between items-center">
-                          <div className="text-lg font-semibold text-green-600">You Save:</div>
-                          <div className="text-2xl font-bold text-green-600">
-                            <SaudiRiyal amount={savingsAmount} size="lg" />
-            </div>
-          </div>
-                      )}
-        </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -1091,16 +1504,16 @@ export default function BundleDetailPage() {
 
               {/* Reviews List */}
               <div className="space-y-4">
-                {filteredReviews().map((review, index) => (
+                {filteredReviews.map((review, index) => (
                   <Card key={index}>
                     <CardContent className="p-6">
                       <div className="flex items-start space-x-4">
                         <div className="w-10 h-10 bg-[#12d6fa] rounded-full flex items-center justify-center text-white font-semibold">
-                          {review.name?.charAt(0) || 'U'}
+                          {review.user?.charAt(0) || 'U'}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
-                            <h4 className="font-semibold">{review.name || 'Anonymous'}</h4>
+                            <h4 className="font-semibold">{review.user || 'Anonymous'}</h4>
                             <div className="flex">
                               {[...Array(5)].map((_, i) => (
                                 <Star
@@ -1180,12 +1593,69 @@ export default function BundleDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {bundle.items?.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-sm">{item.name}</span>
+                  {loading ? (
+                    // Loading skeleton for bundle items
+                    Array.from({ length: 4 }).map((_, index) => (
+                      <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg animate-pulse">
+                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0"></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                        <div className="w-5 h-5 bg-gray-200 rounded-full flex-shrink-0"></div>
+                      </div>
+                    ))
+                  ) : bundle.items?.length > 0 ? (
+                    <>
+                      {bundle.items.map((item, index) => (
+                        <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                          <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200">
+                            <Package className="w-6 h-6 text-gray-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm text-gray-900 truncate">{item.name}</div>
+                            {item.price && (
+                              <div className="text-xs text-gray-600">
+                                <SaudiRiyal amount={item.price} size="sm" />
+                              </div>
+                            )}
+                          </div>
+                          <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        </div>
+                      ))}
+                      <div className="mt-4 pt-3 border-t border-gray-200">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="font-medium text-gray-700">Total Value:</span>
+                          <span className="font-bold text-[#12d6fa]">
+                            <SaudiRiyal 
+                              amount={bundle.items.reduce((total, item) => total + (item.price || 0), 0)} 
+                              size="sm" 
+                            />
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm mt-1">
+                          <span className="text-gray-600">Bundle Price:</span>
+                          <span className="font-bold text-green-600">
+                            <SaudiRiyal amount={bundle.price} size="sm" />
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm mt-1 font-medium">
+                          <span className="text-gray-700">You Save:</span>
+                          <span className="text-green-600">
+                            <SaudiRiyal 
+                              amount={bundle.items.reduce((total, item) => total + (item.price || 0), 0) - bundle.price} 
+                              size="sm" 
+                            />
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Package className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p className="text-sm">No bundle items information available</p>
                     </div>
-                  ))}
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -1299,104 +1769,6 @@ export default function BundleDetailPage() {
         </Tabs>
 
 
-        {/* Benefits Section */}
-        <section className="py-16 bg-gradient-to-b from-white to-[#f3f3f3] mb-16">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-black font-montserrat mb-4 tracking-tight">
-                Bundle Benefits
-              </h2>
-              <p className="text-lg md:text-xl text-gray-600 font-noto-sans max-w-2xl mx-auto">
-                Why choose our bundles for your sparkling drink needs
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {bundleBenefits.map((benefit) => (
-                <div
-                  key={benefit.id}
-                  className="bg-white rounded-2xl h-[280px] flex items-center justify-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg"
-                >
-                  <div className="text-center p-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                      {benefit.icon}
-                    </div>
-                    <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">{benefit.title}</h3>
-                    <p className="text-gray-600 text-base leading-relaxed font-noto-sans">{benefit.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works Section */}
-        <section className="py-16 bg-gradient-to-b from-[#f3f3f3] to-white mb-16">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-black font-montserrat mb-4 tracking-tight">
-                How to Use Your Bundle
-              </h2>
-              <p className="text-lg md:text-xl text-gray-600 font-noto-sans max-w-2xl mx-auto">
-                Simple steps to start making sparkling drinks
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg">
-                <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <span className="text-3xl font-bold text-[#12d6fa] font-montserrat">1</span>
-                </div>
-                <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">Unbox & Setup</h3>
-                <p className="text-gray-600 text-base leading-relaxed font-noto-sans">
-                  Unpack your bundle and follow the quick setup guide
-                </p>
-            </div>
-            
-              <div className="bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg">
-                <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <span className="text-3xl font-bold text-[#12d6fa] font-montserrat">2</span>
-                </div>
-                <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">Add Water & CO2</h3>
-                <p className="text-gray-600 text-base leading-relaxed font-noto-sans">
-                  Fill with water and carbonate using the included CO2 cylinder
-                </p>
-              </div>
-
-              <div className="bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg">
-                <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <span className="text-3xl font-bold text-[#12d6fa] font-montserrat">3</span>
-                </div>
-                <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">Add Flavor & Enjoy</h3>
-                <p className="text-gray-600 text-base leading-relaxed font-noto-sans">
-                  Mix in your favorite flavor and enjoy refreshing sparkling drinks
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* FAQ Section */}
-        <section className="py-16 bg-white mb-16">
-          <div className="max-w-7xl mx-auto px-4">
-            <header className="text-center max-w-2xl mx-auto mb-12">
-              <h2 className="font-bold text-black text-3xl md:text-4xl mb-4 tracking-tight">Bundle FAQ</h2>
-              <p className="font-semibold text-black text-lg md:text-xl">All the answers to your bundle questions</p>
-            </header>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {bundleFAQ.map((card) => (
-                <div
-                  key={card.id}
-                  className="bg-white rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-gray-200"
-                >
-                  <h3 className="text-lg font-bold text-black mb-3 tracking-tight">{card.question}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{card.answer}</p>
-                </div>
-              ))}
-          </div>
-        </div>
-        </section>
 
         {/* Enhanced Related Products */}
         <div className="mb-12">
@@ -1419,18 +1791,138 @@ export default function BundleDetailPage() {
           </div>
         </div>
 
-        {/* Reviews Section */}
-        <FeedbackSection 
-          rating={bundle.averageRating} 
-          reviewCount={bundle.reviewCount} 
-          reviews={reviews} 
-          bundleId={bundle._id}
-          onReviewAdded={() => {
-            // Refresh bundle data to get updated reviews
-            fetchBundle()
-          }}
-        />
-      </div>
+        {/* Enhanced Modals and Dialogs */}
+
+        {/* Media Gallery Modal */}
+        <Dialog open={showImageGallery} onOpenChange={setShowImageGallery}>
+          <DialogContent className="max-w-4xl max-h-[90vh] p-0 w-[95vw] sm:w-full">
+            <div className="relative">
+              {isShowingVideo ? (
+                <div className="w-full h-[60vh] sm:h-[80vh]">
+                  {mediaArray[selectedImage] && isYouTubeUrl(mediaArray[selectedImage].url) ? (
+                    <YouTubeVideo
+                      videoUrl={mediaArray[selectedImage].url}
+                      title={`${bundle.name} - Bundle Video`}
+                      className="w-full h-full"
+                      showThumbnail={false}
+                      autoplay={true}
+                      controls={true}
+                    />
+                  ) : (
+                    <video
+                      className="w-full h-full object-contain"
+                      controls
+                      autoPlay
+                      poster="/placeholder.svg"
+                    >
+                      <source src={mediaArray[selectedImage]?.url} type="video/mp4" />
+                      <source src={mediaArray[selectedImage]?.url} type="video/webm" />
+                      <source src={mediaArray[selectedImage]?.url} type="video/ogg" />
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
+                </div>
+              ) : (
+                <img
+                  src={mediaArray[selectedImage]?.url || (bundle.images && bundle.images.length > 0 ? bundle.images[0] : "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png")}
+                  alt={bundle.name}
+                  className="w-full h-auto max-h-[80vh] object-contain"
+                />
+              )}
+              <Button
+                variant="outline"
+                size="icon"
+                className="absolute top-4 right-4 bg-white/80 hover:bg-white"
+                onClick={() => setShowImageGallery(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+
+              {mediaArray.length > 1 && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white"
+                    onClick={() => {
+                      const newIndex = selectedImage > 0 ? selectedImage - 1 : mediaArray.length - 1
+                      setSelectedImage(newIndex)
+                      setIsShowingVideo(mediaArray[newIndex]?.type === 'video')
+                    }}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white"
+                    onClick={() => {
+                      const newIndex = selectedImage < mediaArray.length - 1 ? selectedImage + 1 : 0
+                      setSelectedImage(newIndex)
+                      setIsShowingVideo(mediaArray[newIndex]?.type === 'video')
+                    }}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+
+              {/* Enhanced Thumbnails in Modal */}
+              {mediaArray.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 bg-black/50 rounded-lg p-2">
+                  {mediaArray.map((media, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setSelectedImage(index)
+                        setIsShowingVideo(media.type === 'video')
+                      }}
+                      className={`flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded border-2 transition-all duration-200 ${
+                        selectedImage === index
+                          ? "border-[#12d6fa] scale-110"
+                          : "border-white/50 hover:border-white"
+                      }`}
+                    >
+                      {media.type === 'video' ? (
+                        <>
+                          {isYouTubeUrl(media.url) ? (
+                            <img
+                              src={`${process.env.NEXT_PUBLIC_YOUTUBE_THUMBNAIL_BASE || 'https://img.youtube.com/vi'}/${getYouTubeVideoId(media.url)}/mqdefault.jpg`}
+                              alt="Video thumbnail"
+                              className="w-full h-full object-cover rounded"
+                            />
+                          ) : (
+                            <video
+                              className="w-full h-full object-cover rounded"
+                              muted
+                            >
+                              <source src={media.url} type="video/mp4" />
+                              <source src={media.url} type="video/webm" />
+                              <source src={media.url} type="video/ogg" />
+                            </video>
+                          )}
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded">
+                            <Play className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <img
+                          src={media.url || "/placeholder.svg"}
+                          alt={`${bundle.name} ${index + 1}`}
+                          className="w-full h-full object-cover rounded"
+                        />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+      
+        </div>
+      </TooltipProvider>
     </PageLayout>
   )
 }

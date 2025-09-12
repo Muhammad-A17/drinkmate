@@ -1,18 +1,64 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import type React from "react"
+
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
+import { useRouter, useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { useCart } from "@/lib/cart-context"
-import PageLayout from "@/components/layout/PageLayout"
-import { Star, Loader2, Check, Heart, Share2, Plus, Minus, Truck, Shield, Zap, Award, Users, Package, Recycle, Leaf, Gauge, Settings, Filter, X, ChevronLeft, ChevronRight, Maximize2, Bell, Clock, CheckCircle, AlertCircle, Info, Sparkles, TrendingUp, Calendar, MessageCircle, Play, Eye, ArrowLeft, ThumbsUp, ChevronDown, ChevronUp, Copy, Facebook, Twitter, ShoppingCart } from "lucide-react"
+import { Suspense } from "react"
 import { shopAPI } from "@/lib/api"
-import FeedbackSection from "@/components/product/FeedbackSection"
-import SaudiRiyal from "@/components/ui/SaudiRiyal"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useCart } from "@/lib/cart-context"
+import { useTranslation } from "@/lib/translation-context"
+import { Button } from "@/components/ui/button"
+import {
+  Plus,
+  Minus,
+  ShoppingCart,
+  Heart,
+  Share2,
+  ChevronRight,
+  ChevronLeft,
+  Star,
+  Check,
+  Shield,
+  Truck,
+  Award,
+  Clock,
+  Sparkles,
+  ArrowLeft,
+  Eye,
+  TrendingUp,
+  Maximize2,
+  Bell,
+  Copy,
+  Facebook,
+  Twitter,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  ThumbsUp,
+  Play,
+  MessageCircle,
+  Calendar,
+  Package,
+  Recycle,
+  Leaf,
+  Gauge,
+  Settings,
+  Filter,
+  X,
+  Zap,
+  AlertCircle,
+  Info,
+  Users,
+  CheckCircle,
+  Link2,
+  Instagram,
+  Youtube,
+  Video,
+} from "lucide-react"
+import PageLayout from "@/components/layout/PageLayout"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -23,110 +69,138 @@ import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "sonner"
+import SaudiRiyal from "@/components/ui/SaudiRiyal"
 
-// Define bundle type
-interface Bundle {
-  _id: string
+// Dynamic export to prevent static optimization
+export const dynamic = "force-dynamic"
+
+interface BundleItem {
+  product: string
   name: string
   price: number
-  originalPrice?: number
-  discount?: number
-  images: string[]
-  category: string
-  description: string
-  badge?: {
-    text: string
-    color: string
-  }
-  items: Array<{
-    product: string
-      name: string
-      price: number
-    image?: string
-  }>
-  stock: number
-  sku: string
-  averageRating: number
-  reviewCount: number
-  isLimited: boolean
-  isFeatured: boolean
+  image?: string
 }
 
-// FAQ data for bundles
-const bundleFAQ = [
-  {
-    id: 1,
-    question: "What's included in this flavor bundle?",
-    answer: "This bundle includes a curated selection of premium flavor syrups and concentrates. Check the 'Bundle Contents' section for a complete list of flavors.",
-  },
-  {
-    id: 2,
-    question: "How long do the flavors last?",
-    answer: "Our flavor syrups typically last 12-18 months when stored properly in a cool, dry place. Always check the expiration date on individual bottles.",
-  },
-  {
-    id: 3,
-    question: "Can I customize this bundle?",
-    answer: "While bundles are pre-configured for the best value, you can contact our support team to discuss customization options for your specific taste preferences.",
-  },
-  {
-    id: 4,
-    question: "Are the flavors sugar-free?",
-    answer: "We offer both regular and sugar-free options. Check individual product descriptions for specific nutritional information and dietary details.",
-  },
-]
+interface BundleProduct {
+  // Basic product fields
+  _id: string
+  id?: string
+  name: string
+  slug: string
+  description: string
+  shortDescription?: string
+  fullDescription?: string
+  price: number
+  originalPrice?: number
+  salePrice?: number
+  discount?: number
+  sku?: string
+  stock?: number
+  isActive?: boolean
+  isFeatured?: boolean
+  isBestSeller?: boolean
+  isNew?: boolean
+  isEcoFriendly?: boolean
+  averageRating?: number
+  rating?: number
+  reviewCount?: number
+  reviews?: number
+  totalReviews?: number
 
-// Benefits data for bundles
-const bundleBenefits = [
-  {
-    id: 1,
-    title: "Flavor Variety",
-    description: "Discover new taste combinations",
-    icon: (
-      <Sparkles className="w-7 h-7 text-[#12d6fa]" />
-    ),
-  },
-  {
-    id: 2,
-    title: "Premium Quality",
-    description: "High-grade flavor concentrates",
-    icon: (
-      <Award className="w-7 h-7 text-[#12d6fa]" />
-    ),
-  },
-  {
-    id: 3,
-    title: "Easy Mixing",
-    description: "Simple to use and measure",
-    icon: (
-      <Zap className="w-7 h-7 text-[#12d6fa]" />
-    ),
-  },
-  {
-    id: 4,
-    title: "Long Lasting",
-    description: "Extended shelf life and freshness",
-    icon: (
-      <Clock className="w-7 h-7 text-[#12d6fa]" />
-    ),
-  },
-]
+  // Category and classification
+  category: string | { _id: string; name: string; slug: string }
+  categoryId?: string
+  subcategory?: string
+  tags?: string[]
+
+  // SEO and marketing
+  seoTitle?: string
+  seoDescription?: string
+  badge?: string
+  brand?: string
+
+  // Media
+  image?: string
+  images?: (string | any)[] // Support both string and object formats
+
+  // Bundle-specific fields
+  items?: BundleItem[]
+  isLimited?: boolean
+
+  // Product details
+  features?: (string | any)[] // Support both string and object formats
+  specifications?: any[] | Record<string, any> // Support both array and object formats
+  safetyFeatures?: string[]
+  dimensions?: {
+    width: number
+    height: number
+    depth: number
+    weight: number
+  }
+  warranty?: string
+  certifications?: string[]
+  compatibility?: string[]
+  videos?: string[]
+  documents?: string[]
+}
+
+interface Review {
+  id: number
+  user: string
+  avatar: string
+  rating: number
+  date: string
+  verified: boolean
+  comment: string
+  helpful: number
+  images: string[]
+  pros: string[]
+  cons: string[]
+  wouldRecommend: boolean
+  purchaseVerified: boolean
+}
+
+interface QA {
+  id: number
+  category: string
+  question: string
+  answer: string
+  helpful: number
+  date: string
+  answeredBy: string
+  tags: string[]
+  isAnswered?: boolean
+}
+
+// Mock data removed - data will be fetched from API
 
 export default function BundleDetailPage() {
-  const { slug } = useParams() as { slug: string }
-  const { addItem, isInCart } = useCart()
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [bundle, setBundle] = useState<Bundle | null>(null)
-  const [activeImage, setActiveImage] = useState("")
-  const [reviews, setReviews] = useState<any[]>([])
-  
-  // Enhanced state management
+  const params = useParams()
+  const { t } = useTranslation()
+  const { addItem } = useCart()
+  const router = useRouter()
+
+  const productSlug = params?.slug as string
+  const [product, setProduct] = useState<BundleProduct | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [relatedProducts, setRelatedProducts] = useState<BundleProduct[]>([])
+  const [loadingRelated, setLoadingRelated] = useState(true)
+
+  // Enhanced state management with more features
+  const [selectedImage, setSelectedImage] = useState(0)
+  const [isShowingVideo, setIsShowingVideo] = useState(false)
   const [quantity, setQuantity] = useState(1)
+  const [isInCart, setIsInCart] = useState(false)
   const [isInWishlist, setIsInWishlist] = useState(false)
   const [activeTab, setActiveTab] = useState("description")
+  const [isZoomed, setIsZoomed] = useState(false)
+  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 })
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showNotifyMe, setShowNotifyMe] = useState(false)
+  const [expandedQA, setExpandedQA] = useState<number[]>([])
   const [notifyEmail, setNotifyEmail] = useState("")
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [newReview, setNewReview] = useState({
@@ -137,85 +211,173 @@ export default function BundleDetailPage() {
     cons: "",
     wouldRecommend: true,
   })
-  const [reviewFilter, setReviewFilter] = useState("all")
-  const [reviewSort, setReviewSort] = useState("newest")
-  const [cartAnimation, setCartAnimation] = useState(false)
-  const [wishlistAnimation, setWishlistAnimation] = useState(false)
-  
-  // Additional state for enhanced functionality
-  const [selectedImage, setSelectedImage] = useState(0)
-  const [isShowingVideo, setIsShowingVideo] = useState(false)
-  const [isZoomed, setIsZoomed] = useState(false)
-  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 })
-  const [expandedQA, setExpandedQA] = useState<number[]>([])
-  const [qaData, setQAData] = useState<any[]>([])
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [qaData, setQAData] = useState<QA[]>([])
   const [showQuestionForm, setShowQuestionForm] = useState(false)
   const [newQuestion, setNewQuestion] = useState({
     question: "",
-    category: "General",
+    category: "Usage & Features",
     tags: ""
   })
+
   const [showImageGallery, setShowImageGallery] = useState(false)
+  const [reviewFilter, setReviewFilter] = useState("all")
+  const [reviewSort, setReviewSort] = useState("newest")
   const [qaFilter, setQAFilter] = useState("all")
   const [isVideoMuted, setIsVideoMuted] = useState(true)
+  const [cartAnimation, setCartAnimation] = useState(false)
+  const [wishlistAnimation, setWishlistAnimation] = useState(false)
 
-  // Fetch bundle data
-  const fetchBundle = async () => {
-    try {
-      setIsLoading(true)
-      console.log('Fetching flavor bundle details for slug:', slug);
-      
-  const response = await shopAPI.getBundleFlexible(slug)
-      console.log('Flavor bundle fetch successful:', response.bundle?.name);
-      console.log('Bundle API Response:', response)
-      console.log('Bundle data:', response.bundle)
-      console.log('Bundle items:', response.bundle.items)
-      
-      setBundle(response.bundle)
-      setReviews(response.reviews || [])
-      
-      // Set default active image
-      if (response.bundle.images && response.bundle.images.length > 0) {
-        setActiveImage(response.bundle.images[0])
+  const toggleQA = useCallback((id: number) => {
+    setExpandedQA((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((qaId) => qaId !== id)
+      } else {
+        return [...prev, id]
       }
-      
+    })
+  }, [])
+
+  // Function to fetch related products
+  const fetchRelatedProducts = useCallback(async (currentProductId: string) => {
+    try {
+      setLoadingRelated(true)
+
+      // Get related bundles
+      const response = await shopAPI.getProducts({
+        category: 'bundles',
+        limit: 4,
+        exclude: currentProductId
+      });
+
+      if (response.success && response.products) {
+        // Process images to ensure they have absolute URLs
+        const processedProducts = response.products.map((bundle: BundleProduct) => {
+          // Handle case where image might be undefined or null
+          const safeImage = bundle.image || ''
+          const safeImages = bundle.images || []
+
+          return {
+            ...bundle,
+            // Ensure image URL is absolute
+            image: safeImage.startsWith('http') ? safeImage :
+                   safeImage.startsWith('/') ? `http://localhost:3000${safeImage}` :
+                   '/placeholder.svg',
+            // Ensure image URLs in arrays are absolute
+            images: safeImages.map((img: any) => {
+              const imageUrl = typeof img === 'string' ? img : img?.url || img
+              return imageUrl?.startsWith('http') ? imageUrl :
+                     imageUrl?.startsWith('/') ? `http://localhost:3000${imageUrl}` :
+                     '/placeholder.svg'
+            })
+          }
+        });
+
+        setRelatedProducts(processedProducts);
+      } else {
+        // No related products found
+        setRelatedProducts([]);
+      }
     } catch (error) {
-      console.error("Error fetching flavor bundle:", error)
-      setError("Failed to load bundle. Please try again later.")
+      // Error fetching related products - continue without them
+      // Set empty array on error
+      setRelatedProducts([]);
     } finally {
-      setIsLoading(false)
+      setLoadingRelated(false);
     }
-  }
+  }, [])
 
   useEffect(() => {
-    if (slug) {
-      fetchBundle()
-    }
-  }, [slug])
+    const fetchProduct = async () => {
+      try {
+        setLoading(true)
 
-  const handleAddToCart = () => {
-    if (!bundle) return
-    
+        // Get bundle product details using shopAPI
+        const response = await shopAPI.getBundleFlexible(productSlug);
+
+        // Handle API response format
+        if (response.success && response.bundle) {
+          const productData = response.bundle
+
+          // Ensure image URLs are absolute
+          const processedProduct = {
+            ...productData,
+            // Ensure image URL is absolute
+            image: productData.image?.startsWith('http') ? productData.image :
+                   productData.image?.startsWith('/') ? `http://localhost:3000${productData.image}` :
+                   '/placeholder.svg',
+            // Ensure image URLs in arrays are absolute
+            images: (productData.images || []).map((img: any) => {
+              const imageUrl = typeof img === 'string' ? img : img?.url || img
+              return imageUrl?.startsWith('http') ? imageUrl :
+                     imageUrl?.startsWith('/') ? `http://localhost:3000${imageUrl}` :
+                     '/placeholder.svg'
+            }),
+            // Add any missing properties with default values
+            specifications: productData.specifications || {},
+            videos: productData.videos || [],
+            documents: productData.documents || [],
+            certifications: productData.certifications || [],
+            dimensions: productData.dimensions || { width: 0, height: 0, depth: 0, weight: 0 },
+            compatibility: productData.compatibility || [],
+            safetyFeatures: productData.safetyFeatures || [],
+          }
+
+          setProduct(processedProduct)
+
+          // Fetch related products after getting the current product
+          fetchRelatedProducts(productData._id);
+        } else {
+          // Set empty product if API fails
+          setProduct(null)
+          setReviews([])
+          setQAData([])
+        }
+        setLoading(false)
+      } catch (error) {
+        console.error('Error fetching bundle:', error)
+        // Error fetching product - show error state
+        setProduct(null)
+        setReviews([])
+        setQAData([])
+        setLoading(false)
+      }
+    }
+
+    if (productSlug) {
+      fetchProduct()
+    }
+  }, [productSlug, fetchRelatedProducts])
+
+  const handleAddToCart = useCallback(() => {
+    if (!product) return
+
     setCartAnimation(true)
-    
-    // Add the bundle as a single item
+    setIsInCart(true)
+
+    // Add item to cart context
     addItem({
-      id: bundle._id,
-      name: bundle.name,
-      price: bundle.price,
+      id: product._id || product.id || productSlug,
+      name: product.name,
+      price: product.salePrice || product.price,
+      image: product.image || (() => {
+        const img = product.images?.[0]
+        return typeof img === 'string' ? img : img?.url || '/placeholder.svg'
+      })(),
       quantity: quantity,
-      image: bundle.images[0],
-      category: "bundle",
-      isBundle: true
+      category: 'bundles'
     })
-    
+
+    // Simulate cart API call
     setTimeout(() => {
       setCartAnimation(false)
+      // Navigate to cart page
+      router.push('/cart')
     }, 1000)
-  }
+  }, [product, quantity, addItem, router])
 
-  const handleAddToWishlist = () => {
-    if (!bundle) return
+  const handleAddToWishlist = useCallback(() => {
+    if (!product) return
 
     setWishlistAnimation(true)
     setIsInWishlist(!isInWishlist)
@@ -223,62 +385,235 @@ export default function BundleDetailPage() {
     setTimeout(() => {
       setWishlistAnimation(false)
     }, 500)
-  }
+  }, [product, isInWishlist])
 
-  const handleQuantityChange = (change: number) => {
-    const newQuantity = Math.max(1, Math.min(bundle?.stock || 1, quantity + change))
-    setQuantity(newQuantity)
-  }
+  const handleQuantityChange = useCallback(
+    (change: number) => {
+      const newQuantity = Math.max(1, Math.min(product?.stock || 1, quantity + change))
+      setQuantity(newQuantity)
+    },
+    [quantity, product?.stock],
+  )
 
-  const handleShare = (platform: string) => {
-    if (!bundle) return
-    const url = typeof window !== "undefined" ? window.location.href : ""
-    const text = `Check out this amazing ${bundle.name} - ${bundle.description.substring(0, 100)}...`
+  // Create combined media array (images + videos)
+  const combinedMedia = useMemo(() => {
+    const media: Array<{ type: 'image' | 'video', src: string, index: number }> = []
 
-    switch (platform) {
-      case "facebook":
-        if (typeof window !== "undefined") {
-          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`)
-        }
-        break
-      case "twitter":
-        if (typeof window !== "undefined") {
-          window.open(
-            `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-          )
-        }
-        break
-      case "whatsapp":
-        if (typeof window !== "undefined") {
-          window.open(`https://wa.me/?text=${encodeURIComponent(text + " " + url)}`)
-        }
-        break
-      case "copy":
-        if (typeof window !== "undefined" && navigator.clipboard) {
-          navigator.clipboard.writeText(url)
-          alert("Link copied to clipboard!")
-        }
-        break
+    // Add images
+    if (product?.images) {
+      product.images.forEach((image, index) => {
+        const imageUrl = typeof image === 'string' ? image : image?.url || ''
+        media.push({ type: 'image', src: imageUrl, index })
+      })
     }
-    setShowShareMenu(false)
-  }
 
-  const stockMessage = () => {
-    if (!bundle) return "In stock"
-    if (bundle.stock === 0) return "Out of stock"
-    if (bundle.stock <= 5) return `Only ${bundle.stock} left in stock!`
-    if (bundle.stock <= 10) return `${bundle.stock} in stock`
+    // Add videos
+    if (product?.videos) {
+      product.videos.forEach((video, index) => {
+        media.push({ type: 'video', src: video, index })
+      })
+    }
+
+    return media
+  }, [product?.images, product?.videos])
+
+  const handleImageSelect = useCallback((index: number) => {
+    setSelectedImage(index)
+    const media = combinedMedia[index]
+    setIsShowingVideo(media?.type === 'video')
+  }, [combinedMedia])
+
+  const handleImageZoom = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = ((e.clientX - rect.left) / rect.width) * 100
+    const y = ((e.clientY - rect.top) / rect.height) * 100
+    setZoomPosition({ x, y })
+  }, [])
+
+  const handleShare = useCallback(
+    (platform: string) => {
+      if (!product) return
+      const url = typeof window !== "undefined" ? window.location.href : ""
+      const text = `Check out this amazing ${product.name} - ${product.description?.substring(0, 100) || 'No description available'}...`
+
+      switch (platform) {
+        case "facebook":
+          if (typeof window !== "undefined") {
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`)
+          }
+          break
+        case "twitter":
+          if (typeof window !== "undefined") {
+            window.open(
+              `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+            )
+          }
+          break
+        case "whatsapp":
+          if (typeof window !== "undefined") {
+            window.open(`https://wa.me/?text=${encodeURIComponent(text + " " + url)}`)
+          }
+          break
+        case "linkedin":
+          if (typeof window !== "undefined") {
+            window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`)
+          }
+          break
+        case "instagram":
+          if (typeof window !== "undefined" && navigator.clipboard) {
+            navigator.clipboard.writeText(url)
+            alert("Link copied to clipboard! You can now share it on Instagram.")
+          }
+          break
+        case "copy":
+          if (typeof window !== "undefined" && navigator.clipboard) {
+            navigator.clipboard.writeText(url)
+            alert("Link copied to clipboard!")
+          }
+          break
+      }
+      setShowShareMenu(false)
+    },
+    [product],
+  )
+
+  const handleSubmitReview = useCallback(async () => {
+    if (!newReview.comment.trim() || !newReview.name.trim()) {
+      alert("Please fill in all required fields")
+      return
+    }
+
+    if (!product) {
+      alert("Product not found")
+      return
+    }
+
+    try {
+      // Submit review to API
+      const reviewData = {
+        rating: newReview.rating,
+        comment: newReview.comment,
+        name: newReview.name,
+        pros: newReview.pros
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean),
+        cons: newReview.cons
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean),
+        wouldRecommend: newReview.wouldRecommend,
+      }
+
+      // For now, we'll add it locally since we don't have a review API endpoint yet
+      const review = {
+        id: Date.now(),
+        user: newReview.name,
+        avatar: "/diverse-user-avatars.png",
+        rating: newReview.rating,
+        date: new Date().toISOString().split("T")[0],
+        verified: false,
+        comment: newReview.comment,
+        helpful: 0,
+        images: [],
+        pros: reviewData.pros,
+        cons: reviewData.cons,
+        wouldRecommend: newReview.wouldRecommend,
+        purchaseVerified: false,
+      }
+
+      setReviews([review, ...reviews])
+      setNewReview({ rating: 5, comment: "", name: "", pros: "", cons: "", wouldRecommend: true })
+      setShowReviewForm(false)
+      alert("Thank you for your review! It will be published after moderation.")
+    } catch (error) {
+      console.error('Error submitting review:', error)
+      alert("Failed to submit review. Please try again.")
+    }
+  }, [newReview, reviews, product])
+
+  const handleSubmitQuestion = useCallback(() => {
+    if (!newQuestion.question.trim()) {
+      alert("Please enter your question")
+      return
+    }
+
+    // For now, we'll add it locally since we don't have a Q&A API endpoint yet
+    const question = {
+      id: Date.now(),
+      category: newQuestion.category,
+      question: newQuestion.question,
+      answer: "",
+      helpful: 0,
+      date: new Date().toISOString().split("T")[0],
+      answeredBy: "",
+      tags: newQuestion.tags.split(",").map((t) => t.trim()).filter(Boolean),
+      isAnswered: false,
+    }
+
+    setQAData([question, ...qaData])
+    setNewQuestion({
+      question: "",
+      category: "Usage & Features",
+      tags: ""
+    })
+    setShowQuestionForm(false)
+    alert("Thank you for your question! We'll get back to you soon.")
+  }, [newQuestion, qaData])
+
+  const stockMessage = useMemo(() => {
+    if (!product || product.stock === undefined || product.stock === null) return "In stock"
+    if (product.stock === 0) return "Out of stock"
+    if (product.stock <= 5) return `Only ${product.stock} left in stock!`
+    if (product.stock <= 10) return `${product.stock} in stock`
     return "In stock"
-  }
+  }, [product?.stock])
 
-  const getStockColor = () => {
-    if (!bundle) return "text-green-600"
-    if (bundle.stock === 0) return "text-red-600"
-    if (bundle.stock <= 5) return "text-orange-600"
+  const getStockColor = useCallback(() => {
+    if (!product || product.stock === undefined || product.stock === null) return "text-green-600"
+    if (product.stock === 0) return "text-red-600"
+    if (product.stock <= 5) return "text-orange-600"
     return "text-green-600"
-  }
+  }, [product])
 
-  const filteredReviews = () => {
+  const getDeliveryDate = useMemo(() => {
+    const today = new Date()
+    const deliveryDate = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000)
+    return deliveryDate.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })
+  }, [])
+
+  const getServiceTypeText = useCallback((type: string) => {
+    switch (type) {
+      case "new":
+        return "New Product"
+      case "refurbished":
+        return "Refurbished"
+      case "subscription":
+        return "Subscription Service"
+      default:
+        return "Product Service"
+    }
+  }, [])
+
+  const getCapacityText = useCallback((capacity: number) => {
+    return `${capacity} units capacity`
+  }, [])
+
+  const calculateSavings = useCallback(() => {
+    if (!product) return 0
+    const originalPrice = product.originalPrice || product.price
+    const currentPrice = product.salePrice || product.price
+    return originalPrice - currentPrice
+  }, [product])
+
+  const getEstimatedUsage = useCallback(() => {
+    if (!product) return ""
+    const weeksLow = Math.floor((product.stock || 10) / 20)
+    const weeksHigh = Math.floor((product.stock || 10) / 10)
+    return `${weeksLow}-${weeksHigh} weeks`
+  }, [product])
+
+  const filteredReviews = useCallback(() => {
     let filtered = reviews
 
     if (reviewFilter !== "all") {
@@ -294,1143 +629,1404 @@ export default function BundleDetailPage() {
       case "highest":
         return filtered.sort((a, b) => b.rating - a.rating)
       case "lowest":
-        return filtered.sort((a, b) => a.rating - b.rating)
+        return filtered.sort((a, b) => a.rating - a.rating)
       case "helpful":
         return filtered.sort((a, b) => b.helpful - a.helpful)
       default:
         return filtered
     }
-  }
+  }, [reviews, reviewFilter, reviewSort])
 
-  // Function to render star ratings
-  const renderStars = (rating: number) => {
-    const stars = []
-    for (let i = 0; i < 5; i++) {
-      stars.push(
-        <Star
-          key={i}
-          className={`w-4 h-4 ${
-            i < Math.floor(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-          }`}
-        />
-      )
-    }
-    return <div className="flex">{stars}</div>
-  }
+  const filteredQA = useCallback(() => {
+    if (qaFilter === "all") return qaData
+    return qaData.filter((qa) => qa.category === qaFilter)
+  }, [qaData, qaFilter])
 
-  if (isLoading) {
+  // Show enhanced loading state
+  if (loading) {
     return (
-      <PageLayout currentPage="shop-flavor">
-        <div className="container mx-auto px-4 py-12">
-          <div className="flex flex-col items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-[#12d6fa] mb-4" />
-            <p className="text-gray-600">Loading bundle...</p>
+      <PageLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#12d6fa] mx-auto"></div>
+              <div className="text-lg font-medium">Loading premium bundle details...</div>
+              <div className="text-sm text-muted-foreground">Preparing the best experience for you</div>
+            </div>
           </div>
         </div>
       </PageLayout>
     )
   }
 
-  if (error || !bundle) {
+  // Show error if product not found
+  if (!product) {
     return (
-      <PageLayout currentPage="shop-flavor">
-        <div className="container mx-auto px-4 py-12">
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-8">
-            {error || "Bundle not found"}
+      <PageLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center space-y-4">
+              <AlertCircle className="w-16 h-16 text-red-500 mx-auto" />
+              <h1 className="text-2xl font-bold">Bundle Not Found</h1>
+              <p className="text-gray-600 mb-4">The bundle you're looking for doesn't exist or has been removed.</p>
+              <Link href="/shop/flavor/bundles" className="inline-flex items-center text-[#12d6fa] hover:text-[#0fb8d9] font-medium">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Bundles
+              </Link>
+            </div>
           </div>
-          <Link href="/shop/flavor" className="text-blue-600 hover:underline">
-            &larr; Back to Flavors
-          </Link>
         </div>
       </PageLayout>
     )
   }
-
-  // Calculate discount percentage
-  const discountPercentage = bundle.originalPrice 
-    ? Math.round(((bundle.originalPrice - bundle.price) / bundle.originalPrice) * 100) 
-    : 0
-
-  // Calculate savings amount
-  const savingsAmount = bundle.originalPrice 
-    ? bundle.originalPrice - bundle.price
-    : 0
 
   return (
-    <PageLayout currentPage="shop-flavor">
-      <div className="container mx-auto px-4 py-8">
-        {/* Enhanced Back Button with breadcrumb */}
-        <div className="mb-6 space-y-4">
-          <Link
-            href="/shop/flavor"
-            className="inline-flex items-center text-[#12d6fa] hover:text-[#0fb8d9] transition-all duration-200 hover:translate-x-1"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Flavors
-          </Link>
-
-          {/* Enhanced Breadcrumb */}
-          <nav className="text-sm text-muted-foreground flex items-center space-x-2">
-            <Link href="/" className="hover:text-[#12d6fa] transition-colors">
-              Home
-            </Link>
-            <ChevronRight className="w-3 h-3" />
-            <Link href="/shop/flavor" className="hover:text-[#12d6fa] transition-colors">
-              Flavors
-            </Link>
-            <ChevronRight className="w-3 h-3" />
-            <Link href="/shop/flavor" className="hover:text-[#12d6fa] transition-colors">
-              Bundles
-            </Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-foreground font-medium">{bundle.name}</span>
-          </nav>
-        </div>
-
-        <div className="flex gap-8">
-          {/* Enhanced Sidebar Controls */}
-          <div className="w-16 flex flex-col space-y-4">
-            {/* Favorite Button */}
-            <button
-              className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
-              onClick={() => alert("Wishlist feature coming soon!")}
-              aria-label="Add to favorites"
+    // Type assertion: product is guaranteed to exist here since we checked earlier
+    <PageLayout>
+      <TooltipProvider>
+        <div className="container mx-auto px-4 py-8">
+          {/* Enhanced Back Button with breadcrumb */}
+          <div className="mb-6 space-y-4">
+            <Link
+              href="/shop/flavor/bundles"
+              className="inline-flex items-center text-[#12d6fa] hover:text-[#0fb8d9] transition-all duration-200 hover:translate-x-1"
             >
-              <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            </button>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Flavor Bundles
+            </Link>
 
-            {/* Share Button */}
-            <button
-              className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
-              onClick={() => alert("Share feature coming soon!")}
-              aria-label="Share product"
-            >
-              <Share2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            </button>
-
-            {/* Compare Button */}
-            <button
-              className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
-              onClick={() => alert("Compare feature coming soon!")}
-              aria-label="Compare products"
-            >
-              <TrendingUp className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            </button>
+            {/* Enhanced Breadcrumb */}
+            <nav className="text-sm text-muted-foreground flex items-center space-x-2">
+              <Link href="/" className="hover:text-[#12d6fa] transition-colors">
+                Home
+              </Link>
+              <ChevronRight className="w-3 h-3" />
+              <Link href="/shop" className="hover:text-[#12d6fa] transition-colors">
+                Shop
+              </Link>
+              <ChevronRight className="w-3 h-3" />
+              <Link href="/shop/flavor/bundles" className="hover:text-[#12d6fa] transition-colors">
+                Flavor Bundles
+              </Link>
+              <ChevronRight className="w-3 h-3" />
+              <span className="text-foreground font-medium">{product.name}</span>
+            </nav>
           </div>
 
-          {/* Main Content Area */}
-          <div className="flex-1">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
-              {/* Enhanced Bundle Images */}
-              <div className="space-y-4">
-                <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden shadow-lg">
-              <Image
-                    src={activeImage || (bundle.images && bundle.images.length > 0 ? bundle.images[0] : "/images/placeholder.svg")}
-                alt={bundle.name}
-                    fill
-                    className="object-contain"
-                  />
-                  
-                  {/* Enhanced Badges */}
-                  <div className="absolute top-4 left-4 flex flex-col space-y-2">
-                    {bundle.originalPrice && bundle.originalPrice > bundle.price && (
-                      <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
-                        {discountPercentage}% OFF
-                      </span>
-                    )}
-                    {bundle.isFeatured && (
-                      <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
-                        <Award className="w-3 h-3 mr-1 inline" />
-                        Featured
-                      </span>
-                    )}
-                    {bundle.isLimited && (
-                      <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
-                        <Clock className="w-3 h-3 mr-1 inline" />
-                        Limited
-                      </span>
-                    )}
-                  </div>
-            </div>
-            
-            {/* Thumbnail images */}
-            {bundle.images && bundle.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
-                {bundle.images.map((image, index) => (
-                  <div 
-                    key={index}
-                        className={`border-2 rounded-lg p-2 cursor-pointer transition-all duration-200 ${
-                          activeImage === image ? 'border-[#12d6fa] shadow-md' : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => setActiveImage(image)}
+          <div className="flex gap-8">
+            {/* Enhanced Sidebar Controls */}
+            <div className="w-16 flex flex-col space-y-4">
+              {/* 3D View Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
+                    onClick={() => alert("3D View coming soon!")}
+                    aria-label="View product in 3D"
                   >
-                    <Image
-                          src={image}
-                          alt={bundle.name}
-                      width={80}
-                      height={80}
-                          className="object-contain h-16 w-full rounded"
+                    <svg
+                      className="w-5 h-5 group-hover:scale-110 transition-transform"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>360° 3D View</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Enhanced Favorite Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-200 group ${
+                      isInWishlist
+                        ? "border-[#12d6fa] bg-[#12d6fa] text-white shadow-lg"
+                        : "border-gray-300 hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white"
+                    } ${wishlistAnimation ? "animate-pulse" : ""}`}
+                    onClick={handleAddToWishlist}
+                    aria-label={isInWishlist ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <Heart
+                      className={`w-5 h-5 group-hover:scale-110 transition-transform ${isInWishlist ? "fill-current" : ""}`}
                     />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-              {/* Enhanced Bundle Info */}
-              <div className="space-y-6">
-          <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{bundle.name}</h1>
-            
-            <div className="flex items-center gap-2 mb-4">
-                    {renderStars(bundle.averageRating || 4.8)}
-              <span className="text-sm text-gray-600">({bundle.reviewCount || 0} Reviews)</span>
-            </div>
-            
-                  <div className="mb-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-3xl font-bold text-gray-900">
-                        <SaudiRiyal amount={bundle.price} size="lg" />
-                      </span>
-                {bundle.originalPrice && (
-                  <>
-                          <span className="text-gray-400 text-lg line-through">
-                            <SaudiRiyal amount={bundle.originalPrice} size="lg" />
-                    </span>
-                  </>
-                )}
-              </div>
-              {savingsAmount > 0 && (
-                      <div className="text-green-600 font-medium">
-                        You save: <SaudiRiyal amount={savingsAmount} size="sm" />
-                </div>
-              )}
-            </div>
-            
-                  <p className="text-gray-700 mb-6 leading-relaxed">{bundle.description}</p>
-                  
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-                <Check className="w-4 h-4 text-green-500" />
-                    <span>In Stock ({bundle.stock} available)</span>
-              </div>
-            </div>
-            
-                {/* Enhanced Pricing */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
-                  <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#12d6fa]">
-                    <SaudiRiyal amount={bundle.price} size="lg" />
-                  </span>
-                  {bundle.originalPrice && bundle.originalPrice > bundle.price && (
-                    <div className="flex items-center gap-2 sm:gap-4">
-                      <span className="text-lg sm:text-xl text-muted-foreground line-through">
-                        <SaudiRiyal amount={bundle.originalPrice} size="md" />
-                      </span>
-                      <Badge className="bg-green-100 text-green-800 border-green-200 text-xs sm:text-sm">
-                        Save <SaudiRiyal amount={savingsAmount} size="sm" />
-                      </Badge>
-                    </div>
-                  )}
-                </div>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}</p>
+                </TooltipContent>
+              </Tooltip>
 
-                {/* Enhanced Stock and Badges */}
-                <div className="flex items-center flex-wrap gap-2 mb-6">
-                  <Badge variant={bundle.stock > 0 ? "default" : "destructive"} className={`${getStockColor()} text-xs sm:text-sm`}>
-                    <Package className="w-3 h-3 mr-1" />
-                    {stockMessage()}
-                  </Badge>
-                  <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs sm:text-sm">
-                    <Truck className="w-3 h-3 mr-1" />
-                    Free Shipping
-                  </Badge>
-                  {bundle.isFeatured && (
-                    <Badge variant="outline" className="border-amber-200 text-amber-700 text-xs sm:text-sm">
-                      <Award className="w-3 h-3 mr-1" />
-                      Featured
-                    </Badge>
-                  )}
-                  <Badge variant="outline" className="border-blue-200 text-blue-700 text-xs sm:text-sm">
-                    <Clock className="w-3 h-3 mr-1" />
-                    Flavor Bundle
-                  </Badge>
-                </div>
+              {/* Compare Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
+                        onClick={() => {}}
+                    aria-label="Compare products"
+                  >
+                    <TrendingUp className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Compare Products</p>
+                </TooltipContent>
+              </Tooltip>
 
-                {/* Enhanced Quantity and Actions */}
+              {/* Quick View Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
+                        onClick={() => {}}
+                    aria-label="Quick view product details"
+                  >
+                    <Eye className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Quick View</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
+                {/* Enhanced Product Images */}
                 <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="flex items-center border-2 border-gray-200 rounded-lg hover:border-[#12d6fa] transition-colors w-fit">
-                      <button
-                        onClick={() => handleQuantityChange(-1)}
-                        className="p-2 sm:p-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={quantity <= 1}
-                        aria-label="Decrease quantity"
-                      >
-                        <Minus className="w-4 h-4" />
-                      </button>
-                      <span className="px-4 sm:px-6 py-2 sm:py-3 font-semibold text-base sm:text-lg min-w-[50px] sm:min-w-[60px] text-center">{quantity}</span>
-                      <button
-                        onClick={() => handleQuantityChange(1)}
-                        className="p-2 sm:p-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={quantity >= (bundle.stock || 1)}
-                        aria-label="Increase quantity"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
+                  <div
+                    className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden cursor-zoom-in group shadow-lg"
+                    onMouseEnter={() => !isShowingVideo && setIsZoomed(true)}
+                    onMouseLeave={() => setIsZoomed(false)}
+                    onMouseMove={!isShowingVideo ? handleImageZoom : undefined}
+                    onClick={() => setShowImageGallery(true)}
+                  >
+                    {isShowingVideo ? (
+                      <div className="w-full h-full">
+                        <video
+                          className="w-full h-full object-cover"
+                          controls
+                          poster="/placeholder.svg"
+                        >
+                          <source src={combinedMedia[selectedImage]?.src} type="video/mp4" />
+                          <source src={combinedMedia[selectedImage]?.src} type="video/webm" />
+                          <source src={combinedMedia[selectedImage]?.src} type="video/ogg" />
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    ) : (
+                      <img
+                        src={(() => {
+                          const img = product.images?.[selectedImage]
+                          return typeof img === 'string' ? img : img?.url || "/placeholder.svg"
+                        })()}
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                      />
+                    )}
+
+                    {/* Enhanced Badges */}
+                    <div className="absolute top-4 left-4 flex flex-col space-y-2">
+                      {/* @ts-ignore - product exists at this point since we checked earlier */}
+                      {(product.originalPrice || product.salePrice) && (product.originalPrice || product.salePrice) > (product.salePrice || product.price) && (
+                        <Badge className="bg-red-500 text-white shadow-lg animate-pulse">
+                          {/* @ts-ignore */}
+                          {product.discount || Math.round(((product.originalPrice || product.salePrice) - (product.salePrice || product.price)) / (product.originalPrice || product.salePrice) * 100)}% OFF
+                        </Badge>
+                      )}
+                      {product.isBestSeller && (
+                        <Badge className="bg-amber-500 text-white shadow-lg">
+                          <Award className="w-3 h-3 mr-1" />
+                          Best Seller
+                        </Badge>
+                      )}
+                      {product.isNew && (
+                        <Badge className="bg-green-500 text-white shadow-lg">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          New
+                        </Badge>
+                      )}
+                      {product.isEcoFriendly && (
+                        <Badge className="bg-emerald-500 text-white shadow-lg">
+                          <Leaf className="w-3 h-3 mr-1" />
+                          Eco-Friendly
+                        </Badge>
+                      )}
+                      {product.isLimited && (
+                        <Badge className="bg-purple-500 text-white shadow-lg">
+                          <Clock className="w-3 h-3 mr-1" />
+                          Limited Edition
+                        </Badge>
+                      )}
                     </div>
 
-                    <div className="text-sm text-muted-foreground">
-                      <div>
-                        Total:{" "}
-                        <span className="font-semibold text-base sm:text-lg text-[#12d6fa]">
-                          <SaudiRiyal amount={bundle.price * quantity} size="md" />
+                    {/* Zoom Indicator */}
+                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-black/50 text-white p-2 rounded-full">
+                        <Maximize2 className="w-4 h-4" />
+                      </div>
+                    </div>
+
+                    {/* Image Navigation */}
+                    {combinedMedia.length > 1 && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const newIndex = selectedImage > 0 ? selectedImage - 1 : combinedMedia.length - 1
+                            handleImageSelect(newIndex)
+                          }}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
+                          aria-label="Previous media"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const newIndex = selectedImage < combinedMedia.length - 1 ? selectedImage + 1 : 0
+                            handleImageSelect(newIndex)
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
+                          aria-label="Next media"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Enhanced Media Thumbnails */}
+                  <div className="flex space-x-2 overflow-x-auto pb-2">
+                    {combinedMedia.map((media, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleImageSelect(index)}
+                        className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 relative ${
+                          selectedImage === index
+                            ? "border-[#12d6fa] shadow-lg scale-105"
+                            : "border-gray-200 hover:border-gray-300 hover:scale-102"
+                        }`}
+                      >
+                        {media.type === 'video' ? (
+                          <>
+                            <video
+                              className="w-full h-full object-cover"
+                              muted
+                            >
+                              <source src={media.src} type="video/mp4" />
+                              <source src={media.src} type="video/webm" />
+                              <source src={media.src} type="video/ogg" />
+                            </video>
+                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                              <Play className="w-4 h-4 text-white" />
+                            </div>
+                          </>
+                        ) : (
+                          <img
+                            src={media.src || "/placeholder.svg"}
+                            alt={`${product.name} ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Enhanced Product Info */}
+                <div className="space-y-6">
+                  {/* Product Header */}
+                  <div>
+                    <div className="flex items-center flex-wrap gap-2 mb-2">
+                      <Badge variant="outline" className="text-[#12d6fa] border-[#12d6fa] text-xs sm:text-sm">
+                        {typeof product.category === 'object' ? product.category.name : (product.category || "Bundle")}
+                      </Badge>
+                      {product.brand && (
+                        <Badge variant="outline" className="border-gray-300 text-xs sm:text-sm">
+                          {product.brand}
+                        </Badge>
+                      )}
+                      {product.tags?.slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs sm:text-sm">
+                          {tag}
+                        </Badge>
+                      ))}
+                      {product.tags && product.tags.length > 3 && (
+                        <Badge variant="secondary" className="text-xs sm:text-sm">
+                          +{product.tags.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 text-balance leading-tight">{product.name}</h1>
+
+                    {/* Enhanced Rating */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                                star <= (product.averageRating || product.rating || 0)
+                                  ? "text-yellow-400 fill-current"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm sm:text-base font-medium">
+                          {product.averageRating || product.rating || 0}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          ({product.totalReviews || product.reviews || 0} reviews)
                         </span>
                       </div>
-                      {quantity > 1 && (
-                        <div className="text-xs">
-                          <SaudiRiyal amount={bundle.price} size="sm" /> each
-                        </div>
+                      <Separator orientation="vertical" className="h-4 hidden sm:block" />
+                      <div className="flex items-center space-x-1 text-xs sm:text-sm text-muted-foreground">
+                        <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span>{product.totalReviews || product.reviews || 0} reviews</span>
+                      </div>
+                    </div>
+
+                    {/* Enhanced Pricing */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
+                      <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#12d6fa]">
+                        <SaudiRiyal amount={product.salePrice || product.price} size="lg" />
+                      </span>
+                      {/* @ts-ignore - product exists at this point since we checked earlier */}
+                      {(product.originalPrice || product.salePrice) && (product.originalPrice || product.salePrice) > (product.salePrice || product.price) && (
+                        <span className="text-lg text-muted-foreground line-through">
+                          <SaudiRiyal amount={product.originalPrice || product.salePrice} size="md" />
+                        </span>
                       )}
-              </div>
-            </div>
-            
-                  {/* Enhanced Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    {bundle.stock > 0 ? (
-              <Button
-                        onClick={isInCart(bundle._id) ? () => window.location.href = '/cart' : handleAddToCart}
-                        className={`flex-1 bg-[#12d6fa] hover:bg-[#0fb8d9] text-white shadow-lg hover:shadow-xl transition-all duration-200 ${
-                          cartAnimation ? "animate-pulse" : ""
-                        }`}
-                        size="lg"
-                      >
-                        <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                        <span className="text-sm sm:text-base">{isInCart(bundle._id) ? "Go to Cart" : "Add to Cart"}</span>
-                      </Button>
-                    ) : (
-                      <Dialog open={showNotifyMe} onOpenChange={setShowNotifyMe}>
-                        <DialogTrigger asChild>
+                      {calculateSavings() > 0 && (
+                        <Badge className="bg-green-100 text-green-800 text-xs sm:text-sm">
+                          Save <SaudiRiyal amount={calculateSavings()} size="sm" />
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Enhanced Stock and Badges */}
+                    <div className="flex items-center flex-wrap gap-2 mb-6">
+                      <Badge variant={(product.stock ?? 0) > 0 ? "default" : "destructive"} className={`${getStockColor()} text-xs sm:text-sm`}>
+                        <Package className="w-3 h-3 mr-1" />
+                        {stockMessage}
+                      </Badge>
+                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs sm:text-sm">
+                        <Truck className="w-3 h-3 mr-1" />
+                        Free Shipping
+                      </Badge>
+                      {product.isFeatured && (
+                        <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 text-xs sm:text-sm">
+                          <Star className="w-3 h-3 mr-1" />
+                          Featured
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="border-blue-200 text-blue-700 text-xs sm:text-sm">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Est. delivery: {getDeliveryDate}
+                      </Badge>
+                    </div>
+
+                    {/* Bundle Contents */}
+                    {product.items && product.items.length > 0 && (
+                      <Card className="border-l-4 border-l-[#12d6fa]">
+                        <CardContent className="p-3 sm:p-4">
+                          <h3 className="font-semibold mb-3 flex items-center text-sm sm:text-base">
+                            <Package className="w-4 h-4 mr-2 text-[#12d6fa] flex-shrink-0" />
+                            Bundle Contents ({product.items.length} items)
+                          </h3>
+                          <div className="space-y-2 max-h-32 overflow-y-auto">
+                            {product.items.map((item, index) => (
+                              <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
+                                <img
+                                  src={item.image || "/placeholder.svg"}
+                                  alt={item.name}
+                                  className="w-8 h-8 object-cover rounded"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{item.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    <SaudiRiyal amount={item.price} size="sm" />
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Enhanced Quantity and Actions */}
+                    <div className="space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div className="flex items-center border-2 border-gray-200 rounded-lg hover:border-[#12d6fa] transition-colors w-fit">
+                          <button
+                            onClick={() => handleQuantityChange(-1)}
+                            className="p-2 hover:bg-gray-50 transition-colors"
+                            disabled={quantity <= 1}
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </button>
+                          <span className="px-4 py-2 font-medium min-w-[3rem] text-center">{quantity}</span>
+                          <button
+                            onClick={() => handleQuantityChange(1)}
+                            className="p-2 hover:bg-gray-50 transition-colors"
+                            disabled={quantity >= (product.stock || 1)}
+                            aria-label="Increase quantity"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="text-sm text-muted-foreground">
+                          {(product.stock ?? 0) > 0 ? (
+                            <span className="text-green-600">
+                              ✓ {product.stock} available
+                            </span>
+                          ) : (
+                            <span className="text-red-600">
+                              ✗ Out of stock
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Enhanced Action Buttons */}
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        {(product.stock ?? 0) > 0 ? (
                           <Button
-                            className="flex-1 bg-[#12d6fa] hover:bg-[#0fb8d9] text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                            onClick={handleAddToCart}
+                            className={`flex-1 bg-[#12d6fa] hover:bg-[#0fb8d9] text-white transition-all duration-200 ${
+                              cartAnimation ? "animate-pulse scale-105" : ""
+                            }`}
+                            size="lg"
+                          >
+                            <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                            Add to Cart
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={() => setShowNotifyMe(true)}
+                            variant="outline"
+                            className="flex-1 border-2 border-[#12d6fa] text-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200"
                             size="lg"
                           >
                             <Bell className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                            <span className="text-sm sm:text-base">Notify When Available</span>
+                            Notify When Available
                           </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle className="flex items-center">
-                              <Bell className="w-5 h-5 mr-2 text-[#12d6fa]" />
-                              Get Notified
-                            </DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <p className="text-sm text-muted-foreground">
-                              Enter your email to be notified when this bundle is back in stock.
-                            </p>
-                            <Input
-                              type="email"
-                              placeholder="your@email.com"
-                              value={notifyEmail}
-                              onChange={(e) => setNotifyEmail(e.target.value)}
-                            />
-              <Button
-                              onClick={() => {
-                                setShowNotifyMe(false)
-                                alert("You will be notified when this bundle is back in stock!")
-                              }}
-                              className="w-full bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-                            >
-                              Notify Me
-              </Button>
-            </div>
-                        </DialogContent>
-                      </Dialog>
-                    )}
+                        )}
 
-                    <Button
-                      variant="outline"
-                      onClick={handleAddToWishlist}
-                      className={`border-2 transition-all duration-200 ${
-                        isInWishlist
-                          ? "text-[#12d6fa] border-[#12d6fa] bg-[#12d6fa]/10"
-                          : "hover:border-[#12d6fa] hover:text-[#12d6fa]"
-                      } ${wishlistAnimation ? "animate-pulse" : ""}`}
-                      size="lg"
-                    >
-                      <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isInWishlist ? "fill-current" : ""}`} />
-                    </Button>
+                        <Button
+                          variant="outline"
+                          onClick={handleAddToWishlist}
+                          className={`border-2 transition-all duration-200 ${
+                            isInWishlist
+                              ? "text-[#12d6fa] border-[#12d6fa] bg-[#12d6fa]/10"
+                              : "hover:border-[#12d6fa] hover:text-[#12d6fa]"
+                          } ${wishlistAnimation ? "animate-pulse" : ""}`}
+                          size="lg"
+                        >
+                          <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isInWishlist ? "fill-current" : ""}`} />
+                        </Button>
 
-                    <div className="relative">
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowShareMenu(!showShareMenu)}
-                        className="border-2 hover:border-[#12d6fa] hover:text-[#12d6fa] transition-all duration-200"
-                        size="lg"
-                      >
-                        <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </Button>
+                        <div className="relative">
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowShareMenu(!showShareMenu)}
+                            className="border-2 hover:border-[#12d6fa] hover:text-[#12d6fa] transition-all duration-200"
+                            size="lg"
+                          >
+                            <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </Button>
 
-                      {showShareMenu && (
-                        <div className="absolute right-0 top-full mt-2 bg-white border-2 border-gray-100 rounded-xl shadow-xl p-3 z-10 min-w-[180px] sm:min-w-[200px]">
-                          <div className="space-y-2">
-                            <div className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Share this bundle</div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <button
-                                onClick={() => handleShare("facebook")}
-                                className="flex items-center space-x-2 p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                              >
-                                <Facebook className="w-4 h-4 text-blue-600" />
-                                <span className="text-sm">Facebook</span>
-                              </button>
-                              <button
-                                onClick={() => handleShare("twitter")}
-                                className="flex items-center space-x-2 p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                              >
-                                <Twitter className="w-4 h-4 text-blue-400" />
-                                <span className="text-sm">Twitter</span>
-                              </button>
-                              <button
-                                onClick={() => handleShare("whatsapp")}
-                                className="flex items-center space-x-2 p-2 hover:bg-green-50 rounded-lg transition-colors"
-                              >
-                                <MessageCircle className="w-4 h-4 text-green-600" />
-                                <span className="text-sm">WhatsApp</span>
-                              </button>
-                              <button
-                                onClick={() => handleShare("copy")}
-                                className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded-lg transition-colors"
-                              >
-                                <Copy className="w-4 h-4 text-gray-600" />
-                                <span className="text-sm">Copy Link</span>
-                              </button>
+                          {showShareMenu && (
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                              <div className="p-2">
+                                <button
+                                  onClick={() => handleShare("facebook")}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center"
+                                >
+                                  <Facebook className="w-4 h-4 mr-2" />
+                                  Facebook
+                                </button>
+                                <button
+                                  onClick={() => handleShare("twitter")}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center"
+                                >
+                                  <Twitter className="w-4 h-4 mr-2" />
+                                  Twitter
+                                </button>
+                                <button
+                                  onClick={() => handleShare("copy")}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center"
+                                >
+                                  <Copy className="w-4 h-4 mr-2" />
+                                  Copy Link
+                                </button>
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
-                      )}
-            </div>
-          </div>
-        </div>
-
-                {/* Bundle Details */}
-                <div className="border-t pt-6 space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">SKU:</span>
-                    <span className="font-medium">{bundle.sku}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Category:</span>
-                    <span className="font-medium">Flavor Bundle</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Items in Bundle:</span>
-                    <span className="font-medium">{bundle.items?.length || 0} items</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Product Details Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-12">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto sm:h-12 gap-1 sm:gap-0">
-            <TabsTrigger
-              value="description"
-              className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
-            >
-              <Info className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">Description</span>
-              <span className="sm:hidden">Info</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="contents"
-              className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
-            >
-              <Package className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">Contents</span>
-              <span className="sm:hidden">Items</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="reviews"
-              className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
-            >
-              <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">Reviews ({reviews.length})</span>
-              <span className="sm:hidden">Reviews</span>
-              <span className="sm:hidden text-xs ml-1">({reviews.length})</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="specifications"
-              className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
-            >
-              <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">Specifications</span>
-              <span className="sm:hidden">Specs</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="videos"
-              className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
-            >
-              <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">Videos</span>
-              <span className="sm:hidden">Video</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="qa"
-              className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
-            >
-              <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">Q&A</span>
-              <span className="sm:hidden">Q&A</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="description" className="mt-6 sm:mt-8">
-            <div className="prose max-w-none">
-              <div className="bg-gradient-to-r from-[#12d6fa]/10 to-blue-50 p-4 sm:p-6 rounded-xl mb-6">
-                <p className="text-base sm:text-lg leading-relaxed text-gray-700">{bundle.description}</p>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-                <div>
-                  <h3 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
-                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#12d6fa] flex-shrink-0" />
-                    Key Features
-                  </h3>
-                  <ul className="space-y-3">
-                    <li className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
-                      <span className="text-sm sm:text-base text-gray-700">Premium flavor variety</span>
-                    </li>
-                    <li className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
-                      <span className="text-sm sm:text-base text-gray-700">High-quality concentrates</span>
-                    </li>
-                    <li className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
-                      <span className="text-sm sm:text-base text-gray-700">Easy mixing and storage</span>
-                    </li>
-                    <li className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
-                      <span className="text-sm sm:text-base text-gray-700">Long-lasting freshness</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
-                    <Shield className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-500 flex-shrink-0" />
-                    What's Included
-                  </h3>
-                  <ul className="space-y-3">
-                    <li className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                      <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm sm:text-base text-gray-700">Flavor syrups</span>
-                    </li>
-                    <li className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                      <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm sm:text-base text-gray-700">Mixing instructions</span>
-                    </li>
-                    <li className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                      <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm sm:text-base text-gray-700">Storage containers</span>
-                    </li>
-                    <li className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                      <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm sm:text-base text-gray-700">Recipe suggestions</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="contents" className="mt-8">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-bold text-gray-900">Bundle Contents</h2>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Package className="w-5 h-5" />
-                  <span>{bundle.items?.length || 0} flavors included</span>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                <div className="p-6">
-                  <div className="grid grid-cols-1 gap-6">
-                    {bundle.items?.map((item, index) => (
-                      <div key={index} className="flex items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                        <div className="w-20 h-20 bg-white rounded-lg mr-6 flex items-center justify-center shadow-sm">
-                    <Image
-                            src={item.image || "/images/placeholder.svg"}
-                            alt={item.name}
-                            width={60}
-                            height={60}
-                      className="object-contain"
-                    />
-                  </div>
-                  <div className="flex-grow">
-                          <h3 className="font-semibold text-gray-900 mb-1">{item.name}</h3>
-                          <p className="text-sm text-gray-600">Flavor syrup</p>
-                  </div>
-                  <div className="text-right">
-                          <div className="font-bold text-lg">
-                            <SaudiRiyal amount={item.price} size="sm" />
-                          </div>
-                          <div className="text-sm text-gray-500">1x included</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-                  <div className="mt-8 pt-6 border-t border-gray-200">
-                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6">
-                      <div className="flex justify-between items-center mb-4">
-                        <div className="text-lg font-semibold text-gray-900">Total Individual Value:</div>
-                        <div className="text-2xl font-bold text-gray-900">
-                          <SaudiRiyal amount={bundle.originalPrice || bundle.price} size="lg" />
-                        </div>
-              </div>
-              {bundle.originalPrice && (
-                        <div className="flex justify-between items-center mb-4">
-                          <div className="text-lg font-semibold text-[#12d6fa]">Bundle Price:</div>
-                          <div className="text-2xl font-bold text-[#12d6fa]">
-                            <SaudiRiyal amount={bundle.price} size="lg" />
-                          </div>
-                </div>
-              )}
-                      {savingsAmount > 0 && (
-                        <div className="flex justify-between items-center">
-                          <div className="text-lg font-semibold text-green-600">You Save:</div>
-                          <div className="text-2xl font-bold text-green-600">
-                            <SaudiRiyal amount={savingsAmount} size="lg" />
-            </div>
-          </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="reviews" className="mt-8">
-            <div className="space-y-8">
-              {/* Enhanced Review Summary */}
-              <Card>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="text-center">
-                      <div className="text-4xl font-bold text-[#12d6fa] mb-2">{bundle.averageRating || 4.8}</div>
-                      <div className="flex items-center justify-center mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-6 h-6 ${
-                              i < Math.floor(bundle.averageRating || 4.8)
-                                ? "text-yellow-400 fill-current"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Based on {(bundle.reviewCount || 0).toLocaleString()} reviews
                       </div>
                     </div>
-
-                    <div className="space-y-2">
-                      {[5, 4, 3, 2, 1].map((rating) => {
-                        const count = reviews.filter((r) => r.rating === rating).length
-                        const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0
-                        return (
-                          <div key={rating} className="flex items-center space-x-3">
-                            <span className="text-sm w-8">{rating}★</span>
-                            <Progress value={percentage} className="flex-1 h-2" />
-                            <span className="text-sm text-muted-foreground w-12">{count}</span>
-                          </div>
-                        )
-                      })}
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              {/* Enhanced Review Filters */}
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Filter className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Filter by rating:</span>
+              {/* Enhanced Product Details Tabs */}
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-12">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto sm:h-12 gap-1 sm:gap-0">
+                  <TabsTrigger
+                    value="description"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <Info className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Description</span>
+                    <span className="sm:hidden">Info</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="specifications"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Specifications</span>
+                    <span className="sm:hidden">Specs</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="reviews"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Reviews ({reviews.length})</span>
+                    <span className="sm:hidden">Reviews</span>
+                    <span className="sm:hidden text-xs ml-1">({reviews.length})</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="videos"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <Video className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Videos ({product.videos?.length || 0})</span>
+                    <span className="sm:hidden">Videos</span>
+                    <span className="sm:hidden text-xs ml-1">({product.videos?.length || 0})</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="qa"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Q&A ({qaData.length})</span>
+                    <span className="sm:hidden">Q&A</span>
+                    <span className="sm:hidden text-xs ml-1">({qaData.length})</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="description" className="mt-6 sm:mt-8">
+                  <div className="prose max-w-none">
+                    <div className="bg-gradient-to-r from-[#12d6fa]/10 to-blue-50 p-4 sm:p-6 rounded-xl mb-6">
+                      <p className="text-base sm:text-lg leading-relaxed text-gray-700">{product.description}</p>
                     </div>
-                    <Select value={reviewFilter} onValueChange={setReviewFilter}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All ratings</SelectItem>
-                        <SelectItem value="5">5 stars</SelectItem>
-                        <SelectItem value="4">4 stars</SelectItem>
-                        <SelectItem value="3">3 stars</SelectItem>
-                        <SelectItem value="2">2 stars</SelectItem>
-                        <SelectItem value="1">1 star</SelectItem>
-                      </SelectContent>
-                    </Select>
 
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium">Sort by:</span>
-                    </div>
-                    <Select value={reviewSort} onValueChange={setReviewSort}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="newest">Newest</SelectItem>
-                        <SelectItem value="oldest">Oldest</SelectItem>
-                        <SelectItem value="highest">Highest rated</SelectItem>
-                        <SelectItem value="lowest">Lowest rated</SelectItem>
-                        <SelectItem value="helpful">Most helpful</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Write a Review Section */}
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold flex items-center">
-                      <Star className="w-5 h-5 mr-2 text-[#12d6fa]" />
-                      Write a Review
-                    </h3>
-                    <Button
-                      onClick={() => setShowReviewForm(!showReviewForm)}
-                      className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-                    >
-                      {showReviewForm ? "Cancel" : "Write Review"}
-                    </Button>
-                  </div>
-
-                  {showReviewForm && (
-                    <div className="space-y-6 border-t pt-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Your Name *</label>
-                          <Input
-                            value={newReview.name}
-                            onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
-                            placeholder="Enter your name"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Rating *</label>
-                          <div className="flex space-x-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <button
-                                key={star}
-                                onClick={() => setNewReview({ ...newReview, rating: star })}
-                                className="focus:outline-none transition-transform hover:scale-110"
-                                aria-label={`Rate ${star} stars`}
-                              >
-                                <Star
-                                  className={`w-8 h-8 ${
-                                    star <= newReview.rating ? "text-yellow-400 fill-current" : "text-gray-300"
-                                  }`}
-                                />
-                              </button>
-                            ))}
-                          </div>
-                        </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
+                          Key Features
+                        </h3>
+                        <ul className="space-y-3">
+                          {product.features?.map((feature, index) => (
+                            <li key={index} className="flex items-start">
+                              <Check className="w-4 h-4 text-[#12d6fa] mr-3 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <span className="text-gray-700 font-medium">{typeof feature === 'string' ? feature : feature.title}</span>
+                                {typeof feature === 'object' && feature.description && (
+                                  <p className="text-sm text-gray-500 mt-1">{feature.description}</p>
+                                )}
+                              </div>
+                            </li>
+                          )) || (
+                            <li className="flex items-start">
+                              <Check className="w-4 h-4 text-[#12d6fa] mr-3 mt-0.5 flex-shrink-0" />
+                              <span className="text-gray-700">Premium quality ingredients</span>
+                            </li>
+                          )}
+                        </ul>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium mb-2">Your Review *</label>
-                        <Textarea
-                          value={newReview.comment}
-                          onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                          placeholder="Tell us about your experience with this flavor bundle..."
-                          rows={4}
-                        />
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Shield className="w-5 h-5 mr-2 text-blue-500" />
+                          Safety & Quality
+                        </h3>
+                        <ul className="space-y-3">
+                          {product.safetyFeatures?.map((feature, index) => (
+                            <li key={index} className="flex items-start">
+                              <Shield className="w-4 h-4 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                              <span className="text-gray-700">{feature}</span>
+                            </li>
+                          )) || (
+                            <>
+                              <li className="flex items-start">
+                                <Shield className="w-4 h-4 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-700">Quality tested and certified</span>
+                              </li>
+                              <li className="flex items-start">
+                                <Shield className="w-4 h-4 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-700">Safe for everyday use</span>
+                              </li>
+                            </>
+                          )}
+                        </ul>
                       </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Pros (optional)</label>
-                          <Input
-                            value={newReview.pros}
-                            onChange={(e) => setNewReview({ ...newReview, pros: e.target.value })}
-                            placeholder="What did you like most?"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Cons (optional)</label>
-                          <Input
-                            value={newReview.cons}
-                            onChange={(e) => setNewReview({ ...newReview, cons: e.target.value })}
-                            placeholder="What could be improved?"
-                          />
-                        </div>
-                      </div>
-
-                      <Button
-                        onClick={() => {
-                          setShowReviewForm(false)
-                          alert("Thank you for your review! It will be published after moderation.")
-                        }}
-                        className="w-full bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-                      >
-                        Submit Review
-                      </Button>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
 
-              {/* Reviews List */}
-              <div className="space-y-4">
-                {filteredReviews().map((review, index) => (
-                  <Card key={index}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start space-x-4">
-                        <div className="w-10 h-10 bg-[#12d6fa] rounded-full flex items-center justify-center text-white font-semibold">
-                          {review.name?.charAt(0) || 'U'}
+                    {/* Bundle Contents Detail */}
+                    {product.items && product.items.length > 0 && (
+                      <div className="mt-8">
+                        <h3 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
+                          <Package className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#12d6fa] flex-shrink-0" />
+                          What's Included in This Bundle
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {product.items.map((item, index) => (
+                            <div key={index} className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg">
+                              <img
+                                src={item.image || "/placeholder.svg"}
+                                alt={item.name}
+                                className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+                              />
+                              <div>
+                                <h4 className="font-medium text-gray-900 mb-1">{item.name}</h4>
+                                <p className="text-sm text-gray-600">
+                                  <SaudiRiyal amount={item.price} size="sm" />
+                                </p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <h4 className="font-semibold">{review.name || 'Anonymous'}</h4>
-                            <div className="flex">
-                              {[...Array(5)].map((_, i) => (
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="specifications" className="mt-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-lg">
+                          <Settings className="w-5 h-5 mr-2 text-[#12d6fa]" />
+                          Technical Specifications
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {product.specifications && Array.isArray(product.specifications) ? product.specifications.map((spec, index) => (
+                          <div key={index} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
+                            <span className="font-medium text-gray-700">{spec.name}</span>
+                            <span className="text-gray-600">{spec.value}</span>
+                          </div>
+                        )) : product.specifications && Object.entries(product.specifications).map(([key, value]) => (
+                          <div key={key} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
+                            <span className="font-medium text-gray-700">{key}</span>
+                            <span className="text-gray-600">{String(value)}</span>
+                          </div>
+                        )) || (
+                          <>
+                            <div className="flex justify-between py-2 border-b border-gray-100">
+                              <span className="font-medium text-gray-700">Bundle Type</span>
+                              <span className="text-gray-600">Flavor Collection</span>
+                            </div>
+                            <div className="flex justify-between py-2 border-b border-gray-100">
+                              <span className="font-medium text-gray-700">Items Included</span>
+                              <span className="text-gray-600">{product.items?.length || 0} flavors</span>
+                            </div>
+                            <div className="flex justify-between py-2 border-b border-gray-100">
+                              <span className="font-medium text-gray-700">Total Weight</span>
+                              <span className="text-gray-600">{product.dimensions?.weight ? `${product.dimensions.weight} kg` : "Lightweight"}</span>
+                            </div>
+                          </>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-lg">
+                          <Award className="w-5 h-5 mr-2 text-green-500" />
+                          Certifications & Warranty
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex justify-between py-2 border-b border-gray-100">
+                          <span className="font-medium text-gray-700">Warranty</span>
+                          <span className="text-gray-600">{product.warranty || "1 Year"}</span>
+                        </div>
+                        <div className="py-2 border-b border-gray-100 last:border-b-0">
+                          <span className="font-medium text-gray-700 block mb-2">Certifications</span>
+                          <div className="flex flex-wrap gap-2">
+                            {product.certifications?.map((cert) => (
+                              <Badge key={cert} variant="secondary" className="text-xs">
+                                {cert}
+                              </Badge>
+                            )) || (
+                              <Badge variant="secondary" className="text-xs">Halal Certified</Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="py-2 border-b border-gray-100 last:border-b-0">
+                          <span className="font-medium text-gray-700 block mb-2">Compatibility</span>
+                          <div className="flex flex-wrap gap-2">
+                            {product.compatibility?.map((comp) => (
+                              <Badge key={comp} variant="outline" className="text-xs">
+                                {comp}
+                              </Badge>
+                            )) || (
+                              <Badge variant="outline" className="text-xs">Universal</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="reviews" className="mt-8">
+                  <div className="space-y-8">
+                    {/* Enhanced Review Summary */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="text-center">
+                            <div className="text-4xl font-bold text-[#12d6fa] mb-2">
+                              {product.averageRating || product.rating || 0}
+                            </div>
+                            <div className="flex items-center justify-center mb-2">
+                              {[1, 2, 3, 4, 5].map((star) => (
                                 <Star
-                                  key={i}
-                                  className={`w-4 h-4 ${
-                                    i < review.rating ? "text-yellow-400 fill-current" : "text-gray-300"
+                                  key={star}
+                                  className={`w-5 h-5 ${
+                                    star <= (product.averageRating || product.rating || 0)
+                                      ? "text-yellow-400 fill-current"
+                                      : "text-gray-300"
                                   }`}
                                 />
                               ))}
                             </div>
-                            <span className="text-sm text-muted-foreground">{review.date}</span>
+                            <div className="text-sm text-muted-foreground">
+                              Based on {product.totalReviews || product.reviews || 0} reviews
+                            </div>
                           </div>
-                          <p className="text-gray-700 mb-3">{review.comment}</p>
-                          {review.pros && (
-                            <div className="text-sm">
-                              <span className="font-medium text-green-600">Pros: </span>
-                              <span className="text-gray-600">{review.pros}</span>
-                            </div>
-                          )}
-                          {review.cons && (
-                            <div className="text-sm">
-                              <span className="font-medium text-red-600">Cons: </span>
-                              <span className="text-gray-600">{review.cons}</span>
-                            </div>
-                          )}
+                          <div className="space-y-2">
+                            {[5, 4, 3, 2, 1].map((rating) => {
+                              const count = reviews.filter((r) => r.rating === rating).length
+                              const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0
+                              return (
+                                <div key={rating} className="flex items-center space-x-2">
+                                  <span className="text-sm w-8">{rating}★</span>
+                                  <Progress value={percentage} className="flex-1 h-2" />
+                                  <span className="text-sm text-muted-foreground w-8">{count}</span>
+                                </div>
+                              )
+                            })}
+                          </div>
                         </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Enhanced Review Filters */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <div className="flex-1">
+                            <Select value={reviewFilter} onValueChange={setReviewFilter}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Filter by rating" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All Reviews</SelectItem>
+                                <SelectItem value="5">5 Stars</SelectItem>
+                                <SelectItem value="4">4 Stars</SelectItem>
+                                <SelectItem value="3">3 Stars</SelectItem>
+                                <SelectItem value="2">2 Stars</SelectItem>
+                                <SelectItem value="1">1 Star</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex-1">
+                            <Select value={reviewSort} onValueChange={setReviewSort}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Sort reviews" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="newest">Newest First</SelectItem>
+                                <SelectItem value="oldest">Oldest First</SelectItem>
+                                <SelectItem value="highest">Highest Rated</SelectItem>
+                                <SelectItem value="lowest">Lowest Rated</SelectItem>
+                                <SelectItem value="helpful">Most Helpful</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Write a Review Section */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold">Write a Review</h3>
+                          <Button
+                            onClick={() => setShowReviewForm(!showReviewForm)}
+                            variant="outline"
+                            size="sm"
+                          >
+                            {showReviewForm ? "Cancel" : "Write Review"}
+                          </Button>
+                        </div>
+
+                        {showReviewForm && (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <Input
+                                placeholder="Your name"
+                                value={newReview.name}
+                                onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
+                              />
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm">Rating:</span>
+                                <div className="flex">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                      key={star}
+                                      onClick={() => setNewReview({ ...newReview, rating: star })}
+                                      className="text-yellow-400 hover:text-yellow-500"
+                                      aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                                    >
+                                      <Star className={`w-5 h-5 ${star <= newReview.rating ? "fill-current" : ""}`} />
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            <Textarea
+                              placeholder="Share your experience with this product..."
+                              value={newReview.comment}
+                              onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                              rows={4}
+                            />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <Input
+                                placeholder="Pros (comma separated)"
+                                value={newReview.pros}
+                                onChange={(e) => setNewReview({ ...newReview, pros: e.target.value })}
+                              />
+                              <Input
+                                placeholder="Cons (comma separated)"
+                                value={newReview.cons}
+                                onChange={(e) => setNewReview({ ...newReview, cons: e.target.value })}
+                              />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                checked={newReview.wouldRecommend}
+                                onCheckedChange={(checked) => setNewReview({ ...newReview, wouldRecommend: checked })}
+                              />
+                              <span className="text-sm">I would recommend this product</span>
+                            </div>
+                            <Button onClick={handleSubmitReview} className="bg-[#12d6fa] hover:bg-[#0fb8d9]">
+                              Submit Review
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Enhanced Reviews List */}
+                    <div className="space-y-6">
+                      {filteredReviews().map((review) => (
+                        <Card key={review.id}>
+                          <CardContent className="p-6">
+                            <div className="flex items-start space-x-4">
+                              <Avatar>
+                                <AvatarImage src={review.avatar} alt={review.user} />
+                                <AvatarFallback>{review.user.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-medium">{review.user}</span>
+                                    {review.verified && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                        Verified Purchase
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <span className="text-sm text-muted-foreground">{review.date}</span>
+                                </div>
+                                <div className="flex items-center space-x-1 mb-3">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      className={`w-4 h-4 ${
+                                        star <= review.rating ? "text-yellow-400 fill-current" : "text-gray-300"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <p className="text-gray-700 mb-4">{review.comment}</p>
+                                {review.pros && review.pros.length > 0 && (
+                                  <div className="mb-3">
+                                    <span className="font-medium text-green-600">Pros:</span>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {review.pros.map((pro, index) => (
+                                        <Badge key={index} variant="secondary" className="text-xs bg-green-50 text-green-700">
+                                          {pro}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                {review.cons && review.cons.length > 0 && (
+                                  <div className="mb-3">
+                                    <span className="font-medium text-red-600">Cons:</span>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {review.cons.map((con, index) => (
+                                        <Badge key={index} variant="secondary" className="text-xs bg-red-50 text-red-700">
+                                          {con}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-4">
+                                    <button className="flex items-center space-x-1 text-sm text-muted-foreground hover:text-[#12d6fa]">
+                                      <ThumbsUp className="w-4 h-4" />
+                                      <span>Helpful ({review.helpful})</span>
+                                    </button>
+                                    {review.wouldRecommend && (
+                                      <Badge variant="outline" className="text-xs text-green-600 border-green-600">
+                                        Would Recommend
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="videos" className="mt-8">
+                  <div className="space-y-6">
+                    {product.videos && product.videos.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+                        {product.videos.map((video, index) => (
+                          <Card key={index}>
+                            <CardContent className="p-0">
+                              <video
+                                className="w-full h-64 object-cover rounded-t-lg"
+                                controls
+                                poster="/placeholder.svg"
+                              >
+                                <source src={video} type="video/mp4" />
+                                <source src={video} type="video/webm" />
+                                <source src={video} type="video/ogg" />
+                                Your browser does not support the video tag.
+                              </video>
+                              <div className="p-4">
+                                <h3 className="font-medium">Product Video {index + 1}</h3>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Learn more about {product.name}
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    ) : (
+                      <Card>
+                        <CardContent className="p-8 text-center">
+                          <Video className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">No videos available</h3>
+                          <p className="text-gray-500">Videos for this product will be available soon.</p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="qa" className="mt-8">
+                  <div className="space-y-6">
+                    {/* Q&A Filters */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <div className="flex-1">
+                            <Select value={qaFilter} onValueChange={setQAFilter}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Filter by category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All Questions</SelectItem>
+                                <SelectItem value="Usage & Features">Usage & Features</SelectItem>
+                                <SelectItem value="Installation & Setup">Installation & Setup</SelectItem>
+                                <SelectItem value="Warranty & Support">Warranty & Support</SelectItem>
+                                <SelectItem value="Quality & Certification">Quality & Certification</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex-1">
+                            <Button
+                              onClick={() => setShowQuestionForm(!showQuestionForm)}
+                              variant="outline"
+                              className="w-full"
+                            >
+                              Ask a Question
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Ask a Question Form */}
+                    {showQuestionForm && (
+                      <Card>
+                        <CardContent className="p-6">
+                          <h3 className="text-lg font-semibold mb-4">Ask a Question</h3>
+                          <div className="space-y-4">
+                            <Select
+                              value={newQuestion.category}
+                              onValueChange={(value) => setNewQuestion({ ...newQuestion, category: value })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Usage & Features">Usage & Features</SelectItem>
+                                <SelectItem value="Installation & Setup">Installation & Setup</SelectItem>
+                                <SelectItem value="Warranty & Support">Warranty & Support</SelectItem>
+                                <SelectItem value="Quality & Certification">Quality & Certification</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Textarea
+                              placeholder="Type your question here..."
+                              value={newQuestion.question}
+                              onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
+                              rows={3}
+                            />
+                            <Input
+                              placeholder="Tags (comma separated)"
+                              value={newQuestion.tags}
+                              onChange={(e) => setNewQuestion({ ...newQuestion, tags: e.target.value })}
+                            />
+                            <Button onClick={handleSubmitQuestion} className="bg-[#12d6fa] hover:bg-[#0fb8d9]">
+                              Submit Question
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Q&A List */}
+                    <div className="space-y-4">
+                      {filteredQA().map((qa) => (
+                        <Card key={qa.id}>
+                          <CardContent className="p-6">
+                            <div className="flex items-start space-x-4">
+                              <Avatar>
+                                <AvatarFallback>Q</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    {qa.category}
+                                  </Badge>
+                                  <span className="text-sm text-muted-foreground">{qa.date}</span>
+                                </div>
+                                <h4 className="font-medium mb-3">{qa.question}</h4>
+                                {qa.answer ? (
+                                  <div className="bg-gray-50 p-4 rounded-lg">
+                                    <div className="flex items-center space-x-2 mb-2">
+                                      <Avatar className="w-6 h-6">
+                                        <AvatarFallback className="text-xs">A</AvatarFallback>
+                                      </Avatar>
+                                      <span className="text-sm font-medium">{qa.answeredBy}</span>
+                                    </div>
+                                    <p className="text-gray-700">{qa.answer}</p>
+                                  </div>
+                                ) : (
+                                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                                    <p className="text-yellow-800">This question is awaiting an answer from our experts.</p>
+                                  </div>
+                                )}
+                                <div className="flex items-center justify-between mt-4">
+                                  <button className="flex items-center space-x-1 text-sm text-muted-foreground hover:text-[#12d6fa]">
+                                    <ThumbsUp className="w-4 h-4" />
+                                    <span>Helpful ({qa.helpful})</span>
+                                  </button>
+                                  {qa.tags && qa.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1">
+                                      {qa.tags.map((tag, index) => (
+                                        <Badge key={index} variant="secondary" className="text-xs">
+                                          {tag}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              {/* Enhanced Related Products */}
+              <div className="mb-12">
+                <h2 className="text-2xl font-bold mb-6 flex items-center">
+                  <Sparkles className="w-6 h-6 mr-2 text-[#12d6fa]" />
+                  You Might Also Like
+                </h2>
+
+                {loadingRelated ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[1, 2, 3, 4].map((i) => (
+                      <Card key={i} className="h-full">
+                        <CardContent className="p-4">
+                          <div className="aspect-square bg-gray-200 rounded-lg mb-4 animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-4 animate-pulse"></div>
+                          <div className="h-6 bg-gray-200 rounded animate-pulse"></div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : relatedProducts.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {relatedProducts.map((relatedProduct) => (
+                      <Link key={relatedProduct._id} href={`/shop/flavor/bundles/${relatedProduct.slug}`} className="block group">
+                        <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 h-full">
+                          <CardContent className="p-0">
+                            <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-t-lg overflow-hidden">
+                              <img
+                                src={relatedProduct.image || (() => {
+                                  const img = relatedProduct.images?.[0]
+                                  return typeof img === 'string' ? img : img?.url || "/placeholder.svg"
+                                })()}
+                                alt={relatedProduct.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            </div>
+                            <div className="p-4">
+                              <h3 className="font-medium mb-2 line-clamp-2 group-hover:text-[#12d6fa] transition-colors">
+                                {relatedProduct.name}
+                              </h3>
+                              <div className="flex items-center space-x-2 mb-2">
+                                <div className="flex items-center">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      className={`w-3 h-3 ${
+                                        star <= (relatedProduct.averageRating || relatedProduct.rating || 0)
+                                          ? "text-yellow-400 fill-current"
+                                          : "text-gray-300"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  ({relatedProduct.totalReviews || relatedProduct.reviews || 0})
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-lg font-bold text-[#12d6fa]">
+                                  <SaudiRiyal amount={relatedProduct.salePrice || relatedProduct.price} size="sm" />
+                                </span>
+                                {(relatedProduct?.originalPrice || relatedProduct?.salePrice) && (relatedProduct?.originalPrice || relatedProduct?.salePrice)! > (relatedProduct?.salePrice || relatedProduct?.price)! && (
+                                  <span className="text-sm text-muted-foreground line-through">
+                                    <SaudiRiyal amount={relatedProduct?.originalPrice || relatedProduct?.salePrice} size="sm" />
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-10 bg-gray-50 rounded-lg">
+                    <Package className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No related products found</h3>
+                    <p className="text-gray-500">Check out our other flavor bundles</p>
+                    <Button className="mt-4 bg-[#12d6fa] hover:bg-[#0fbfe0] text-white">
+                      <Link href="/shop/flavor/bundles">Browse All Bundles</Link>
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="specifications" className="mt-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Settings className="w-5 h-5 mr-2 text-[#12d6fa]" />
-                    Bundle Specifications
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-600">Bundle Type</span>
-                    <span className="text-gray-900">Flavor Variety Pack</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-600">Flavors Included</span>
-                    <span className="text-gray-900">{bundle.items?.length || 0} flavors</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-600">Total Volume</span>
-                    <span className="text-gray-900">~500ml</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-600">Shelf Life</span>
-                    <span className="text-gray-900">12-18 months</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-600">Storage</span>
-                    <span className="text-gray-900">Cool, dry place</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="font-medium text-gray-600">Compatibility</span>
-                    <span className="text-gray-900">All soda makers</span>
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Enhanced Modals and Dialogs */}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Package className="w-5 h-5 mr-2 text-green-500" />
-                    What's Included
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {bundle.items?.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-sm">{item.name}</span>
-                    </div>
+          {/* Media Gallery Modal */}
+          <Dialog open={showImageGallery} onOpenChange={setShowImageGallery}>
+            <DialogContent className="max-w-4xl max-h-[90vh] p-0 w-[95vw] sm:w-full">
+              <div className="relative">
+                {isShowingVideo ? (
+                  <div className="w-full h-[60vh] sm:h-[80vh]">
+                    <video
+                      className="w-full h-full object-contain"
+                      controls
+                      autoPlay
+                      poster="/placeholder.svg"
+                    >
+                      <source src={combinedMedia[selectedImage]?.src} type="video/mp4" />
+                      <source src={combinedMedia[selectedImage]?.src} type="video/webm" />
+                      <source src={combinedMedia[selectedImage]?.src} type="video/ogg" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                ) : (
+                  <img
+                    src={(() => {
+                      const img = product.images?.[selectedImage]
+                      return typeof img === 'string' ? img : img?.url || "/placeholder.svg"
+                    })()}
+                    alt={product.name}
+                    className="w-full h-auto max-h-[80vh] object-contain"
+                  />
+                )}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute top-4 right-4 bg-white/80 hover:bg-white"
+                  onClick={() => setShowImageGallery(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+
+                {combinedMedia.length > 1 && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white"
+                      onClick={() =>
+                        handleImageSelect(selectedImage > 0 ? selectedImage - 1 : combinedMedia.length - 1)
+                      }
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white"
+                      onClick={() =>
+                        handleImageSelect(selectedImage < combinedMedia.length - 1 ? selectedImage + 1 : 0)
+                      }
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              <div className="p-4 border-t">
+                <div className="flex space-x-2 overflow-x-auto">
+                  {combinedMedia.map((media, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleImageSelect(index)}
+                      className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden relative ${
+                        selectedImage === index ? "border-[#12d6fa]" : "border-gray-200"
+                      }`}
+                    >
+                      {media.type === 'video' ? (
+                        <>
+                          <video
+                            className="w-full h-full object-cover"
+                            muted
+                          >
+                            <source src={media.src} type="video/mp4" />
+                            <source src={media.src} type="video/webm" />
+                            <source src={media.src} type="video/ogg" />
+                          </video>
+                          <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                            <Play className="w-4 h-4 text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <img
+                          src={media.src || "/placeholder.svg"}
+                          alt={`${product.name} ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </button>
                   ))}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="videos" className="mt-8">
-            <div className="space-y-8">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Product Videos</h2>
-                <p className="text-lg text-gray-600">Watch how to use your flavor bundle</p>
+                </div>
               </div>
+            </DialogContent>
+          </Dialog>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                      <div className="text-center">
-                        <Play className="w-16 h-16 text-[#12d6fa] mx-auto mb-4" />
-                        <p className="text-gray-600">Flavor Mixing Guide</p>
-                        <p className="text-sm text-gray-500">Coming Soon</p>
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">How to Mix Flavors Perfectly</h3>
-                    <p className="text-gray-600">Learn the best techniques for mixing and creating delicious soda flavors with your bundle.</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                      <div className="text-center">
-                        <Play className="w-16 h-16 text-[#12d6fa] mx-auto mb-4" />
-                        <p className="text-gray-600">Storage Tips</p>
-                        <p className="text-sm text-gray-500">Coming Soon</p>
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">Flavor Storage & Preservation</h3>
-                    <p className="text-gray-600">Keep your flavors fresh and maintain their quality with proper storage techniques.</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="qa" className="mt-8">
-            <div className="space-y-8">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Questions & Answers</h2>
-                <p className="text-lg text-gray-600">Get answers to common questions about flavor bundles</p>
-              </div>
-
+          {/* Notify Me Modal */}
+          <Dialog open={showNotifyMe} onOpenChange={setShowNotifyMe}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Notify Me When Available</DialogTitle>
+              </DialogHeader>
               <div className="space-y-4">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-8 h-8 bg-[#12d6fa] rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                        Q
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold mb-2">What flavors are included in this bundle?</h3>
-                        <p className="text-gray-600">This bundle includes a variety of premium flavors. Check the 'Bundle Contents' section for a complete list of all included flavors with individual pricing.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-8 h-8 bg-[#12d6fa] rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                        Q
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold mb-2">How long do the flavors last?</h3>
-                        <p className="text-gray-600">Our flavors have a shelf life of 12-18 months when stored properly in a cool, dry place. Check individual bottles for specific expiration dates.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-8 h-8 bg-[#12d6fa] rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                        Q
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold mb-2">How do I mix the flavors with water?</h3>
-                        <p className="text-gray-600">Follow the mixing instructions included with each flavor. Generally, use 1-2 tablespoons of flavor per liter of water, adjusting to taste.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-8 h-8 bg-[#12d6fa] rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                        Q
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold mb-2">Are these flavors sugar-free?</h3>
-                        <p className="text-gray-600">We offer both regular and sugar-free options. Check individual flavor descriptions for specific nutritional information and ingredients.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-
-
-        {/* Benefits Section */}
-        <section className="py-16 bg-gradient-to-b from-white to-[#f3f3f3] mb-16">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-black font-montserrat mb-4 tracking-tight">
-                Flavor Bundle Benefits
-              </h2>
-              <p className="text-lg md:text-xl text-gray-600 font-noto-sans max-w-2xl mx-auto">
-                Why choose our flavor bundles for your sparkling drink experience
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {bundleBenefits.map((benefit) => (
-                <div
-                  key={benefit.id}
-                  className="bg-white rounded-2xl h-[280px] flex items-center justify-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg"
-                >
-                  <div className="text-center p-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                      {benefit.icon}
-                    </div>
-                    <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">{benefit.title}</h3>
-                    <p className="text-gray-600 text-base leading-relaxed font-noto-sans">{benefit.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works Section */}
-        <section className="py-16 bg-gradient-to-b from-[#f3f3f3] to-white mb-16">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-black font-montserrat mb-4 tracking-tight">
-                How to Use Your Flavor Bundle
-              </h2>
-              <p className="text-lg md:text-xl text-gray-600 font-noto-sans max-w-2xl mx-auto">
-                Simple steps to create amazing flavored sparkling drinks
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg">
-                <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <span className="text-3xl font-bold text-[#12d6fa] font-montserrat">1</span>
-                </div>
-                <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">Choose Your Flavor</h3>
-                <p className="text-gray-600 text-base leading-relaxed font-noto-sans">
-                  Select from our premium flavor collection
+                <p className="text-sm text-muted-foreground">
+                  Enter your email address and we'll notify you as soon as this product is back in stock.
                 </p>
-            </div>
-            
-              <div className="bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg">
-                <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <span className="text-3xl font-bold text-[#12d6fa] font-montserrat">2</span>
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={notifyEmail}
+                  onChange={(e) => setNotifyEmail(e.target.value)}
+                />
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setShowNotifyMe(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (notifyEmail) {
+                        alert("We'll notify you when this product is available!")
+                        setShowNotifyMe(false)
+                        setNotifyEmail("")
+                      }
+                    }}
+                    className="bg-[#12d6fa] hover:bg-[#0fb8d9]"
+                  >
+                    Notify Me
+                  </Button>
                 </div>
-                <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">Mix & Carbonate</h3>
-                <p className="text-gray-600 text-base leading-relaxed font-noto-sans">
-                  Add flavor to sparkling water and mix well
-                </p>
               </div>
-
-              <div className="bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg">
-                <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <span className="text-3xl font-bold text-[#12d6fa] font-montserrat">3</span>
-                </div>
-                <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">Enjoy & Experiment</h3>
-                <p className="text-gray-600 text-base leading-relaxed font-noto-sans">
-                  Savor your creation and try new combinations
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* FAQ Section */}
-        <section className="py-16 bg-white mb-16">
-          <div className="max-w-7xl mx-auto px-4">
-            <header className="text-center max-w-2xl mx-auto mb-12">
-              <h2 className="font-bold text-black text-3xl md:text-4xl mb-4 tracking-tight">Flavor Bundle FAQ</h2>
-              <p className="font-semibold text-black text-lg md:text-xl">All the answers to your flavor bundle questions</p>
-            </header>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {bundleFAQ.map((card) => (
-                <div
-                  key={card.id}
-                  className="bg-white rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-gray-200"
-                >
-                  <h3 className="text-lg font-bold text-black mb-3 tracking-tight">{card.question}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{card.answer}</p>
-                </div>
-              ))}
-          </div>
+            </DialogContent>
+          </Dialog>
         </div>
-        </section>
-
-        {/* Enhanced Related Products */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 flex items-center">
-            <Sparkles className="w-6 h-6 mr-2 text-[#12d6fa]" />
-            You Might Also Like
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i} className="h-full">
-                <CardContent className="p-4">
-                  <div className="aspect-square bg-gray-200 animate-pulse rounded-lg mb-4"></div>
-                  <div className="h-5 bg-gray-200 animate-pulse rounded mb-2 w-3/4"></div>
-                  <div className="h-4 bg-gray-200 animate-pulse rounded mb-4 w-1/2"></div>
-                  <div className="h-8 bg-gray-200 animate-pulse rounded"></div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Reviews Section */}
-        <FeedbackSection 
-          rating={bundle.averageRating} 
-          reviewCount={bundle.reviewCount} 
-          reviews={reviews} 
-          bundleId={bundle._id}
-          onReviewAdded={() => {
-            // Refresh bundle data to get updated reviews
-            fetchBundle()
-          }}
-        />
-      </div>
+      </TooltipProvider>
     </PageLayout>
   )
 }
+    
+   

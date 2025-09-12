@@ -1,38 +1,45 @@
 "use client"
-/* eslint-disable react/no-inline-styles */
-/* eslint-disable @next/next/no-inline-styles */
-/* eslint-disable jsx-a11y/no-inline-styles */
 
-import React, { useState, useEffect, useCallback, useMemo } from "react"
-import { useParams } from "next/navigation"
+import type React from "react"
+
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
+import { useRouter, useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
+import { Suspense } from "react"
+import { shopAPI } from "@/lib/api"
+import { useCart } from "@/lib/cart-context"
+import { useTranslation } from "@/lib/translation-context"
+import { Button } from "@/components/ui/button"
 import {
-  Star,
-  Heart,
-  ShoppingCart,
-  Share2,
   Plus,
   Minus,
+  ShoppingCart,
+  Heart,
+  Share2,
+  ChevronRight,
+  ChevronLeft,
+  Star,
+  Check,
+  Shield,
+  Truck,
+  Award,
+  Clock,
+  Sparkles,
+  ArrowLeft,
+  Eye,
+  TrendingUp,
+  Maximize2,
+  Bell,
+  Copy,
   Facebook,
   Twitter,
-  Copy,
-  Bell,
+  Loader2,
   ChevronDown,
   ChevronUp,
   ThumbsUp,
-  ArrowLeft,
-  Eye,
   Play,
   MessageCircle,
-  Award,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Info,
-  Sparkles,
-  TrendingUp,
-  Users,
   Calendar,
   Package,
   Recycle,
@@ -41,17 +48,17 @@ import {
   Settings,
   Filter,
   X,
-  ChevronLeft,
-  ChevronRight,
-  Maximize2,
-  Truck,
-  Shield,
   Zap,
-  Loader2,
+  AlertCircle,
+  Info,
+  Users,
+  CheckCircle,
+  Link2,
+  Instagram,
+  Youtube,
+  Video,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import PageLayout from "@/components/layout/PageLayout"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -62,145 +69,157 @@ import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { YouTubeVideo, isYouTubeUrl, getYouTubeVideoId } from "@/components/ui/youtube-video"
-import { useCart } from "@/lib/cart-context"
-import { useTranslation } from "@/lib/translation-context"
-import { useRouter } from "next/navigation"
-import PageLayout from "@/components/layout/PageLayout"
-import { shopAPI } from "@/lib/api"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "sonner"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
-import FeedbackSection from "@/components/product/FeedbackSection"
-import ProductOverview from "@/components/product/ProductOverview"
-import styles from "./styles.module.css"
 
-// Define product type
-interface Product {
-  _id: string
-  id?: string // For compatibility with mock data
-  slug: string
+// Dynamic export to prevent static optimization
+export const dynamic = "force-dynamic"
+
+interface Color {
   name: string
-  brand: string
-  type: string
+  hexCode: string
+  inStock: boolean
+}
+
+interface Feature {
+  title: string
+  description: string
+  icon?: string
+}
+
+interface Specification {
+  name: string
+  value: string
+}
+
+interface Image {
+  url: string
+  alt: string
+  isPrimary: boolean
+}
+
+interface AccessoryProduct {
+  // Basic product fields
+  _id: string
+  id?: string
+  name: string
+  slug: string
+  description: string
+  shortDescription?: string
+  fullDescription?: string
   price: number
-  originalPrice: number
-  discount: number
+  originalPrice?: number
+  salePrice?: number
+  discount?: number
+  sku?: string
+  stock?: number
+  isActive?: boolean
+  isFeatured?: boolean
+  isBestSeller?: boolean
+  isNew?: boolean
+  isEcoFriendly?: boolean
+  averageRating?: number
+  rating?: number
+  reviewCount?: number
+  reviews?: number
+  totalReviews?: number
+
+  // Category and classification
+  category: string | { _id: string; name: string; slug: string }
+  categoryId?: string
+  subcategory?: string
+  tags?: string[]
+
+  // SEO and marketing
+  seoTitle?: string
+  seoDescription?: string
+  badge?: string
+  brand?: string
+
+  // Media
+  image?: string
+  images?: (string | Image)[] // Support both string and object formats
+
+  // Product options
+  colors?: (string | Color)[] // Support both string and object formats
+  sizes?: string[]
+
+  // Product details
+  features?: (string | Feature)[] // Support both string and object formats
+  specifications?: Specification[] | Record<string, any> // Support both array and object formats
+  safetyFeatures?: string[]
+  dimensions?: {
+    width: number
+    height: number
+    depth: number
+    weight: number
+  }
+  warranty?: string
+  certifications?: string[]
+  compatibility?: string[]
+  videos?: string[]
+  documents?: string[]
+
+  // Accessory-specific fields
+  type?: string
   capacity?: number
   material?: string
-  stock: number
-  minStock: number
-  status: string
-  isBestSeller: boolean
-  isFeatured: boolean
-  isNew: boolean
-  isEcoFriendly: boolean
-  description: string
-  features: string[]
-  specifications: Record<string, string>
-  images: string[]
-  image?: string // For compatibility with mock data
-  videos: string[]
-  documents: { name: string; url: string; type: string }[]
-  certifications: string[]
-  warranty: string
-  dimensions: { width: number; height: number; depth: number; weight: number }
-  compatibility: string[]
-  safetyFeatures: string[]
-  createdAt: string
-  updatedAt: string
-  // Legacy fields for compatibility
-  category: {
-    _id: string
-    name: string
-    slug: string
-  }
-  rating: number
-  reviews: number
-  shortDescription: string
-  fullDescription: string
-  colors?: Array<{name: string, hexCode: string, inStock: boolean}>
-  sku: string
   howToUse?: {
     title: string
     steps: Array<{id: string, title: string, description: string, image?: string}>
   }
   relatedProducts?: Array<any>
-  averageRating: number
-  reviewCount: number
 }
 
-// Sample data for enhanced features
-const productReviews = [
-  {
-    id: 1,
-    name: "Sarah M.",
-    rating: 5,
-    comment: "Excellent accessory! Perfect for my soda maker setup.",
-    date: "2024-01-15",
-    helpful: 12,
-    pros: "Great quality, easy to use",
-    cons: "None",
-    wouldRecommend: true,
-    avatar: "/diverse-user-avatars.png",
-    verified: true,
-  },
-  {
-    id: 2,
-    name: "Ahmed K.",
-    rating: 4,
-    comment: "Good quality accessory, would buy again.",
-    date: "2024-01-10",
-    helpful: 8,
-    pros: "Durable construction",
-    cons: "A bit expensive",
-    wouldRecommend: true,
-    avatar: "/diverse-user-avatars.png",
-    verified: false,
-  },
-]
+interface Review {
+  id: number
+  user: string
+  avatar: string
+  rating: number
+  date: string
+  verified: boolean
+  comment: string
+  helpful: number
+  images: string[]
+  pros: string[]
+  cons: string[]
+  wouldRecommend: boolean
+  purchaseVerified: boolean
+}
 
-const productQA = [
-  {
-    id: 1,
-    category: "Compatibility",
-    question: "Is this accessory compatible with all soda makers?",
-    answer: "This accessory is compatible with most standard soda makers. Please check the specifications for specific model compatibility.",
-    helpful: 15,
-    date: "2024-01-12",
-    answeredBy: "Product Expert",
-    tags: ["compatibility", "soda-makers", "fit"],
-  },
-  {
-    id: 2,
-    category: "Installation",
-    question: "How do I install this accessory?",
-    answer: "Installation is simple and straightforward. Follow the included instructions or watch our installation video for step-by-step guidance.",
-    helpful: 8,
-    date: "2024-01-08",
-    answeredBy: "Support Team",
-    tags: ["installation", "setup", "instructions"],
-  },
-]
+interface QA {
+  id: number
+  category: string
+  question: string
+  answer: string
+  helpful: number
+  date: string
+  answeredBy: string
+  tags: string[]
+  isAnswered?: boolean
+}
+
+// Mock data removed - data will be fetched from API
 
 export default function AccessoryDetailPage() {
   const params = useParams()
   const { t } = useTranslation()
-  const { addItem, isInCart } = useCart()
+  const { addItem } = useCart()
   const router = useRouter()
-  
+
   const productSlug = params?.slug as string
-  const [product, setProduct] = useState<Product | null>(null)
+  const [product, setProduct] = useState<AccessoryProduct | null>(null)
   const [loading, setLoading] = useState(true)
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
+  const [relatedProducts, setRelatedProducts] = useState<AccessoryProduct[]>([])
   const [loadingRelated, setLoadingRelated] = useState(true)
-  const [error, setError] = useState("")
-  const [selectedColor, setSelectedColor] = useState("")
-  const [quantity, setQuantity] = useState(1)
-  const [activeImage, setActiveImage] = useState("")
-  const [reviews, setReviews] = useState(productReviews)
-  
+
   // Enhanced state management with more features
   const [selectedImage, setSelectedImage] = useState(0)
   const [isShowingVideo, setIsShowingVideo] = useState(false)
+  const [quantity, setQuantity] = useState(1)
+  const [isInCart, setIsInCart] = useState(false)
   const [isInWishlist, setIsInWishlist] = useState(false)
   const [activeTab, setActiveTab] = useState("description")
   const [isZoomed, setIsZoomed] = useState(false)
@@ -218,13 +237,15 @@ export default function AccessoryDetailPage() {
     cons: "",
     wouldRecommend: true,
   })
-  const [qaData, setQAData] = useState(productQA)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [qaData, setQAData] = useState<QA[]>([])
   const [showQuestionForm, setShowQuestionForm] = useState(false)
   const [newQuestion, setNewQuestion] = useState({
     question: "",
-    category: "General",
+    category: "Usage & Features",
     tags: ""
   })
+
   const [showImageGallery, setShowImageGallery] = useState(false)
   const [reviewFilter, setReviewFilter] = useState("all")
   const [reviewSort, setReviewSort] = useState("newest")
@@ -232,95 +253,204 @@ export default function AccessoryDetailPage() {
   const [isVideoMuted, setIsVideoMuted] = useState(true)
   const [cartAnimation, setCartAnimation] = useState(false)
   const [wishlistAnimation, setWishlistAnimation] = useState(false)
+  const [selectedColor, setSelectedColor] = useState("")
+  const [selectedSize, setSelectedSize] = useState("")
 
-  // Fetch product data
-  const fetchProduct = useCallback(async () => {
-    if (!productSlug) return
-
-    try {
-      setLoading(true)
-      setError("")
-      console.log('Fetching accessory product details for slug:', productSlug);
-      
-      const response = await shopAPI.getProductFlexible(productSlug)
-      console.log('Accessory product fetch successful:', response.product?.name);
-      
-      if (response.success && response.product) {
-      setProduct(response.product)
-      setReviews(response.reviews || [])
-        
-        // Set default color if available
-        if (response.product.colors && response.product.colors.length > 0) {
-          setSelectedColor(response.product.colors[0].name)
-        }
-      
-      // Set default active image
-      if (response.product.images && response.product.images.length > 0) {
-        const primaryImage = response.product.images.find((img: any) => img.isPrimary)
-        setActiveImage(primaryImage ? primaryImage.url : response.product.images[0].url)
-      }
+  const toggleQA = useCallback((id: number) => {
+    setExpandedQA((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((qaId) => qaId !== id)
       } else {
-        setError("Product not found")
+        return [...prev, id]
       }
-    } catch (error) {
-      console.error("Error fetching accessory product:", error)
-      setError("Failed to load product. Please try again later.")
-    } finally {
-      setLoading(false)
-    }
-  }, [productSlug])
+    })
+  }, [])
 
-  // Fetch related products
-  const fetchRelatedProducts = useCallback(async () => {
-    if (!product) return
-
+  // Function to fetch related products
+  const fetchRelatedProducts = useCallback(async (currentProductId: string) => {
     try {
       setLoadingRelated(true)
-      const response = await shopAPI.getProducts({ 
-        category: product.category?.slug,
+
+      // Get related accessories
+      const response = await shopAPI.getProducts({
+        category: 'accessories',
         limit: 4,
-        exclude: product._id 
-      })
-      
-      if (response.success && response.data) {
-        setRelatedProducts(response.data.products || [])
+        exclude: currentProductId
+      });
+
+      if (response.success && response.products) {
+        // Process images to ensure they have absolute URLs
+        const processedProducts = response.products.map((accessory: AccessoryProduct) => {
+          // Handle case where image might be undefined or null
+          const safeImage = accessory.image || ''
+          const safeImages = accessory.images || []
+
+          return {
+            ...accessory,
+            // Ensure image URL is absolute
+            image: safeImage.startsWith('http') ? safeImage :
+                   safeImage.startsWith('/') ? `http://localhost:3000${safeImage}` :
+                   '/placeholder.svg',
+            // Ensure image URLs in arrays are absolute
+            images: safeImages.map((img: any) => {
+              const imageUrl = typeof img === 'string' ? img : img?.url || img
+              return imageUrl?.startsWith('http') ? imageUrl :
+                     imageUrl?.startsWith('/') ? `http://localhost:3000${imageUrl}` :
+                     '/placeholder.svg'
+            })
+          }
+        });
+
+        setRelatedProducts(processedProducts);
+      } else {
+        // No related products found
+        setRelatedProducts([]);
       }
     } catch (error) {
-      console.error("Error fetching related products:", error)
+      // Error fetching related products - continue without them
+      // Set empty array on error
+      setRelatedProducts([]);
     } finally {
-      setLoadingRelated(false)
+      setLoadingRelated(false);
     }
-  }, [product])
+  }, [])
 
   useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true)
+
+        // Get accessory product details using shopAPI
+        const response = await shopAPI.getProductFlexible(productSlug);
+
+        // Handle both response formats: { success: true, product: data } and direct data
+        const productData = response.success ? response.product : response;
+
+        if (productData && (productData._id || productData.id)) {
+
+          // Ensure image URLs are absolute
+          const processedProduct = {
+            ...productData,
+            // Ensure image URL is absolute
+            image: productData.image?.startsWith('http') ? productData.image :
+                   productData.image?.startsWith('/') ? `http://localhost:3000${productData.image}` :
+                   '/placeholder.svg',
+            // Ensure image URLs in arrays are absolute
+            images: (productData.images || []).map((img: any) => {
+              const imageUrl = typeof img === 'string' ? img : img?.url || img
+              return imageUrl?.startsWith('http') ? imageUrl :
+                     imageUrl?.startsWith('/') ? `http://localhost:3000${imageUrl}` :
+                     '/placeholder.svg'
+            }),
+            // Add any missing properties with default values
+            specifications: productData.specifications || {},
+            videos: productData.videos || [],
+            documents: productData.documents || [],
+            certifications: productData.certifications || [],
+            dimensions: productData.dimensions || { width: 0, height: 0, depth: 0, weight: 0 },
+            compatibility: productData.compatibility || [],
+            safetyFeatures: productData.safetyFeatures || [],
+            colors: productData.colors || [],
+            howToUse: productData.howToUse || undefined,
+          }
+
+          setProduct(processedProduct)
+
+          // Set default color if available
+          if (processedProduct.colors && processedProduct.colors.length > 0) {
+            setSelectedColor(processedProduct.colors[0].name)
+          }
+
+          // Fetch related products after getting the current product
+          fetchRelatedProducts(productData._id);
+        } else {
+          // Set empty product if API fails
+          setProduct(null)
+
+          // No related products to fetch when product is null
+        }
+        setLoading(false)
+      } catch (error) {
+        // Error fetching product - show error state
+        setProduct(null)
+        setLoading(false)
+
+        // No related products to fetch when product is null
+      }
+    }
+
+    if (productSlug) {
       fetchProduct()
-  }, [fetchProduct])
-
-  useEffect(() => {
-    if (product) {
-      fetchRelatedProducts()
     }
-  }, [product, fetchRelatedProducts])
+  }, [productSlug, fetchRelatedProducts])
+
+  const handleAddToCart = useCallback(() => {
+    if (!product) return
+
+    setCartAnimation(true)
+    setIsInCart(true)
+
+    // Add item to cart context
+    addItem({
+      id: product._id || product.id || productSlug,
+      name: product.name,
+      price: product.salePrice || product.price,
+      image: product.image || (() => {
+        const img = product.images?.[0]
+        return typeof img === 'string' ? img : img?.url || '/placeholder.svg'
+      })(),
+      quantity: quantity,
+      category: 'accessories',
+      color: selectedColor,
+      size: selectedSize
+    })
+
+    // Simulate cart API call
+    setTimeout(() => {
+      setCartAnimation(false)
+      // Navigate to cart page
+      router.push('/cart')
+    }, 1000)
+  }, [product, quantity, addItem, router, selectedColor, selectedSize])
+
+  const handleAddToWishlist = useCallback(() => {
+    if (!product) return
+
+    setWishlistAnimation(true)
+    setIsInWishlist(!isInWishlist)
+
+    setTimeout(() => {
+      setWishlistAnimation(false)
+    }, 500)
+  }, [product, isInWishlist])
+
+  const handleQuantityChange = useCallback(
+    (change: number) => {
+      const newQuantity = Math.max(1, Math.min(product?.stock || 1, quantity + change))
+      setQuantity(newQuantity)
+    },
+    [quantity, product?.stock],
+  )
 
   // Create combined media array (images + videos)
   const combinedMedia = useMemo(() => {
     const media: Array<{ type: 'image' | 'video', src: string, index: number }> = []
-    
+
     // Add images
     if (product?.images) {
       product.images.forEach((image, index) => {
-        const imageUrl = typeof image === 'string' ? image : (image as any).url || image
+        const imageUrl = typeof image === 'string' ? image : image?.url || ''
         media.push({ type: 'image', src: imageUrl, index })
       })
     }
-    
+
     // Add videos
     if (product?.videos) {
       product.videos.forEach((video, index) => {
         media.push({ type: 'video', src: video, index })
       })
     }
-    
+
     return media
   }, [product?.images, product?.videos])
 
@@ -337,52 +467,11 @@ export default function AccessoryDetailPage() {
     setZoomPosition({ x, y })
   }, [])
 
-  const handleAddToCart = useCallback(() => {
-    if (!product) return
-    
-    setCartAnimation(true)
-    
-    addItem({
-      id: product._id,
-      name: product.name,
-      price: product.price,
-      quantity: quantity,
-      image: typeof product.images?.[0] === 'string' ? product.images[0] : (product.images?.[0] as any)?.url || product.image || "",
-      category: "accessories",
-      color: selectedColor
-    })
-    
-    setTimeout(() => {
-      setCartAnimation(false)
-      // Navigate to cart page
-      router.push('/cart')
-    }, 1000)
-  }, [product, quantity, addItem, selectedColor, router])
-
-  const handleAddToWishlist = useCallback(() => {
-    if (!product) return
-
-    setWishlistAnimation(true)
-    setIsInWishlist(!isInWishlist)
-
-    setTimeout(() => {
-      setWishlistAnimation(false)
-    }, 500)
-  }, [product, isInWishlist])
-
-  const handleQuantityChange = useCallback(
-    (change: number) => {
-      const newQuantity = Math.max(1, Math.min(product?.stock || 1, quantity + change))
-    setQuantity(newQuantity)
-    },
-    [quantity, product?.stock],
-  )
-
   const handleShare = useCallback(
     (platform: string) => {
       if (!product) return
       const url = typeof window !== "undefined" ? window.location.href : ""
-      const text = `Check out this amazing ${product.name} - ${product.description.substring(0, 100)}...`
+      const text = `Check out this amazing ${product.name} - ${product.description?.substring(0, 100) || 'No description available'}...`
 
       switch (platform) {
         case "facebook":
@@ -425,34 +514,60 @@ export default function AccessoryDetailPage() {
     [product],
   )
 
-  const handleSubmitReview = useCallback(() => {
+  const handleSubmitReview = useCallback(async () => {
     if (!newReview.comment.trim() || !newReview.name.trim()) {
       alert("Please fill in all required fields")
       return
     }
 
-    const review = {
-      id: Date.now(),
-      name: newReview.name,
-      user: newReview.name,
-      avatar: "/diverse-user-avatars.png",
-      rating: newReview.rating,
-      date: new Date().toISOString().split("T")[0],
-      verified: false,
-      comment: newReview.comment,
-      helpful: 0,
-      images: [],
-      pros: newReview.pros,
-      cons: newReview.cons,
-      wouldRecommend: newReview.wouldRecommend,
-      purchaseVerified: false,
+    if (!product) {
+      alert("Product not found")
+      return
     }
 
-    setReviews([review, ...reviews])
-    setNewReview({ rating: 5, comment: "", name: "", pros: "", cons: "", wouldRecommend: true })
-    setShowReviewForm(false)
-    alert("Thank you for your review! It will be published after moderation.")
-  }, [newReview, reviews])
+    try {
+      // Submit review to API
+      const reviewData = {
+        rating: newReview.rating,
+        comment: newReview.comment,
+        name: newReview.name,
+        pros: newReview.pros
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean),
+        cons: newReview.cons
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean),
+        wouldRecommend: newReview.wouldRecommend,
+      }
+
+      // For now, we'll add it locally since we don't have a review API endpoint yet
+      const review = {
+        id: Date.now(),
+        user: newReview.name,
+        avatar: "/diverse-user-avatars.png",
+        rating: newReview.rating,
+        date: new Date().toISOString().split("T")[0],
+        verified: false,
+        comment: newReview.comment,
+        helpful: 0,
+        images: [],
+        pros: reviewData.pros,
+        cons: reviewData.cons,
+        wouldRecommend: newReview.wouldRecommend,
+        purchaseVerified: false,
+      }
+
+      setReviews([review, ...reviews])
+      setNewReview({ rating: 5, comment: "", name: "", pros: "", cons: "", wouldRecommend: true })
+      setShowReviewForm(false)
+      alert("Thank you for your review! It will be published after moderation.")
+    } catch (error) {
+      console.error('Error submitting review:', error)
+      alert("Failed to submit review. Please try again.")
+    }
+  }, [newReview, reviews, product])
 
   const handleSubmitQuestion = useCallback(() => {
     if (!newQuestion.question.trim()) {
@@ -460,6 +575,7 @@ export default function AccessoryDetailPage() {
       return
     }
 
+    // For now, we'll add it locally since we don't have a Q&A API endpoint yet
     const question = {
       id: Date.now(),
       category: newQuestion.category,
@@ -475,7 +591,7 @@ export default function AccessoryDetailPage() {
     setQAData([question, ...qaData])
     setNewQuestion({
       question: "",
-      category: "General",
+      category: "Usage & Features",
       tags: ""
     })
     setShowQuestionForm(false)
@@ -483,7 +599,7 @@ export default function AccessoryDetailPage() {
   }, [newQuestion, qaData])
 
   const stockMessage = useMemo(() => {
-    if (!product) return "In stock"
+    if (!product || product.stock === undefined || product.stock === null) return "In stock"
     if (product.stock === 0) return "Out of stock"
     if (product.stock <= 5) return `Only ${product.stock} left in stock!`
     if (product.stock <= 10) return `${product.stock} in stock`
@@ -491,10 +607,47 @@ export default function AccessoryDetailPage() {
   }, [product?.stock])
 
   const getStockColor = useCallback(() => {
-    if (!product) return "text-green-600"
+    if (!product || product.stock === undefined || product.stock === null) return "text-green-600"
     if (product.stock === 0) return "text-red-600"
     if (product.stock <= 5) return "text-orange-600"
     return "text-green-600"
+  }, [product])
+
+  const getDeliveryDate = useMemo(() => {
+    const today = new Date()
+    const deliveryDate = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000)
+    return deliveryDate.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })
+  }, [])
+
+  const getServiceTypeText = useCallback((type: string) => {
+    switch (type) {
+      case "new":
+        return "New Product"
+      case "refurbished":
+        return "Refurbished"
+      case "subscription":
+        return "Subscription Service"
+      default:
+        return "Product Service"
+    }
+  }, [])
+
+  const getCapacityText = useCallback((capacity: number) => {
+    return `${capacity} units capacity`
+  }, [])
+
+  const calculateSavings = useCallback(() => {
+    if (!product) return 0
+    const originalPrice = product.originalPrice || product.price
+    const currentPrice = product.salePrice || product.price
+    return originalPrice - currentPrice
+  }, [product])
+
+  const getEstimatedUsage = useCallback(() => {
+    if (!product) return ""
+    const weeksLow = Math.floor((product.stock || 10) / 20)
+    const weeksHigh = Math.floor((product.stock || 10) / 10)
+    return `${weeksLow}-${weeksHigh} weeks`
   }, [product])
 
   const filteredReviews = useCallback(() => {
@@ -513,7 +666,7 @@ export default function AccessoryDetailPage() {
       case "highest":
         return filtered.sort((a, b) => b.rating - a.rating)
       case "lowest":
-        return filtered.sort((a, b) => a.rating - b.rating)
+        return filtered.sort((a, b) => a.rating - a.rating)
       case "helpful":
         return filtered.sort((a, b) => b.helpful - a.helpful)
       default:
@@ -526,81 +679,37 @@ export default function AccessoryDetailPage() {
     return qaData.filter((qa) => qa.category === qaFilter)
   }, [qaData, qaFilter])
 
-  const toggleQA = useCallback((id: number) => {
-    setExpandedQA(prev => 
-      prev.includes(id) 
-        ? prev.filter(qaId => qaId !== id)
-        : [...prev, id]
-    )
-  }, [])
-
-  const handleColorChange = (color: string) => {
-    setSelectedColor(color)
-  }
-
-  // Function to render star ratings
-  const renderStars = (rating: number) => {
-    const stars = []
-    for (let i = 0; i < 5; i++) {
-      stars.push(
-        <Star
-          key={i}
-          className={`w-4 h-4 ${
-            i < Math.floor(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-          }`}
-        />
-      )
-    }
-    return <div className="flex">{stars}</div>
-  }
-
+  // Show enhanced loading state
   if (loading) {
     return (
-      <PageLayout currentPage="shop-accessories">
-        <div className="container mx-auto px-4 py-12">
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <div className="relative">
-              <Loader2 className="h-16 w-16 animate-spin text-[#12d6fa] mb-4" />
-              <div className="absolute inset-0 rounded-full border-4 border-[#12d6fa]/20"></div>
+      <PageLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#12d6fa] mx-auto"></div>
+              <div className="text-lg font-medium">Loading premium accessory details...</div>
+              <div className="text-sm text-muted-foreground">Preparing the best experience for you</div>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Product Details</h2>
-            <p className="text-gray-600 text-center max-w-md">
-              Please wait while we fetch the latest information about this accessory...
-            </p>
           </div>
         </div>
       </PageLayout>
     )
   }
-  
-  if (error || !product) {
+
+  // Show error if product not found
+  if (!product) {
     return (
-      <PageLayout currentPage="shop-accessories">
-        <div className="container mx-auto px-4 py-12">
-          <div className="max-w-md mx-auto text-center">
-            <div className="bg-red-50 border border-red-200 rounded-xl p-8 mb-8">
-              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-red-900 mb-2">Product Not Found</h2>
-              <p className="text-red-700 mb-4">
-                {error || "The accessory you're looking for doesn't exist or has been removed."}
-              </p>
-          </div>
-            <div className="space-y-4">
-              <Link 
-                href="/shop/accessories" 
-                className="inline-flex items-center px-6 py-3 bg-[#12d6fa] text-white rounded-lg hover:bg-[#12d6fa]/90 transition-colors"
-              >
+      <PageLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center space-y-4">
+              <AlertCircle className="w-16 h-16 text-red-500 mx-auto" />
+              <h1 className="text-2xl font-bold">Accessory Not Found</h1>
+              <p className="text-gray-600 mb-4">The accessory you're looking for doesn't exist or has been removed.</p>
+              <Link href="/shop/accessories" className="inline-flex items-center text-[#12d6fa] hover:text-[#0fb8d9] font-medium">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Accessories
               </Link>
-              <div>
-                <Link 
-                  href="/shop" 
-                  className="text-[#12d6fa] hover:underline"
-                >
-                  Browse All Products
-          </Link>
-              </div>
             </div>
           </div>
         </div>
@@ -608,26 +717,21 @@ export default function AccessoryDetailPage() {
     )
   }
 
-  // Calculate discount percentage
-  const discountPercentage = product.originalPrice 
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) 
-    : 0
-
   return (
-    <PageLayout currentPage="shop-accessories">
+    // Type assertion: product is guaranteed to exist here since we checked earlier
+    <PageLayout>
       <TooltipProvider>
-      <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8">
           {/* Enhanced Back Button with breadcrumb */}
-          <div className="mb-6 sm:mb-8">
-            <Button
-              variant="ghost"
-              onClick={() => router.back()}
-              className="mb-4 hover:bg-gray-100"
+          <div className="mb-6 space-y-4">
+            <Link
+              href="/shop/accessories"
+              className="inline-flex items-center text-[#12d6fa] hover:text-[#0fb8d9] transition-all duration-200 hover:translate-x-1"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            
+              Back to Accessories
+            </Link>
+
             {/* Enhanced Breadcrumb */}
             <nav className="text-sm text-muted-foreground flex items-center space-x-2">
               <Link href="/" className="hover:text-[#12d6fa] transition-colors">
@@ -640,7 +744,7 @@ export default function AccessoryDetailPage() {
               <ChevronRight className="w-3 h-3" />
               <span className="text-foreground font-medium">{product.name}</span>
             </nav>
-        </div>
+          </div>
 
           <div className="flex gap-8">
             {/* Enhanced Sidebar Controls */}
@@ -721,948 +825,1169 @@ export default function AccessoryDetailPage() {
                 </TooltipContent>
               </Tooltip>
             </div>
-            
+
             {/* Main Content Area */}
             <div className="flex-1">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
                 {/* Enhanced Product Images */}
                 <div className="space-y-4">
-                  {/* Main Image Display */}
-                  <div className="relative group">
-                    <div
-                      className={`relative overflow-hidden rounded-xl bg-gray-50 aspect-square cursor-zoom-in transition-all duration-300 ${
-                        isZoomed ? "cursor-zoom-out" : ""
-                      }`}
-                      onClick={() => setIsZoomed(!isZoomed)}
-                      onMouseMove={handleImageZoom}
-                      onMouseLeave={() => setIsZoomed(false)}
-                    >
-                      {isShowingVideo ? (
-                        <div className="w-full h-full flex items-center justify-center">
-                          {combinedMedia[selectedImage] && isYouTubeUrl(combinedMedia[selectedImage].src) ? (
-                            <YouTubeVideo
-                              videoUrl={combinedMedia[selectedImage].src}
-                              title={`${product.name} - Product Video`}
-                              className="w-full h-full"
-                              showThumbnail={false}
-                              autoplay={false}
-                              controls={true}
-                            />
-                          ) : (
-                            <video
-                              className="w-full h-full object-cover"
-                              controls
-                              muted={isVideoMuted}
-                            >
-                              <source src={combinedMedia[selectedImage]?.src} type="video/mp4" />
-                              <source src={combinedMedia[selectedImage]?.src} type="video/webm" />
-                              <source src={combinedMedia[selectedImage]?.src} type="video/ogg" />
-                              Your browser does not support the video tag.
-                            </video>
-                          )}
-                        </div>
-                      ) : (
-                        <img
-                          src={combinedMedia[selectedImage]?.src || "/placeholder.svg"}
-                          alt={product.name}
-                          className={`w-full h-full object-cover transition-all duration-500 ${
-                            isZoomed ? styles.zoomedImage : styles.defaultImage
-                          }`}
-                        />
-                      )}
-
-                      {/* Product Badges */}
-                      <div className="absolute top-4 left-4 flex flex-col gap-2">
-                        {product.isNew && (
-                          <Badge className="bg-green-500 text-white hover:bg-green-600">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            New
-                          </Badge>
-                        )}
-                        {product.isBestSeller && (
-                          <Badge className="bg-orange-500 text-white hover:bg-orange-600">
-                            <TrendingUp className="w-3 h-3 mr-1" />
-                            Best Seller
-                          </Badge>
-                        )}
-                        {product.isFeatured && (
-                          <Badge className="bg-purple-500 text-white hover:bg-purple-600">
-                            <Award className="w-3 h-3 mr-1" />
-                            Featured
-                          </Badge>
-                        )}
-                        {product.isEcoFriendly && (
-                          <Badge className="bg-green-600 text-white hover:bg-green-700">
-                            <Leaf className="w-3 h-3 mr-1" />
-                            Eco-Friendly
-                          </Badge>
-                        )}
-                        {discountPercentage > 0 && (
-                          <Badge className="bg-red-500 text-white hover:bg-red-600">
-                            -{discountPercentage}%
-                          </Badge>
-                        )}
-                      </div>
-
-                      {/* Video Play Button Overlay */}
-                      {!isShowingVideo && combinedMedia[selectedImage]?.type === 'video' && (
-                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setIsShowingVideo(true)
-                            }}
-                            className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors"
-                            title="Play video"
-                          >
-                            <Play className="w-6 h-6 text-gray-900 ml-1" />
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Zoom Indicator */}
-                      {!isShowingVideo && (
-                        <div className="absolute bottom-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                          {isZoomed ? "Click to zoom out" : "Click to zoom in"}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Image Gallery Navigation */}
-                    {combinedMedia.length > 1 && (
-                      <div className="flex justify-between items-center mt-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handleImageSelect(selectedImage > 0 ? selectedImage - 1 : combinedMedia.length - 1)
-                          }
-                          className="flex items-center"
-                        >
-                          <ChevronLeft className="w-4 h-4 mr-1" />
-                          Previous
-                        </Button>
-                        
-                        <span className="text-sm text-gray-500">
-                          {selectedImage + 1} of {combinedMedia.length}
-                        </span>
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            handleImageSelect(selectedImage < combinedMedia.length - 1 ? selectedImage + 1 : 0)
-                          }
-                          className="flex items-center"
-                        >
-                          Next
-                          <ChevronRight className="w-4 h-4 ml-1" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Thumbnail Gallery */}
-                  {combinedMedia.length > 1 && (
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                      {combinedMedia.map((media, index) => (
-                        <button
-                    key={index}
-                          onClick={() => handleImageSelect(index)}
-                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                            selectedImage === index
-                              ? "border-[#12d6fa] ring-2 ring-[#12d6fa]/20"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          {media.type === 'video' ? (
-                            <>
-                              {isYouTubeUrl(media.src) ? (
-                                <img
-                                  src={`https://img.youtube.com/vi/${getYouTubeVideoId(media.src)}/mqdefault.jpg`}
-                                  alt="Video thumbnail"
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <video
-                                  className="w-full h-full object-cover"
-                                  muted
-                                >
-                                  <source src={media.src} type="video/mp4" />
-                                  <source src={media.src} type="video/webm" />
-                                  <source src={media.src} type="video/ogg" />
-                                </video>
-                              )}
-                              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                                <Play className="w-3 h-3 text-white" />
-                  </div>
-                            </>
-                          ) : (
-                            <img
-                              src={media.src || "/placeholder.svg"}
-                              alt={`${product.name} ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          )}
-                        </button>
-                ))}
-              </div>
-            )}
-
-                  {/* Full Gallery Button */}
-                  <Button
-                    variant="outline"
+                  <div
+                    className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden cursor-zoom-in group shadow-lg"
+                    onMouseEnter={() => !isShowingVideo && setIsZoomed(true)}
+                    onMouseLeave={() => setIsZoomed(false)}
+                    onMouseMove={!isShowingVideo ? handleImageZoom : undefined}
                     onClick={() => setShowImageGallery(true)}
-                    className="w-full"
                   >
-                    <Maximize2 className="w-4 h-4 mr-2" />
-                    View Full Gallery
-                  </Button>
-          </div>
-          
-                {/* Enhanced Product Information */}
-                <div className="space-y-6">
-                  {/* Product Header */}
-          <div>
-                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-                      {product.name}
-                    </h1>
-                    <p className="text-lg text-gray-600 mb-4">{product.brand}</p>
-            
-                    {/* Rating and Reviews */}
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="flex items-center gap-2">
-              {renderStars(product.averageRating || 5)}
-                        <span className="text-sm font-medium text-gray-900">
-                          {product.averageRating || 5}
-                        </span>
-                      </div>
-                      <Separator orientation="vertical" className="h-4" />
-                      <span className="text-sm text-gray-600">
-                        {product.reviewCount || 0} Reviews
-                      </span>
-                      <Separator orientation="vertical" className="h-4" />
-                      <span className="text-sm text-gray-600">
-                        {product.stock > 0 ? "In Stock" : "Out of Stock"}
-                      </span>
-                    </div>
-            </div>
-            
-                  {/* Price Section */}
-                  <div className="space-y-2">
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-3xl sm:text-4xl font-bold text-gray-900">
-                        <SaudiRiyal amount={product.price} />
-                      </span>
-                      {product.originalPrice && product.originalPrice > product.price && (
-                        <>
-                          <span className="text-xl text-gray-500 line-through">
-                            <SaudiRiyal amount={product.originalPrice} />
-                    </span>
-                          <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
-                            Save {discountPercentage}%
-                          </Badge>
-                  </>
-                )}
-              </div>
-                    {product.originalPrice && product.originalPrice > product.price && (
-                      <p className="text-sm text-green-600 font-medium">
-                        You save <SaudiRiyal amount={product.originalPrice - product.price} />
-                      </p>
-                    )}
-            </div>
-            
-                  {/* Stock Status */}
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${getStockColor().replace('text-', 'bg-')}`}></div>
-                    <span className={`text-sm font-medium ${getStockColor()}`}>
-                      {stockMessage}
-                    </span>
-            </div>
-            
-                  {/* Color Selection */}
-                  {product.colors && product.colors.length > 0 && (
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-medium text-gray-900">Color</h3>
-                      <div className="flex gap-2">
-                        {product.colors.map((color) => (
-                <button 
-                            key={color.name}
-                            onClick={() => handleColorChange(color.name)}
-                            className={`w-8 h-8 rounded-full border-2 transition-all color-swatch ${
-                              selectedColor === color.name
-                                ? "border-gray-900 scale-110"
-                                : "border-gray-300 hover:border-gray-400"
-                            } ${!color.inStock ? "opacity-50 cursor-not-allowed" : ""}`}
-                            title={`Select ${color.name} color`}
-                            disabled={!color.inStock}
-                            style={{ '--color-bg': color.hexCode } as React.CSSProperties}
-                          />
-                        ))}
-                      </div>
-                      {selectedColor && (
-                        <p className="text-sm text-gray-600">Selected: {selectedColor}</p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Quantity Selector */}
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-gray-900">Quantity</h3>
-                    <div className="flex items-center gap-3">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleQuantityChange(-1)}
-                  disabled={quantity <= 1}
-                        className="h-10 w-10"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span className="text-lg font-medium min-w-[3rem] text-center">
-                        {quantity}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleQuantityChange(1)}
-                        disabled={quantity >= (product.stock || 1)}
-                        className="h-10 w-10"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-              </div>
-                    <p className="text-xs text-gray-500">
-                      {product.stock} available
-                    </p>
-            </div>
-            
-                  {/* Action Buttons */}
-                  <div className="space-y-3">
-              <Button
-                onClick={handleAddToCart}
-                      disabled={product.stock === 0}
-                      className={`w-full h-12 text-lg font-semibold transition-all duration-200 ${
-                        cartAnimation ? "animate-pulse bg-green-600" : ""
-                      }`}
-                    >
-                      <ShoppingCart className="w-5 h-5 mr-2" />
-                      {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
-                    </Button>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        variant="outline"
-                        onClick={handleAddToWishlist}
-                        className="h-12"
-                      >
-                        <Heart className={`w-5 h-5 mr-2 ${isInWishlist ? "fill-current text-red-500" : ""}`} />
-                        {isInWishlist ? "In Wishlist" : "Add to Wishlist"}
-                      </Button>
-                      
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowShareMenu(true)}
-                        className="h-12"
-                      >
-                        <Share2 className="w-5 h-5 mr-2" />
-                        Share
-              </Button>
-                    </div>
-            </div>
-            
-                  {/* Key Features */}
-                  {product.features && product.features.length > 0 && (
-                    <div className="space-y-3">
-                      <h3 className="text-lg font-semibold text-gray-900">Key Features</h3>
-                      <ul className="space-y-2">
-                        {product.features.slice(0, 4).map((feature, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-gray-700">
-                              {typeof feature === 'string' ? feature : (feature as any).title || feature}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-            </div>
-                  )}
-
-                  {/* Delivery Information */}
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Truck className="w-5 h-5 text-[#12d6fa]" />
-                      <span className="font-medium text-gray-900">Free Delivery</span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      Get free delivery on orders over 200 SAR. Estimated delivery: 2-3 business days.
-                    </p>
-                  </div>
-                </div>
-              </div>
-          </div>
-        </div>
-
-          {/* Enhanced Product Details Tabs */}
-          <div className="mt-12">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="description">Description</TabsTrigger>
-                <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews</TabsTrigger>
-                <TabsTrigger value="videos">Videos</TabsTrigger>
-                <TabsTrigger value="qa">Q&A</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="description" className="mt-6 sm:mt-8">
-          <div className="prose max-w-none">
-                  <div className="bg-gradient-to-r from-[#12d6fa]/10 to-blue-50 p-4 sm:p-6 rounded-xl mb-6">
-                    <p className="text-base sm:text-lg leading-relaxed text-gray-700">{product.description}</p>
-        </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-                    <div>
-                      <h3 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
-                        <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#12d6fa] flex-shrink-0" />
-                        Key Features
-                      </h3>
-                      <ul className="space-y-3">
-              {product.features.map((feature, index) => (
-                          <li key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
-                            <span className="text-sm sm:text-base text-gray-700">
-                              {typeof feature === 'string' ? feature : (feature as any).title || feature}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
-                        <Shield className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-500 flex-shrink-0" />
-                        Quality Assurance
-                      </h3>
-                      <ul className="space-y-3">
-                        <li className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                          <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm sm:text-base text-gray-700">Premium quality materials</span>
-                        </li>
-                        <li className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                          <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm sm:text-base text-gray-700">Durable construction</span>
-                        </li>
-                        <li className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                          <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm sm:text-base text-gray-700">Quality tested</span>
-                        </li>
-                      </ul>
-
-                      <h3 className="text-lg sm:text-xl font-semibold mb-4 mt-6 flex items-center">
-                        <Award className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-amber-500 flex-shrink-0" />
-                        Certifications
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline" className="border-amber-200 text-amber-700 text-xs sm:text-sm">
-                          Quality Assured
-                        </Badge>
-                        <Badge variant="outline" className="border-amber-200 text-amber-700 text-xs sm:text-sm">
-                          Durable Materials
-                        </Badge>
-                        <Badge variant="outline" className="border-amber-200 text-amber-700 text-xs sm:text-sm">
-                          Tested & Verified
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="specifications" className="mt-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      {(Array.isArray(product.specifications) ? product.specifications.length > 0 : Object.keys(product.specifications).length > 0) ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {Array.isArray(product.specifications) ? (
-                            product.specifications.map((spec: any, index: number) => (
-                              <div key={index} className="flex justify-between py-2 border-b border-gray-100">
-                                <span className="font-medium text-gray-900">{spec.name || spec.key}</span>
-                                <span className="text-gray-600">{spec.value || spec.description}</span>
-                              </div>
-                            ))
-                          ) : (
-                            Object.entries(product.specifications).map(([key, value], index) => (
-                              <div key={index} className="flex justify-between py-2 border-b border-gray-100">
-                                <span className="font-medium text-gray-900">{key}</span>
-                                <span className="text-gray-600">{value}</span>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                          <p>No specifications available for this product.</p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="reviews" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <CardTitle>Customer Reviews</CardTitle>
-                      <Button onClick={() => setShowReviewForm(true)}>
-                        Write a Review
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      {/* Review Filters */}
-                      <div className="flex flex-wrap gap-4">
-                        <Select value={reviewFilter} onValueChange={setReviewFilter}>
-                          <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Filter by rating" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Ratings</SelectItem>
-                            <SelectItem value="5">5 Stars</SelectItem>
-                            <SelectItem value="4">4 Stars</SelectItem>
-                            <SelectItem value="3">3 Stars</SelectItem>
-                            <SelectItem value="2">2 Stars</SelectItem>
-                            <SelectItem value="1">1 Star</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        
-                        <Select value={reviewSort} onValueChange={setReviewSort}>
-                          <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Sort by" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="newest">Newest First</SelectItem>
-                            <SelectItem value="oldest">Oldest First</SelectItem>
-                            <SelectItem value="highest">Highest Rating</SelectItem>
-                            <SelectItem value="lowest">Lowest Rating</SelectItem>
-                            <SelectItem value="helpful">Most Helpful</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Reviews List */}
-                      <div className="space-y-4">
-                        {filteredReviews().map((review) => (
-                          <div key={review.id} className="border rounded-lg p-4">
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex items-center gap-3">
-                                <Avatar>
-                                  <AvatarImage src={review.avatar} />
-                                  <AvatarFallback>{review.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                  <div>
-                                  <p className="font-medium">{review.name}</p>
-                                  <div className="flex items-center gap-2">
-                                    {renderStars(review.rating)}
-                                    <span className="text-sm text-gray-500">{review.date}</span>
-                                  </div>
-                                </div>
-                              </div>
-                              {review.verified && (
-                                <Badge variant="outline" className="text-green-600 border-green-200">
-                                  <CheckCircle className="w-3 h-3 mr-1" />
-                                  Verified Purchase
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-gray-700 mb-3">{review.comment}</p>
-                            <div className="flex items-center gap-4 text-sm text-gray-500">
-                              <button className="flex items-center gap-1 hover:text-gray-700">
-                                <ThumbsUp className="w-4 h-4" />
-                                Helpful ({review.helpful})
-                </button>
-                              <span>•</span>
-                              <span>{review.wouldRecommend ? "Would recommend" : "Would not recommend"}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="videos" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Product Videos</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {product.videos && product.videos.length > 0 ? (
-                        product.videos.map((video, index) => (
-                          <div key={index} className="space-y-2">
-                            {isYouTubeUrl(video) ? (
-                              <YouTubeVideo
-                                videoUrl={video}
-                                title={`${product.name} - Video ${index + 1}`}
-                                className="w-full"
-                              />
-                            ) : (
-                              <video
-                                className="w-full rounded-lg"
-                                controls
-                                muted={isVideoMuted}
-                              >
-                                <source src={video} type="video/mp4" />
-                                <source src={video} type="video/webm" />
-                                <source src={video} type="video/ogg" />
-                                Your browser does not support the video tag.
-                              </video>
-                            )}
-                  </div>
-                        ))
-                      ) : (
-                        <div className="col-span-full text-center py-8 text-gray-500">
-                          <Play className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                          <p>No videos available for this product.</p>
-              </div>
-                      )}
-            </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="qa" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <CardTitle>Questions & Answers</CardTitle>
-                      <Button onClick={() => setShowQuestionForm(true)}>
-                        Ask a Question
-                      </Button>
-          </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {/* Q&A Filters */}
-                      <div className="flex gap-4">
-                        <Select value={qaFilter} onValueChange={setQAFilter}>
-                          <SelectTrigger className="w-48">
-                            <SelectValue placeholder="Filter by category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Categories</SelectItem>
-                            <SelectItem value="General">General</SelectItem>
-                            <SelectItem value="Compatibility">Compatibility</SelectItem>
-                            <SelectItem value="Installation">Installation</SelectItem>
-                            <SelectItem value="Usage">Usage</SelectItem>
-                            <SelectItem value="Warranty">Warranty</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Q&A List */}
-                      <div className="space-y-4">
-                        {filteredQA().map((qa) => (
-                          <div key={qa.id} className="border rounded-lg">
-                <button 
-                              onClick={() => toggleQA(qa.id)}
-                              className="w-full p-4 text-left flex justify-between items-center hover:bg-gray-50"
-                            >
-                              <div>
-                                <p className="font-medium">{qa.question}</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <Badge variant="outline" className="text-xs">
-                                    {qa.category}
-                                  </Badge>
-                                  <span className="text-sm text-gray-500">{qa.date}</span>
-                                </div>
-                              </div>
-                              {expandedQA.includes(qa.id) ? (
-                                <ChevronUp className="w-5 h-5" />
-                              ) : (
-                                <ChevronDown className="w-5 h-5" />
-                              )}
-                            </button>
-                            {expandedQA.includes(qa.id) && (
-                              <div className="px-4 pb-4 border-t bg-gray-50">
-                                <div className="pt-4">
-                                  {qa.answer ? (
-                                    <div>
-                                      <p className="text-gray-700 mb-2">{qa.answer}</p>
-                                      <div className="flex items-center justify-between text-sm text-gray-500">
-                                        <span>Answered by {qa.answeredBy}</span>
-                                        <button className="flex items-center gap-1 hover:text-gray-700">
-                                          <ThumbsUp className="w-4 h-4" />
-                                          Helpful ({qa.helpful})
-                </button>
-              </div>
-                                    </div>
-                                  ) : (
-                                    <p className="text-gray-500 italic">No answer yet. Be the first to answer!</p>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-            </div>
-            
-          {/* Enhanced Share Menu Dialog */}
-          <Dialog open={showShareMenu} onOpenChange={setShowShareMenu}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Share this product</DialogTitle>
-              </DialogHeader>
-              <div className="grid grid-cols-2 gap-4">
-              <Button
-                  variant="outline"
-                  onClick={() => handleShare("facebook")}
-                  className="flex items-center gap-2"
-                >
-                  <Facebook className="w-4 h-4" />
-                  Facebook
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleShare("twitter")}
-                  className="flex items-center gap-2"
-                >
-                  <Twitter className="w-4 h-4" />
-                  Twitter
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleShare("whatsapp")}
-                  className="flex items-center gap-2"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  WhatsApp
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleShare("linkedin")}
-                  className="flex items-center gap-2"
-                >
-                  <Users className="w-4 h-4" />
-                  LinkedIn
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleShare("instagram")}
-                  className="flex items-center gap-2"
-                >
-                  <Share2 className="w-4 h-4" />
-                  Instagram
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleShare("copy")}
-                  className="flex items-center gap-2"
-                >
-                  <Copy className="w-4 h-4" />
-                  Copy Link
-              </Button>
-            </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Enhanced Review Form Dialog */}
-          <Dialog open={showReviewForm} onOpenChange={setShowReviewForm}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Write a Review</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Rating</label>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={() => setNewReview({ ...newReview, rating: star })}
-                        className="text-2xl"
-                        title={`Rate ${star} star${star > 1 ? 's' : ''}`}
-                      >
-                        <Star
-                          className={`w-8 h-8 ${
-                            star <= newReview.rating
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      </button>
-                    ))}
-            </div>
-          </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Name</label>
-                  <Input
-                    value={newReview.name}
-                    onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
-                    placeholder="Your name"
-                  />
-        </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Review</label>
-                  <Textarea
-                    value={newReview.comment}
-                    onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                    placeholder="Share your experience with this product"
-                    rows={4}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Pros (optional)</label>
-                  <Input
-                    value={newReview.pros}
-                    onChange={(e) => setNewReview({ ...newReview, pros: e.target.value })}
-                    placeholder="What you liked about this product"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Cons (optional)</label>
-                  <Input
-                    value={newReview.cons}
-                    onChange={(e) => setNewReview({ ...newReview, cons: e.target.value })}
-                    placeholder="What could be improved"
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="recommend"
-                    checked={newReview.wouldRecommend}
-                    onCheckedChange={(checked) =>
-                      setNewReview({ ...newReview, wouldRecommend: checked })
-                    }
-                  />
-                  <label htmlFor="recommend" className="text-sm font-medium">
-                    I would recommend this product
-                  </label>
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setShowReviewForm(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleSubmitReview}>Submit Review</Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Enhanced Question Form Dialog */}
-          <Dialog open={showQuestionForm} onOpenChange={setShowQuestionForm}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Ask a Question</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Question</label>
-                  <Textarea
-                    value={newQuestion.question}
-                    onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
-                    placeholder="What would you like to know about this product?"
-                    rows={3}
-                      />
-                    </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Category</label>
-                  <Select
-                    value={newQuestion.category}
-                    onValueChange={(value) => setNewQuestion({ ...newQuestion, category: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="General">General</SelectItem>
-                      <SelectItem value="Compatibility">Compatibility</SelectItem>
-                      <SelectItem value="Installation">Installation</SelectItem>
-                      <SelectItem value="Usage">Usage</SelectItem>
-                      <SelectItem value="Warranty">Warranty</SelectItem>
-                    </SelectContent>
-                  </Select>
-                      </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Tags (optional)</label>
-                  <Input
-                    value={newQuestion.tags}
-                    onChange={(e) => setNewQuestion({ ...newQuestion, tags: e.target.value })}
-                    placeholder="e.g., compatibility, installation, quality"
-                  />
-                        </div>
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setShowQuestionForm(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleSubmitQuestion}>Submit Question</Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Enhanced Image Gallery Dialog */}
-          <Dialog open={showImageGallery} onOpenChange={setShowImageGallery}>
-            <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-              <DialogHeader className="p-4 border-b">
-                <DialogTitle className="flex items-center justify-between">
-                  <span>{product.name} - Media Gallery</span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setShowImageGallery(false)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </DialogTitle>
-              </DialogHeader>
-              
-              <div className="relative">
-                <div className="aspect-video bg-black flex items-center justify-center">
-                  {isShowingVideo ? (
-                    <div className="w-full h-full">
-                      {combinedMedia[selectedImage] && isYouTubeUrl(combinedMedia[selectedImage].src) ? (
-                        <YouTubeVideo
-                          videoUrl={combinedMedia[selectedImage].src}
-                          title={`${product.name} - Product Video`}
-                          className="w-full h-full"
-                          showThumbnail={false}
-                          autoplay={true}
-                          controls={true}
-                        />
-                      ) : (
+                    {isShowingVideo ? (
+                      <div className="w-full h-full">
                         <video
                           className="w-full h-full object-cover"
                           controls
-                          autoPlay
-                          muted={isVideoMuted}
+                          poster="/placeholder.svg"
                         >
                           <source src={combinedMedia[selectedImage]?.src} type="video/mp4" />
                           <source src={combinedMedia[selectedImage]?.src} type="video/webm" />
                           <source src={combinedMedia[selectedImage]?.src} type="video/ogg" />
                           Your browser does not support the video tag.
                         </video>
+                      </div>
+                    ) : (
+                      <img
+                        src={(() => {
+                          const img = product.images?.[selectedImage]
+                          return typeof img === 'string' ? img : img?.url || "/placeholder.svg"
+                        })()}
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                      />
+                    )}
+
+                    {/* Enhanced Badges */}
+                    <div className="absolute top-4 left-4 flex flex-col space-y-2">
+                      {/* @ts-ignore - product exists at this point since we checked earlier */}
+                      {(product.originalPrice || product.salePrice) && (product.originalPrice || product.salePrice) > (product.salePrice || product.price) && (
+                        <Badge className="bg-red-500 text-white shadow-lg animate-pulse">
+                          {/* @ts-ignore */}
+                          {product.discount || Math.round(((product.originalPrice || product.salePrice) - (product.salePrice || product.price)) / (product.originalPrice || product.salePrice) * 100)}% OFF
+                        </Badge>
+                      )}
+                      {product.isBestSeller && (
+                        <Badge className="bg-amber-500 text-white shadow-lg">
+                          <Award className="w-3 h-3 mr-1" />
+                          Best Seller
+                        </Badge>
+                      )}
+                      {product.isNew && (
+                        <Badge className="bg-green-500 text-white shadow-lg">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          New
+                        </Badge>
+                      )}
+                      {product.isEcoFriendly && (
+                        <Badge className="bg-emerald-500 text-white shadow-lg">
+                          <Leaf className="w-3 h-3 mr-1" />
+                          Eco-Friendly
+                        </Badge>
                       )}
                     </div>
-                  ) : (
-                    <img
-                      src={combinedMedia[selectedImage]?.src || "/placeholder.svg"}
-                      alt={product.name}
-                      className="max-w-full max-h-full object-contain"
-                    />
-                  )}
+
+                    {/* Zoom Indicator */}
+                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-black/50 text-white p-2 rounded-full">
+                        <Maximize2 className="w-4 h-4" />
+                      </div>
                     </div>
+
+                    {/* Image Navigation */}
+                    {combinedMedia.length > 1 && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const newIndex = selectedImage > 0 ? selectedImage - 1 : combinedMedia.length - 1
+                            handleImageSelect(newIndex)
+                          }}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
+                          aria-label="Previous media"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const newIndex = selectedImage < combinedMedia.length - 1 ? selectedImage + 1 : 0
+                            handleImageSelect(newIndex)
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
+                          aria-label="Next media"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Enhanced Media Thumbnails */}
+                  <div className="flex space-x-2 overflow-x-auto pb-2">
+                    {combinedMedia.map((media, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleImageSelect(index)}
+                        className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 relative ${
+                          selectedImage === index
+                            ? "border-[#12d6fa] shadow-lg scale-105"
+                            : "border-gray-200 hover:border-gray-300 hover:scale-102"
+                        }`}
+                      >
+                        {media.type === 'video' ? (
+                          <>
+                            <video
+                              className="w-full h-full object-cover"
+                              muted
+                            >
+                              <source src={media.src} type="video/mp4" />
+                              <source src={media.src} type="video/webm" />
+                              <source src={media.src} type="video/ogg" />
+                            </video>
+                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                              <Play className="w-4 h-4 text-white" />
+                            </div>
+                          </>
+                        ) : (
+                          <img
+                            src={media.src || "/placeholder.svg"}
+                            alt={`${product.name} ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Enhanced Product Info */}
+                <div className="space-y-6">
+                  {/* Product Header */}
+                  <div>
+                    <div className="flex items-center flex-wrap gap-2 mb-2">
+                      <Badge variant="outline" className="text-[#12d6fa] border-[#12d6fa] text-xs sm:text-sm">
+                        {typeof product.category === 'object' ? product.category.name : (product.category || "Accessory")}
+                      </Badge>
+                      {product.brand && (
+                        <Badge variant="outline" className="border-gray-300 text-xs sm:text-sm">
+                          {product.brand}
+                        </Badge>
+                      )}
+                      {product.tags?.slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs sm:text-sm">
+                          {tag}
+                        </Badge>
+                      ))}
+                      {product.tags && product.tags.length > 3 && (
+                        <Badge variant="secondary" className="text-xs sm:text-sm">
+                          +{product.tags.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 text-balance leading-tight">{product.name}</h1>
+
+                    {/* Enhanced Rating */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                                star <= (product.averageRating || product.rating || 0)
+                                  ? "text-yellow-400 fill-current"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm sm:text-base font-medium">
+                          {product.averageRating || product.rating || 0}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          ({product.totalReviews || product.reviews || 0} reviews)
+                        </span>
+                      </div>
+                      <Separator orientation="vertical" className="h-4 hidden sm:block" />
+                      <div className="flex items-center space-x-1 text-xs sm:text-sm text-muted-foreground">
+                        <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span>{product.totalReviews || product.reviews || 0} reviews</span>
+                      </div>
+                    </div>
+
+                    {/* Enhanced Pricing */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
+                      <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#12d6fa]">
+                        <SaudiRiyal amount={product.salePrice || product.price} size="lg" />
+                      </span>
+                      {/* @ts-ignore - product exists at this point since we checked earlier */}
+                      {(product.originalPrice || product.salePrice) && (product.originalPrice || product.salePrice) > (product.salePrice || product.price) && (
+                        <span className="text-lg text-muted-foreground line-through">
+                          <SaudiRiyal amount={product.originalPrice || product.salePrice} size="md" />
+                        </span>
+                      )}
+                      {calculateSavings() > 0 && (
+                        <Badge className="bg-green-100 text-green-800 text-xs sm:text-sm">
+                          Save <SaudiRiyal amount={calculateSavings()} size="sm" />
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Enhanced Stock and Badges */}
+                    <div className="flex items-center flex-wrap gap-2 mb-6">
+                      <Badge variant={(product.stock ?? 0) > 0 ? "default" : "destructive"} className={`${getStockColor()} text-xs sm:text-sm`}>
+                        <Package className="w-3 h-3 mr-1" />
+                        {stockMessage}
+                      </Badge>
+                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs sm:text-sm">
+                        <Truck className="w-3 h-3 mr-1" />
+                        Free Shipping
+                      </Badge>
+                      {product.isFeatured && (
+                        <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 text-xs sm:text-sm">
+                          <Star className="w-3 h-3 mr-1" />
+                          Featured
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="border-blue-200 text-blue-700 text-xs sm:text-sm">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Est. delivery: {getDeliveryDate}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Enhanced Product Options */}
+                  {(product.colors || product.sizes) && (
+                    <Card className="border-l-4 border-l-[#12d6fa]">
+                      <CardContent className="p-3 sm:p-4">
+                        <h3 className="font-semibold mb-3 flex items-center text-sm sm:text-base">
+                          <Settings className="w-4 h-4 mr-2 text-[#12d6fa] flex-shrink-0" />
+                          Product Options
+                        </h3>
+                        <div className="space-y-4">
+                          {product.colors && product.colors.length > 0 && (
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">Color</label>
+                              <div className="flex flex-wrap gap-2">
+                                {product.colors.map((color, index) => {
+                                  const colorName = typeof color === 'string' ? color : color.name
+                                  const colorHex = typeof color === 'object' ? color.hexCode : undefined
+                                  return (
+                                    <button
+                                      key={index}
+                                      onClick={() => setSelectedColor(colorName)}
+                                      className={`px-3 py-1 rounded border text-sm transition-colors flex items-center gap-2 ${
+                                        selectedColor === colorName
+                                          ? "border-[#12d6fa] bg-[#12d6fa] text-white"
+                                          : "border-gray-300 hover:border-[#12d6fa]"
+                                      }`}
+                                    >
+                                      {colorHex && (
+                                        <div
+                                          className="w-3 h-3 rounded-full border border-gray-300"
+                                          dangerouslySetInnerHTML={{
+                                            __html: `<div style="background-color: ${colorHex}; width: 100%; height: 100%; border-radius: 50%;"></div>`
+                                          }}
+                                        />
+                                      )}
+                                      {colorName}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          {product.sizes && product.sizes.length > 0 && (
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">Size</label>
+                              <div className="flex flex-wrap gap-2">
+                                {product.sizes.map((size) => (
+                                  <button
+                                    key={size}
+                                    onClick={() => setSelectedSize(size)}
+                                    className={`px-3 py-1 rounded border text-sm transition-colors ${
+                                      selectedSize === size
+                                        ? "border-[#12d6fa] bg-[#12d6fa] text-white"
+                                        : "border-gray-300 hover:border-[#12d6fa]"
+                                    }`}
+                                  >
+                                    {size}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Enhanced Quantity and Actions */}
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="flex items-center border-2 border-gray-200 rounded-lg hover:border-[#12d6fa] transition-colors w-fit">
+                        <button
+                          onClick={() => handleQuantityChange(-1)}
+                          className="p-2 hover:bg-gray-50 transition-colors"
+                          disabled={quantity <= 1}
+                          aria-label="Decrease quantity"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <span className="px-4 py-2 font-medium min-w-[3rem] text-center">{quantity}</span>
+                        <button
+                          onClick={() => handleQuantityChange(1)}
+                          className="p-2 hover:bg-gray-50 transition-colors"
+                          disabled={quantity >= (product.stock || 1)}
+                          aria-label="Increase quantity"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="text-sm text-muted-foreground">
+                        {(product.stock ?? 0) > 0 ? (
+                          <span className="text-green-600">
+                            ✓ {product.stock} available
+                          </span>
+                        ) : (
+                          <span className="text-red-600">
+                            ✗ Out of stock
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Enhanced Action Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      {(product.stock ?? 0) > 0 ? (
+                        <Button
+                          onClick={handleAddToCart}
+                          className={`flex-1 bg-[#12d6fa] hover:bg-[#0fb8d9] text-white transition-all duration-200 ${
+                            cartAnimation ? "animate-pulse scale-105" : ""
+                          }`}
+                          size="lg"
+                        >
+                          <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                          Add to Cart
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => setShowNotifyMe(true)}
+                          variant="outline"
+                          className="flex-1 border-2 border-[#12d6fa] text-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200"
+                          size="lg"
+                        >
+                          <Bell className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                          Notify When Available
+                        </Button>
+                      )}
+
+                      <Button
+                        variant="outline"
+                        onClick={handleAddToWishlist}
+                        className={`border-2 transition-all duration-200 ${
+                          isInWishlist
+                            ? "text-[#12d6fa] border-[#12d6fa] bg-[#12d6fa]/10"
+                            : "hover:border-[#12d6fa] hover:text-[#12d6fa]"
+                        } ${wishlistAnimation ? "animate-pulse" : ""}`}
+                        size="lg"
+                      >
+                        <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isInWishlist ? "fill-current" : ""}`} />
+                      </Button>
+
+                      <div className="relative">
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowShareMenu(!showShareMenu)}
+                          className="border-2 hover:border-[#12d6fa] hover:text-[#12d6fa] transition-all duration-200"
+                          size="lg"
+                        >
+                          <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </Button>
+
+                        {showShareMenu && (
+                          <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                            <div className="p-2">
+                              <button
+                                onClick={() => handleShare("facebook")}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center"
+                              >
+                                <Facebook className="w-4 h-4 mr-2" />
+                                Facebook
+                              </button>
+                              <button
+                                onClick={() => handleShare("twitter")}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center"
+                              >
+                                <Twitter className="w-4 h-4 mr-2" />
+                                Twitter
+                              </button>
+                              <button
+                                onClick={() => handleShare("copy")}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 rounded flex items-center"
+                              >
+                                <Copy className="w-4 h-4 mr-2" />
+                                Copy Link
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Enhanced Product Details Tabs */}
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-12">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto sm:h-12 gap-1 sm:gap-0">
+                  <TabsTrigger
+                    value="description"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <Info className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Description</span>
+                    <span className="sm:hidden">Info</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="specifications"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Specifications</span>
+                    <span className="sm:hidden">Specs</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="reviews"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Reviews ({reviews.length})</span>
+                    <span className="sm:hidden">Reviews</span>
+                    <span className="sm:hidden text-xs ml-1">({reviews.length})</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="videos"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <Video className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Videos ({product.videos?.length || 0})</span>
+                    <span className="sm:hidden">Videos</span>
+                    <span className="sm:hidden text-xs ml-1">({product.videos?.length || 0})</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="qa"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Q&A ({qaData.length})</span>
+                    <span className="sm:hidden">Q&A</span>
+                    <span className="sm:hidden text-xs ml-1">({qaData.length})</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="description" className="mt-6 sm:mt-8">
+                  <div className="prose max-w-none">
+                    <div className="bg-gradient-to-r from-[#12d6fa]/10 to-blue-50 p-4 sm:p-6 rounded-xl mb-6">
+                      <p className="text-base sm:text-lg leading-relaxed text-gray-700">{product.description}</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
+                          Key Features
+                        </h3>
+                        <ul className="space-y-3">
+                          {product.features?.map((feature, index) => (
+                            <li key={index} className="flex items-start">
+                              <Check className="w-4 h-4 text-[#12d6fa] mr-3 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <span className="text-gray-700 font-medium">{typeof feature === 'string' ? feature : feature.title}</span>
+                                {typeof feature === 'object' && feature.description && (
+                                  <p className="text-sm text-gray-500 mt-1">{feature.description}</p>
+                                )}
+                              </div>
+                            </li>
+                          )) || (
+                            <li className="flex items-start">
+                              <Check className="w-4 h-4 text-[#12d6fa] mr-3 mt-0.5 flex-shrink-0" />
+                              <span className="text-gray-700">Premium quality materials</span>
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Shield className="w-5 h-5 mr-2 text-blue-500" />
+                          Safety & Quality
+                        </h3>
+                        <ul className="space-y-3">
+                          {product.safetyFeatures?.map((feature, index) => (
+                            <li key={index} className="flex items-start">
+                              <Shield className="w-4 h-4 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                              <span className="text-gray-700">{feature}</span>
+                            </li>
+                          )) || (
+                            <>
+                              <li className="flex items-start">
+                                <Shield className="w-4 h-4 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-700">Quality tested and certified</span>
+                              </li>
+                              <li className="flex items-start">
+                                <Shield className="w-4 h-4 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-700">Safe for everyday use</span>
+                              </li>
+                            </>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* How to Use Section for Accessories */}
+                    {product.howToUse && (
+                      <div className="mt-8">
+                        <h3 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
+                          <Info className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#12d6fa] flex-shrink-0" />
+                          {product.howToUse.title}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {product.howToUse.steps.map((step, index) => (
+                            <div key={step.id} className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg">
+                              <div className="w-8 h-8 bg-[#12d6fa] text-white rounded-full flex items-center justify-center font-semibold text-sm flex-shrink-0">
+                                {index + 1}
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-gray-900 mb-1">{step.title}</h4>
+                                <p className="text-sm text-gray-600">{step.description}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="specifications" className="mt-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-lg">
+                          <Settings className="w-5 h-5 mr-2 text-[#12d6fa]" />
+                          Technical Specifications
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {product.specifications && Array.isArray(product.specifications) ? product.specifications.map((spec, index) => (
+                          <div key={index} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
+                            <span className="font-medium text-gray-700">{spec.name}</span>
+                            <span className="text-gray-600">{spec.value}</span>
+                          </div>
+                        )) : product.specifications && Object.entries(product.specifications).map(([key, value]) => (
+                          <div key={key} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
+                            <span className="font-medium text-gray-700">{key}</span>
+                            <span className="text-gray-600">{String(value)}</span>
+                          </div>
+                        )) || (
+                          <>
+                            <div className="flex justify-between py-2 border-b border-gray-100">
+                              <span className="font-medium text-gray-700">Type</span>
+                              <span className="text-gray-600">{product.type || "Accessory"}</span>
+                            </div>
+                            <div className="flex justify-between py-2 border-b border-gray-100">
+                              <span className="font-medium text-gray-700">Material</span>
+                              <span className="text-gray-600">{product.material || "Premium"}</span>
+                            </div>
+                            <div className="flex justify-between py-2 border-b border-gray-100">
+                              <span className="font-medium text-gray-700">Dimensions</span>
+                              <span className="text-gray-600">
+                                {product.dimensions ? `${product.dimensions.width} × ${product.dimensions.height} × ${product.dimensions.depth} cm` : "Standard"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between py-2 border-b border-gray-100">
+                              <span className="font-medium text-gray-700">Weight</span>
+                              <span className="text-gray-600">{product.dimensions?.weight ? `${product.dimensions.weight} kg` : "Lightweight"}</span>
+                            </div>
+                          </>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-lg">
+                          <Award className="w-5 h-5 mr-2 text-green-500" />
+                          Certifications & Warranty
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex justify-between py-2 border-b border-gray-100">
+                          <span className="font-medium text-gray-700">Warranty</span>
+                          <span className="text-gray-600">{product.warranty || "1 Year"}</span>
+                        </div>
+                        <div className="py-2 border-b border-gray-100 last:border-b-0">
+                          <span className="font-medium text-gray-700 block mb-2">Certifications</span>
+                          <div className="flex flex-wrap gap-2">
+                            {product.certifications?.map((cert) => (
+                              <Badge key={cert} variant="secondary" className="text-xs">
+                                {cert}
+                              </Badge>
+                            )) || (
+                              <Badge variant="secondary" className="text-xs">Halal Certified</Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="py-2 border-b border-gray-100 last:border-b-0">
+                          <span className="font-medium text-gray-700 block mb-2">Compatibility</span>
+                          <div className="flex flex-wrap gap-2">
+                            {product.compatibility?.map((comp) => (
+                              <Badge key={comp} variant="outline" className="text-xs">
+                                {comp}
+                              </Badge>
+                            )) || (
+                              <Badge variant="outline" className="text-xs">Universal</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="reviews" className="mt-8">
+                  <div className="space-y-8">
+                    {/* Enhanced Review Summary */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="text-center">
+                            <div className="text-4xl font-bold text-[#12d6fa] mb-2">
+                              {product.averageRating || product.rating || 0}
+                            </div>
+                            <div className="flex items-center justify-center mb-2">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`w-5 h-5 ${
+                                    star <= (product.averageRating || product.rating || 0)
+                                      ? "text-yellow-400 fill-current"
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              Based on {product.totalReviews || product.reviews || 0} reviews
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            {[5, 4, 3, 2, 1].map((rating) => {
+                              const count = reviews.filter((r) => r.rating === rating).length
+                              const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0
+                              return (
+                                <div key={rating} className="flex items-center space-x-2">
+                                  <span className="text-sm w-8">{rating}★</span>
+                                  <Progress value={percentage} className="flex-1 h-2" />
+                                  <span className="text-sm text-muted-foreground w-8">{count}</span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Enhanced Review Filters */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <div className="flex-1">
+                            <Select value={reviewFilter} onValueChange={setReviewFilter}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Filter by rating" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All Reviews</SelectItem>
+                                <SelectItem value="5">5 Stars</SelectItem>
+                                <SelectItem value="4">4 Stars</SelectItem>
+                                <SelectItem value="3">3 Stars</SelectItem>
+                                <SelectItem value="2">2 Stars</SelectItem>
+                                <SelectItem value="1">1 Star</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex-1">
+                            <Select value={reviewSort} onValueChange={setReviewSort}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Sort reviews" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="newest">Newest First</SelectItem>
+                                <SelectItem value="oldest">Oldest First</SelectItem>
+                                <SelectItem value="highest">Highest Rated</SelectItem>
+                                <SelectItem value="lowest">Lowest Rated</SelectItem>
+                                <SelectItem value="helpful">Most Helpful</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Write a Review Section */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold">Write a Review</h3>
+                          <Button
+                            onClick={() => setShowReviewForm(!showReviewForm)}
+                            variant="outline"
+                            size="sm"
+                          >
+                            {showReviewForm ? "Cancel" : "Write Review"}
+                          </Button>
+                        </div>
+
+                        {showReviewForm && (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <Input
+                                placeholder="Your name"
+                                value={newReview.name}
+                                onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
+                              />
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm">Rating:</span>
+                                <div className="flex">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                      key={star}
+                                      onClick={() => setNewReview({ ...newReview, rating: star })}
+                                      className="text-yellow-400 hover:text-yellow-500"
+                                      aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                                    >
+                                      <Star className={`w-5 h-5 ${star <= newReview.rating ? "fill-current" : ""}`} />
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            <Textarea
+                              placeholder="Share your experience with this accessory..."
+                              value={newReview.comment}
+                              onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                              rows={4}
+                            />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <Input
+                                placeholder="Pros (comma separated)"
+                                value={newReview.pros}
+                                onChange={(e) => setNewReview({ ...newReview, pros: e.target.value })}
+                              />
+                              <Input
+                                placeholder="Cons (comma separated)"
+                                value={newReview.cons}
+                                onChange={(e) => setNewReview({ ...newReview, cons: e.target.value })}
+                              />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                checked={newReview.wouldRecommend}
+                                onCheckedChange={(checked) => setNewReview({ ...newReview, wouldRecommend: checked })}
+                              />
+                              <span className="text-sm">I would recommend this accessory</span>
+                            </div>
+                            <Button onClick={handleSubmitReview} className="bg-[#12d6fa] hover:bg-[#0fb8d9]">
+                              Submit Review
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Enhanced Reviews List */}
+                    <div className="space-y-6">
+                      {filteredReviews().map((review) => (
+                        <Card key={review.id}>
+                          <CardContent className="p-6">
+                            <div className="flex items-start space-x-4">
+                              <Avatar>
+                                <AvatarImage src={review.avatar} alt={review.user} />
+                                <AvatarFallback>{review.user.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-medium">{review.user}</span>
+                                    {review.verified && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                        Verified Purchase
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <span className="text-sm text-muted-foreground">{review.date}</span>
+                                </div>
+                                <div className="flex items-center space-x-1 mb-3">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      className={`w-4 h-4 ${
+                                        star <= review.rating ? "text-yellow-400 fill-current" : "text-gray-300"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <p className="text-gray-700 mb-4">{review.comment}</p>
+                                {review.pros && review.pros.length > 0 && (
+                                  <div className="mb-3">
+                                    <span className="font-medium text-green-600">Pros:</span>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {review.pros.map((pro, index) => (
+                                        <Badge key={index} variant="secondary" className="text-xs bg-green-50 text-green-700">
+                                          {pro}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                {review.cons && review.cons.length > 0 && (
+                                  <div className="mb-3">
+                                    <span className="font-medium text-red-600">Cons:</span>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {review.cons.map((con, index) => (
+                                        <Badge key={index} variant="secondary" className="text-xs bg-red-50 text-red-700">
+                                          {con}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-4">
+                                    <button className="flex items-center space-x-1 text-sm text-muted-foreground hover:text-[#12d6fa]">
+                                      <ThumbsUp className="w-4 h-4" />
+                                      <span>Helpful ({review.helpful})</span>
+                                    </button>
+                                    {review.wouldRecommend && (
+                                      <Badge variant="outline" className="text-xs text-green-600 border-green-600">
+                                        Would Recommend
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="videos" className="mt-8">
+                  <div className="space-y-6">
+                    {product.videos && product.videos.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+                        {product.videos.map((video, index) => (
+                          <Card key={index}>
+                            <CardContent className="p-0">
+                              <video
+                                className="w-full h-64 object-cover rounded-t-lg"
+                                controls
+                                poster="/placeholder.svg"
+                              >
+                                <source src={video} type="video/mp4" />
+                                <source src={video} type="video/webm" />
+                                <source src={video} type="video/ogg" />
+                                Your browser does not support the video tag.
+                              </video>
+                              <div className="p-4">
+                                <h3 className="font-medium">Product Video {index + 1}</h3>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Learn more about {product.name}
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <Card>
+                        <CardContent className="p-8 text-center">
+                          <Video className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">No videos available</h3>
+                          <p className="text-gray-500">Videos for this accessory will be available soon.</p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="qa" className="mt-8">
+                  <div className="space-y-6">
+                    {/* Q&A Filters */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <div className="flex-1">
+                            <Select value={qaFilter} onValueChange={setQAFilter}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Filter by category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All Questions</SelectItem>
+                                <SelectItem value="Usage & Features">Usage & Features</SelectItem>
+                                <SelectItem value="Installation & Setup">Installation & Setup</SelectItem>
+                                <SelectItem value="Warranty & Support">Warranty & Support</SelectItem>
+                                <SelectItem value="Quality & Certification">Quality & Certification</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex-1">
+                            <Button
+                              onClick={() => setShowQuestionForm(!showQuestionForm)}
+                              variant="outline"
+                              className="w-full"
+                            >
+                              Ask a Question
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Ask a Question Form */}
+                    {showQuestionForm && (
+                      <Card>
+                        <CardContent className="p-6">
+                          <h3 className="text-lg font-semibold mb-4">Ask a Question</h3>
+                          <div className="space-y-4">
+                            <Select
+                              value={newQuestion.category}
+                              onValueChange={(value) => setNewQuestion({ ...newQuestion, category: value })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Usage & Features">Usage & Features</SelectItem>
+                                <SelectItem value="Installation & Setup">Installation & Setup</SelectItem>
+                                <SelectItem value="Warranty & Support">Warranty & Support</SelectItem>
+                                <SelectItem value="Quality & Certification">Quality & Certification</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Textarea
+                              placeholder="Type your question here..."
+                              value={newQuestion.question}
+                              onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
+                              rows={3}
+                            />
+                            <Input
+                              placeholder="Tags (comma separated)"
+                              value={newQuestion.tags}
+                              onChange={(e) => setNewQuestion({ ...newQuestion, tags: e.target.value })}
+                            />
+                            <Button onClick={handleSubmitQuestion} className="bg-[#12d6fa] hover:bg-[#0fb8d9]">
+                              Submit Question
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Q&A List */}
+                    <div className="space-y-4">
+                      {filteredQA().map((qa) => (
+                        <Card key={qa.id}>
+                          <CardContent className="p-6">
+                            <div className="flex items-start space-x-4">
+                              <Avatar>
+                                <AvatarFallback>Q</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    {qa.category}
+                                  </Badge>
+                                  <span className="text-sm text-muted-foreground">{qa.date}</span>
+                                </div>
+                                <h4 className="font-medium mb-3">{qa.question}</h4>
+                                {qa.answer ? (
+                                  <div className="bg-gray-50 p-4 rounded-lg">
+                                    <div className="flex items-center space-x-2 mb-2">
+                                      <Avatar className="w-6 h-6">
+                                        <AvatarFallback className="text-xs">A</AvatarFallback>
+                                      </Avatar>
+                                      <span className="text-sm font-medium">{qa.answeredBy}</span>
+                                    </div>
+                                    <p className="text-gray-700">{qa.answer}</p>
+                                  </div>
+                                ) : (
+                                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                                    <p className="text-yellow-800">This question is awaiting an answer from our experts.</p>
+                                  </div>
+                                )}
+                                <div className="flex items-center justify-between mt-4">
+                                  <button className="flex items-center space-x-1 text-sm text-muted-foreground hover:text-[#12d6fa]">
+                                    <ThumbsUp className="w-4 h-4" />
+                                    <span>Helpful ({qa.helpful})</span>
+                                  </button>
+                                  {qa.tags && qa.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1">
+                                      {qa.tags.map((tag, index) => (
+                                        <Badge key={index} variant="secondary" className="text-xs">
+                                          {tag}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              {/* Enhanced Related Products */}
+              <div className="mb-12">
+                <h2 className="text-2xl font-bold mb-6 flex items-center">
+                  <Sparkles className="w-6 h-6 mr-2 text-[#12d6fa]" />
+                  You Might Also Like
+                </h2>
+
+                {loadingRelated ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[1, 2, 3, 4].map((i) => (
+                      <Card key={i} className="h-full">
+                        <CardContent className="p-4">
+                          <div className="aspect-square bg-gray-200 rounded-lg mb-4 animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-4 animate-pulse"></div>
+                          <div className="h-6 bg-gray-200 rounded animate-pulse"></div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : relatedProducts.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {relatedProducts.map((relatedProduct) => (
+                      <Link key={relatedProduct._id} href={`/shop/accessories/${relatedProduct.slug}`} className="block group">
+                        <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 h-full">
+                          <CardContent className="p-0">
+                            <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-t-lg overflow-hidden">
+                              <img
+                                src={relatedProduct.image || (() => {
+                                  const img = relatedProduct.images?.[0]
+                                  return typeof img === 'string' ? img : img?.url || "/placeholder.svg"
+                                })()}
+                                alt={relatedProduct.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            </div>
+                            <div className="p-4">
+                              <h3 className="font-medium mb-2 line-clamp-2 group-hover:text-[#12d6fa] transition-colors">
+                                {relatedProduct.name}
+                              </h3>
+                              <div className="flex items-center space-x-2 mb-2">
+                                <div className="flex items-center">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      className={`w-3 h-3 ${
+                                        star <= (relatedProduct.averageRating || relatedProduct.rating || 0)
+                                          ? "text-yellow-400 fill-current"
+                                          : "text-gray-300"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  ({relatedProduct.totalReviews || relatedProduct.reviews || 0})
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-lg font-bold text-[#12d6fa]">
+                                  <SaudiRiyal amount={relatedProduct.salePrice || relatedProduct.price} size="sm" />
+                                </span>
+                                {(relatedProduct?.originalPrice || relatedProduct?.salePrice) && (relatedProduct?.originalPrice || relatedProduct?.salePrice)! > (relatedProduct?.salePrice || relatedProduct?.price)! && (
+                                  <span className="text-sm text-muted-foreground line-through">
+                                    <SaudiRiyal amount={relatedProduct?.originalPrice || relatedProduct?.salePrice} size="sm" />
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-10 bg-gray-50 rounded-lg">
+                    <Package className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No related products found</h3>
+                    <p className="text-gray-500">Check out our other accessories</p>
+                    <Button className="mt-4 bg-[#12d6fa] hover:bg-[#0fbfe0] text-white">
+                      <Link href="/shop/accessories">Browse All Accessories</Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Enhanced Modals and Dialogs */}
+
+          {/* Media Gallery Modal */}
+          <Dialog open={showImageGallery} onOpenChange={setShowImageGallery}>
+            <DialogContent className="max-w-4xl max-h-[90vh] p-0 w-[95vw] sm:w-full">
+              <div className="relative">
+                {isShowingVideo ? (
+                  <div className="w-full h-[60vh] sm:h-[80vh]">
+                    <video
+                      className="w-full h-full object-contain"
+                      controls
+                      autoPlay
+                      poster="/placeholder.svg"
+                    >
+                      <source src={combinedMedia[selectedImage]?.src} type="video/mp4" />
+                      <source src={combinedMedia[selectedImage]?.src} type="video/webm" />
+                      <source src={combinedMedia[selectedImage]?.src} type="video/ogg" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                ) : (
+                  <img
+                    src={(() => {
+                      const img = product.images?.[selectedImage]
+                      return typeof img === 'string' ? img : img?.url || "/placeholder.svg"
+                    })()}
+                    alt={product.name}
+                    className="w-full h-auto max-h-[80vh] object-contain"
+                  />
+                )}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute top-4 right-4 bg-white/80 hover:bg-white"
+                  onClick={() => setShowImageGallery(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
 
                 {combinedMedia.length > 1 && (
                   <>
@@ -1688,7 +2013,7 @@ export default function AccessoryDetailPage() {
                     </Button>
                   </>
                 )}
-                  </div>
+              </div>
 
               <div className="p-4 border-t">
                 <div className="flex space-x-2 overflow-x-auto">
@@ -1702,25 +2027,17 @@ export default function AccessoryDetailPage() {
                     >
                       {media.type === 'video' ? (
                         <>
-                          {isYouTubeUrl(media.src) ? (
-                            <img
-                              src={`https://img.youtube.com/vi/${getYouTubeVideoId(media.src)}/mqdefault.jpg`}
-                              alt="Video thumbnail"
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <video
-                              className="w-full h-full object-cover"
-                              muted
-                            >
-                              <source src={media.src} type="video/mp4" />
-                              <source src={media.src} type="video/webm" />
-                              <source src={media.src} type="video/ogg" />
-                            </video>
-                          )}
+                          <video
+                            className="w-full h-full object-cover"
+                            muted
+                          >
+                            <source src={media.src} type="video/mp4" />
+                            <source src={media.src} type="video/webm" />
+                            <source src={media.src} type="video/ogg" />
+                          </video>
                           <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                             <Play className="w-4 h-4 text-white" />
-                </div>
+                          </div>
                         </>
                       ) : (
                         <img
@@ -1730,14 +2047,51 @@ export default function AccessoryDetailPage() {
                         />
                       )}
                     </button>
-              ))}
-            </div>
-          </div>
+                  ))}
+                </div>
+              </div>
             </DialogContent>
           </Dialog>
-      </div>
+
+          {/* Notify Me Modal */}
+          <Dialog open={showNotifyMe} onOpenChange={setShowNotifyMe}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Notify Me When Available</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Enter your email address and we'll notify you as soon as this product is back in stock.
+                </p>
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={notifyEmail}
+                  onChange={(e) => setNotifyEmail(e.target.value)}
+                />
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setShowNotifyMe(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (notifyEmail) {
+                        alert("We'll notify you when this product is available!")
+                        setShowNotifyMe(false)
+                        setNotifyEmail("")
+                      }
+                    }}
+                    className="bg-[#12d6fa] hover:bg-[#0fb8d9]"
+                  >
+                    Notify Me
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </TooltipProvider>
     </PageLayout>
   )
 }
-         
+ 
