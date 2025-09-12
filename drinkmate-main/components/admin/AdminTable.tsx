@@ -12,6 +12,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { RowActions } from "./AdminActionBar"
 import { ContextAction, getContextActions, getStatusColor } from "./AdminContextActions"
@@ -408,12 +409,11 @@ export const CellRenderers = {
   },
 
   currency: (value: number, currency = "SAR") => (
-    <span className="font-medium">
+    <span className="font-medium flex items-center gap-1">
       {new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currency === "SAR" ? "USD" : currency,
-        minimumFractionDigits: 2
-      }).format(value)} {currency === "SAR" ? "SAR" : ""}
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(value)} {currency === "SAR" ? <SaudiRiyalSymbol size="sm" /> : currency}
     </span>
   ),
 

@@ -1,18 +1,13 @@
 import type { Metadata } from "next"
-// Temporarily disable Google Fonts to prevent build issues
-// import { Inter, Cairo, Montserrat, Noto_Sans, Noto_Sans_Arabic } from "next/font/google"
+import { cairo, montserrat, notoSans, notoArabic } from "@/lib/fonts"
 import "./globals.css"
 import { TranslationProvider } from "@/lib/translation-context"
 import { CartProvider } from "@/lib/cart-context"
 import { AuthProvider } from "@/lib/auth-context"
 import SWRProvider from "@/lib/swr-provider"
 import SecurityMiddleware from "./security-middleware"
-
-// Use system fonts only to avoid network issues during build
-const systemFonts = {
-  className: 'font-sans',
-  variable: '--font-system'
-}
+import FontProvider from "@/components/layout/FontProvider"
+import { Providers } from "@/components/providers"
 
 export const viewport = {
   width: 'device-width',
@@ -110,14 +105,23 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html 
+      lang="en" 
+      dir="ltr"
+      className={[
+        cairo.variable,
+        montserrat.variable,
+        notoSans.variable,
+        notoArabic.variable,
+      ].join(' ')}
+    >
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         
         {/* Preconnect to important domains for performance */}
         <link rel="preconnect" href="https://res.cloudinary.com" />
-        
-        {/* Fonts are now handled by Next.js font optimization - no manual preloads needed */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
         {/* Security-related meta tags */}
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
@@ -190,13 +194,16 @@ export default function RootLayout({
           }
         }) }} />
       </head>
-      <body className={systemFonts.className}>
+      <body className="font-primary">
         <SecurityMiddleware>
           <TranslationProvider>
+            <FontProvider />
             <CartProvider>
               <AuthProvider>
                 <SWRProvider>
-                  {children}
+                  <Providers>
+                    {children}
+                  </Providers>
                 </SWRProvider>
               </AuthProvider>
             </CartProvider>

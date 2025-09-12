@@ -1486,7 +1486,7 @@ export default function OrdersPage() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="totalAmount">Total Amount (SAR) *</Label>
+                      <Label htmlFor="totalAmount">Total Amount (ر.س) *</Label>
                       <Input
                         id="totalAmount"
                         type="number"
@@ -1717,7 +1717,7 @@ export default function OrdersPage() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="edit-totalAmount">Total Amount (SAR) *</Label>
+                      <Label htmlFor="edit-totalAmount">Total Amount (ر.س) *</Label>
                       <Input
                         id="edit-totalAmount"
                         type="number"

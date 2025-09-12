@@ -2,13 +2,17 @@
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Plus, Minus, ChevronDown, Star, ShoppingCart, Info, Truck, Shield, RotateCcw, CheckCircle } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Minus, ChevronDown, Star, ShoppingCart, Info, Truck, Shield, RotateCcw, CheckCircle, ArrowRight, Gift } from "lucide-react"
 import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
 import { useState, useEffect } from "react"
 import { useCart } from "@/lib/cart-context"
 import { co2API } from "@/lib/api"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
+import CylinderCard from "@/components/refill/CylinderCard"
+import OrderSummary from "@/components/refill/OrderSummary"
+import QuantityControl from "@/components/refill/QuantityControl"
+import { toast } from "sonner"
 import styles from "./refill-cylinder.module.css"
 
 export default function CO2() {
@@ -176,6 +180,15 @@ export default function CO2() {
         image: selectedCylinderData.image,
         category: "co2",
       })
+      
+      // Show success toast
+      toast.success(`Added ${quantity} cylinder${quantity > 1 ? 's' : ''} to cart`, {
+        description: "View cart to proceed to checkout",
+        action: {
+          label: "View cart",
+          onClick: () => window.location.href = "/cart"
+        }
+      })
     }
   }
 
@@ -293,256 +306,138 @@ export default function CO2() {
 
       {/* Refill / Exchange Cylinder Section */}
       <section className="py-8">
-        <div className="max-w-7xl mx-auto px-4">
-          <h1 className="text-4xl font-bold text-black text-center mb-8">
+        <div className="max-w-[1100px] mx-auto px-4 md:px-6">
+          <h1 className="text-4xl font-bold text-black text-center mb-8 tracking-tight">
             Refill / Exchange Cylinder
           </h1>
           
-          {/* Horizontal Divider */}
-          <div className="w-full h-px bg-gray-300 mb-12"></div>
-
-          <div className="grid lg:grid-cols-2 gap-12">
-            {/* Left Side - Large Cylinder Image */}
-            <div className="flex items-center justify-center">
-              <div className="w-[600px] h-[845px] rounded-[20px] overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left Side - Visual (7 columns) */}
+            <div className="lg:col-span-7">
+              <div className="rounded-3xl border border-black/5 bg-[radial-gradient(1200px_600px_at_-10%_-20%,#f8fbff,transparent)] p-6">
                 <Image
                   src="/images/co2-cylinder-new.png"
                   alt="CO2 Cylinders"
                   width={600}
                   height={845}
-                  className="object-contain w-full h-full p-8"
+                  className="w-full h-auto object-contain"
+                  priority
                 />
               </div>
             </div>
 
-            {/* Right Side - Cylinder Selection */}
-            <div>
+            {/* Right Side - Controls (5 columns) */}
+            <div className="lg:col-span-5 space-y-6">
               {/* Select a cylinder header */}
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-black">Select a cylinder</h2>
-                <a href="#" className="text-blue-600 text-sm hover:underline">Need Help?</a>
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-black tracking-tight">Select a cylinder</h2>
+                <a 
+                  href="/contact" 
+                  className="text-blue-600 text-sm hover:underline transition-colors duration-200"
+                >
+                  Need Help?
+                </a>
               </div>
 
               {/* Drinkmate Cylinder Section */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-black mb-4">Drinkmate Cylinder</h3>
-                <div className="grid grid-cols-2 gap-8 mb-6">
-                  <button 
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-black">Drinkmate Cylinder</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <CylinderCard
+                    selected={selectedCylinder === "drinkmate"}
+                    title="Drinkmate"
+                    price={65}
+                    originalPrice={75}
+                    discount={13}
+                    icon="/images/co2-cylinder.png"
                     onClick={() => setSelectedCylinder("drinkmate")}
-                    className={`w-[150px] h-[150px] rounded-[10px] border-2 transition-all flex flex-col items-center justify-center ${
-                      selectedCylinder === "drinkmate" 
-                        ? "border-[#a8f387] bg-[#a8f387]/20" 
-                        : "border-gray-200 bg-gray-100 hover:border-gray-300"
-                    }`}
-                  >
-                    <Image
-                      src="/images/co2-cylinder.png"
-                      alt="Drinkmate cylinder"
-                      width={60}
-                      height={60}
-                      className="mb-2 object-contain"
-                    />
-                    <p className="text-sm font-medium text-black">Drinkmate</p>
-                                         <p className="text-xs text-green-600 font-semibold"><SaudiRiyal amount={65} size="sm" /></p>
-                  </button>
-                  <button 
+                  />
+                  <CylinderCard
+                    selected={selectedCylinder === "other-to-drinkmate"}
+                    title="Other brand to Drinkmate"
+                    price={75}
+                    originalPrice={85}
+                    discount={12}
+                    icon="/images/co2-cylinder-single.png"
                     onClick={() => setSelectedCylinder("other-to-drinkmate")}
-                    className={`w-[150px] h-[150px] rounded-[10px] border-2 transition-all flex flex-col items-center justify-center ${
-                      selectedCylinder === "other-to-drinkmate" 
-                        ? "border-[#a8f387] bg-[#a8f387]/20" 
-                        : "border-gray-200 bg-gray-100 hover:border-gray-300"
-                    }`}
-                  >
-                    <Image
-                      src="/images/co2-cylinder-single.png"
-                      alt="Other brand cylinder"
-                      width={60}
-                      height={60}
-                      className="mb-2 object-contain"
-                    />
-                    <p className="text-xs font-medium text-black text-center px-2">Other brand to Drinkmate</p>
-                                         <p className="text-xs text-green-600 font-semibold"><SaudiRiyal amount={75} size="sm" /></p>
-                  </button>
+                  />
                 </div>
               </div>
 
               {/* Other brand cylinders */}
-              <div>
-                <h3 className="text-lg font-semibold text-black mb-4">Other brand cylinders</h3>
-                <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-black">Other brand cylinders</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {cylinderBrands.slice(2).map((brand) => (
-                    <button 
+                    <CylinderCard
                       key={brand.id}
+                      selected={selectedCylinder === brand.id}
+                      title={brand.name}
+                      price={brand.price}
+                      originalPrice={brand.originalPrice}
+                      discount={brand.discount}
+                      icon={brand.image}
                       onClick={() => setSelectedCylinder(brand.id)}
-                      className={`w-[120px] h-[120px] rounded-[10px] border-2 transition-all flex flex-col items-center justify-center ${
-                        selectedCylinder === brand.id 
-                          ? "border-[#a8f387] bg-[#a8f387]/20" 
-                          : "border-gray-200 bg-gray-100 hover:border-gray-300"
-                      }`}
-                    >
-                      <Image
-                        src={brand.image}
-                        alt={`${brand.name} cylinder`}
-                        width={40}
-                        height={40}
-                        className="mb-2 object-contain"
-                      />
-                      <p className="text-xs font-medium text-black text-center">{brand.name}</p>
-                                             <p className="text-xs text-green-600 font-semibold"><SaudiRiyal amount={brand.price} size="sm" /></p>
-                    </button>
+                    />
                   ))}
                 </div>
               </div>
 
               {/* Selected Cylinder Info */}
               {selectedCylinderData && (
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-200">
                   <div className="flex items-start space-x-3">
                     <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div>
                       <h4 className="font-semibold text-blue-900 mb-1">{selectedCylinderData.name}</h4>
                       <p className="text-sm text-blue-800">{selectedCylinderData.description}</p>
-                      <div className="flex items-center space-x-2 mt-2">
-                                                 <span className="text-lg font-bold text-blue-900"><SaudiRiyal amount={selectedCylinderData.price} size="lg" /></span>
-                         <span className="text-sm text-blue-600 line-through"><SaudiRiyal amount={selectedCylinderData.originalPrice} size="sm" /></span>
-                        <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full font-medium">
-                          {selectedCylinderData.discount}% OFF
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Horizontal Divider */}
-          <div className="w-full h-px bg-gray-300 my-12"></div>
-
-          {/* Quantity and Pricing Section */}
-          <div className="grid lg:grid-cols-2 gap-12">
-            {/* Left Side - Text and Info */}
-            <div>
-              <h3 className="text-xl font-bold text-black mb-6">
-                How many cylinders would you like to refill/exchange?
-              </h3>
-              
-              <div className="flex items-center space-x-4 mb-6">
-                <button 
-                  onClick={() => handleQuantityChange(-1)}
-                  className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors"
-                  aria-label="Decrease quantity"
-                >
-                  <Minus className="w-5 h-5 text-gray-600" />
-                </button>
-                <span className="text-3xl font-bold text-black w-8 text-center">{quantity}</span>
-                <button 
-                  onClick={() => handleQuantityChange(1)}
-                  className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors"
-                  aria-label="Increase quantity"
-                >
-                  <Plus className="w-5 h-5 text-gray-600" />
-                </button>
+              {/* Quantity Control */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-black">
+                  How many cylinders would you like to refill/exchange?
+                </h3>
+                <QuantityControl
+                  quantity={quantity}
+                  onQuantityChange={setQuantity}
+                  min={1}
+                  max={10}
+                />
               </div>
 
-              {/* Quantity Benefits */}
-              <div className="space-y-3 mb-6">
-                {quantity >= 2 && (
-                  <div className="flex items-center space-x-2 text-green-600">
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="text-sm">5% off for 2+ cylinders</span>
-                  </div>
-                )}
-                {quantity >= 3 && (
-                  <div className="flex items-center space-x-2 text-green-600">
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="text-sm">10% off for 3+ cylinders</span>
-                  </div>
-                )}
-                {quantity >= 4 && (
-                  <div className="flex items-center space-x-2 text-green-600">
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="text-sm">15% off for 4+ cylinders + FREE delivery</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="text-sm text-gray-600 space-y-1">
-                <p>Please make sure to return {quantity} empty cylinder{quantity > 1 ? 's' : ''}</p>
-                <p>Estimated delivery time 3-5 business days</p>
-              </div>
-            </div>
-
-            {/* Right Side - Buttons and Pricing */}
-            <div className="space-y-6">
-              {/* Buttons at the top */}
-              <div className="flex items-center space-x-4">
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   onClick={handleAddToCart}
-                  className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-8 py-3 rounded-lg font-medium"
+                  className="sm:flex-1 bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-200 hover:shadow-lg"
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
-                  ADD TO CART
+                  Add to cart
                 </Button>
                 <Button
                   variant="outline"
-                  className="px-6 py-3 border-2 border-gray-300 rounded-lg font-medium"
+                  className="sm:flex-1 px-6 py-3 border-2 border-gray-300 rounded-2xl font-semibold hover:bg-gray-50 transition-all duration-200"
                 >
                   Subscribe to save
                 </Button>
               </div>
 
-              {/* Free delivery text */}
-              {quantity >= 4 ? (
-                <p className="text-green-600 text-sm font-medium flex items-center">
-                  <Truck className="w-4 h-4 mr-2" />
-                  FREE delivery unlocked! 🎉
-                </p>
-              ) : (
-                <p className="text-blue-600 text-sm">Add {4 - quantity} more cylinder{4 - quantity > 1 ? 's' : ''} for FREE delivery</p>
-              )}
-              
-              {/* Pricing section */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-xl font-bold text-black">Total</span>
-                  <span className="text-2xl font-bold text-black"><SaudiRiyal amount={total} size="xl" /></span>
-                </div>
-                
-                <div className="space-y-3 text-sm text-gray-600">
-                  <p className="text-gray-500 text-xs mb-3 font-medium">Cost breakdown</p>
-                  <div className="flex justify-between items-center">
-                    <span>Refill / Exchange cylinder</span>
-                    <span className="text-gray-800 font-medium">×{quantity}</span>
-                                         <span className="text-right font-medium"><SaudiRiyal amount={subtotal} size="sm" /></span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Delivery Charges</span>
-                    <span></span>
-                    <span className={`text-right font-medium ${deliveryCharge === 0 ? 'text-green-600' : ''}`}>
-                                             {deliveryCharge === 0 ? 'FREE' : <SaudiRiyal amount={deliveryCharge} size="sm" />}
-                    </span>
-                  </div>
-                  {quantity >= 2 && (
-                    <div className="flex justify-between items-center text-green-600">
-                      <span>Quantity Discount</span>
-                      <span></span>
-                      <span className="text-right font-medium">
-                                                 -<SaudiRiyal amount={((selectedCylinderData?.price || 0) * quantity - subtotal)} size="sm" />
-                      </span>
-                    </div>
-                  )}
-                  <hr className="my-2" />
-                  <div className="flex justify-between items-center text-lg font-semibold">
-                    <span>Total Savings</span>
-                    <span></span>
-                    <span className="text-right text-green-600">
-                      {selectedCylinderData ? 
-                        ((selectedCylinderData.originalPrice * quantity) - subtotal).toFixed(2) 
-                                                 : '0.00'} <SaudiRiyal amount={0} size="sm" />
-                    </span>
-                  </div>
-                </div>
+              {/* Order Summary - Sticky on desktop */}
+              <div className="lg:sticky lg:top-24">
+                <OrderSummary
+                  quantity={quantity}
+                  unitPrice={cylinderPrice}
+                  subtotal={subtotal}
+                  deliveryCharge={deliveryCharge}
+                  total={total}
+                  savings={selectedCylinderData ? (selectedCylinderData.originalPrice * quantity) - subtotal : 0}
+                  freeDeliveryThreshold={4}
+                />
               </div>
             </div>
           </div>

@@ -135,7 +135,7 @@ export default function SettingsPage() {
                         <SelectValue placeholder="Select currency" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="SAR">Saudi Riyal (&#xea;)</SelectItem>
+                        <SelectItem value="SAR">Saudi Riyal (ر.س)</SelectItem>
                         <SelectItem value="USD">US Dollar ($)</SelectItem>
                       </SelectContent>
                     </Select>

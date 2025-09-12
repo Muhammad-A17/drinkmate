@@ -18,42 +18,53 @@
 :root {
   --font-sans: var(--geist-sans);
   --font-mono: var(--geist-mono);
+  
+  /* Semantic font variables - English defaults */
+  --font-primary: var(--font-montserrat);
+  --font-secondary: var(--font-noto-sans);
 }
 
-/* Ensure fonts are loaded with proper fallbacks */
+
+/* Arabic/RTL overrides */
+:root[lang^="ar"], :root[dir="rtl"] {
+  --font-primary: var(--font-cairo);
+  --font-secondary: var(--font-noto-arabic);
+}
+
+/* Base font system */
 @layer base {
   html {
-    font-family: 'Montserrat', 'Arial', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: var(--font-primary), system-ui, sans-serif;
   }
   
-  [dir="rtl"] {
-    font-family: 'Cairo', 'Arial', sans-serif;
+  body {
+    font-family: var(--font-primary), system-ui, sans-serif;
   }
   
-  /* Ensure font classes work properly */
-  .font-cairo {
-    font-family: 'Cairo', 'Arial', sans-serif !important;
-    font-display: swap;
+  /* Typography hierarchy */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-primary), system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.025em;
   }
   
-  .font-montserrat {
-    font-family: 'Montserrat', 'Arial', sans-serif !important;
-    font-display: swap;
+  /* Form elements */
+  button, input, select, textarea {
+    font-family: var(--font-primary), system-ui, sans-serif;
   }
   
-  .font-noto-arabic {
-    font-family: 'Noto Sans Arabic', 'Arial', sans-serif !important;
-    font-display: swap;
+  /* Placeholders and microcopy */
+  ::placeholder {
+    font-family: var(--font-secondary), system-ui, sans-serif;
+    color: rgb(0 0 0 / 0.4);
   }
   
-  .font-noto-sans {
-    font-family: 'Noto Sans', 'Arial', sans-serif !important;
-    font-display: swap;
-  }
-  
-  .font-geist {
-    font-family: var(--geist-sans), 'Arial', sans-serif !important;
-    font-display: swap;
+  /* Helper text and meta information */
+  small, .meta, .helper-text {
+    font-family: var(--font-secondary), system-ui, sans-serif;
+    color: rgb(0 0 0 / 0.6);
   }
 }
 
@@ -443,4 +454,226 @@
 
 .delay-200 {
   animation-delay: 0.2s;
+}
+
+/* Mega Menu Styles */
+@layer components {
+  .mega-panel {
+    @apply w-[min(980px,96vw)] bg-white rounded-2xl shadow-2xl border border-slate-200/60 p-4 sm:p-6 z-50 max-h-[90vh] overflow-y-auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .mega-grid {
+    @apply grid grid-cols-1 lg:grid-cols-[1.3fr,1fr] gap-4 sm:gap-6 mb-4 sm:mb-6;
+  }
+
+  .cat-grid {
+    @apply grid grid-cols-2 gap-3 sm:gap-4;
+  }
+
+  .tile, .hero-tile {
+    @apply relative block rounded-2xl p-3 sm:p-4 bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200/60 overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:border-slate-300/80;
+  }
+
+  .hero-tile {
+    @apply p-4 sm:p-6 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] text-white hover:shadow-xl hover:scale-[1.02] min-h-[200px] sm:min-h-[240px];
+  }
+
+  .tile img, .hero-tile img {
+    @apply w-full h-full object-contain transition-transform duration-300 pointer-events-none;
+  }
+
+  .tile:hover img, .hero-tile:hover img {
+    @apply scale-110;
+  }
+
+  .title {
+    @apply block text-sm font-bold text-slate-800 mb-1;
+  }
+
+  .subcta {
+    @apply opacity-0 transition-opacity duration-200 text-xs text-slate-600 font-medium flex items-center;
+  }
+
+  .tile:hover .subcta {
+    @apply opacity-100;
+  }
+
+  .badge {
+    @apply absolute top-3 left-3 z-10 text-xs font-semibold px-2 py-1 rounded-full text-white;
+  }
+
+  .quick-links {
+    @apply flex flex-wrap gap-4 mb-4;
+  }
+
+  .quick {
+    @apply text-sm text-slate-600 hover:text-slate-900 hover:underline transition-colors duration-200;
+  }
+
+  .promo {
+    @apply flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200/60 rounded-xl p-4;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 900px) {
+    .mega-grid {
+      @apply grid-cols-1;
+    }
+    
+    .cat-grid {
+      @apply grid-cols-2;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cat-grid {
+      @apply grid-cols-1;
+    }
+    
+    .mega-panel {
+      @apply w-[95vw] p-4;
+    }
+  }
+
+  /* Focus styles for accessibility */
+  .tile:focus-visible, .hero-tile:focus-visible {
+    @apply outline-2 outline-offset-2 outline-[#12d6fa];
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .tile, .hero-tile, .tile img, .hero-tile img, .subcta {
+      @apply transition-none;
+    }
+    
+    .tile:hover, .hero-tile:hover {
+      @apply scale-100;
+    }
+    
+    .tile:hover img, .hero-tile:hover img {
+      @apply scale-100;
+    }
+  }
+
+  /* Refill Cylinder Page Styles */
+  .refill-cylinder-card {
+    @apply relative block rounded-2xl p-4 bg-white border border-black/10 overflow-hidden transition-all duration-200 hover:shadow-md hover:scale-[1.02] hover:border-black/20;
+  }
+
+  .refill-cylinder-card.selected {
+    @apply border-emerald-400 ring-2 ring-emerald-200 bg-emerald-50/50;
+  }
+
+  .refill-cylinder-card:hover {
+    @apply shadow-md;
+  }
+
+  .refill-cylinder-card:focus-visible {
+    @apply outline-2 outline-offset-2 outline-emerald-400;
+  }
+
+  /* Quantity control animations */
+  .quantity-animate {
+    animation: quantityPulse 0.15s ease-out;
+  }
+
+  @keyframes quantityPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); color: theme('colors.emerald.600'); }
+    100% { transform: scale(1); }
+  }
+
+  /* Order summary sticky behavior */
+  .order-summary-sticky {
+    @apply lg:sticky lg:top-24;
+  }
+
+  /* Mobile optimizations */
+  @media (max-width: 640px) {
+    .refill-cylinder-card {
+      @apply p-3;
+    }
+    
+    .order-summary-sticky {
+      @apply sticky top-4;
+    }
+  }
+
+  /* Entry animations */
+  .refill-fade-in {
+    animation: refillFadeIn 0.3s ease-out;
+  }
+
+  @keyframes refillFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Skeleton loading for order summary */
+  .skeleton {
+    @apply animate-pulse bg-gray-200 rounded;
+  }
+
+  /* Cart micro-interactions */
+  .quantity-animate {
+    animation: quantityPulse 0.15s ease-out;
+  }
+
+  @keyframes quantityPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  .cart-fade-in {
+    animation: cartFadeIn 0.2s ease-out;
+  }
+
+  @keyframes cartFadeIn {
+    0% { 
+      opacity: 0; 
+      transform: translateY(-8px); 
+    }
+    100% { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  .cart-remove {
+    animation: cartRemove 0.3s ease-out forwards;
+  }
+
+  @keyframes cartRemove {
+    0% { 
+      opacity: 1; 
+      transform: scale(1); 
+      max-height: 200px;
+    }
+    50% { 
+      opacity: 0.5; 
+      transform: scale(0.95); 
+    }
+    100% { 
+      opacity: 0; 
+      transform: scale(0.9); 
+      max-height: 0;
+      margin: 0;
+      padding: 0;
+    }
+  }
+
+  /* Shine animation for progress bar */
+  @keyframes shine {
+    to { 
+      transform: translateX(100%); 
+    }
+  }
 }

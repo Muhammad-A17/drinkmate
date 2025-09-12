@@ -3,27 +3,36 @@
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useCart } from "@/lib/cart-context"
 import { Truck, CheckCircle, AlertCircle, ShoppingCart, LockIcon, Gift, Tag } from "lucide-react"
-import { useState } from "react"
+import { useState, useCallback, useEffect } from "react"
 import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
 import Banner from "@/components/layout/Banner"
 import { toast } from "sonner"
+import { fmt } from "@/lib/money"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
-
-// Local currency formatter for amounts without symbol
-const formatCurrency = (amount: number | undefined | null): string => {
-  const formattedAmount = amount === undefined || amount === null ? "0.00" : Number(amount).toFixed(2)
-
-  return formattedAmount
-}
+import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
+import FreeShippingBar from "@/components/cart/FreeShippingBar"
+import CartLineItem from "@/components/cart/CartLineItem"
+import OrderSummary from "@/components/cart/OrderSummary"
+import RecommendationsGrid from "@/components/cart/RecommendationsGrid"
+import FreeGiftGrid from "@/components/cart/FreeGiftGrid"
+import FreeGiftSelectedCard from "@/components/cart/FreeGiftSelectedCard"
+import { getFreeGiftState, FreeGiftProduct } from "@/lib/freeGift"
 
 type RecommendedItem = {
   id: number
   name: string
   price: number
-  originalPrice: number
+  originalPrice?: number
   image: string
   reviews: number
   rating: number // 0-5
@@ -78,14 +87,28 @@ export default function CartPage() {
   const [couponCode, setCouponCode] = useState("")
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
   const [couponError, setCouponError] = useState("")
+  const [isSavingInstructions, setIsSavingInstructions] = useState(false)
+  const [selectedFreeGift, setSelectedFreeGift] = useState<FreeGiftProduct | null>(null)
+  const [showFreeGiftGrid, setShowFreeGiftGrid] = useState(false)
 
-  const handleQuantityChange = (id: string | number, newQuantity: number) => {
+  const handleQuantityChange = useCallback((id: string | number, newQuantity: number) => {
     updateQuantity(id, newQuantity)
-    toast.success("Quantity updated", {
-      duration: 2000,
-      icon: <CheckCircle className="h-5 w-5" />,
-    })
-  }
+    // Toast will be handled by the component
+  }, [updateQuantity])
+
+  // Auto-save packing instructions with debounce
+  useEffect(() => {
+    if (packingInstructions.length === 0) return
+
+    setIsSavingInstructions(true)
+    const timeoutId = setTimeout(() => {
+      // Simulate API call - replace with actual API call
+      // await api.cart.saveNote(packingInstructions)
+      setIsSavingInstructions(false)
+    }, 400)
+
+    return () => clearTimeout(timeoutId)
+  }, [packingInstructions])
 
   const handleAddRecommended = (item: RecommendedItem) => {
     // Check if item already exists in cart
@@ -98,6 +121,13 @@ export default function CartPage() {
       quantity: 1,
       image: item.image,
     })
+
+    // Trigger cart count pulse animation
+    const cartIcon = document.querySelector('[data-cart-count]')
+    if (cartIcon) {
+      cartIcon.classList.add('animate-pulse')
+      setTimeout(() => cartIcon.classList.remove('animate-pulse'), 600)
+    }
 
     if (existingItem) {
       toast.success(`${item.name} quantity increased to ${existingItem.quantity + 1}`, {
@@ -241,11 +271,60 @@ export default function CartPage() {
     })
   }
 
+  // Free gift handlers
+  const handleSelectFreeGift = (product: FreeGiftProduct) => {
+    setSelectedFreeGift(product)
+    setShowFreeGiftGrid(false)
+    
+    // Add free gift to cart with price 0
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: 0, // Free item
+      quantity: 1,
+      image: product.image,
+    })
+    
+    toast.success(`${product.name} added as free gift!`, {
+      duration: 3000,
+      icon: <Gift className="h-5 w-5" />,
+    })
+  }
+
+  const handleReplaceFreeGift = () => {
+    setShowFreeGiftGrid(true)
+  }
+
+  const handleRemoveFreeGift = () => {
+    if (selectedFreeGift) {
+      // Remove the free gift from cart
+      removeItem(selectedFreeGift.id)
+      setSelectedFreeGift(null)
+      toast.info("Free gift removed", {
+        duration: 3000,
+      })
+    }
+  }
+
   // Calculate discount amount if coupon is applied
   const discountAmount = appliedCoupon ? (state.total * appliedCoupon.discount) / 100 : 0
 
   // Calculate final total after discount
   const finalTotal = state.total - discountAmount
+
+  // Get free gift state
+  const freeGiftState = getFreeGiftState({
+    total: state.total,
+    promotions: {
+      freeGift: {
+        eligible: state.total >= 100 && state.total < 150,
+        selectedItem: selectedFreeGift,
+        options: [],
+        maxQty: 1,
+        threshold: 100
+      }
+    }
+  })
 
   if (state.items.length === 0) {
     return (
@@ -373,40 +452,21 @@ export default function CartPage() {
     <div className="min-h-screen bg-gray-50">
       <Banner />
       <Header currentPage="cart" />
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg p-6 mb-6 border border-gray-200">
+      <main className="max-w-[1100px] mx-auto px-4 md:px-6 py-8">
+        {/* Cart Header */}
+        <div className="bg-white rounded-2xl p-6 mb-6 border border-black/10 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl font-medium text-gray-900 mb-2">Your Cart</h1>
-              {state.total >= 150 ? (
-                <div className="flex items-center text-sm text-green-600 font-medium">
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  <span>
-                    Only <SaudiRiyal amount={150 - state.total} /> away from Free shipping
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center text-sm text-gray-600">
-                  <Truck className="w-5 h-5 mr-2" />
-                  <span>
-                    Only <SaudiRiyal amount={150 - state.total} /> away from Free shipping
-                  </span>
-                </div>
-              )}
-              {state.total < 150 && (
-                <div className="mt-3">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-[#00D1FF] h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min((state.total / 150) * 100, 100)}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
+              <h1 className="text-3xl font-bold text-black mb-4 tracking-tight">Your Cart</h1>
+              <FreeShippingBar 
+                subtotal={state.total} 
+                threshold={150} 
+                className="max-w-md"
+              />
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex items-center text-sm text-gray-500">
-                <LockIcon className="w-5 h-5 mr-1" />
+              <div className="flex items-center text-sm text-black/60">
+                <LockIcon className="w-4 h-4 mr-1" />
                 <span>Secure Checkout</span>
               </div>
             </div>
@@ -417,178 +477,35 @@ export default function CartPage() {
           <Button
             onClick={handleClearCart}
             variant="ghost"
-            className={`text-red-600 hover:text-red-700 hover:bg-red-50 text-sm ${showClearCartConfirm ? "bg-red-50" : ""}`}
+            className={`h-10 px-4 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm font-medium transition-colors duration-200 ${
+              showClearCartConfirm ? "bg-red-50" : ""
+            }`}
           >
             {showClearCartConfirm ? "Click again to confirm" : "Clear Cart"}
           </Button>
           <Button
             onClick={() => router.push("/shop")}
             variant="outline"
-            className="text-gray-600 hover:text-gray-700 text-sm border-gray-300"
+            className="h-10 px-4 text-gray-600 hover:text-gray-700 text-sm border-gray-300 hover:border-gray-400 font-medium transition-colors duration-200"
           >
             Continue Shopping
           </Button>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
-          <div className="hidden md:grid grid-cols-4 py-4 px-6 border-b border-gray-200 text-sm text-gray-600 font-medium bg-gray-50">
-            <div>Items</div>
-            <div className="text-right">Price</div>
-            <div className="text-center">Qty</div>
-            <div className="text-right">Total</div>
-          </div>
-
+        {/* Cart Items */}
+        <div className="space-y-4 mb-6">
           {state.items.map((item) => (
-            <div
-              key={item.id}
-              className="grid grid-cols-1 md:grid-cols-4 py-6 px-6 border-b border-gray-100 last:border-b-0 gap-y-4 md:gap-y-0"
-            >
-              <div className="flex items-center">
-                <div className="relative w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-lg overflow-hidden border border-gray-200">
-                  <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-contain" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm md:text-base font-medium text-gray-900">{item.name}</p>
-                  <div className="flex space-x-4 mt-2">
-                    <button
-                      onClick={() => removeItem(item.id)}
-                      className="text-xs text-red-600 hover:text-red-700 font-medium"
-                    >
-                      Remove
-                    </button>
-                    <button
-                      onClick={() => handleSaveForLater(item)}
-                      className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      Save for later
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="md:text-right self-center flex justify-between md:block">
-                <span className="md:hidden font-medium text-sm text-gray-600">Price:</span>
-                <span className="font-medium text-gray-900">
-                  <SaudiRiyal amount={item.price} />
-                </span>
-              </div>
-              <div className="md:text-center self-center flex justify-between md:block">
-                <span className="md:hidden font-medium text-sm text-gray-600">Quantity:</span>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuantityChange(item.id, Math.max(1, item.quantity - 1))}
-                    className="h-8 w-8 p-0 text-gray-600 hover:text-gray-800 border-gray-300"
-                    disabled={item.quantity <= 1}
-                  >
-                    -
-                  </Button>
-                  <span className="w-8 text-center font-medium text-gray-900">{item.quantity}</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                    className="h-8 w-8 p-0 text-gray-600 hover:text-gray-800 border-gray-300"
-                  >
-                    +
-                  </Button>
-                </div>
-              </div>
-              <div className="md:text-right self-center font-medium flex justify-between md:block">
-                <span className="md:hidden font-medium text-sm text-gray-600">Total:</span>
-                <span className="text-gray-900">
-                  <SaudiRiyal amount={item.price * item.quantity} />
-                </span>
-              </div>
+            <div key={item.id} className="cart-fade-in">
+              <CartLineItem
+                item={item}
+                onQuantityChange={handleQuantityChange}
+                onRemove={removeItem}
+                onSaveForLater={handleSaveForLater}
+              />
             </div>
           ))}
         </div>
 
-        {state.total >= 100 && state.total < 150 && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-            <div className="flex items-center mb-4">
-              <Tag className="h-5 w-5 text-green-600 mr-2" />
-              <h3 className="text-lg font-medium text-green-800">Select a FREE product</h3>
-            </div>
-            <p className="text-sm text-green-700 mb-6">
-              You qualify for one free product! Choose from the options below.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                {
-                  id: 101,
-                  name: "Drinkmate Flavor Sachet - Cherry",
-                  image: "/images/italian-strawberry-lemon-syrup.png",
-                  originalPrice: 15.0,
-                },
-                {
-                  id: 102,
-                  name: "Drinkmate Flavor Sachet - Lemon",
-                  image: "/images/italian-strawberry-lemon-syrup.png",
-                  originalPrice: 15.0,
-                },
-                {
-                  id: 103,
-                  name: "Drinkmate Flavor Sachet - Peach",
-                  image: "/images/italian-strawberry-lemon-syrup.png",
-                  originalPrice: 15.0,
-                },
-              ].map((freeItem) => (
-                <div
-                  key={freeItem.id}
-                  className="bg-white rounded-3xl transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
-                >
-                  <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
-                    <Image
-                      src={freeItem.image || "/placeholder.svg"}
-                      alt={freeItem.name}
-                      width={180}
-                      height={180}
-                      className="object-contain h-44 transition-transform duration-300 hover:scale-105"
-                    />
-                  </div>
-                  <h4 className="font-medium text-lg mb-3 text-gray-900">{freeItem.name}</h4>
-                  <div className="flex items-center mb-3">
-                    <span className="text-green-600 font-medium mr-3">FREE</span>
-                    <span className="text-xs text-gray-400 line-through">
-                      <SaudiRiyal amount={freeItem.originalPrice} size="sm" />
-                    </span>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      // Check if item already exists in cart
-                      const existingItem = state.items.find((cartItem) => cartItem.id === freeItem.id)
-
-                      addItem({
-                        id: freeItem.id,
-                        name: freeItem.name,
-                        price: 0,
-                        quantity: 1,
-                        image: freeItem.image,
-                        isFree: true,
-                      })
-
-                      if (existingItem) {
-                        toast.success(`${freeItem.name} quantity increased to ${existingItem.quantity + 1}`, {
-                          duration: 3000,
-                          icon: <CheckCircle className="h-5 w-5" />,
-                        })
-                      } else {
-                        toast.success(`${freeItem.name} added to cart`, {
-                          duration: 3000,
-                          icon: <Gift size={20} />,
-                        })
-                      }
-                    }}
-                    className="w-full bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-medium rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-                  >
-                    <Gift size={20} /> Add Free Item
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {savedItems.length > 0 && (
           <div className="bg-white rounded-lg p-6 border border-gray-200 mb-6">
@@ -636,236 +553,210 @@ export default function CartPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-lg p-6 border border-gray-200 mb-6">
-          <h2 className="text-lg font-medium mb-6 text-gray-900">Items you may like</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {recommended.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-3xl transition-all duration-300 p-6 border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1"
-              >
-                                  <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
-                    <Image 
-                      src={item.image || "/placeholder.svg"} 
-                      alt={item.name} 
-                      width={180}
-                      height={180}
-                      className="object-contain h-44 transition-transform duration-300 hover:scale-105" 
-                    />
-                  </div>
-                <h3 className="font-medium text-lg mb-3 text-gray-900">{item.name}</h3>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex text-yellow-400">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <span key={i} className="text-base">★</span>
-                    ))}
-                  </div>
-                  <span className="text-sm text-gray-600 font-medium">({item.reviews} Reviews)</span>
-                </div>
-                <div className="mb-4">
-                  {item.originalPrice ? (
-                    <div className="flex items-center gap-2">
-                      <span className="font-normal text-lg text-gray-900">
-                        <SaudiRiyal amount={item.price} size="md" />
-                      </span>
-                      <span className="text-xs text-gray-400 line-through">
-                        <SaudiRiyal amount={item.originalPrice} size="sm" />
-                      </span>
-                      <span className="bg-red-50 text-red-500 text-xs font-normal px-2 py-0.5 rounded-full">
-                        {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% OFF
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="font-normal text-lg text-gray-900">
-                      <SaudiRiyal amount={item.price} size="md" />
-                    </span>
-                  )}
-                </div>
-                <Button
-                  onClick={() => handleAddRecommended(item)}
-                  className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black font-medium rounded-full px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
-                >
-                  <ShoppingCart size={20} /> ADD
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        <div className="bg-white rounded-lg p-6 border border-gray-200 mb-6">
-          <p className="text-sm text-gray-700 mb-3 font-medium">Add instructions for packing your order (optional)</p>
+        {/* Packing Instructions */}
+        <div className="bg-white rounded-2xl p-6 border border-black/10 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-black font-medium">Add instructions for packing your order (optional)</p>
+            <div className="flex items-center gap-2 text-xs text-black/50">
+              <span className="tabular-nums">{packingInstructions.length}/300</span>
+              {packingInstructions.length > 0 && (
+                <span className={`font-medium ${isSavingInstructions ? 'text-sky-600' : 'text-emerald-600'}`}>
+                  {isSavingInstructions ? 'Saving...' : 'Saved ✓'}
+                </span>
+              )}
+            </div>
+          </div>
           <textarea
             value={packingInstructions}
             onChange={(e) => setPackingInstructions(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#00D1FF] focus:border-[#00D1FF]"
+            className="w-full border border-black/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 resize-none"
             rows={3}
+            maxLength={300}
             placeholder="Special handling instructions..."
           />
+          <p className="text-xs text-black/60 mt-2">Instructions will be saved automatically as you type</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <p className="text-base font-medium mb-4 text-gray-900">Apply Coupon Code</p>
-            <div className="flex space-x-3">
-              <input
-                type="text"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                placeholder="Enter coupon code"
-                className="flex-1 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#00D1FF] focus:border-[#00D1FF]"
-              />
-              <Button
-                onClick={handleApplyCoupon}
-                className="bg-[#00D1FF] hover:bg-[#00bae0] text-white text-sm py-3 px-6 rounded-lg font-medium"
-              >
-                Apply
-              </Button>
-            </div>
-            {couponError && <p className="text-red-600 text-sm mt-2">{couponError}</p>}
-            {appliedCoupon && (
-              <div className="flex justify-between items-center mt-4 bg-green-50 p-3 rounded-lg border border-green-200">
-                <span className="text-green-700 text-sm font-medium">
-                  {appliedCoupon.code} ({appliedCoupon.discount}% off)
-                </span>
-                <button onClick={handleRemoveCoupon} className="text-sm text-red-600 hover:text-red-700 font-medium">
-                  Remove
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <p className="text-base font-medium mb-4 text-gray-900">Been referred by a friend?</p>
-            <div className="flex space-x-3">
-              <input
-                type="text"
-                placeholder="Enter referral code"
-                className="flex-1 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#00D1FF] focus:border-[#00D1FF]"
-              />
-              <Button className="bg-[#00D1FF] hover:bg-[#00bae0] text-white text-sm py-3 px-6 rounded-lg font-medium">
-                Apply
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-medium mb-6 text-gray-900">ORDER SUMMARY</h3>
-
-          {state.total >= 150 ? (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2 text-green-700">
-                <CheckCircle className="h-4 w-4" />
-                <span className="text-sm font-medium">Free Shipping Unlocked!</span>
-              </div>
-            </div>
-          ) : (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 text-blue-700">
-                <Truck className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  Add <SaudiRiyal amount={150 - state.total} /> more for free shipping
-                </span>
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-3 mb-6">
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-600">Subtotal ({state.itemCount} items)</div>
-              <div className="text-sm font-medium text-gray-900">
-                <SaudiRiyal amount={state.total} />
-              </div>
-            </div>
-            {appliedCoupon && (
-              <div className="flex justify-between items-center text-green-600">
-                <div className="text-sm">Discount ({appliedCoupon.discount}%)</div>
-                <div className="text-sm font-medium">
-                  -<SaudiRiyal amount={discountAmount} />
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column - Cart Content */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* Free Product Section */}
+            {state.total >= 100 && state.total < 150 && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
+                <div className="flex items-center mb-4">
+                  <Tag className="h-5 w-5 text-emerald-600 mr-2" />
+                  <h3 className="text-lg font-semibold text-emerald-800">Select a FREE product</h3>
+                </div>
+                <p className="text-sm text-emerald-700 mb-6">
+                  You qualify for one free product! Choose from the options below.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[
+                    {
+                      id: 101,
+                      name: "Drinkmate Flavor Sachet - Cherry",
+                      image: "/images/italian-strawberry-lemon-syrup.png",
+                      originalPrice: 15.0,
+                    },
+                    {
+                      id: 102,
+                      name: "Drinkmate Flavor Sachet - Lemon",
+                      image: "/images/italian-strawberry-lemon-syrup.png",
+                      originalPrice: 15.0,
+                    },
+                    {
+                      id: 103,
+                      name: "Drinkmate Flavor Sachet - Peach",
+                      image: "/images/italian-strawberry-lemon-syrup.png",
+                      originalPrice: 15.0,
+                    },
+                  ].map((freeItem) => (
+                    <div
+                      key={freeItem.id}
+                      className="bg-white rounded-2xl p-4 border border-emerald-200 hover:border-emerald-300 transition-all duration-200"
+                    >
+                      <div className="relative h-32 bg-white rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                        <Image
+                          src={freeItem.image || "/placeholder.svg"}
+                          alt={freeItem.name}
+                          width={80}
+                          height={80}
+                          className="object-contain"
+                        />
+                      </div>
+                      <h4 className="font-medium text-sm mb-2 text-black">{freeItem.name}</h4>
+                      <div className="flex items-center mb-3">
+                        <span className="text-emerald-600 font-semibold mr-2">FREE</span>
+                        <span className="text-xs text-gray-400 line-through">
+                          {fmt(freeItem.originalPrice)}
+                        </span>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          addItem({
+                            id: freeItem.id,
+                            name: freeItem.name,
+                            price: 0,
+                            quantity: 1,
+                            image: freeItem.image,
+                            isFree: true,
+                          })
+                          toast.success(`${freeItem.name} added to cart`, {
+                            duration: 3000,
+                            icon: <Gift size={20} />,
+                          })
+                        }}
+                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-xl px-4 py-2 text-sm"
+                      >
+                        <Gift size={16} className="mr-2" />
+                        Add Free Item
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-600">Shipping</div>
-              <div className="text-sm">
-                {state.total >= 150 ? (
-                  <span className="text-green-600 font-medium">FREE</span>
-                ) : (
-                  <span className="text-gray-500">Calculated at checkout</span>
+
+            {/* Saved Items */}
+            {savedItems.length > 0 && (
+              <div className="bg-white rounded-2xl p-6 border border-black/10">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-lg font-semibold text-black">Saved for Later ({savedItems.length})</h2>
+                  <button
+                    onClick={() => setShowSavedItems(!showSavedItems)}
+                    className="text-sm text-sky-600 hover:text-sky-700 font-medium"
+                  >
+                    {showSavedItems ? "Hide items" : "Show items"}
+                  </button>
+                </div>
+                {showSavedItems && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {savedItems.map((item, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 rounded-2xl p-4 border border-gray-200"
+                      >
+                        <div className="relative h-32 bg-white rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                          <Image 
+                            src={item.image || "/placeholder.svg"} 
+                            alt={item.name} 
+                            width={80}
+                            height={80}
+                            className="object-contain"
+                          />
+                        </div>
+                        <h3 className="font-medium text-sm mb-2 text-black">{item.name}</h3>
+                        <div className="mb-4">
+                          <span className="font-semibold text-black">
+                            {fmt(item.price)}
+                          </span>
+                        </div>
+                        <Button
+                          onClick={() => handleMoveToCart(item, index)}
+                          className="w-full bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-xl px-4 py-2 text-sm"
+                        >
+                          <ShoppingCart size={16} className="mr-2" />
+                          Move to Cart
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
-            </div>
-            <div className="border-t border-gray-200 pt-3 flex justify-between items-center">
-              <div className="font-medium text-lg text-gray-900">Total</div>
-              <div className="font-medium text-xl text-gray-900">
-                <SaudiRiyal amount={finalTotal} />
-              </div>
-            </div>
+            )}
+
+            {/* Recommendations */}
+            <section aria-labelledby="you-may-like" className="bg-white rounded-2xl p-6 border border-black/10">
+              <h2 id="you-may-like" className="text-xl font-semibold tracking-tight mb-4 text-black">Items you may like</h2>
+              <RecommendationsGrid 
+                items={recommended} 
+                maxItems={3}
+                onAddToCart={handleAddRecommended}
+              />
+            </section>
+
           </div>
 
-          <div className="text-xs text-gray-500 mb-6">Taxes and discount code calculated at checkout</div>
+          {/* Right Column - Order Summary */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Free Gift Section */}
+            {freeGiftState.eligible && (
+              <>
+                {selectedFreeGift ? (
+                  <FreeGiftSelectedCard
+                    item={selectedFreeGift}
+                    onReplace={handleReplaceFreeGift}
+                    onRemove={handleRemoveFreeGift}
+                  />
+                ) : (
+                  <FreeGiftGrid
+                    options={freeGiftState.options}
+                    selectedId={null}
+                    onSelect={handleSelectFreeGift}
+                    placement="sidebar"
+                  />
+                )}
+              </>
+            )}
 
-          <Button
-            onClick={handleCheckout}
-            disabled={state.items.length === 0}
-            className={`w-full font-medium py-4 text-base rounded-lg mb-6 ${
-              state.items.length === 0 
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-[#00D1FF] hover:bg-[#00bae0] text-white'
-            }`}
-          >
-            {state.items.length === 0 ? 'Cart is Empty' : `Checkout • ${finalTotal} SAR`}
-          </Button>
-
-          <div>
-            <p className="text-xs text-gray-500 text-center mb-3 font-medium">CHECKOUT WITH</p>
-            <div className="flex flex-wrap justify-center items-center gap-5 p-5 bg-gray-50 rounded-lg border border-gray-200">
-              <Image
-                src="/images/payment-logos/Mada Logo Vector.svg"
-                alt="Mada"
-                width={64}
-                height={40}
-                className="object-contain h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
-              />
-              <Image
-                src="/images/payment-logos/visa.png"
-                alt="Visa"
-                width={64}
-                height={40}
-                className="object-contain h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
-              />
-              <Image
-                src="/images/payment-logos/mastercard.png"
-                alt="Mastercard"
-                width={64}
-                height={40}
-                className="object-contain h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
-              />
-              <Image
-                src="/images/payment-logos/american-express.png"
-                alt="American Express"
-                width={64}
-                height={40}
-                className="object-contain h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
-              />
-              <Image
-                src="/images/payment-logos/apple-pay.png"
-                alt="Apple Pay"
-                width={64}
-                height={40}
-                className="object-contain h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
-              />
-              <Image
-                src="/images/payment-logos/google-pay.png"
-                alt="Google Pay"
-                width={64}
-                height={40}
-                className="object-contain h-12 opacity-80 hover:opacity-100 transition-opacity duration-200"
-              />
-            </div>
+            <OrderSummary
+              subtotal={state.total}
+              itemCount={state.itemCount}
+              shipping={state.total >= 150 ? 0 : null}
+              discount={discountAmount}
+              total={finalTotal}
+              freeShippingThreshold={150}
+              appliedCoupon={appliedCoupon}
+              onApplyCoupon={handleApplyCoupon}
+              onRemoveCoupon={handleRemoveCoupon}
+              onCheckout={handleCheckout}
+              isCheckoutDisabled={state.items.length === 0}
+            />
           </div>
         </div>
-      </div>
+      </main>
       <Footer />
     </div>
   )

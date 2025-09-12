@@ -78,17 +78,37 @@ const config: Config = {
         xl: 'calc(var(--radius) + 4px)',
       },
       fontFamily: {
+        // Primary fonts with proper fallbacks
+        cairo: ['var(--font-cairo)', 'var(--font-noto-arabic)', 'system-ui', 'sans-serif'],
+        montserrat: ['var(--font-montserrat)', 'var(--font-noto-sans)', 'system-ui', 'sans-serif'],
+        
+        // Semantic aliases for easy usage
+        primary: ['var(--font-primary)', 'system-ui', 'sans-serif'],
+        secondary: ['var(--font-secondary)', 'system-ui', 'sans-serif'],
+        
+        // Fallback system fonts
         sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         mono: ['var(--geist-mono)', 'monospace'],
-        cairo: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        'noto-arabic': ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        montserrat: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        'noto-sans': ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        geist: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        
+      },
+      aspectRatio: {
+        'auto': 'auto',
+        'square': '1 / 1',
+        'video': '16 / 9',
+        '4/3': '4 / 3',
+        '3/2': '3 / 2',
+        '2/3': '2 / 3',
+        '9/16': '9 / 16',
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/container-queries'),
+    require('tailwindcss-rtl'),
+  ],
 }
 
 export default config

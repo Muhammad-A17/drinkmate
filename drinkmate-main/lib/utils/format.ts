@@ -1,11 +1,10 @@
 // Utility functions for formatting data
 
-// Format currency
+// Format currency (returns just the number, use SVG symbols separately)
 export const formatCurrency = (amount: number, currency: string = 'SAR'): string => {
   return new Intl.NumberFormat('ar-SA', {
-    style: 'currency',
-    currency: currency,
     minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount)
 }
 
@@ -174,7 +173,7 @@ export const formatInitials = (name: string): string => {
     .slice(0, 2)
 }
 
-// Format price range
+// Format price range (returns just numbers, use SVG symbols separately)
 export const formatPriceRange = (min: number, max: number, currency: string = 'SAR'): string => {
   if (min === max) {
     return formatCurrency(min, currency)

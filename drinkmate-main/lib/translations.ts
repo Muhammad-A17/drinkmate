@@ -2059,14 +2059,14 @@ export const translations: Record<Language, Translations> = {
       },
       refill: {
         title: "REFILL MORE. SAVE MORE.",
-        description: "Now refill 4 cylinders all together for the price of 55 SAR each cylinder.",
+        description: "Now refill 4 cylinders all together for the price of 55 {SAR_SYMBOL} each cylinder.",
         buttonText: "Refill Now",
         offerText: "*Offer valid for whole year*",
         carbonatesUpto: "Carbonates upto",
         liters: "60",
         litersOfDrink: "Liters of drink",
         slide2: {
-          headline: "GET ENERGY DRINK & COLA FLAVOR FOR 79 SAR",
+          headline: "GET ENERGY DRINK & COLA FLAVOR FOR 79 {SAR_SYMBOL}",
           description: "Beat the summer heat with our best sellers.",
           buttonText: "Refill Now"
         },
@@ -2394,7 +2394,7 @@ export const translations: Record<Language, Translations> = {
             eightX500ml: "8x500ml"
           },
           currency: {
-            sar: "SAR",
+            sar: "{SAR_SYMBOL}",
             save: "Save"
           },
           reviews: {
@@ -2441,8 +2441,8 @@ export const translations: Record<Language, Translations> = {
               "Soda Maker": "Drinkmate OmniFizz (Blue)",
               "CO2 Cylinders": "2x 60L cylinders",
               "Flavors Included": "5 premium Italian syrups",
-              "Total Value": "SAR 1,199.00",
-              "Bundle Savings": "SAR 200.00",
+              "Total Value": "{SAR_SYMBOL} 1,199.00",
+              "Bundle Savings": "{SAR_SYMBOL} 200.00",
               "Warranty": "2 years on machine, 1 year on accessories"
             }
           },
@@ -2462,8 +2462,8 @@ export const translations: Record<Language, Translations> = {
               "Soda Maker": "Drinkmate OmniFizz (Hero)",
               "CO2 Cylinders": "1x 60L cylinder",
               "Flavors Included": "2 premium Italian syrups",
-              "Total Value": "SAR 899.00",
-              "Bundle Savings": "SAR 100.00",
+              "Total Value": "{SAR_SYMBOL} 899.00",
+              "Bundle Savings": "{SAR_SYMBOL} 100.00",
               "Warranty": "2 years on machine, 1 year on accessories"
             }
           },
@@ -2483,8 +2483,8 @@ export const translations: Record<Language, Translations> = {
               "Soda Maker": "Drinkmate OmniFizz (Red)",
               "CO2 Cylinders": "1x 60L cylinder",
               "Flavors Included": "8 premium Italian syrups",
-              "Total Value": "SAR 1,499.00",
-              "Bundle Savings": "SAR 200.00",
+              "Total Value": "{SAR_SYMBOL} 1,499.00",
+              "Bundle Savings": "{SAR_SYMBOL} 200.00",
               "Warranty": "2 years on machine, 1 year on accessories"
             }
           },
@@ -2507,22 +2507,22 @@ export const translations: Record<Language, Translations> = {
             starterSodaMaker: "Drinkmate OmniFizz (Hero)",
             starterCo2Cylinders: "1x 60L cylinder",
             starterFlavors: "2 premium Italian syrups",
-            starterTotalValue: "SAR 899.00",
-            starterBundleSavings: "SAR 100.00",
+            starterTotalValue: "{SAR_SYMBOL} 899.00",
+            starterBundleSavings: "{SAR_SYMBOL} 100.00",
             starterWarranty: "2 years on machine, 1 year on accessories",
             // Family bundle specific values
             familySodaMaker: "Drinkmate OmniFizz (Blue)",
             familyCo2Cylinders: "2x 60L cylinders",
             familyFlavors: "5 premium Italian syrups",
-            familyTotalValue: "SAR 1,199.00",
-            familyBundleSavings: "SAR 200.00",
+            familyTotalValue: "{SAR_SYMBOL} 1,199.00",
+            familyBundleSavings: "{SAR_SYMBOL} 200.00",
             familyWarranty: "2 years on machine, 1 year on accessories",
             // Premium bundle specific values
             premiumSodaMaker: "Drinkmate OmniFizz (Red)",
             premiumCo2Cylinders: "1x 60L cylinder",
             premiumFlavors: "8 premium Italian syrups",
-            premiumTotalValue: "SAR 1,499.00",
-            premiumBundleSavings: "SAR 200.00",
+            premiumTotalValue: "{SAR_SYMBOL} 1,499.00",
+            premiumBundleSavings: "{SAR_SYMBOL} 200.00",
             premiumWarranty: "2 years on machine, 1 year on accessories"
           }
         }
@@ -2782,7 +2782,7 @@ export const translations: Record<Language, Translations> = {
         subtitle: "Everything you need to know about delivery",
         standardDelivery: "Standard Delivery",
         standardDeliveryTime: "3-5 business days",
-        standardDeliveryNote: "Free on orders above 150 SAR",
+        standardDeliveryNote: "Free on orders above 150 {SAR_SYMBOL}",
         expressDelivery: "Express Delivery",
         expressDeliveryTime: "1-2 business days",
         expressDeliveryNote: "Additional fee applies",
