@@ -26,7 +26,8 @@ import {
   Star,
   MessageSquare,
   FileText,
-  Activity
+  Activity,
+  Utensils
 } from "lucide-react"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import { 
@@ -843,6 +844,14 @@ export default function AdminDashboard() {
             >
               <ShoppingBag className="h-6 w-6 text-purple-600" />
               <span className="font-medium">View Orders</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col space-y-2 hover:bg-orange-50 hover:border-orange-200 transition-colors"
+              onClick={() => router.push('/admin/recipes')}
+            >
+              <Utensils className="h-6 w-6 text-orange-600" />
+              <span className="font-medium">Manage Recipes</span>
             </Button>
             <Button 
               variant="outline" 

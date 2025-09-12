@@ -22,13 +22,14 @@ interface UseRecipeRotationReturn {
   isRotating: boolean
 }
 
-export function useRecipeRotation(recipes: Recipe[], rotationIntervalMinutes: number = 10): UseRecipeRotationReturn {
+export function useRecipeRotation(recipes: Recipe[] | undefined, rotationIntervalMinutes: number = 10): UseRecipeRotationReturn {
   const [currentRecipeIndex, setCurrentRecipeIndex] = useState(0)
   const [timeUntilNext, setTimeUntilNext] = useState(rotationIntervalMinutes * 60 * 1000) // Convert to milliseconds
   const [isRotating, setIsRotating] = useState(false)
 
   // Filter recipes that are suitable for rotation (exclude the original featured one)
-  const rotationRecipes = recipes.filter(recipe => !recipe.isFeatured)
+  // Add null check to prevent errors when recipes is undefined
+  const rotationRecipes = recipes?.filter(recipe => !recipe.isFeatured) || []
 
   useEffect(() => {
     if (rotationRecipes.length === 0) return
