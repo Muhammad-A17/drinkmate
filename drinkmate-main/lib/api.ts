@@ -75,34 +75,48 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
     const cachedData = apiCache.get(cacheKey);
     if (cachedData.timestamp > Date.now() - CACHE_TTL) {
       if (process.env.NODE_ENV === 'development') {
-        // Cache hit - no logging needed in production
+        console.log(`Cache hit for key: ${cacheKey}`);
       }
       return cachedData.data;
     } else {
       // Cache expired
       apiCache.delete(cacheKey);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Cache expired for key: ${cacheKey}`);
+      }
     }
   }
   
   // Check connectivity before making API calls
   const checkConnectivity = () => {
-    return typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' 
+    const isOnline = typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' 
       ? navigator.onLine 
       : true; // Assume online if we can't detect
+      
+    if (process.env.NODE_ENV === 'development' && !isOnline) {
+      console.warn('Device appears to be offline');
+    }
+    
+    return isOnline;
   };
   
   let retries = 0;
+  let lastError: any = null;
   
   while (retries < maxRetries) {
     // Check if we're online before attempting a request
     if (!checkConnectivity()) {
-      console.warn('Network appears to be offline, waiting before retry');
+      console.warn(`Network offline, waiting before retry attempt ${retries + 1}/${maxRetries}`);
       await new Promise<void>(resolve => setTimeout(resolve, 2000));
       retries++;
       continue;
     }
     
     try {
+      if (retries > 0 && process.env.NODE_ENV === 'development') {
+        console.log(`Retry attempt ${retries}/${maxRetries}`);
+      }
+      
       const result = await apiCall();
     
       // Store in cache if cacheKey is provided
@@ -112,13 +126,18 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
           timestamp: Date.now()
         });
         if (process.env.NODE_ENV === 'development') {
-          // Data cached successfully
+          console.log(`Data cached for key: ${cacheKey}`);
         }
       }
     
       return result;
     } catch (error: any) {
+      lastError = error;
       retries++;
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`API call failed (attempt ${retries}/${maxRetries}): ${error.message || 'Network Error'}`);
+      }
       
       // Don't retry for certain error codes
       if (error.response) {
@@ -132,34 +151,35 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
       
       // If we've used all retries, throw the error
       if (retries >= maxRetries) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`All ${maxRetries} retry attempts failed`);
+        }
         throw error;
       }
       
       // For network errors, wait longer between retries
+      let waitTime = Math.min(15000, Math.floor(delay * Math.pow(1.5, retries - 1)));
+      
       if (!error.response) {
-        // Double the delay for network errors
-        // Using a temporary variable to avoid TypeScript error
-        const newDelay = Math.floor(delay * 2);
-        delay = newDelay;
+        // Network errors get longer waits
+        waitTime = Math.min(20000, waitTime * 2);
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`Network error detected, waiting ${waitTime}ms before retry`);
+        }
       }
       
-      // Wait before retrying - exponential backoff
-      const waitTime = Math.min(8000, Math.floor(delay * Math.pow(2, retries - 1)));
-      // Use a type assertion to avoid TypeScript error
+      // Wait before retrying
       await new Promise<void>(resolve => {
         const timeoutId = setTimeout(resolve, waitTime);
         return timeoutId;
       });
-      
-      // Log retry attempt
-      if (process.env.NODE_ENV === 'development') {
-        // Retrying API call
-      }
     }
   }
   
   // This should never be reached due to the throw in the loop
-  throw new Error('Retry mechanism failed');
+  // But just in case, rethrow the last error we caught
+  throw lastError || new Error('Retry mechanism failed');
 };
 
 // Request interceptor to add auth token to requests
@@ -214,17 +234,33 @@ api.interceptors.response.use(
     }
     
     // Log all API errors for debugging
-    // Log API errors for debugging
     if (process.env.NODE_ENV === 'development') {
-      console.error('API Error:', error.response?.data || error.message || 'Network Error');
+      // Safely extract error message with fallbacks
+      const errorMessage = error.response?.data?.message || error.message || 'Network Error';
+      console.error('API Error:', errorMessage);
       
-      // Add additional diagnostic information
+      // Add additional diagnostic information for network errors
       if (!error.response) {
-        console.warn('Network Error Details:', {
+        const diagnosticInfo = {
           online: typeof navigator !== 'undefined' ? navigator.onLine : 'unknown',
           apiURL: api.defaults.baseURL,
-          timestamp: new Date().toISOString()
-        });
+          timestamp: new Date().toISOString(),
+          errorCode: error.code || 'UNKNOWN',
+          errorName: error.name || 'Error',
+          request: {
+            method: error.config?.method?.toUpperCase() || 'UNKNOWN',
+            url: error.config?.url || 'UNKNOWN',
+            timeout: error.config?.timeout || 'default',
+            headers: error.config?.headers ? 'present' : 'none'
+          }
+        };
+        
+        console.warn('Network Error Details:', diagnosticInfo);
+        
+        // Check if the error is likely due to backend not running
+        if (error.code === 'ECONNREFUSED' || error.message?.includes('refused')) {
+          console.warn('⚠️ The API server may not be running. Please ensure the backend server is started.');
+        }
       }
     }
     
