@@ -1,6 +1,10 @@
 // API service for handling all backend requests
 import axios from 'axios';
 import { getAuthToken } from './auth-context';
+import { fallbackCylinders, fallbackFlavors, fallbackProducts } from './fallback-data';
+
+// Re-export getAuthToken for other modules to use from this single import
+export { getAuthToken };
 
 // Base API URL - should be set in environment variables
 // For local development, use localhost:3000 where the backend server is running
@@ -17,10 +21,10 @@ console.log('API Configuration:', {
 
 // Cache configuration
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
-const apiCache = new Map();
+export const apiCache = new Map();
 
 // Create axios instance with default config
-const api = axios.create({
+export const api = axios.create({
   baseURL: FINAL_API_URL,
   headers: {
     'Content-Type': 'application/json',
@@ -65,7 +69,7 @@ api.interceptors.response.use(
 );
 
 // Helper function to implement retry mechanism with caching
-const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = 3, delay = 1000): Promise<any> => {
+export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = 3, delay = 1000): Promise<any> => {
   // Check cache first if cacheKey is provided
   if (cacheKey && apiCache.has(cacheKey)) {
     const cachedData = apiCache.get(cacheKey);
@@ -79,24 +83,40 @@ const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxR
       apiCache.delete(cacheKey);
     }
   }
+  
+  // Check connectivity before making API calls
+  const checkConnectivity = () => {
+    return typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' 
+      ? navigator.onLine 
+      : true; // Assume online if we can't detect
+  };
+  
   let retries = 0;
   
   while (retries < maxRetries) {
+    // Check if we're online before attempting a request
+    if (!checkConnectivity()) {
+      console.warn('Network appears to be offline, waiting before retry');
+      await new Promise<void>(resolve => setTimeout(resolve, 2000));
+      retries++;
+      continue;
+    }
+    
     try {
       const result = await apiCall();
     
-    // Store in cache if cacheKey is provided
-    if (cacheKey) {
-      apiCache.set(cacheKey, {
-        data: result,
-        timestamp: Date.now()
-      });
-      if (process.env.NODE_ENV === 'development') {
-        // Data cached successfully
+      // Store in cache if cacheKey is provided
+      if (cacheKey) {
+        apiCache.set(cacheKey, {
+          data: result,
+          timestamp: Date.now()
+        });
+        if (process.env.NODE_ENV === 'development') {
+          // Data cached successfully
+        }
       }
-    }
     
-    return result;
+      return result;
     } catch (error: any) {
       retries++;
       
@@ -196,7 +216,16 @@ api.interceptors.response.use(
     // Log all API errors for debugging
     // Log API errors for debugging
     if (process.env.NODE_ENV === 'development') {
-      console.error('API Error:', error.response?.data || error.message);
+      console.error('API Error:', error.response?.data || error.message || 'Network Error');
+      
+      // Add additional diagnostic information
+      if (!error.response) {
+        console.warn('Network Error Details:', {
+          online: typeof navigator !== 'undefined' ? navigator.onLine : 'unknown',
+          apiURL: api.defaults.baseURL,
+          timestamp: new Date().toISOString()
+        });
+      }
     }
     
     return Promise.reject(error);
@@ -1414,28 +1443,39 @@ export const co2API = {
     const cacheKey = 'co2-cylinders';
     apiCache.delete(cacheKey);
     
-    return retryRequest(async () => {
-      // Get token for admin requests
-      const token = getAuthToken();
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-      
-      // Debug logging
-      console.log('CO2API Debug:', {
-        baseURL: api.defaults.baseURL,
-        endpoint: '/co2/cylinders',
-        fullURL: `${api.defaults.baseURL}/co2/cylinders`,
-        hasToken: !!token,
-        timestamp: new Date().toISOString()
-      });
-      
-      // Add cache-busting parameter to ensure fresh data
-      const response = await api.get('/co2/cylinders', { 
-        headers,
-        params: { _t: Date.now() } // Cache busting
-      });
-      console.log('CO2API Response:', response.data);
-      return response.data;
-    }, cacheKey);
+    try {
+      return await retryRequest(async () => {
+        // Get token for admin requests
+        const token = getAuthToken();
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        // Debug logging
+        console.log('CO2API Debug:', {
+          baseURL: api.defaults.baseURL,
+          endpoint: '/co2/cylinders',
+          fullURL: `${api.defaults.baseURL}/co2/cylinders`,
+          hasToken: !!token,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Add cache-busting parameter to ensure fresh data
+        const response = await api.get('/co2/cylinders', { 
+          headers,
+          params: { _t: Date.now() } // Cache busting
+        });
+        
+        console.log('CO2API Response:', response.data);
+        return response.data;
+      }, cacheKey);
+    } catch (error) {
+      console.warn('Failed to fetch cylinders from API, using fallback data', error);
+      // Return fallback data in the same format as the API would
+      return {
+        success: true,
+        cylinders: fallbackCylinders,
+        message: 'Using fallback data due to network error'
+      };
+    }
   },
   
   // Get a single CO2 cylinder by slug or ID
