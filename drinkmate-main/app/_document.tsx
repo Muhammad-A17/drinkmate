@@ -17,6 +17,9 @@ export default function Document() {
             __html: `
               // Aggressive removal of browser extension attributes that cause hydration errors
               (function() {
+                // List of attribute prefixes to remove
+                const badAttrs = ['bis_', '__processed_', 'data-bit', 'data-translated', 'data-last', 'data-gl', 'bis_register'];
+                
                 // Initial cleanup
                 function cleanupAttributes() {
                   const allElements = document.querySelectorAll('*');
@@ -24,10 +27,10 @@ export default function Document() {
                     if (el.hasAttributes()) {
                       const attrs = Array.from(el.attributes);
                       attrs.forEach(attr => {
-                        if (attr.name.startsWith('bis_') || 
-                            attr.name.startsWith('__processed_') ||
-                            attr.name === 'bis_register') {
-                          el.removeAttribute(attr.name);
+                        const attrName = attr.name;
+                        // Check against all bad attribute patterns
+                        if (badAttrs.some(prefix => attrName === prefix || attrName.startsWith(prefix))) {
+                          el.removeAttribute(attrName);
                         }
                       });
                     }
@@ -43,29 +46,47 @@ export default function Document() {
                 // Clean up after React hydration is likely complete
                 setTimeout(cleanupAttributes, 0);
                 setTimeout(cleanupAttributes, 100);
+                setTimeout(cleanupAttributes, 500);
+                setTimeout(cleanupAttributes, 2000);
                 
                 // Set up a mutation observer to continually remove these attributes
                 const observer = new MutationObserver(mutations => {
+                  let needsCleanup = false;
+                  
                   mutations.forEach(mutation => {
                     if (mutation.type === 'attributes') {
                       const node = mutation.target;
-                      if (mutation.attributeName &&
-                         (mutation.attributeName.startsWith('bis_') || 
-                          mutation.attributeName.startsWith('__processed_') ||
-                          mutation.attributeName === 'bis_register')) {
-                        node.removeAttribute(mutation.attributeName);
+                      const attrName = mutation.attributeName;
+                      if (attrName && badAttrs.some(prefix => attrName === prefix || attrName.startsWith(prefix))) {
+                        node.removeAttribute(attrName);
+                        needsCleanup = true;
                       }
+                    } else if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                      needsCleanup = true;
                     }
                   });
+                  
+                  // If we detected any changes that might need cleanup, do a full scan
+                  if (needsCleanup) {
+                    cleanupAttributes();
+                  }
                 });
                 
                 // Start observing once DOM is ready
                 document.addEventListener('DOMContentLoaded', () => {
                   observer.observe(document.body, {
                     attributes: true,
+                    childList: true,
                     subtree: true,
-                    attributeFilter: ['bis_skin_checked', 'bis_register', '__processed_*']
+                    attributeFilter: badAttrs.map(prefix => prefix + '*').concat(badAttrs)
                   });
+                });
+                
+                // Also observe during runtime
+                observer.observe(document.body, {
+                  attributes: true,
+                  childList: true,
+                  subtree: true
                 });
               })();
             `,
