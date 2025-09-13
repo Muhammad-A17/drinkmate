@@ -57,3 +57,5 @@ export function PriceDisplay({
     </div>
   );
 }
+
+export default PriceDisplay;

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, ArrowRight, Star } from "lucide-react";
 import Image from "next/image";
-import { PriceDisplay } from "@/components/ui/PriceDisplay";
+import PriceDisplay from "@/components/ui/PriceDisplay";
 import { cn } from "@/lib/utils";
 
 interface FeaturedProduct {
