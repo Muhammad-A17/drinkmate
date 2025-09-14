@@ -24,7 +24,7 @@ export default function TestTokenPage() {
       setTestResult(data)
     } catch (error) {
       console.error('Error:', error)
-      setTestResult({ error: error.message })
+      setTestResult({ error: error instanceof Error ? error.message : 'Unknown error' })
     } finally {
       setLoading(false)
     }
@@ -64,7 +64,7 @@ export default function TestTokenPage() {
       }
     } catch (error) {
       console.error('Error:', error)
-      setTestResult({ error: error.message })
+      setTestResult({ error: error instanceof Error ? error.message : 'Unknown error' })
     } finally {
       setLoading(false)
     }

@@ -35,7 +35,8 @@ interface Message {
     lastName: string
     isAdmin: boolean
   }
-  type: string
+  type?: string
+  chat?: string
   isSystem: boolean
   isFromAdmin: boolean
   createdAt: string
@@ -173,7 +174,7 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
     try {
       setIsLoading(true)
       // Use token from auth context instead of localStorage
-      const token = user?.token || localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
       console.log('Loading chats with token:', token ? 'Present' : 'Missing')
       
       if (!token) {
@@ -210,7 +211,7 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
   const loadChatStats = async () => {
     try {
       // Use token from auth context instead of localStorage
-      const token = user?.token || localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
       console.log('Loading chat stats with token:', token ? 'Present' : 'Missing')
       
       if (!token) {
@@ -242,7 +243,7 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
   const loadChatMessages = async (chatId: string) => {
     try {
       console.log('Loading messages for chat:', chatId)
-      const token = user?.token || localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${chatId}/messages`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -277,7 +278,7 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
     } else {
       // Fallback to API
       try {
-        const token = user?.token || localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+        const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${chatId}/assign`, {
           method: 'PUT',
           headers: {
@@ -321,7 +322,7 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
       // Fallback to API
       console.log('Using API fallback for messaging')
       try {
-        const token = user?.token || localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+        const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${activeChat._id}/messages`, {
           method: 'POST',
           headers: {
@@ -366,7 +367,7 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
     } else {
       // Fallback to API
       try {
-        const token = user?.token || localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+        const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${activeChat._id}/close`, {
           method: 'PUT',
           headers: {

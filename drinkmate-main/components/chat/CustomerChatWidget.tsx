@@ -22,7 +22,8 @@ interface Message {
     lastName: string
     isAdmin: boolean
   }
-  type: string
+  type?: string
+  chat?: string
   isSystem: boolean
   isFromAdmin: boolean
   createdAt: string
@@ -251,10 +252,12 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
         content: messageContent,
         sender: {
           _id: user?._id || '',
+          username: user?.username || '',
           firstName: user?.firstName || '',
           lastName: user?.lastName || '',
           isAdmin: false
         },
+        type: 'text',
         isFromAdmin: false,
         isSystem: false,
         createdAt: new Date().toISOString(),
@@ -302,12 +305,12 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
       }
       
       // Clear existing timeout
-      if (window.typingTimeout) {
-        clearTimeout(window.typingTimeout)
+      if ((window as any).typingTimeout) {
+        clearTimeout((window as any).typingTimeout)
       }
       
       // Set new timeout to stop typing
-      window.typingTimeout = setTimeout(() => {
+      (window as any).typingTimeout = setTimeout(() => {
         setIsTyping(false)
         stopTyping(activeChat._id)
       }, 1000)

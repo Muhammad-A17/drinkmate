@@ -136,7 +136,7 @@ export default function Recipes() {
   const [currentPage, setCurrentPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
 
-  const { currentRecipe, timeRemaining } = useRecipeRotation(recipes)
+  const { currentRecipe, timeUntilNext } = useRecipeRotation(recipes)
 
   // Fetch recipes from API
   useEffect(() => {
@@ -261,7 +261,7 @@ export default function Recipes() {
                       {isRTL ? "وصفة الأسبوع" : "Recipe of the Week"}
                     </div>
                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur rounded-full px-3 py-1 text-sm font-medium">
-                      {formatTimeRemaining(timeRemaining)}
+                      {formatTimeRemaining(timeUntilNext)}
                     </div>
                   </div>
                   <div className="p-8">

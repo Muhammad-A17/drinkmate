@@ -5,16 +5,22 @@ import { Calendar, User, ArrowLeft, Clock, Heart, MessageCircle, Facebook, Twitt
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { useState } from "react"
+import React, { useState } from "react"
 import { useTranslation } from "@/lib/translation-context"
 
-export default function BlogPost({ params }: { params: { id: string } }) {
+export default function BlogPost({ params }: { params: Promise<{ id: string }> }) {
   const { t, isRTL, isHydrated } = useTranslation()
   const [liked, setLiked] = useState(false)
   const [likesCount, setLikesCount] = useState(0)
+  const [id, setId] = useState<string | null>(null)
+  
+  // Extract id from params when component mounts
+  React.useEffect(() => {
+    params.then(({ id }) => setId(id))
+  }, [params])
   
   // Don't render translated content until hydration is complete
-  if (!isHydrated) {
+  if (!isHydrated || !id) {
     return (
       <PageLayout currentPage="blog">
         <div className="min-h-screen bg-gradient-to-b from-white to-[#f3f3f3]">
@@ -272,7 +278,7 @@ export default function BlogPost({ params }: { params: { id: string } }) {
     }
   ]
   
-  const post = blogPosts.find(p => p.id === parseInt(params.id))
+  const post = blogPosts.find(p => p.id === parseInt(id))
   
   if (!post) {
     notFound()

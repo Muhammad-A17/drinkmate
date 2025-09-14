@@ -32,7 +32,7 @@ export default function TestDashboardPage() {
       setChatData(data)
     } catch (error) {
       console.error('Chat API test failed:', error)
-      setChatData({ error: error.message })
+      setChatData({ error: error instanceof Error ? error.message : 'Unknown error' })
     }
   }
 

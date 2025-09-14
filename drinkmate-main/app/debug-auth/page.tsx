@@ -27,7 +27,7 @@ export default function DebugAuthPage() {
       alert('Token verification result: ' + JSON.stringify(data, null, 2))
     } catch (error) {
       console.error('Token verification failed:', error)
-      alert('Token verification failed: ' + error.message)
+      alert('Token verification failed: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
@@ -56,7 +56,7 @@ export default function DebugAuthPage() {
       }
     } catch (error) {
       console.error('Login failed:', error)
-      alert('Login failed: ' + error.message)
+      alert('Login failed: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 

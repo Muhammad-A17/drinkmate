@@ -160,7 +160,7 @@ export default function CheckoutPage() {
         cancelUrl: `${window.location.origin}/payment/cancel`
       }
 
-      let paymentResponse
+      let paymentResponse: any
       if (selectedPaymentMethod === "urways") {
         // Call backend API directly
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'

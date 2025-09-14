@@ -4,10 +4,10 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     // Make request to backend
     const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/recipes/${id}`
@@ -41,10 +41,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
 
     // Make request to backend
@@ -81,10 +81,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     // Make request to backend
     const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/recipes/${id}`

@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import PageLayout from "@/components/layout/PageLayout";
 
-export default function ResetPasswordPage({ params }: { params: { token: string } }) {
+export default function ResetPasswordPage({ params }: { params: Promise<{ token: string }> }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -37,10 +37,15 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
   const [passwordFeedback, setPasswordFeedback] = useState<string[]>([]);
   const [isTokenValid, setIsTokenValid] = useState(true);
   const [isResetComplete, setIsResetComplete] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
   
   const router = useRouter();
   const { resetPassword } = useAuth();
-  const { token } = params;
+  
+  // Extract token from params when component mounts
+  useEffect(() => {
+    params.then(({ token }) => setToken(token))
+  }, [params]);
 
   // Calculate password strength
   useEffect(() => {
@@ -92,7 +97,7 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
   useEffect(() => {
     // This is a simple validation just for demonstration
     // In a real app, you would verify the token with the backend
-    if (!token || token.length < 10) {
+    if (token && (!token || token.length < 10)) {
       setIsTokenValid(false);
       setError("Invalid or expired password reset token");
     }
@@ -130,6 +135,10 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
     }
 
     try {
+      if (!token) {
+        setError("Token not available");
+        return;
+      }
       const result = await resetPassword(token, password);
       
       if (result.success) {

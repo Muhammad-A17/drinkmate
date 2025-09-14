@@ -2,18 +2,9 @@ import { useState, useEffect } from 'react'
 
 interface Recipe {
   id: number
-  category: string
-  url: string
   title: string
-  ingredients: string[]
-  instructions: string[]
-  isFeatured: boolean
-  difficulty: string
-  time: string
-  rating: number
-  reviews: number
-  image: string
-  tags: string[]
+  isFeatured?: boolean
+  [key: string]: any // Allow additional properties
 }
 
 interface UseRecipeRotationReturn {
