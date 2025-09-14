@@ -36,6 +36,21 @@ const config: Config = {
         },
       },
       colors: {
+        // Brand colors
+        brand: {
+          DEFAULT: '#00C2DF',   // aqua (primary)
+          dark: '#0795AC',
+          light: '#E8FAFD'
+        },
+        ink: {
+          950: '#0F172A', 900: '#111827', 800: '#1F2937', 700: '#374151',
+          600: '#4B5563', 500: '#6B7280', 400: '#9CA3AF', 300: '#D1D5DB',
+          200: '#E5E7EB', 100: '#F3F4F6', 50: '#F9FAFB'
+        },
+        success: { DEFAULT: '#18A957', light: '#E9FBF2' },
+        danger: { DEFAULT: '#E11D48', light: '#FDE8EE' },
+        warning: { DEFAULT: '#F59E0B', light: '#FFF7E6' },
+        // Existing shadcn colors
         background: 'var(--background)',
         foreground: 'var(--foreground)',
         card: 'var(--card)',
@@ -76,6 +91,10 @@ const config: Config = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
         xl: 'calc(var(--radius) + 4px)',
+        soft: '16px',
+      },
+      boxShadow: {
+        card: '0 6px 20px rgba(0,0,0,0.06)'
       },
       fontFamily: {
         // Primary fonts with proper fallbacks

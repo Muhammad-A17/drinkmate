@@ -11,6 +11,8 @@ interface UseCartReturn {
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
   clearCart: () => void
+  setNote: (note: string) => void
+  saveForLater: (productId: string) => void
   loading: boolean
   error: string | null
 }
@@ -88,6 +90,16 @@ export function useCart(): UseCartReturn {
     setItems([])
   }, [])
 
+  const setNote = useCallback((note: string) => {
+    // For now, just log the note. In a real app, this would be saved to state or API
+    console.log('Cart note:', note)
+  }, [])
+
+  const saveForLater = useCallback((productId: string) => {
+    // For now, just remove from cart. In a real app, this would move to a "saved" list
+    removeItem(productId)
+  }, [removeItem])
+
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
   const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 
@@ -100,6 +112,8 @@ export function useCart(): UseCartReturn {
     removeItem,
     updateQuantity,
     clearCart,
+    setNote,
+    saveForLater,
     loading,
     error,
   }
