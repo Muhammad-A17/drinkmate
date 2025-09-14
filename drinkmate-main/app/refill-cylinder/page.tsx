@@ -106,19 +106,32 @@ export default function CO2() {
   // State for cylinders from API
   const [cylinderBrands, setCylinderBrands] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [apiError, setApiError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   // Fetch cylinders from API
   useEffect(() => {
     const fetchCylinders = async () => {
       try {
         setLoading(true)
-        // Use co2API instead of direct fetch
+        setApiError(null)
+        
+        // Check if we're online
+        const isOnline = typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean'
+          ? navigator.onLine
+          : true;
+          
+        if (!isOnline) {
+          console.warn('Device appears to be offline, will use fallback data');
+        }
+        
+        // Use co2API with improved error handling
         const response = await co2API.getCylinders();
         
         if (response.success) {
           // Transform API data to match the expected format
           const transformedCylinders = response.cylinders.map((cylinder: any) => ({
-            id: cylinder._id,
+            id: cylinder._id || cylinder.id, // Handle both API and fallback data
             name: cylinder.name,
             image: cylinder.image,
             price: cylinder.price,
@@ -131,18 +144,33 @@ export default function CO2() {
             capacity: cylinder.capacity
           }))
           setCylinderBrands(transformedCylinders)
+          
+          // Log when using fallback data
+          if (response.message?.includes('fallback')) {
+            console.info('Using fallback cylinder data:', response.message);
+          }
         } else {
-          console.error('Failed to fetch cylinders:', response.message)
+          console.error('Failed to fetch cylinders:', response.message);
+          setApiError('Could not retrieve cylinder information. Please try again later.');
         }
-      } catch (error) {
-        console.error('Error fetching cylinders:', error)
+      } catch (error: any) {
+        console.error('Error fetching cylinders:', error);
+        setApiError(`Error loading cylinder data: ${error.message || 'Unknown error'}`);
+        
+        // Auto-retry once after a short delay for network errors
+        if (retryCount === 0 && (!error.response || error.message === 'Network Error')) {
+          setRetryCount(prev => prev + 1);
+          setTimeout(() => {
+            fetchCylinders();
+          }, 3000);
+        }
       } finally {
         setLoading(false)
       }
     }
 
     fetchCylinders()
-  }, [])
+  }, [retryCount])
 
   // Get selected cylinder data
   const selectedCylinderData = cylinderBrands.find(brand => brand.id === selectedCylinder)
@@ -200,8 +228,30 @@ export default function CO2() {
   if (loading) {
     return (
       <PageLayout currentPage="co2">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading CO2 cylinders...</div>
+        <div className="flex flex-col items-center justify-center h-64 p-8">
+          <div className="w-12 h-12 border-4 border-t-[#12d6fa] border-gray-200 rounded-full animate-spin mb-4"></div>
+          <div className="text-lg font-medium">Loading CO2 cylinders...</div>
+          <p className="text-gray-500 text-sm mt-2 text-center">Please wait while we retrieve the latest cylinder information.</p>
+        </div>
+      </PageLayout>
+    )
+  }
+  
+  if (apiError && !cylinderBrands.length) {
+    return (
+      <PageLayout currentPage="co2">
+        <div className="flex flex-col items-center justify-center h-64 p-8 max-w-md mx-auto">
+          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <Info className="w-6 h-6 text-red-500" />
+          </div>
+          <div className="text-lg font-medium text-center">Unable to load cylinder data</div>
+          <p className="text-gray-500 text-sm mt-2 text-center">{apiError}</p>
+          <Button 
+            onClick={() => setRetryCount(prev => prev + 1)} 
+            className="mt-4 bg-[#12d6fa] hover:bg-[#0bc4e8] text-white"
+          >
+            Retry
+          </Button>
         </div>
       </PageLayout>
     )

@@ -9,6 +9,9 @@ import SWRProvider from "@/lib/swr-provider"
 import SecurityMiddleware from "./security-middleware"
 import FontProvider from "@/components/layout/FontProvider"
 import { Providers } from "@/components/providers"
+import { suppressHydrationWarnings } from "@/lib/suppress-hydration-warnings"
+// Suppress hydration warnings caused by browser extensions
+typeof window !== 'undefined' && suppressHydrationWarnings()
 
 export const viewport = {
   width: 'device-width',
@@ -109,6 +112,7 @@ export default function RootLayout({
     <html 
       lang="en" 
       dir="ltr"
+      suppressHydrationWarning
       className={[
         cairo.variable,
         montserrat.variable,
@@ -195,7 +199,7 @@ export default function RootLayout({
           }
         }) }} />
       </head>
-      <body className="font-primary">
+      <body className="font-primary" suppressHydrationWarning>
         <SecurityMiddleware>
           <TranslationProvider>
             <FontProvider />
@@ -204,7 +208,7 @@ export default function RootLayout({
                 <SocketProvider>
                   <SWRProvider>
                     <Providers>
-                      {children}
+                      <div suppressHydrationWarning>{children}</div>
                     </Providers>
                   </SWRProvider>
                 </SocketProvider>

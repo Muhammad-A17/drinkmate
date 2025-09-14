@@ -1,6 +1,10 @@
 // API service for handling all backend requests
 import axios from 'axios';
 import { getAuthToken } from './auth-context';
+import { fallbackCylinders, fallbackFlavors, fallbackProducts } from './fallback-data';
+
+// Re-export getAuthToken for other modules to use from this single import
+export { getAuthToken };
 
 // Base API URL - should be set in environment variables
 // For local development, use localhost:3000 where the backend server is running
@@ -17,10 +21,10 @@ console.log('API Configuration:', {
 
 // Cache configuration
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
-const apiCache = new Map();
+export const apiCache = new Map();
 
 // Create axios instance with default config
-const api = axios.create({
+export const api = axios.create({
   baseURL: FINAL_API_URL,
   headers: {
     'Content-Type': 'application/json',
@@ -65,40 +69,75 @@ api.interceptors.response.use(
 );
 
 // Helper function to implement retry mechanism with caching
-const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = 3, delay = 1000): Promise<any> => {
+export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = 3, delay = 1000): Promise<any> => {
   // Check cache first if cacheKey is provided
   if (cacheKey && apiCache.has(cacheKey)) {
     const cachedData = apiCache.get(cacheKey);
     if (cachedData.timestamp > Date.now() - CACHE_TTL) {
       if (process.env.NODE_ENV === 'development') {
-        // Cache hit - no logging needed in production
+        console.log(`Cache hit for key: ${cacheKey}`);
       }
       return cachedData.data;
     } else {
       // Cache expired
       apiCache.delete(cacheKey);
-    }
-  }
-  let retries = 0;
-  
-  while (retries < maxRetries) {
-    try {
-      const result = await apiCall();
-    
-    // Store in cache if cacheKey is provided
-    if (cacheKey) {
-      apiCache.set(cacheKey, {
-        data: result,
-        timestamp: Date.now()
-      });
       if (process.env.NODE_ENV === 'development') {
-        // Data cached successfully
+        console.log(`Cache expired for key: ${cacheKey}`);
       }
     }
+  }
+  
+  // Check connectivity before making API calls
+  const checkConnectivity = () => {
+    const isOnline = typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' 
+      ? navigator.onLine 
+      : true; // Assume online if we can't detect
+      
+    if (process.env.NODE_ENV === 'development' && !isOnline) {
+      console.warn('Device appears to be offline');
+    }
     
-    return result;
-    } catch (error: any) {
+    return isOnline;
+  };
+  
+  let retries = 0;
+  let lastError: any = null;
+  
+  while (retries < maxRetries) {
+    // Check if we're online before attempting a request
+    if (!checkConnectivity()) {
+      console.warn(`Network offline, waiting before retry attempt ${retries + 1}/${maxRetries}`);
+      await new Promise<void>(resolve => setTimeout(resolve, 2000));
       retries++;
+      continue;
+    }
+    
+    try {
+      if (retries > 0 && process.env.NODE_ENV === 'development') {
+        console.log(`Retry attempt ${retries}/${maxRetries}`);
+      }
+      
+      const result = await apiCall();
+    
+      // Store in cache if cacheKey is provided
+      if (cacheKey) {
+        apiCache.set(cacheKey, {
+          data: result,
+          timestamp: Date.now()
+        });
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Data cached for key: ${cacheKey}`);
+        }
+      }
+    
+      return result;
+    } catch (error: any) {
+      lastError = error;
+      retries++;
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`API call failed (attempt ${retries}/${maxRetries}): ${error.message || 'Network Error'}`);
+      }
       
       // Don't retry for certain error codes
       if (error.response) {
@@ -112,34 +151,35 @@ const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxR
       
       // If we've used all retries, throw the error
       if (retries >= maxRetries) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`All ${maxRetries} retry attempts failed`);
+        }
         throw error;
       }
       
       // For network errors, wait longer between retries
+      let waitTime = Math.min(15000, Math.floor(delay * Math.pow(1.5, retries - 1)));
+      
       if (!error.response) {
-        // Double the delay for network errors
-        // Using a temporary variable to avoid TypeScript error
-        const newDelay = Math.floor(delay * 2);
-        delay = newDelay;
+        // Network errors get longer waits
+        waitTime = Math.min(20000, waitTime * 2);
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`Network error detected, waiting ${waitTime}ms before retry`);
+        }
       }
       
-      // Wait before retrying - exponential backoff
-      const waitTime = Math.min(8000, Math.floor(delay * Math.pow(2, retries - 1)));
-      // Use a type assertion to avoid TypeScript error
+      // Wait before retrying
       await new Promise<void>(resolve => {
         const timeoutId = setTimeout(resolve, waitTime);
         return timeoutId;
       });
-      
-      // Log retry attempt
-      if (process.env.NODE_ENV === 'development') {
-        // Retrying API call
-      }
     }
   }
   
   // This should never be reached due to the throw in the loop
-  throw new Error('Retry mechanism failed');
+  // But just in case, rethrow the last error we caught
+  throw lastError || new Error('Retry mechanism failed');
 };
 
 // Request interceptor to add auth token to requests
@@ -194,9 +234,34 @@ api.interceptors.response.use(
     }
     
     // Log all API errors for debugging
-    // Log API errors for debugging
     if (process.env.NODE_ENV === 'development') {
-      console.error('API Error:', error.response?.data || error.message);
+      // Safely extract error message with fallbacks
+      const errorMessage = error.response?.data?.message || error.message || 'Network Error';
+      console.error('API Error:', errorMessage);
+      
+      // Add additional diagnostic information for network errors
+      if (!error.response) {
+        const diagnosticInfo = {
+          online: typeof navigator !== 'undefined' ? navigator.onLine : 'unknown',
+          apiURL: api.defaults.baseURL,
+          timestamp: new Date().toISOString(),
+          errorCode: error.code || 'UNKNOWN',
+          errorName: error.name || 'Error',
+          request: {
+            method: error.config?.method?.toUpperCase() || 'UNKNOWN',
+            url: error.config?.url || 'UNKNOWN',
+            timeout: error.config?.timeout || 'default',
+            headers: error.config?.headers ? 'present' : 'none'
+          }
+        };
+        
+        console.warn('Network Error Details:', diagnosticInfo);
+        
+        // Check if the error is likely due to backend not running
+        if (error.code === 'ECONNREFUSED' || error.message?.includes('refused')) {
+          console.warn('⚠️ The API server may not be running. Please ensure the backend server is started.');
+        }
+      }
     }
     
     return Promise.reject(error);
@@ -1549,28 +1614,39 @@ export const co2API = {
     const cacheKey = 'co2-cylinders';
     apiCache.delete(cacheKey);
     
-    return retryRequest(async () => {
-      // Get token for admin requests
-      const token = getAuthToken();
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-      
-      // Debug logging
-      console.log('CO2API Debug:', {
-        baseURL: api.defaults.baseURL,
-        endpoint: '/co2/cylinders',
-        fullURL: `${api.defaults.baseURL}/co2/cylinders`,
-        hasToken: !!token,
-        timestamp: new Date().toISOString()
-      });
-      
-      // Add cache-busting parameter to ensure fresh data
-      const response = await api.get('/co2/cylinders', { 
-        headers,
-        params: { _t: Date.now() } // Cache busting
-      });
-      console.log('CO2API Response:', response.data);
-      return response.data;
-    }, cacheKey);
+    try {
+      return await retryRequest(async () => {
+        // Get token for admin requests
+        const token = getAuthToken();
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        
+        // Debug logging
+        console.log('CO2API Debug:', {
+          baseURL: api.defaults.baseURL,
+          endpoint: '/co2/cylinders',
+          fullURL: `${api.defaults.baseURL}/co2/cylinders`,
+          hasToken: !!token,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Add cache-busting parameter to ensure fresh data
+        const response = await api.get('/co2/cylinders', { 
+          headers,
+          params: { _t: Date.now() } // Cache busting
+        });
+        
+        console.log('CO2API Response:', response.data);
+        return response.data;
+      }, cacheKey);
+    } catch (error) {
+      console.warn('Failed to fetch cylinders from API, using fallback data', error);
+      // Return fallback data in the same format as the API would
+      return {
+        success: true,
+        cylinders: fallbackCylinders,
+        message: 'Using fallback data due to network error'
+      };
+    }
   },
   
   // Get a single CO2 cylinder by slug or ID

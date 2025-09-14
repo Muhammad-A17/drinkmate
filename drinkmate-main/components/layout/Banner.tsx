@@ -40,10 +40,10 @@ export default function Banner() {
       dir={isRTL ? 'rtl' : 'ltr'}
       suppressHydrationWarning
     >
-      <div className="flex items-center justify-center space-x-2 sm:space-x-3">
-        <span className={`${isRTL ? 'font-noto-arabic' : 'font-noto-sans'} line-clamp-1 font-medium`}>{currentBanner.text}</span>
+      <div className="flex items-center justify-center space-x-2 sm:space-x-3" suppressHydrationWarning>
+        <span className={`${isRTL ? 'font-noto-arabic' : 'font-noto-sans'} line-clamp-1 font-medium`} suppressHydrationWarning>{currentBanner.text}</span>
         {currentBanner.code && (
-          <span className={`${isRTL ? 'mr-1 sm:mr-2' : 'ml-1 sm:ml-2'} px-2 sm:px-3 py-1 bg-white text-[#12d6fa] rounded-full text-[10px] sm:text-xs font-bold shadow-sm ${isRTL ? 'font-cairo' : 'font-montserrat'} hover:scale-105 transition-transform duration-200`}>
+          <span className={`${isRTL ? 'mr-1 sm:mr-2' : 'ml-1 sm:ml-2'} px-2 sm:px-3 py-1 bg-white text-[#12d6fa] rounded-full text-[10px] sm:text-xs font-bold shadow-sm ${isRTL ? 'font-cairo' : 'font-montserrat'} hover:scale-105 transition-transform duration-200`} suppressHydrationWarning>
             {currentBanner.code}
           </span>
         )}
