@@ -3,8 +3,10 @@ const nextConfig = {
   // Security: Enable strict mode
   reactStrictMode: true,
   
-  // Performance: Disable font optimization during build to prevent network issues
-  optimizeFonts: false,
+  // Performance: Font optimization is now handled automatically in Next.js 15
+  
+  // Fix lockfile warning by setting the correct root
+  outputFileTracingRoot: new URL('.', import.meta.url).pathname,
   
   // Security: Disable X-Powered-By header
   poweredByHeader: false,
@@ -92,6 +94,7 @@ const nextConfig = {
     minimumCacheTTL: 60,
     dangerouslyAllowSVG: false,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    qualities: [75, 80, 85, 90, 95, 100],
     remotePatterns: [
       {
         protocol: 'https',

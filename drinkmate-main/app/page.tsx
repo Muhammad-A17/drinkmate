@@ -967,6 +967,7 @@ export default function Home() {
                     muted 
                     playsInline
                     preload="auto"
+                    crossOrigin="anonymous"
                     className="object-contain w-full h-full"
                   >
                     <source src="https://res.cloudinary.com/dw2h8hejn/video/upload/v1756559849/Cylinders_Animation_hw9gdc.webm" type="video/webm" />
@@ -1072,6 +1073,7 @@ export default function Home() {
                     muted 
                     playsInline
                     preload="auto"
+                    crossOrigin="anonymous"
                     className="object-contain w-full h-full"
                   >
                     <source src="https://res.cloudinary.com/dw2h8hejn/video/upload/v1756559849/Cylinders_Animation_hw9gdc.webm" type="video/webm" />
