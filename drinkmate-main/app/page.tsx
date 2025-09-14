@@ -687,7 +687,7 @@ export default function Home() {
 
             {/* CO2 */}
             <Link
-              href="/co2"
+              href="/shop/co2-cylinders"
               className="text-center space-y-3 md:space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 animate-slide-in-up delay-200 block"
               dir={isRTL ? "rtl" : "ltr"}
             >

@@ -145,9 +145,10 @@ class SocketService {
               formattedTime: message.formattedTime,
               sender: {
                 _id: socket.user._id,
-                username: socket.user.username,
-                firstName: socket.user.firstName,
-                lastName: socket.user.lastName,
+                username: socket.user.username || socket.user.name,
+                firstName: socket.user.firstName || socket.user.name,
+                lastName: socket.user.lastName || '',
+                name: socket.user.name || `${socket.user.firstName || ''} ${socket.user.lastName || ''}`.trim(),
                 isAdmin: socket.user.isAdmin
               }
             }

@@ -488,6 +488,51 @@ const deleteChat = async (req, res) => {
   }
 };
 
+// Rate chat
+const rateChat = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const { score, feedback = '' } = req.body;
+    
+    if (!score || score < 1 || score > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rating score must be between 1 and 5'
+      });
+    }
+    
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat not found'
+      });
+    }
+    
+    // Rate the chat
+    await chat.rateChat(score, feedback);
+    
+    res.json({
+      success: true,
+      message: 'Chat rated successfully',
+      data: {
+        rating: {
+          score,
+          feedback,
+          ratedAt: new Date()
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error rating chat:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to rate chat',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getAllChats,
   getChatById,
@@ -501,5 +546,6 @@ module.exports = {
   convertToTicket,
   banIP,
   unbanIP,
+  rateChat,
   deleteChat
 };

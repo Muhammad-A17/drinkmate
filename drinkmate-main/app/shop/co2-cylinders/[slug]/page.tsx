@@ -672,7 +672,7 @@ export default function CO2ProductDetail() {
               <AlertCircle className="w-16 h-16 text-red-500 mx-auto" />
               <h1 className="text-2xl font-bold">Product Not Found</h1>
               <p className="text-gray-600 mb-4">The product you're looking for doesn't exist or has been removed.</p>
-              <Link href="/co2" className="inline-flex items-center text-[#12d6fa] hover:text-[#0fb8d9] font-medium">
+              <Link href="/shop/co2-cylinders" className="inline-flex items-center text-[#12d6fa] hover:text-[#0fb8d9] font-medium">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to CO2 Cylinders
               </Link>
@@ -690,7 +690,7 @@ export default function CO2ProductDetail() {
           {/* Enhanced Back Button with breadcrumb */}
           <div className="mb-6 space-y-4">
             <Link
-              href="/co2"
+              href="/shop/co2-cylinders"
               className="inline-flex items-center text-[#12d6fa] hover:text-[#0fb8d9] transition-all duration-200 hover:translate-x-1"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -703,7 +703,7 @@ export default function CO2ProductDetail() {
                 Home
               </Link>
               <ChevronRight className="w-3 h-3" />
-              <Link href="/co2" className="hover:text-[#12d6fa] transition-colors">
+              <Link href="/shop/co2-cylinders" className="hover:text-[#12d6fa] transition-colors">
                 CO2 Cylinders
               </Link>
               <ChevronRight className="w-3 h-3" />
@@ -2129,7 +2129,7 @@ export default function CO2ProductDetail() {
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No related products found</h3>
                     <p className="text-gray-500">Check out our other products in the shop</p>
                     <Button className="mt-4 bg-[#12d6fa] hover:bg-[#0fbfe0] text-white">
-                      <Link href="/co2">Browse All CO2 Products</Link>
+                      <Link href="/shop/co2-cylinders">Browse All CO2 Products</Link>
                     </Button>
                   </div>
                 )}

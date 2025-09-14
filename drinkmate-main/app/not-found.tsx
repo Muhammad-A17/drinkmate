@@ -81,7 +81,7 @@ export default function NotFound() {
               </Link>
 
               <Link 
-                href="/co2"
+                href="/shop/co2-cylinders"
                 className="group p-4 rounded-xl border border-gray-200 hover:border-[#12d6fa] hover:shadow-md transition-all duration-200"
               >
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-[#a8f387] rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">

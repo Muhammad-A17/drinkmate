@@ -211,7 +211,7 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
                 onClick={() => onOpenChange(false)}
               />
               <MenuTile
-                href="/co2"
+                href="/shop/co2-cylinders"
                 title="CO₂ Cylinders"
                 img="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893591/co2-cylinder-single_dcrdnx.png"
                 alt="CO2 Cylinders"

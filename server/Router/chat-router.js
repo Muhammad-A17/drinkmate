@@ -43,6 +43,9 @@ router.post('/:chatId/ban-ip', authenticateToken, isAdmin, chatController.banIP)
 // Unban IP address (admin only)
 router.post('/:chatId/unban-ip', authenticateToken, isAdmin, chatController.unbanIP);
 
+// Rate chat (public for customers)
+router.post('/:chatId/rate', chatController.rateChat);
+
 // Delete chat (admin only)
 router.delete('/:chatId', authenticateToken, isAdmin, chatController.deleteChat);
 

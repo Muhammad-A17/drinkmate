@@ -158,8 +158,31 @@ export default function Recipes() {
         }
 
         const data = await response.json()
-        setRecipes(data.recipes || [])
-        setHasMore(data.hasMore || false)
+        if (data.success && data.recipes) {
+          // Transform API data to match frontend interface
+          const transformedRecipes = data.recipes.map((recipe: any) => ({
+            id: recipe._id,
+            title: recipe.title,
+            slug: recipe.slug,
+            image: recipe.images && recipe.images.length > 0 ? recipe.images[0].url : 'https://via.placeholder.com/400x300?text=No+Image',
+            category: recipe.category,
+            rating: recipe.rating?.average || 0,
+            prepTime: recipe.prepTime,
+            difficulty: recipe.difficulty,
+            servings: recipe.servings,
+            tags: recipe.tags || [],
+            description: recipe.description,
+            ingredients: recipe.ingredients?.map((ing: any) => `${ing.amount} ${ing.unit} ${ing.name}`) || [],
+            instructions: recipe.instructions?.map((inst: any) => inst.instruction) || [],
+            isFeatured: recipe.featured || false
+          }))
+          setRecipes(transformedRecipes)
+          setHasMore(data.pagination?.hasNext || false)
+        } else {
+          // Fallback to mock data if API fails
+          setRecipes(mockRecipes)
+          setHasMore(false)
+        }
       } catch (error) {
         console.error('Error fetching recipes:', error)
         // Fallback to mock data if API fails

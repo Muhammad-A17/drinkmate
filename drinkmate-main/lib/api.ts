@@ -1189,6 +1189,17 @@ export const chatAPI = {
       console.error('Get chat stats error:', error);
       throw error;
     }
+  },
+
+  // Rate chat
+  rateChat: async (chatId: string, score: number, feedback: string = '') => {
+    try {
+      const response = await api.post(`/chat/${chatId}/rate`, { score, feedback });
+      return response.data;
+    } catch (error: any) {
+      console.error('Rate chat error:', error);
+      throw error;
+    }
   }
 };
 

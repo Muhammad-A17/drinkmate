@@ -409,7 +409,7 @@ export default function Header({ currentPage }: HeaderProps) {
 
                   {/* CO2 Cylinders */}
                   <Link
-                    href="/co2"
+                    href="/shop/co2-cylinders"
                     className="bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl p-6 text-white hover:from-orange-500 hover:to-orange-600 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square"
                     onClick={() => {
                       setIsMobileMenuOpen(false)

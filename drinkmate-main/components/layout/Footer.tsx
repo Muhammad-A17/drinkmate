@@ -200,7 +200,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/co2" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                <Link href="/shop/co2-cylinders" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.products.co2Cylinders")}
                 </Link>
               </li>
@@ -338,7 +338,7 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/co2" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                  <Link href="/shop/co2-cylinders" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                     {t("footer.products.co2Cylinders")}
                   </Link>
                 </li>

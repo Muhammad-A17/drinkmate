@@ -11,7 +11,13 @@ exports.getAllProducts = async (req, res) => {
         const skip = (page - 1) * limit;
         
         // Build filter object based on query parameters
-        const filter = { status: 'active' };
+        const filter = { 
+            status: 'active',
+            published: true,
+            visibility: 'public',
+            isArchived: { $ne: true },
+            stock: { $gt: 0 }
+        };
         
         // Category filter
         if (req.query.category) {
@@ -340,7 +346,11 @@ exports.getProductsByCategory = async (req, res) => {
         
         // Get products in this category
         const products = await Product.find({ 
-            isActive: true,
+            status: 'active',
+            published: true,
+            visibility: 'public',
+            isArchived: { $ne: true },
+            stock: { $gt: 0 },
             $or: [
                 { category: category._id },
                 { category: category._id.toString() },
@@ -356,7 +366,11 @@ exports.getProductsByCategory = async (req, res) => {
         
         // Get total count for pagination
         const totalProducts = await Product.countDocuments({ 
-            isActive: true,
+            status: 'active',
+            published: true,
+            visibility: 'public',
+            isArchived: { $ne: true },
+            stock: { $gt: 0 },
             $or: [
                 { category: category._id },
                 { category: category._id.toString() },

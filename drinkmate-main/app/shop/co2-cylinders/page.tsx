@@ -93,7 +93,7 @@ export default function CO2() {
   const { isRTL } = useTranslation()
 
   return (
-    <PageLayout currentPage="co2">
+    <PageLayout currentPage="shop">
       {/* Hero Section */}
       <section className="relative py-8 md:py-16 bg-white animate-fade-in-up overflow-hidden">
         {/* Background Image with Overlay */}

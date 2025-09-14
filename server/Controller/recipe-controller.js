@@ -16,9 +16,8 @@ const getAllRecipes = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    // Build filter object
-    const filter = {};
-    if (published !== 'false') filter.published = published === 'true';
+    // Build filter object - default to published recipes for public API
+    const filter = { published: true };
     if (category) filter.category = category;
     if (difficulty) filter.difficulty = difficulty;
     if (featured) filter.featured = featured === 'true';

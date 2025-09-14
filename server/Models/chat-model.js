@@ -155,6 +155,40 @@ const chatSchema = new mongoose.Schema({
     },
     banReason: String,
     banExpiry: Date
+  },
+
+  // Chat rating
+  rating: {
+    score: {
+      type: Number,
+      min: 1,
+      max: 5,
+      required: false
+    },
+    feedback: {
+      type: String,
+      required: false
+    },
+    ratedAt: {
+      type: Date,
+      required: false
+    }
+  },
+
+  // SLA tracking
+  sla: {
+    firstResponseAt: Date,
+    firstResponseTime: Number, // in minutes
+    resolutionAt: Date,
+    resolutionTime: Number, // in minutes
+    firstResponseTarget: {
+      type: Number,
+      default: 30 // 30 minutes
+    },
+    resolutionTarget: {
+      type: Number,
+      default: 240 // 4 hours
+    }
   }
 }, {
   timestamps: true,
@@ -290,6 +324,44 @@ chatSchema.methods.unbanIP = function(adminId) {
     timestamp: new Date()
   });
   this.lastMessageAt = new Date();
+  return this.save();
+};
+
+// Method to rate chat
+chatSchema.methods.rateChat = function(score, feedback = '') {
+  this.rating = {
+    score: score,
+    feedback: feedback,
+    ratedAt: new Date()
+  };
+  this.messages.push({
+    sender: 'system',
+    senderId: null,
+    content: `Chat rated ${score}/5 stars`,
+    messageType: 'system',
+    timestamp: new Date()
+  });
+  this.lastMessageAt = new Date();
+  return this.save();
+};
+
+// Method to track first response
+chatSchema.methods.trackFirstResponse = function() {
+  if (!this.sla.firstResponseAt) {
+    this.sla.firstResponseAt = new Date();
+    const createdAt = new Date(this.createdAt);
+    this.sla.firstResponseTime = Math.round((this.sla.firstResponseAt - createdAt) / (1000 * 60));
+  }
+  return this.save();
+};
+
+// Method to track resolution
+chatSchema.methods.trackResolution = function() {
+  if (!this.sla.resolutionAt) {
+    this.sla.resolutionAt = new Date();
+    const createdAt = new Date(this.createdAt);
+    this.sla.resolutionTime = Math.round((this.sla.resolutionAt - createdAt) / (1000 * 60));
+  }
   return this.save();
 };
 

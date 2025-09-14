@@ -11,6 +11,7 @@ import { useSocket } from '@/lib/socket-context'
 import { toast } from 'sonner'
 import SaudiRiyal from '@/components/ui/SaudiRiyal'
 import { chatAPI } from '@/lib/api'
+import ChatRatingModal from './ChatRatingModal'
 
 interface Message {
   _id: string
@@ -73,6 +74,7 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
   const [newChatPriority, setNewChatPriority] = useState('medium')
   const [isTyping, setIsTyping] = useState(false)
   const [typingUsers, setTypingUsers] = useState<{userId: string, username: string, isAdmin: boolean}[]>([])
+  const [showRatingModal, setShowRatingModal] = useState(false)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
@@ -102,6 +104,17 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
       }
     }
 
+    const handleChatStatusUpdated = (data: { chat: any }) => {
+      if (activeChat && data.chat._id === activeChat._id) {
+        setActiveChat(prev => prev ? { ...prev, status: data.chat.status } : null)
+        
+        // Show rating modal when chat is closed
+        if (data.chat.status === 'closed' || data.chat.status === 'resolved') {
+          setShowRatingModal(true)
+        }
+      }
+    }
+
     const handleMessagesRead = (data: { chatId: string, userId: string }) => {
       // Handle read receipts if needed
     }
@@ -125,6 +138,7 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
 
     socket.on('new_message', handleNewMessage)
     socket.on('chat_assigned', handleChatAssigned)
+    socket.on('chat_status_updated', handleChatStatusUpdated)
     socket.on('messages_read', handleMessagesRead)
     socket.on('error', handleError)
     socket.on('user_typing', handleUserTyping)
@@ -133,6 +147,7 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
     return () => {
       socket.off('new_message', handleNewMessage)
       socket.off('chat_assigned', handleChatAssigned)
+      socket.off('chat_status_updated', handleChatStatusUpdated)
       socket.off('messages_read', handleMessagesRead)
       socket.off('error', handleError)
       socket.off('user_typing', handleUserTyping)
@@ -181,6 +196,19 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
       toast.error('Failed to load chats')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleRateChat = async (rating: any) => {
+    if (!activeChat) return
+
+    try {
+      await chatAPI.rateChat(activeChat._id, rating.score, rating.feedback)
+      toast.success('Thank you for your feedback!')
+      setShowRatingModal(false)
+    } catch (error) {
+      console.error('Error rating chat:', error)
+      toast.error('Failed to submit rating')
     }
   }
 
@@ -592,6 +620,15 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
           </div>
         </CardContent>
       </Card>
+
+      {/* Chat Rating Modal */}
+      <ChatRatingModal
+        isOpen={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
+        onRate={handleRateChat}
+        chatId={activeChat?._id || ''}
+        customerName={user?.firstName || user?.username || 'Customer'}
+      />
     </div>
   )
 }
