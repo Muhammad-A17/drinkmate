@@ -75,8 +75,14 @@ const register = async (req, res) => {
                 return res.status(400).json({ error: 'User already exists' });
             }
 
-            // Create new user
-            const user = new User({ username, email, password });
+            // Create new user with required fields
+            const user = new User({ 
+                username, 
+                email, 
+                password,
+                firstName: username, // Use username as firstName if not provided
+                lastName: 'User'     // Default lastName
+            });
             await user.save();
 
             // Send welcome email

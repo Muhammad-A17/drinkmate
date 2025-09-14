@@ -43,6 +43,14 @@ const categoryRouter = require('./Router/category-router');
 const co2Router = require('./Router/co2-router');
 const refillRouter = require('./Router/refill-router');
 const paymentRouter = require('./Router/payment-router');
+const chatRouter = require('./Router/chat-router');
+const { Server } = require('socket.io');
+const http = require('http');
+
+// Import models to ensure they are registered
+require('./Models/user-model');
+require('./Models/chat-model');
+require('./Models/message-model');
 const app = express();
 
 // Trust proxy for accurate IP addresses
@@ -158,6 +166,7 @@ app.use('/', generalLimiter, categoryRouter);
 app.use('/co2', generalLimiter, co2Router);
 app.use('/refill', generalLimiter, refillRouter);
 app.use('/payments', apiLimiter, paymentRouter);
+app.use('/chat', generalLimiter, chatRouter);
 
 // Root route
 app.get('/', (req, res) => {
@@ -381,10 +390,27 @@ killProcessOnPort(3000);
 
 // Wait a moment for the port to be freed
 setTimeout(() => {
-  const server = app.listen(PORT, () => {
+  // Create HTTP server
+  const server = http.createServer(app);
+  
+  // Initialize Socket.io
+  const io = new Server(server, {
+    cors: {
+      origin: process.env.FRONTEND_URL || "http://localhost:3001",
+      methods: ["GET", "POST"],
+      credentials: true
+    }
+  });
+
+  // Initialize Socket service
+  const SocketService = require('./Services/socket-service');
+  new SocketService(io);
+
+  server.listen(PORT, () => {
     console.log(`🚀 Server is running on http://localhost:${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/health`);
     console.log(`📋 API Status: http://localhost:${PORT}/api-status`);
+    console.log(`💬 Socket.io server is running`);
   });
   
   server.on('error', (error) => {

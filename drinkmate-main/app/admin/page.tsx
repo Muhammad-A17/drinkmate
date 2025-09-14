@@ -30,6 +30,7 @@ import {
   Utensils
 } from "lucide-react"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
+import AdminChatDashboard from "@/components/chat/AdminChatDashboard"
 import { 
   Chart as ChartJS, 
   CategoryScale, 
@@ -121,6 +122,7 @@ export default function AdminDashboard() {
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([])
   const [recentProducts, setRecentProducts] = useState<RecentProduct[]>([])
   const [isDataLoading, setIsDataLoading] = useState(true)
+  const [isChatOpen, setIsChatOpen] = useState(false)
   
   const { token } = useAuth()
   const router = useRouter()
@@ -861,6 +863,14 @@ export default function AdminDashboard() {
               <FileText className="h-6 w-6 text-orange-600" />
               <span className="font-medium">Create Post</span>
             </Button>
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col space-y-2 hover:bg-cyan-50 hover:border-cyan-200 transition-colors"
+              onClick={() => setIsChatOpen(true)}
+            >
+              <MessageSquare className="h-6 w-6 text-cyan-600" />
+              <span className="font-medium">Live Chat</span>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -957,6 +967,12 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Admin Chat Dashboard */}
+      <AdminChatDashboard 
+        isOpen={isChatOpen} 
+        onClose={() => setIsChatOpen(false)} 
+      />
     </AdminLayout>
   )
 }

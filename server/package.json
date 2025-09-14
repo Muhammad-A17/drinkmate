@@ -46,6 +46,7 @@
     "nodemon": "^1.4.1",
     "qrcode": "^1.5.4",
     "sharp": "^0.34.3",
+    "socket.io": "^4.8.1",
     "speakeasy": "^2.0.0",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",

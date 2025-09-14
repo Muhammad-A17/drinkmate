@@ -141,12 +141,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             sessionStorage.setItem(TOKEN_KEY, data.token);
           }
           
-          setAuthState({
+          const newAuthState = {
             user: data.user,
             token: data.token,
             isAuthenticated: true,
             isLoading: false,
-          });
+          };
+          
+          setAuthState(newAuthState);
+          
+          console.log('Auth state updated after login:', newAuthState);
+          
+          // Force a re-render by updating state again
+          setTimeout(() => {
+            setAuthState(prev => ({ ...prev, isAuthenticated: true }));
+          }, 100);
           
           return { success: true, message: data.message || "Login successful" };
         } catch (error: any) {

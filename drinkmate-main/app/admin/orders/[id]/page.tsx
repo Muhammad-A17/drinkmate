@@ -263,7 +263,7 @@ export default function OrderDetailsPage() {
       /*
       const response = await fetch(`/api/checkout/orders/${orderId}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
         }
       })
 
@@ -311,7 +311,7 @@ export default function OrderDetailsPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
         },
         body: JSON.stringify({ status: newStatus })
       })
@@ -387,7 +387,7 @@ export default function OrderDetailsPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
         },
         body: JSON.stringify(editData)
       })

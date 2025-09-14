@@ -992,6 +992,141 @@ export const contactAPI = {
   }
 };
 
+// Chat API
+export const chatAPI = {
+  // Check business hours
+  checkBusinessHours: async () => {
+    try {
+      const response = await api.get('/chat/business-hours');
+      return response.data;
+    } catch (error: any) {
+      console.error('Business hours check error:', error);
+      throw error;
+    }
+  },
+
+  // Create new chat
+  createChat: async (chatData: any) => {
+    try {
+      const response = await api.post('/chat/create', chatData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Create chat error:', error);
+      throw error;
+    }
+  },
+
+  // Get customer chats
+  getCustomerChats: async () => {
+    try {
+      const response = await api.get('/chat/customer');
+      return response.data;
+    } catch (error: any) {
+      console.error('Get customer chats error:', error);
+      throw error;
+    }
+  },
+
+  // Get admin chats
+  getAdminChats: async () => {
+    try {
+      const response = await api.get('/chat/admin/assigned');
+      return response.data;
+    } catch (error: any) {
+      console.error('Get admin chats error:', error);
+      throw error;
+    }
+  },
+
+  // Get all open chats (admin only)
+  getOpenChats: async () => {
+    try {
+      const response = await api.get('/chat/admin/all');
+      return response.data;
+    } catch (error: any) {
+      console.error('Get open chats error:', error);
+      throw error;
+    }
+  },
+
+  // Get chat by ID
+  getChatById: async (chatId: string) => {
+    try {
+      const response = await api.get(`/chat/${chatId}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Get chat by ID error:', error);
+      throw error;
+    }
+  },
+
+  // Assign chat to admin
+  assignChatToAdmin: async (chatId: string) => {
+    try {
+      const response = await api.put(`/chat/${chatId}/assign`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Assign chat error:', error);
+      throw error;
+    }
+  },
+
+  // Send message
+  sendMessage: async (chatId: string, messageData: any) => {
+    try {
+      const response = await api.post(`/chat/${chatId}/messages`, messageData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Send message error:', error);
+      throw error;
+    }
+  },
+
+  // Get chat messages
+  getChatMessages: async (chatId: string, limit = 50, skip = 0) => {
+    try {
+      const response = await api.get(`/chat/${chatId}/messages?limit=${limit}&skip=${skip}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Get chat messages error:', error);
+      throw error;
+    }
+  },
+
+  // Mark messages as read
+  markMessagesAsRead: async (chatId: string) => {
+    try {
+      const response = await api.put(`/chat/${chatId}/read`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Mark messages as read error:', error);
+      throw error;
+    }
+  },
+
+  // Close chat
+  closeChat: async (chatId: string, resolutionNotes = '') => {
+    try {
+      const response = await api.put(`/chat/${chatId}/close`, { resolutionNotes });
+      return response.data;
+    } catch (error: any) {
+      console.error('Close chat error:', error);
+      throw error;
+    }
+  },
+
+  // Get chat statistics
+  getChatStats: async () => {
+    try {
+      const response = await api.get('/chat/admin/stats');
+      return response.data;
+    } catch (error: any) {
+      console.error('Get chat stats error:', error);
+      throw error;
+    }
+  }
+};
+
 // Testimonial API
 export const testimonialAPI = {
   // Get testimonials

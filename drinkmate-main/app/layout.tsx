@@ -4,6 +4,7 @@ import "./globals.css"
 import { TranslationProvider } from "@/lib/translation-context"
 import { CartProvider } from "@/lib/cart-context"
 import { AuthProvider } from "@/lib/auth-context"
+import { SocketProvider } from "@/lib/socket-context"
 import SWRProvider from "@/lib/swr-provider"
 import SecurityMiddleware from "./security-middleware"
 import FontProvider from "@/components/layout/FontProvider"
@@ -200,11 +201,13 @@ export default function RootLayout({
             <FontProvider />
             <CartProvider>
               <AuthProvider>
-                <SWRProvider>
-                  <Providers>
-                    {children}
-                  </Providers>
-                </SWRProvider>
+                <SocketProvider>
+                  <SWRProvider>
+                    <Providers>
+                      {children}
+                    </Providers>
+                  </SWRProvider>
+                </SocketProvider>
               </AuthProvider>
             </CartProvider>
           </TranslationProvider>

@@ -56,10 +56,10 @@ const generalLimiter = createRateLimit(
   'Too many requests from this IP, please try again later.'
 );
 
-// Strict rate limiting for auth endpoints
+// Strict rate limiting for auth endpoints (increased for testing)
 const authLimiter = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  5, // 5 attempts per window
+  20, // 20 attempts per window (increased for testing)
   'Too many authentication attempts, please try again later.'
 );
 
@@ -171,6 +171,7 @@ const secureCORS = (req, res, next) => {
     process.env.CORS_ORIGIN,
     'https://drinkmates.vercel.app', // Only allow specific production domain
     'http://localhost:3001', // Development frontend
+    'http://localhost:3002', // Development frontend (Next.js default)
     'http://localhost:3000' // Alternative development port
   ].filter(Boolean);
   

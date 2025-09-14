@@ -6,6 +6,7 @@ const adminMiddleware = require('../Middleware/admin-middleware');
 const { getAllUsers, deleteUser } = require('../Controller/admin-controller');
 const categoryController = require('../Controller/category-controller');
 const { storage, deleteImage } = require('../Utils/cloudinary');
+const User = require('../Models/user-model');
 
 // Configure multer with Cloudinary storage
 const upload = multer({ 
@@ -20,6 +21,56 @@ const upload = multer({
     } else {
       cb(new Error('Only image files are allowed!'), false);
     }
+  }
+});
+
+// Create admin user endpoint (for testing)
+router.post('/create-admin', async (req, res) => {
+  try {
+    // Check if admin already exists
+    const existingAdmin = await User.findOne({ email: 'admin@drinkmate.com' });
+    if (existingAdmin) {
+      return res.status(200).json({
+        success: true,
+        message: 'Admin user already exists',
+        user: {
+          _id: existingAdmin._id,
+          email: existingAdmin.email,
+          isAdmin: existingAdmin.isAdmin
+        }
+      });
+    }
+    
+    // Create admin user
+    const adminUser = new User({
+      username: 'admin',
+      email: 'admin@drinkmate.com',
+      password: 'admin123',
+      firstName: 'Admin',
+      lastName: 'User',
+      isAdmin: true,
+      isActive: true,
+      emailVerified: true
+    });
+    
+    await adminUser.save();
+    
+    res.status(201).json({
+      success: true,
+      message: 'Admin user created successfully',
+      user: {
+        _id: adminUser._id,
+        email: adminUser.email,
+        isAdmin: adminUser.isAdmin
+      }
+    });
+  } catch (error) {
+    console.error('Error creating admin user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create admin user',
+      error: error.message
+    });
   }
 });
 

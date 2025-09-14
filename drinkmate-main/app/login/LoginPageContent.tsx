@@ -78,7 +78,9 @@ export default function LoginPageContent() {
 
   // Redirect if already authenticated
   useEffect(() => {
+    console.log('Login component - isAuthenticated:', isAuthenticated, 'redirectPath:', redirectPath);
     if (isAuthenticated) {
+      console.log('Redirecting to:', redirectPath);
       router.push(redirectPath);
     }
   }, [isAuthenticated, router, redirectPath]);
@@ -102,9 +104,12 @@ export default function LoginPageContent() {
     }
 
     try {
+      console.log('Login attempt starting...');
       const result = await login(email, password, rememberMe);
+      console.log('Login result:', result);
       
       if (result.success) {
+        console.log('Login successful, setting up redirect...');
         // Store remember me preference if checked
         if (rememberMe) {
           localStorage.setItem("rememberedEmail", email);
@@ -118,9 +123,9 @@ export default function LoginPageContent() {
           duration: 3000,
           icon: <CheckCircle2 className="h-5 w-5" />
         });
-        setTimeout(() => {
-          router.push(redirectPath);
-        }, 1000);
+        // Immediate redirect instead of timeout
+        console.log('Immediate redirect to:', redirectPath);
+        router.push(redirectPath);
       } else {
         setErrorMessage(result.message || "Invalid email or password");
         setMessageType("error");

@@ -34,9 +34,8 @@ const productSchema = new mongoose.Schema({
     uppercase: true
   },
   category: {
-    type: String,
+    type: mongoose.Schema.Types.Mixed,
     required: true,
-    enum: ['energy-drink', 'cola', 'flavored-water', 'accessories', 'merchandise'],
     default: 'energy-drink'
   },
   subcategory: {

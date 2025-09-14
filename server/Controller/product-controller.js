@@ -11,7 +11,7 @@ exports.getAllProducts = async (req, res) => {
         const skip = (page - 1) * limit;
         
         // Build filter object based on query parameters
-        const filter = { isActive: true };
+        const filter = { status: 'active' };
         
         // Category filter
         if (req.query.category) {
@@ -395,7 +395,7 @@ exports.getBundles = async (req, res) => {
         const skip = (page - 1) * limit;
         
         // Build filter object
-        const filter = { isActive: true };
+        const filter = { status: 'active' };
         
         // Category filter
         if (req.query.category) {

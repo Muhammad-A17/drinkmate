@@ -1,0 +1,20 @@
+URWAY API/Plugin Integration Details
+Terminal Id : Shared in Registered Email
+Password : Shared in Registered Email
+Merchant/Secret Key : Shared in Registered Email
+Request URL :
+https://payments-dev.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest
+Note: Don’t share the secret key with anyone else
+Test Card Details
+Card Number :
+o Master : 5123 4500 0000 0008
+o Visa : 4508 7500 1574 1019
+CVV : 100
+Expiry Date : 05/32
+Card Name : Test Family
+Custom ECI : Leave Blank
+Custom CAVV : Leave Blank
+URWAY Dashboard Login
+• URL : https://payments-dev.urway-tech.com/URWAYPG/checkUserExistance.htm
+• User Name : Shared in Registered Email
+• Password : Shared in Registered Email

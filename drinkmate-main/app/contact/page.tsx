@@ -24,6 +24,7 @@ import { contactAPI } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
 import { toArabicNumerals } from "@/lib/utils"
+import CustomerChatWidget from "@/components/chat/CustomerChatWidget"
 
 export default function Contact() {
   const { t, isRTL, language } = useTranslation()
@@ -38,6 +39,7 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [openFAQ, setOpenFAQ] = useState<number | null>(null) // No FAQ open by default for cleaner initial view
   const [showAllMethods, setShowAllMethods] = useState(false) // Progressive disclosure for contact methods
+  const [isChatOpen, setIsChatOpen] = useState(false) // Live chat state
 
   const formRef = useRef<HTMLElement>(null)
   const faqRef = useRef<HTMLElement>(null)
@@ -142,10 +144,41 @@ export default function Contact() {
       {/* Quick Contact Methods */}
       <section className="py-8 md:py-16 bg-white animate-fade-in-up">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-8">
+            {/* Live Chat */}
             <div className="text-center p-6 md:p-8 rounded-2xl bg-gradient-to-br from-[#12d6fa]/10 via-[#12d6fa]/5 to-white border border-[#12d6fa]/20 shadow-xl animate-fade-in-up group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl backdrop-blur-sm">
               <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                <Zap className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                <MessageCircle className="w-6 h-6 md:w-8 md:h-8 text-white" />
+              </div>
+              <h3
+                className={`text-lg md:text-xl font-bold text-black mb-3 md:mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
+              >
+                Live Chat Support
+              </h3>
+              <p
+                className={`text-gray-600 text-sm md:text-base mb-3 md:mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"} leading-relaxed`}
+              >
+                Get instant help from our support team
+              </p>
+              <Button
+                onClick={() => {
+                  if (!user) {
+                    toast.error('Please login to use live chat')
+                    return
+                  }
+                  setIsChatOpen(true)
+                }}
+                className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#09b3d6] text-white px-6 py-2 font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105"
+              >
+                Start Live Chat
+              </Button>
+              <p className="text-xs md:text-sm text-gray-500 font-medium mt-2">Available 9 AM - 12 AM Saudi Time</p>
+            </div>
+
+            {/* Phone Support */}
+            <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl animate-fade-in-up delay-200 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
+                <Phone className="w-6 h-6 md:w-8 md:h-8 text-white" />
               </div>
               <h3
                 className={`text-lg md:text-xl font-bold text-black mb-3 md:mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
@@ -161,7 +194,8 @@ export default function Contact() {
               <p className="text-xs md:text-sm text-gray-500 font-medium">{t("contact.phoneSupport.hours")}</p>
             </div>
 
-            <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl animate-fade-in-up delay-200 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
+            {/* Email Support */}
+            <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl animate-fade-in-up delay-300 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
               <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#a8f387] to-[#96e075] rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
                 <Mail className="w-6 h-6 md:w-8 md:h-8 text-white" />
               </div>
@@ -539,6 +573,12 @@ export default function Contact() {
           </div>
         </div>
       </section>
+
+      {/* Live Chat Widget */}
+      <CustomerChatWidget 
+        isOpen={isChatOpen} 
+        onClose={() => setIsChatOpen(false)} 
+      />
     </PageLayout>
   )
 }

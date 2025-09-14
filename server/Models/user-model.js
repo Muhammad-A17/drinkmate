@@ -186,6 +186,9 @@ userSchema.virtual('fullName').get(function() {
 
 // Virtual for default address
 userSchema.virtual('defaultAddress').get(function() {
+  if (!this.addresses || !Array.isArray(this.addresses)) {
+    return null;
+  }
   return this.addresses.find(addr => addr.isDefault) || this.addresses[0];
 });
 
@@ -194,9 +197,23 @@ userSchema.index({ status: 1 });
 userSchema.index({ createdAt: -1 });
 
 // Pre-save middleware
-userSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
+userSchema.pre('save', async function(next) {
+  // Only hash the password if it has been modified (or is new)
+  if (!this.isModified('password')) {
+    this.updatedAt = Date.now();
+    return next();
+  }
+
+  try {
+    // Hash the password with cost of 10
+    const bcrypt = require('bcryptjs');
+    const saltRounds = 10;
+    this.password = await bcrypt.hash(this.password, saltRounds);
+    this.updatedAt = Date.now();
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Method to get public profile (without sensitive data)
@@ -213,6 +230,25 @@ userSchema.methods.getPublicProfile = function() {
 // Method to check if user is active
 userSchema.methods.isActive = function() {
   return this.status === 'active' && this.emailVerified;
+};
+
+// Method to compare password
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  const bcrypt = require('bcryptjs');
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Method to generate auth token
+userSchema.methods.generateAuthToken = function() {
+  const jwt = require('jsonwebtoken');
+  return jwt.sign(
+    { 
+      id: this._id, 
+      isAdmin: this.isAdmin 
+    },
+    process.env.JWT_SECRET || 'default_dev_secret',
+    { expiresIn: '2d' }
+  );
 };
 
 module.exports = mongoose.model('User', userSchema);

@@ -3,10 +3,10 @@ const jwt = require('jsonwebtoken');
 const User = require('../Models/user-model');
 const rateLimit = require('express-rate-limit');
 
-// Rate limiting for authentication attempts
+// Rate limiting for authentication attempts (increased for testing)
 const authAttemptLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per window
+  max: 20, // 20 attempts per window (increased for testing)
   message: { error: 'Too many authentication attempts, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
