@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import { Save, RefreshCw } from "lucide-react"
+import AdminLayout from "@/components/layout/AdminLayout"
 
 interface CartSettings {
   freeShipping: {
@@ -191,23 +192,24 @@ export default function CartSettingsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Cart Page Settings</h1>
-          <p className="text-muted-foreground">Configure cart page content and behavior</p>
+    <AdminLayout>
+      <div className="container mx-auto p-6 max-w-6xl">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold">Cart Page Settings</h1>
+            <p className="text-muted-foreground">Configure cart page content and behavior</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleReset}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Reset
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? 'Saving...' : 'Save Settings'}
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleReset}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Reset
-          </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            <Save className="w-4 h-4 mr-2" />
-            {saving ? 'Saving...' : 'Save Settings'}
-          </Button>
-        </div>
-      </div>
 
       <Tabs defaultValue="freeshipping" className="space-y-6">
         <TabsList className="grid w-full grid-cols-6">
@@ -777,6 +779,7 @@ export default function CartSettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </AdminLayout>
   )
 }

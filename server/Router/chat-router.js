@@ -1,25 +1,49 @@
 const express = require('express');
 const router = express.Router();
-const ChatController = require('../Controller/chat-controller');
-const { authMiddleware } = require('../Middleware/auth-middleware');
-const adminMiddleware = require('../Middleware/admin-middleware');
+const chatController = require('../Controller/chat-controller');
+const { authenticateToken, isAdmin } = require('../Middleware/auth-middleware');
+const { generalLimiter } = require('../Middleware/security-middleware');
 
-// Public routes
-router.get('/business-hours', ChatController.checkBusinessHours);
+// Apply rate limiting to all routes
+router.use(generalLimiter);
 
-// Customer routes (require authentication)
-router.post('/create', authMiddleware, ChatController.createChat);
-router.get('/customer', authMiddleware, ChatController.getCustomerChats);
-router.get('/:chatId', authMiddleware, ChatController.getChatById);
-router.post('/:chatId/messages', authMiddleware, ChatController.sendMessage);
-router.get('/:chatId/messages', authMiddleware, ChatController.getChatMessages);
-router.put('/:chatId/read', authMiddleware, ChatController.markMessagesAsRead);
+// Get all chats (admin only)
+router.get('/', authenticateToken, isAdmin, chatController.getAllChats);
 
-// Admin routes (require admin authentication)
-router.get('/admin/all', authMiddleware, adminMiddleware, ChatController.getOpenChats);
-router.get('/admin/assigned', authMiddleware, adminMiddleware, ChatController.getAdminChats);
-router.put('/:chatId/assign', authMiddleware, adminMiddleware, ChatController.assignChatToAdmin);
-router.put('/:chatId/close', authMiddleware, adminMiddleware, ChatController.closeChat);
-router.get('/admin/stats', authMiddleware, adminMiddleware, ChatController.getChatStats);
+// Get chat statistics (admin only)
+router.get('/stats', authenticateToken, isAdmin, chatController.getChatStats);
+
+// Get specific chat (admin only)
+router.get('/:id', authenticateToken, isAdmin, chatController.getChatById);
+
+// Create new chat session (public for contact form)
+router.post('/', chatController.createChat);
+
+// Add message to chat (admin only)
+router.post('/:chatId/messages', authenticateToken, isAdmin, chatController.addMessage);
+
+// Assign chat to admin (admin only)
+router.post('/:chatId/assign', authenticateToken, isAdmin, chatController.assignChat);
+
+// Close chat (admin only)
+router.post('/:chatId/close', authenticateToken, isAdmin, chatController.closeChat);
+
+// Update chat status (admin only)
+router.put('/:chatId', authenticateToken, isAdmin, chatController.updateChatStatus);
+
+// Mark messages as read (admin only)
+router.put('/:chatId/read', authenticateToken, isAdmin, chatController.markAsRead);
+
+// Convert chat to ticket (admin only)
+router.post('/:chatId/convert-to-ticket', authenticateToken, isAdmin, chatController.convertToTicket);
+
+// Ban IP address (admin only)
+router.post('/:chatId/ban-ip', authenticateToken, isAdmin, chatController.banIP);
+
+// Unban IP address (admin only)
+router.post('/:chatId/unban-ip', authenticateToken, isAdmin, chatController.unbanIP);
+
+// Delete chat (admin only)
+router.delete('/:chatId', authenticateToken, isAdmin, chatController.deleteChat);
 
 module.exports = router;

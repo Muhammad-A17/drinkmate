@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     if (featured) params.append('featured', featured)
 
     // Make request to backend
-    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/recipes?${params}`
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/recipes?${params}`
     
     const response = await fetch(backendUrl, {
       headers: {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
 
     // Make request to backend
-    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/recipes`
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/recipes`
     
     const response = await fetch(backendUrl, {
       method: 'POST',

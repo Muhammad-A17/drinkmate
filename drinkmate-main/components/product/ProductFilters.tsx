@@ -322,8 +322,8 @@ export default function ProductFilters({
           </label>
           <label className="flex items-center space-x-3 cursor-pointer group">
             <Checkbox
-              checked={localFilters.isNew || false}
-              onCheckedChange={(checked) => handleFilterChange('isNew', checked)}
+              checked={localFilters.isNewProduct || false}
+              onCheckedChange={(checked) => handleFilterChange('isNewProduct', checked)}
               className="text-[#12d6fa] focus:ring-[#12d6fa]"
             />
             <div className="flex items-center gap-2">

@@ -66,7 +66,7 @@ interface CO2Cylinder {
   status: string
   isBestSeller?: boolean
   isFeatured?: boolean
-  isNew?: boolean
+  isNewProduct?: boolean
   isEcoFriendly?: boolean
   description: string
   features?: string[]
@@ -131,7 +131,7 @@ export default function CO2CylindersPage() {
     status: "active",
     isBestSeller: false,
     isFeatured: false,
-    isNew: false,
+    isNewProduct: false,
     isEcoFriendly: false,
     description: "",
     features: "",
@@ -585,7 +585,7 @@ export default function CO2CylindersPage() {
         isAvailable: formData.isAvailable,
         isBestSeller: formData.isBestSeller,
         isFeatured: formData.isFeatured,
-        isNew: formData.isNew,
+        isNewProduct: formData.isNewProduct,
         isEcoFriendly: formData.isEcoFriendly,
         compatibility: formData.compatibility.split(',').map(f => f.trim().toLowerCase()).filter(Boolean),
         features: formData.features.split(',').map(f => f.trim()).filter(Boolean),
@@ -682,7 +682,7 @@ export default function CO2CylindersPage() {
       status: cylinder.status,
       isBestSeller: cylinder.isBestSeller || false,
       isFeatured: cylinder.isFeatured || false,
-      isNew: cylinder.isNew || false,
+      isNewProduct: cylinder.isNewProduct || false,
       isEcoFriendly: cylinder.isEcoFriendly || false,
       description: cylinder.description,
       features: cylinder.features?.join(', ') || "",
@@ -729,7 +729,7 @@ export default function CO2CylindersPage() {
       status: "active",
       isBestSeller: false,
       isFeatured: false,
-      isNew: false,
+      isNewProduct: false,
       isEcoFriendly: false,
       description: "",
       features: "",
@@ -1241,13 +1241,13 @@ export default function CO2CylindersPage() {
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
-                  id="isNew"
-                  checked={formData.isNew}
-                  onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })}
+                  id="isNewProduct"
+                  checked={formData.isNewProduct}
+                  onChange={(e) => setFormData({ ...formData, isNewProduct: e.target.checked })}
                   className="rounded"
                   aria-label="Mark product as new"
                 />
-                <Label htmlFor="isNew">New Product</Label>
+                <Label htmlFor="isNewProduct">New Product</Label>
               </div>
               
               <div className="flex items-center space-x-2">

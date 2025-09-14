@@ -23,7 +23,7 @@ interface CO2Cylinder {
   status: string
   isBestSeller: boolean
   isFeatured: boolean
-  isNew?: boolean
+  isNewProduct?: boolean
   isEcoFriendly?: boolean
   description: string
   features: string[]

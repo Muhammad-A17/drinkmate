@@ -102,7 +102,7 @@ interface BundleProduct {
   isActive?: boolean
   isFeatured?: boolean
   isBestSeller?: boolean
-  isNew?: boolean
+  isNewProduct?: boolean
   isEcoFriendly?: boolean
   averageRating?: number
   rating?: number
@@ -844,7 +844,7 @@ export default function BundleDetailPage() {
                           Best Seller
                         </Badge>
                       )}
-                      {product.isNew && (
+                      {product.isNewProduct && (
                         <Badge className="bg-green-500 text-white shadow-lg">
                           <Sparkles className="w-3 h-3 mr-1" />
                           New

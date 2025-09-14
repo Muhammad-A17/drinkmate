@@ -76,7 +76,7 @@ export default function ProductCard({
   const isOnSale = (product as any).originalPrice && (product as any).originalPrice > product.price
   const isOutOfStock = product.stock !== undefined && product.stock <= 0
   const isLowStock = product.stock !== undefined && product.stock > 0 && product.stock <= 5
-  const isNew = (product as any).isNew
+  const isNew = (product as any).isNewProduct
   const isBestSeller = (product as any).isBestSeller
   const isEcoFriendly = (product as any).isEcoFriendly
   const isFeatured = (product as any).isFeatured

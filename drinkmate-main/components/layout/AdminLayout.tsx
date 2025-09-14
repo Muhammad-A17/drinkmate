@@ -23,7 +23,14 @@ import {
   Globe,
   MessageSquare,
   FolderOpen,
-  XCircle
+  XCircle,
+  Utensils,
+  Star,
+  Mail,
+  Wrench,
+  Database,
+  Bug,
+  TestTube
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -163,12 +170,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { 
       name: "Reviews", 
       href: "/admin/reviews", 
-      icon: <MessageSquare className="w-5 h-5" /> 
+      icon: <Star className="w-5 h-5" /> 
     },
     {
       name: "Categories",
       href: "/admin/categories",
       icon: <FolderOpen className="w-5 h-5" />
+    },
+    { 
+      name: "Recipes", 
+      href: "/admin/recipes", 
+      icon: <Utensils className="w-5 h-5" /> 
     },
     { 
       name: t("common.orders"), 
@@ -198,12 +210,32 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { 
       name: "Testimonials", 
       href: "/admin/testimonials", 
-      icon: <FileText className="w-5 h-5" /> 
+      icon: <Star className="w-5 h-5" /> 
     },
     { 
       name: "Contact", 
       href: "/admin/contact", 
-      icon: <FileText className="w-5 h-5" /> 
+      icon: <Mail className="w-5 h-5" /> 
+    },
+      {
+        name: "Chat Management",
+        href: "/admin/chat",
+        icon: <MessageSquare className="w-5 h-5" />
+      },
+      {
+        name: "Debug Chat",
+        href: "/admin/debug-chat",
+        icon: <MessageSquare className="w-5 h-5" />
+      },
+    { 
+      name: "Contact Settings", 
+      href: "/admin/contact-settings", 
+      icon: <Wrench className="w-5 h-5" /> 
+    },
+    { 
+      name: "Cart Settings", 
+      href: "/admin/cart-settings", 
+      icon: <ShoppingBag className="w-5 h-5" /> 
     },
     { 
       name: t("common.content"), 
@@ -220,6 +252,34 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       href: "/admin/settings", 
       icon: <Settings className="w-5 h-5" /> 
     },
+    // Debug/Test pages (only show in development)
+    ...(process.env.NODE_ENV === 'development' ? [
+      { 
+        name: "Debug", 
+        href: "/admin/debug", 
+        icon: <Bug className="w-5 h-5" /> 
+      },
+      { 
+        name: "Test Dashboard", 
+        href: "/admin/test-dashboard", 
+        icon: <TestTube className="w-5 h-5" /> 
+      },
+      { 
+        name: "Auth Debug", 
+        href: "/admin/auth-debug", 
+        icon: <Database className="w-5 h-5" /> 
+      },
+      { 
+        name: "Debug Chat", 
+        href: "/admin/debug-chat", 
+        icon: <MessageSquare className="w-5 h-5" /> 
+      },
+      { 
+        name: "Test", 
+        href: "/admin/test", 
+        icon: <TestTube className="w-5 h-5" /> 
+      },
+    ] : []),
   ]
 
   // If loading
@@ -376,7 +436,36 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   {isSidebarOpen ? "Content" : "•"}
                 </div>
               </li>
-              {navItems.slice(3, 8).map((item) => {
+              {navItems.slice(3, 9).map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={`flex items-center ${
+                        isSidebarOpen ? "justify-start px-4" : "justify-center"
+                      } py-3 rounded-md transition-all duration-200 ${
+                        isActive
+                          ? "bg-[#e6f9fd] text-[#12d6fa] shadow-sm"
+                          : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                      }`}
+                    >
+                      <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                      {isSidebarOpen && (
+                        <span className="ml-3 text-sm font-medium">{item.name}</span>
+                      )}
+                    </Link>
+                  </li>
+                )
+              })}
+              
+              {/* Orders & Services Group */}
+              <li className="mb-4 mt-6">
+                <div className={`px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider ${!isSidebarOpen && 'text-center'}`}>
+                  {isSidebarOpen ? "Orders & Services" : "•"}
+                </div>
+              </li>
+              {navItems.slice(9, 13).map((item) => {
                 const isActive = pathname === item.href
                 return (
                   <li key={item.name}>
@@ -405,7 +494,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   {isSidebarOpen ? "System" : "•"}
                 </div>
               </li>
-              {navItems.slice(8).map((item) => {
+              {navItems.slice(13, -6).map((item) => {
                 const isActive = pathname === item.href
                 return (
                   <li key={item.name}>
@@ -427,6 +516,39 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   </li>
                 )
               })}
+              
+              {/* Debug Group (only in development) */}
+              {process.env.NODE_ENV === 'development' && (
+                <>
+                  <li className="mb-4 mt-6">
+                    <div className={`px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider ${!isSidebarOpen && 'text-center'}`}>
+                      {isSidebarOpen ? "Debug" : "•"}
+                    </div>
+                  </li>
+                  {navItems.slice(-6).map((item) => {
+                    const isActive = pathname === item.href
+                    return (
+                      <li key={item.name}>
+                        <Link
+                          href={item.href}
+                          className={`flex items-center ${
+                            isSidebarOpen ? "justify-start px-4" : "justify-center"
+                          } py-3 rounded-md transition-all duration-200 ${
+                            isActive
+                              ? "bg-[#e6f9fd] text-[#12d6fa] shadow-sm"
+                              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                          }`}
+                        >
+                          <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                          {isSidebarOpen && (
+                            <span className="ml-3 text-sm font-medium">{item.name}</span>
+                          )}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </>
+              )}
             </ul>
           </nav>
 
@@ -677,7 +799,33 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   Content
                 </div>
               </li>
-              {navItems.slice(3, 8).map((item) => {
+              {navItems.slice(3, 9).map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsMobileSidebarOpen(false)}
+                      className={`flex items-center justify-start px-4 py-3 rounded-md transition-all duration-200 ${
+                        isActive
+                          ? "bg-[#e6f9fd] text-[#12d6fa] shadow-sm"
+                          : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                      }`}
+                    >
+                      <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                      <span className="ml-3 text-sm font-medium">{item.name}</span>
+                    </Link>
+                  </li>
+                )
+              })}
+              
+              {/* Orders & Services Group */}
+              <li className="mb-4 mt-6">
+                <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Orders & Services
+                </div>
+              </li>
+              {navItems.slice(9, 13).map((item) => {
                 const isActive = pathname === item.href
                 return (
                   <li key={item.name}>
@@ -703,7 +851,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   System
                 </div>
               </li>
-              {navItems.slice(8).map((item) => {
+              {navItems.slice(13, -6).map((item) => {
                 const isActive = pathname === item.href
                 return (
                   <li key={item.name}>
@@ -722,6 +870,36 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   </li>
                 )
               })}
+              
+              {/* Debug Group (only in development) */}
+              {process.env.NODE_ENV === 'development' && (
+                <>
+                  <li className="mb-4 mt-6">
+                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Debug
+                    </div>
+                  </li>
+                  {navItems.slice(-6).map((item) => {
+                    const isActive = pathname === item.href
+                    return (
+                      <li key={item.name}>
+                        <Link
+                          href={item.href}
+                          onClick={() => setIsMobileSidebarOpen(false)}
+                          className={`flex items-center justify-start px-4 py-3 rounded-md transition-all duration-200 ${
+                            isActive
+                              ? "bg-[#e6f9fd] text-[#12d6fa] shadow-sm"
+                              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                          }`}
+                        >
+                          <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                          <span className="ml-3 text-sm font-medium">{item.name}</span>
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </>
+              )}
             </ul>
           </nav>
 

@@ -72,7 +72,7 @@ export default function ProductForm({
       []) : [],
     colors: product?.colors || [],
     isBestSeller: product?.isBestSeller || false,
-    isNew: product?.isNew || false,
+    isNewProduct: product?.isNewProduct || false,
     isFeatured: product?.isFeatured || false,
     weight: product?.weight || "",
     dimensions: product?.dimensions || "",
@@ -137,7 +137,7 @@ export default function ProductForm({
         images: imageUrls,
         colors: product.colors || [],
         isBestSeller: product.isBestSeller || false,
-        isNew: product.isNew || false,
+        isNewProduct: product.isNewProduct || false,
         isFeatured: product.isFeatured || false,
         weight: product.weight || "",
         dimensions: product.dimensions || "",
@@ -466,14 +466,14 @@ export default function ProductForm({
                   
                   <div className="flex items-center space-x-2">
                     <Checkbox 
-                      id="isNew" 
-                      name="isNew"
-                      checked={formData.isNew}
+                      id="isNewProduct" 
+                      name="isNewProduct"
+                      checked={formData.isNewProduct}
                       onCheckedChange={(checked) => 
-                        setFormData({...formData, isNew: checked === true})
+                        setFormData({...formData, isNewProduct: checked === true})
                       }
                     />
-                    <Label htmlFor="isNew">New Product</Label>
+                    <Label htmlFor="isNewProduct">New Product</Label>
                   </div>
                   
                   <div className="flex items-center space-x-2">

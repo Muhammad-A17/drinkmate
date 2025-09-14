@@ -44,6 +44,7 @@ const co2Router = require('./Router/co2-router');
 const refillRouter = require('./Router/refill-router');
 const paymentRouter = require('./Router/payment-router');
 const chatRouter = require('./Router/chat-router');
+const recipeRouter = require('./Router/recipe-router');
 const { Server } = require('socket.io');
 const http = require('http');
 
@@ -167,6 +168,7 @@ app.use('/co2', generalLimiter, co2Router);
 app.use('/refill', generalLimiter, refillRouter);
 app.use('/payments', apiLimiter, paymentRouter);
 app.use('/chat', generalLimiter, chatRouter);
+app.use('/recipes', generalLimiter, recipeRouter);
 
 // Root route
 app.get('/', (req, res) => {

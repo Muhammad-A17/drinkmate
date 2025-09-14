@@ -58,6 +58,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
     newSocket.on('connect_error', (error) => {
       console.error('Socket connection error:', error)
+      console.error('Token being used:', token)
       setIsConnected(false)
     })
 

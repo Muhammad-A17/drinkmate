@@ -7,9 +7,12 @@ yarn-error.log*
 node_modules/
 .DS_Store
 *.log
-.env
-.env.local
-.env.production
+# ignore any env-like files by default
+!.env*
+# BUT keep these three tracked
+!.env
+!.env.local
+!.env.production
 .next/
 dist/
 build/

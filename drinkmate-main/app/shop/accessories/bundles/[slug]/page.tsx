@@ -81,7 +81,7 @@ interface Bundle {
   status: string
   isBestSeller: boolean
   isFeatured: boolean
-  isNew: boolean
+  isNewProduct: boolean
   isEcoFriendly: boolean
   description: string
   features: string[]
@@ -992,7 +992,7 @@ export default function AccessoriesBundleDetail() {
                       {product.isBestSeller && (
                         <Badge className="bg-orange-500 text-white shadow-lg">Best Seller</Badge>
                       )}
-                      {product.isNew && (
+                      {product.isNewProduct && (
                         <Badge className="bg-green-500 text-white shadow-lg">New</Badge>
                       )}
                       {product.isEcoFriendly && (

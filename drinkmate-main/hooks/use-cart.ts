@@ -15,12 +15,14 @@ interface UseCartReturn {
   saveForLater: (productId: string) => void
   loading: boolean
   error: string | null
+  updateTrigger: number
 }
 
 export function useCart(): UseCartReturn {
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [updateTrigger, setUpdateTrigger] = useState(0)
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -52,42 +54,60 @@ export function useCart(): UseCartReturn {
   }, [items])
 
   const addItem = useCallback((newItem: CartItem) => {
+    console.log('Adding item to cart:', newItem)
     setItems(prevItems => {
       const existingItem = prevItems.find(item => item.id === newItem.id)
       
       if (existingItem) {
         // Update quantity if item already exists
-        return prevItems.map(item =>
+        const updated = prevItems.map(item =>
           item.id === newItem.id
             ? { ...item, quantity: item.quantity + newItem.quantity }
             : item
         )
+        console.log('Updated existing item, new cart:', updated)
+        return updated
       } else {
         // Add new item
-        return [...prevItems, newItem]
+        const updated = [...prevItems, newItem]
+        console.log('Added new item, new cart:', updated)
+        return updated
       }
     })
+    setUpdateTrigger(prev => prev + 1)
   }, [])
 
   const removeItem = useCallback((productId: string) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== productId))
+    console.log('Removing item from cart:', productId)
+    setItems(prevItems => {
+      const updated = prevItems.filter(item => item.id !== productId)
+      console.log('Removed item, new cart:', updated)
+      return updated
+    })
+    setUpdateTrigger(prev => prev + 1)
   }, [])
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
+    console.log('Updating quantity for item:', productId, 'to:', quantity)
     if (quantity <= 0) {
       removeItem(productId)
       return
     }
 
-    setItems(prevItems =>
-      prevItems.map(item =>
+    setItems(prevItems => {
+      const updated = prevItems.map(item =>
         item.id === productId ? { ...item, quantity } : item
       )
-    )
+      console.log('Updated quantity, new cart:', updated)
+      return updated
+    })
+    setUpdateTrigger(prev => prev + 1)
   }, [removeItem])
 
   const clearCart = useCallback(() => {
+    console.log('Clearing cart')
     setItems([])
+    setUpdateTrigger(prev => prev + 1)
   }, [])
 
   const setNote = useCallback((note: string) => {
@@ -116,5 +136,6 @@ export function useCart(): UseCartReturn {
     saveForLater,
     loading,
     error,
+    updateTrigger,
   }
 }

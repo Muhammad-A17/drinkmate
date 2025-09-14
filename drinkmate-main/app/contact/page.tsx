@@ -1,584 +1,760 @@
 "use client"
 
-import type React from "react"
-import Image from "next/image"
-
-import { Button } from "@/components/ui/button"
-import {
-  Mail,
-  Phone,
-  MapPin,
-  Clock,
-  MessageCircle,
+import React, { useState } from 'react'
+import Banner from '@/components/layout/Banner'
+import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
+import { ContactProvider, useContactSettings } from '@/lib/contact-settings-context'
+import { useAuth } from '@/lib/auth-context'
+import { useTranslation } from '@/lib/translation-context'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
+import { 
+  MessageCircle, 
+  Mail, 
+  Search, 
+  CheckCircle, 
+  Upload,
+  X,
   ChevronDown,
-  Loader2,
-  CheckCircle,
-  AlertCircle,
-  ArrowDown,
-  Zap,
-} from "lucide-react"
-import { useState, useRef } from "react"
-import PageLayout from "@/components/layout/PageLayout"
-import { useTranslation } from "@/lib/translation-context"
-import { contactAPI } from "@/lib/api"
-import { useAuth } from "@/lib/auth-context"
-import { toast } from "sonner"
-import { toArabicNumerals } from "@/lib/utils"
-import CustomerChatWidget from "@/components/chat/CustomerChatWidget"
+  ChevronUp,
+  Phone,
+  Clock,
+  Send,
+  FileText,
+  HelpCircle
+} from 'lucide-react'
+import { toast } from 'sonner'
 
-export default function Contact() {
-  const { t, isRTL, language } = useTranslation()
+// Contact Option Card Component
+function ContactOptionCard({ 
+  icon: Icon, 
+  title, 
+  availability, 
+  buttonText, 
+  buttonAction, 
+  status = 'available',
+  disabled = false 
+}: {
+  icon: React.ElementType
+  title: string
+  availability: string
+  buttonText: string
+  buttonAction: () => void
+  status?: 'available' | 'offline' | '24/7'
+  disabled?: boolean
+}) {
+  const getStatusColor = () => {
+    switch (status) {
+      case 'available': return 'bg-success-100 text-success-700'
+      case 'offline': return 'bg-warning-100 text-warning-700'
+      case '24/7': return 'bg-brand-100 text-brand-700'
+      default: return 'bg-outline-200 text-ink-700'
+    }
+  }
+
+  const getStatusText = () => {
+    switch (status) {
+      case 'available': return 'Live now'
+      case 'offline': return 'Offline'
+      case '24/7': return '24/7'
+      default: return 'Available'
+    }
+  }
+
+  return (
+    <div className="dm-card dm-card-hover">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center space-x-4">
+          <div className="dm-icon-chip">
+            <Icon className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="dm-text-primary font-semibold mb-1">{title}</h3>
+            <p className="dm-text-secondary leading-relaxed">{availability}</p>
+          </div>
+        </div>
+        <div className={`dm-chip ${status === 'available' ? 'dm-chip--live' : status === '24/7' ? 'dm-chip--24-7' : 'dm-chip--closed'} flex-shrink-0`}>
+          {getStatusText()}
+        </div>
+      </div>
+      
+      <button
+        onClick={buttonAction}
+        disabled={disabled}
+        className={`dm-btn w-full dm-shine ${disabled ? 'dm-btn--disabled' : ''}`}
+      >
+        {buttonText}
+      </button>
+    </div>
+  )
+}
+
+// FAQ Accordion Component
+function FAQAccordion({ 
+  category, 
+  questions, 
+  isExpanded, 
+  onToggle 
+}: {
+  category: string
+  questions: Array<{ q: string; a: string }>
+  isExpanded: boolean
+  onToggle: () => void
+}) {
+  return (
+    <div className={`dm-accordion ${isExpanded ? 'dm-accordion--open' : ''}`}>
+      <div 
+        className="cursor-pointer p-5 hover:bg-gray-50 transition-colors"
+        onClick={onToggle}
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="dm-text-primary font-semibold">{category}</h3>
+          {isExpanded ? (
+            <ChevronUp className="h-5 w-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-gray-500" />
+          )}
+        </div>
+      </div>
+      {isExpanded && (
+        <div className="pt-0 p-5 dm-fade-in dm-slide-up">
+          <div className="space-y-4">
+            {questions.map((faq, index) => (
+              <div key={index} className="border-l-2 border-blue-100 pl-4">
+                <h4 className="font-medium text-gray-900 mb-2">{faq.q}</h4>
+                <p className="dm-text-secondary leading-relaxed">{faq.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Contact Form Component
+function ContactForm() {
+  const { settings, getText } = useContactSettings()
   const { user } = useAuth()
+  const { isRTL } = useTranslation()
   const [formData, setFormData] = useState({
-    name: user?.username || "",
-    email: user?.email || "",
-    subject: "",
-    message: "",
-    phone: "",
+    name: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    reason: '',
+    message: '',
+    consent: false
   })
+  const [files, setFiles] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [openFAQ, setOpenFAQ] = useState<number | null>(null) // No FAQ open by default for cleaner initial view
-  const [showAllMethods, setShowAllMethods] = useState(false) // Progressive disclosure for contact methods
-  const [isChatOpen, setIsChatOpen] = useState(false) // Live chat state
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [ticketId, setTicketId] = useState('')
 
-  const formRef = useRef<HTMLElement>(null)
-  const faqRef = useRef<HTMLElement>(null)
+  const reasons = [
+    { value: 'general', label: 'General Inquiry' },
+    { value: 'order', label: 'Order Related' },
+    { value: 'billing', label: 'Billing Question' },
+    { value: 'technical', label: 'Technical Support' },
+    { value: 'refund', label: 'Refund Request' },
+    { value: 'other', label: 'Other' }
+  ]
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newFiles = Array.from(e.target.files || [])
+    
+    if (files.length + newFiles.length > 3) {
+      toast.error('Maximum 3 files allowed')
+      return
+    }
+
+    const validFiles: File[] = []
+    for (const file of newFiles) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('File too large. Maximum 10MB allowed.')
+        continue
+      }
+      
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Invalid file type. Only JPG, PNG, GIF, and PDF allowed.')
+        continue
+      }
+      
+      validFiles.push(file)
+    }
+
+    setFiles(prev => [...prev, ...validFiles])
+  }
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
     try {
-      const contactData = {
-        ...formData,
-        userId: user?._id,
+      if (!formData.name || !formData.email || !formData.reason || !formData.message) {
+        toast.error('Please fill in all required fields')
+        return
       }
 
-      const response = await contactAPI.submitContact(contactData)
-
-      if (response.success) {
-        toast.success(t("contact.form.sendMessage") + " " + t("contact.form.title"), {
-          duration: 5000,
-          icon: <CheckCircle className="h-5 w-5" />,
-        })
-        // Reset form after success
-        setFormData({
-          name: user?.username || "",
-          email: user?.email || "",
-          subject: "",
-          message: "",
-          phone: "",
-        })
-      } else {
-        toast.error(response.message || t("contact.form.sendMessage") + " " + t("contact.form.title"), {
-          duration: 5000,
-          icon: <AlertCircle className="h-5 w-5" />,
-        })
+      if (!formData.consent) {
+        toast.error('Please agree to the privacy policy and terms of service')
+        return
       }
-    } catch (err: any) {
-      console.error("Contact form submission error:", err)
-      toast.error(err.response?.data?.message || t("contact.form.title"), {
-        duration: 5000,
-        icon: <AlertCircle className="h-5 w-5" />,
+
+      const response = await fetch('/api/contact/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          attachments: files.map(file => ({
+            name: file.name,
+            url: URL.createObjectURL(file),
+            type: file.type,
+            size: file.size
+          })),
+          locale: isRTL ? 'ar' : 'en',
+          source: 'contact_page'
+        })
       })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setTicketId(result.ticketId)
+        setShowSuccess(true)
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          reason: '',
+          message: '',
+          consent: false
+        })
+        setFiles([])
+      } else {
+        toast.error(result.error || 'Failed to send message')
+      }
+    } catch (error) {
+      console.error('Form submission error:', error)
+      toast.error('Failed to send message')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
-  }
-
-  const startNewMessage = () => {
-    setFormData({
-      name: user?.username || "",
-      email: user?.email || "",
-      subject: "",
-      message: "",
-      phone: "",
-    })
-  }
-
-  const scrollToSection = (ref: React.RefObject<HTMLElement>) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  if (showSuccess) {
+    return (
+      <Card className="border-success-200 bg-success-50">
+        <CardContent className="p-card-padding text-center">
+          <CheckCircle className="h-12 w-12 text-success-500 mx-auto mb-4" />
+          <h3 className="text-h2 font-semibold text-success-800 mb-2">
+            Thanks! We'll get back to you within 1 business day.
+          </h3>
+          <p className="text-secondary text-success-700 mb-4">
+            Ticket ID: {ticketId}
+          </p>
+          <Button 
+            onClick={() => setShowSuccess(false)} 
+            variant="outline"
+            className="rounded-pill"
+          >
+            Send Another Message
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
-    <PageLayout currentPage="contact">
-      {/* Hero Section with Quick Actions */}
-      <section className="relative py-8 md:py-16 bg-white animate-fade-in-up overflow-hidden">
-        {/* Background Image with Overlay */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1757148169/javier-balseiro-EjJ7ffSd8iA-unsplash_xpsedo.webp"
-            alt="Contact Us Background"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/50"></div>
-        </div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-4">
-          <div className="text-center space-y-4 md:space-y-6">
-            <h1
-              className={`text-3xl md:text-5xl font-bold text-white leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-tight`}
+    <Card className="border-outline-200 bg-white">
+      <CardHeader className="p-card-padding">
+        <CardTitle className="text-h2 font-semibold text-ink-900">Contact form</CardTitle>
+        <p className="text-secondary text-ink-700">Send us a message anytime.</p>
+      </CardHeader>
+      <CardContent className="p-card-padding">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Reason Selection */}
+          <div>
+            <Label className="text-body font-medium text-ink-900 mb-3 block">Reason for contact</Label>
+            <RadioGroup
+              value={formData.reason}
+              onValueChange={(value) => handleInputChange('reason', value)}
+              className="grid grid-cols-2 gap-2"
             >
-              {t("contact.title")}
-            </h1>
-            <p
-              className={`text-base md:text-xl text-gray-200 max-w-3xl mx-auto ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-up delay-200 leading-relaxed`}
-            >
-              {t("contact.description")}
-            </p>
-
-         
-          </div>
-        </div>
-      </section>
-
-      {/* Quick Contact Methods */}
-      <section className="py-8 md:py-16 bg-white animate-fade-in-up">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-8">
-            {/* Live Chat */}
-            <div className="text-center p-6 md:p-8 rounded-2xl bg-gradient-to-br from-[#12d6fa]/10 via-[#12d6fa]/5 to-white border border-[#12d6fa]/20 shadow-xl animate-fade-in-up group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl backdrop-blur-sm">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                <MessageCircle className="w-6 h-6 md:w-8 md:h-8 text-white" />
-              </div>
-              <h3
-                className={`text-lg md:text-xl font-bold text-black mb-3 md:mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
-              >
-                Live Chat Support
-              </h3>
-              <p
-                className={`text-gray-600 text-sm md:text-base mb-3 md:mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"} leading-relaxed`}
-              >
-                Get instant help from our support team
-              </p>
-              <Button
-                onClick={() => {
-                  if (!user) {
-                    toast.error('Please login to use live chat')
-                    return
-                  }
-                  setIsChatOpen(true)
-                }}
-                className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#09b3d6] text-white px-6 py-2 font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105"
-              >
-                Start Live Chat
-              </Button>
-              <p className="text-xs md:text-sm text-gray-500 font-medium mt-2">Available 9 AM - 12 AM Saudi Time</p>
-            </div>
-
-            {/* Phone Support */}
-            <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl animate-fade-in-up delay-200 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                <Phone className="w-6 h-6 md:w-8 md:h-8 text-white" />
-              </div>
-              <h3
-                className={`text-lg md:text-xl font-bold text-black mb-3 md:mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
-              >
-                {t("contact.phoneSupport.title")}
-              </h3>
-              <p
-                className={`text-gray-600 text-sm md:text-base mb-3 md:mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"} leading-relaxed`}
-              >
-                {t("contact.phoneSupport.description")}
-              </p>
-              <p className="text-xl md:text-2xl font-bold text-[#12d6fa] tracking-tight">{language === 'AR' ? toArabicNumerals('+966 50 123 4567') : '+966 50 123 4567'}</p>
-              <p className="text-xs md:text-sm text-gray-500 font-medium">{t("contact.phoneSupport.hours")}</p>
-            </div>
-
-            {/* Email Support */}
-            <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl animate-fade-in-up delay-300 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#a8f387] to-[#96e075] rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                <Mail className="w-6 h-6 md:w-8 md:h-8 text-white" />
-              </div>
-              <h3
-                className={`text-lg md:text-xl font-bold text-black mb-3 md:mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
-              >
-                {t("contact.emailSupport.title")}
-              </h3>
-              <p
-                className={`text-gray-600 text-sm md:text-base mb-3 md:mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"} leading-relaxed`}
-              >
-                {t("contact.emailSupport.description")}
-              </p>
-              <Button
-                onClick={() => scrollToSection(formRef)}
-                className="bg-gradient-to-r from-[#a8f387] to-[#96e075] hover:from-[#96e075] hover:to-[#84d663] text-white px-6 py-2 font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105"
-              >
-                {t("contact.form.sendMessage")}
-              </Button>
-            </div>
-          </div>
-
-          {!showAllMethods && (
-            <div className="text-center">
-              <Button
-                variant="ghost"
-                onClick={() => setShowAllMethods(true)}
-                className="text-[#12d6fa] hover:text-[#0bc4e8] hover:bg-[#12d6fa]/10 flex items-center gap-2 mx-auto font-semibold px-6 py-3 rounded-xl transition-all duration-300"
-              >
-                {t("contact.offices.title")}
-                <ArrowDown className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-
-          {showAllMethods && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 animate-fade-in-up">
-              <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                  <MapPin className="w-6 h-6 md:w-8 md:h-8 text-white" />
-                </div>
-                <h3
-                  className={`text-lg md:text-xl font-bold text-black mb-3 md:mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
-                >
-                  {t("contact.officeLocation.title")}
-                </h3>
-                <p
-                  className={`text-gray-600 text-sm md:text-base mb-3 md:mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"} leading-relaxed`}
-                >
-                  {t("contact.officeLocation.description")}
-                </p>
-                <p className="text-sm text-gray-700 font-medium">
-                  {t("contact.offices.riyadh.address")}
-                </p>
-                <p className="text-xs md:text-sm text-gray-500 font-medium">
-                  {t("contact.officeLocation.appointment")}
-                </p>
-              </div>
-
-              <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                  <Phone className="w-6 h-6 md:w-8 md:h-8 text-white" />
-                </div>
-                <h3
-                  className={`text-lg md:text-xl font-bold text-black mb-3 md:mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
-                >
-                  {t("contact.phoneSupport.title")}
-                </h3>
-                <p
-                  className={`text-gray-600 text-sm md:text-base mb-3 md:mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"} leading-relaxed`}
-                >
-                  {t("contact.phoneSupport.description")}
-                </p>
-                <p className="text-xl md:text-2xl font-bold text-[#12d6fa] tracking-tight">{language === 'AR' ? toArabicNumerals('+966 50 123 4567') : '+966 50 123 4567'}</p>
-                <p className="text-xs md:text-sm text-gray-500 font-medium">{t("contact.phoneSupport.hours")}</p>
-              </div>
-
-              <div className="text-center p-6 md:p-8 rounded-2xl bg-white shadow-xl group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 hover:shadow-2xl border border-gray-100">
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#a8f387] to-[#96e075] rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                  <Mail className="w-6 h-6 md:w-8 md:h-8 text-white" />
-                </div>
-                <h3
-                  className={`text-lg md:text-xl font-bold text-black mb-3 md:mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
-                >
-                  {t("contact.emailSupport.title")}
-                </h3>
-                <p
-                  className={`text-gray-600 text-sm md:text-base mb-3 md:mb-4 ${isRTL ? "font-noto-arabic" : "font-noto-sans"} leading-relaxed`}
-                >
-                  {t("contact.emailSupport.description")}
-                </p>
-                <p className="text-base md:text-lg font-bold text-[#a8f387]">support@drinkmate.com</p>
-                <p className="text-xs md:text-sm text-gray-500 font-medium">{t("contact.emailSupport.response")}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Contact Form */}
-      <section ref={formRef} className="py-8 md:py-16 bg-white animate-fade-in-up">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl border border-gray-100">
-            <div className="text-center mb-6 md:mb-8">
-              <h2
-                className={`text-2xl md:text-3xl font-bold text-black mb-3 md:mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-tight`}
-              >
-                {t("contact.form.title")}
-              </h2>
-              <p
-                className={`text-gray-600 text-sm md:text-base ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-up delay-200 leading-relaxed`}
-              >
-                {t("contact.form.subtitle")}
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
-                    {t("contact.form.fullName")}
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    disabled={isSubmitting}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] transition-all duration-300 hover:border-gray-300 font-medium"
-                    placeholder={t("contact.form.placeholders.fullName")}
+              {reasons.map((reason) => (
+                <div key={reason.value} className="flex items-center space-x-2">
+                  <RadioGroupItem 
+                    value={reason.value} 
+                    id={reason.value}
+                    className="text-brand-500 border-outline-300"
                   />
-                </div>
-                <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                    {t("contact.form.email")}
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    disabled={isSubmitting}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] transition-all duration-300 hover:border-gray-300 font-medium"
-                    placeholder={t("contact.form.placeholders.email")}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <div>
-                  <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
-                    {t("contact.form.subject")}
-                  </label>
-                  <select
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                    disabled={isSubmitting}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] transition-all duration-300 hover:border-gray-300 font-medium"
+                  <Label 
+                    htmlFor={reason.value} 
+                    className="text-body text-ink-700 cursor-pointer"
                   >
-                    <option value="">{t("contact.form.placeholders.subject")}</option>
-                    <option value="general">{t("contact.form.subjects.general")}</option>
-                    <option value="product">{t("contact.form.subjects.product")}</option>
-                    <option value="support">{t("contact.form.subjects.support")}</option>
-                    <option value="order">{t("contact.form.subjects.order")}</option>
-                    <option value="refund">{t("contact.form.subjects.refund")}</option>
-                    <option value="other">{t("contact.form.subjects.other")}</option>
-                  </select>
+                    {reason.label}
+                  </Label>
                 </div>
-
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
-                    {t("contact.form.phone")} <span className="text-gray-500 font-normal">({t("contact.form.optional")})</span>
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] transition-all duration-300 hover:border-gray-300 font-medium"
-                    placeholder={t("contact.form.placeholders.phone")}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
-                  {t("contact.form.message")}
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  disabled={isSubmitting}
-                  rows={6}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] transition-all duration-300 hover:border-gray-300 resize-vertical font-medium"
-                  placeholder={t("contact.form.placeholders.message")}
-                ></textarea>
-              </div>
-
-              <div className="text-center">
-                <Button
-                  type="submit"
-                  className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#09b3d6] text-white px-8 py-3 text-base md:text-lg font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105 rounded-xl"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      {t("contact.form.sending")}
-                    </>
-                  ) : (
-                    t("contact.form.sendMessage")
-                  )}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section ref={faqRef} className="py-8 md:py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="text-center mb-8 md:mb-12">
-            <h2
-              className={`text-2xl md:text-4xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
-            >
-              {t("contact.faq.title")}
-            </h2>
-            <p
-              className={`text-gray-600 text-base md:text-lg ${isRTL ? "font-noto-arabic" : "font-noto-sans"} leading-relaxed`}
-            >
-              {t("contact.faq.subtitle")}
-            </p>
+              ))}
+            </RadioGroup>
           </div>
 
-          <div className="space-y-4">
-            {[
-              {
-                question: t("contact.faq.questions.q1"),
-                answer: t("contact.faq.questions.a1"),
-              },
-              {
-                question: t("contact.faq.questions.q2"),
-                answer: t("contact.faq.questions.a2"),
-              },
-              {
-                question: t("contact.faq.questions.q3"),
-                answer: t("contact.faq.questions.a3"),
-              },
-              {
-                question: t("contact.faq.questions.q4"),
-                answer: t("contact.faq.questions.a4"),
-              },
-              {
-                question: t("contact.faq.questions.q5"),
-                answer: t("contact.faq.questions.a5"),
-              },
-              {
-                question: t("contact.faq.questions.q6"),
-                answer: t("contact.faq.questions.a6"),
-              },
-            ].map((faq, index) => (
-              <div
-                key={index}
-                className="border-2 border-gray-100 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
+          {/* Personal Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="name" className="text-body font-medium text-ink-900 mb-2 block">
+                Full name *
+              </Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                placeholder="Enter your full name"
+                className="h-12 border-outline-200 focus:border-brand-500 focus:ring-brand-500"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="email" className="text-body font-medium text-ink-900 mb-2 block">
+                Email *
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                placeholder="Enter your email"
+                className="h-12 border-outline-200 focus:border-brand-500 focus:ring-brand-500"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="phone" className="text-body font-medium text-ink-900 mb-2 block">
+              Phone (optional)
+            </Label>
+            <Input
+              id="phone"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+              placeholder="Enter your phone number"
+              className="h-12 border-outline-200 focus:border-brand-500 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="message" className="text-body font-medium text-ink-900 mb-2 block">
+              Message *
+            </Label>
+            <Textarea
+              id="message"
+              value={formData.message}
+              onChange={(e) => handleInputChange('message', e.target.value)}
+              placeholder="Tell us how we can help you..."
+              rows={5}
+              className="min-h-[120px] border-outline-200 focus:border-brand-500 focus:ring-brand-500"
+              required
+            />
+          </div>
+
+          {/* File Upload */}
+          <div>
+            <Label className="text-body font-medium text-ink-900 mb-2 block">
+              Attachments (optional)
+            </Label>
+            <div className="border-2 border-dashed border-outline-200 rounded-soft p-4 hover:border-brand-300 transition-colors">
+              <input
+                id="attachments"
+                type="file"
+                multiple
+                onChange={handleFileChange}
+                accept=".jpg,.jpeg,.png,.gif,.pdf"
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => document.getElementById('attachments')?.click()}
+                className="w-full h-12 rounded-pill border-outline-200 hover:border-brand-300"
               >
-                <button
-                  onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
-                  className={`w-full px-6 py-4 text-left flex items-center justify-between transition-all duration-300 ${
-                    openFAQ === index
-                      ? "bg-gradient-to-r from-[#12d6fa]/10 to-[#12d6fa]/5 border-l-4 border-l-[#12d6fa]"
-                      : "hover:bg-gray-50"
-                  }`}
-                >
-                  <span
-                    className={`font-semibold text-sm md:text-base transition-colors duration-300 ${
-                      openFAQ === index ? "text-[#12d6fa]" : "text-black"
-                    }`}
-                  >
-                    {faq.question}
-                  </span>
-                  <ChevronDown
-                    className={`w-5 h-5 transition-all duration-300 ${
-                      openFAQ === index ? "rotate-180 text-[#12d6fa]" : "text-gray-500"
-                    }`}
-                  />
-                </button>
-                {openFAQ === index && (
-                  <div className="px-6 pb-4 bg-gradient-to-r from-[#12d6fa]/5 to-transparent animate-fade-in-up">
-                    <p className="text-gray-700 text-sm md:text-base leading-relaxed font-medium">{faq.answer}</p>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload files (max 3 files, 10MB each)
+              </Button>
+              <p className="text-secondary text-ink-700 mt-2 text-center">
+                JPG, PNG, GIF, PDF files only
+              </p>
+            </div>
+
+            {files.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {files.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between bg-surface-50 p-3 rounded-soft">
+                    <div className="flex items-center space-x-2">
+                      <FileText className="h-4 w-4 text-ink-500" />
+                      <span className="text-body text-ink-700">{file.name}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFile(index)}
+                      className="h-8 w-8 p-0 text-ink-500 hover:text-danger-500"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Office Locations */}
-      <section className="py-8 md:py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-8 md:mb-12">
-            <h2
-              className={`text-2xl md:text-4xl font-bold text-black mb-4 ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
-            >
-              {t("contact.offices.title")}
-            </h2>
-            <p
-              className={`text-gray-600 text-base md:text-lg ${isRTL ? "font-noto-arabic" : "font-noto-sans"} leading-relaxed`}
-            >
-              {t("contact.offices.subtitle")}
-            </p>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xl border border-gray-200 hover:shadow-2xl transition-all duration-300 hover:transform hover:-translate-y-1">
-              <div className="flex items-center mb-4">
-                <MapPin className="w-6 h-6 text-[#12d6fa] mr-3" />
-                <h3
-                  className={`text-lg md:text-xl font-bold text-black ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
-                >
-                  {t("contact.offices.riyadh.title")}
-                </h3>
-              </div>
-              <p className="text-gray-600 text-sm md:text-base mb-4 font-medium leading-relaxed">
-                {t("contact.offices.riyadh.address")}
+          {/* Consent */}
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="consent"
+              checked={formData.consent}
+              onCheckedChange={(checked) => handleInputChange('consent', checked as boolean)}
+              className="mt-1"
+            />
+            <Label htmlFor="consent" className="text-body text-ink-700 leading-relaxed">
+              I agree to the{' '}
+              <a href="/privacy-policy" className="text-brand-500 hover:text-brand-600 underline">
+                privacy policy
+              </a>{' '}
+              and{' '}
+              <a href="/terms-of-service" className="text-brand-500 hover:text-brand-600 underline">
+                terms of service
+              </a>
+            </Label>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-12 rounded-pill bg-brand-500 hover:bg-brand-600 text-white font-medium"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Send message
+              </>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Main Contact Page Component
+function ContactPageContent() {
+  const { settings, getText } = useContactSettings()
+  const { user, isAuthenticated } = useAuth()
+  const { isRTL } = useTranslation()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null)
+
+  const handleWhatsAppClick = () => {
+    const message = encodeURIComponent("Hello! I need help with my order.")
+    const url = `https://wa.me/966501234567?text=${message}`
+    window.open(url, '_blank')
+  }
+
+  const handleEmailClick = () => {
+    const subject = encodeURIComponent('Support Request')
+    const body = encodeURIComponent(`Hello,\n\nI need help with: ${user ? `Order #${user._id || user.username}` : 'my inquiry'}\n\n`)
+    const url = `mailto:support@drinkmates.com?subject=${subject}&body=${body}`
+    window.open(url)
+  }
+
+  const handleChatClick = () => {
+    if (!isAuthenticated) {
+      window.location.href = `/login?returnUrl=${encodeURIComponent('/contact?chat=1')}`
+      return
+    }
+    
+    if (!isChatOnline()) {
+      // Show offline message or redirect to contact form
+      alert('Live chat is currently offline. Please use our contact form or email us.')
+      return
+    }
+    
+    // The floating chat widget will handle the chat opening
+    // This is just for the contact page button - the actual chat is handled by FloatingChatWidget
+  }
+
+  const isChatOnline = () => {
+    const now = new Date()
+    const currentHour = now.getHours()
+    return currentHour >= 9 && currentHour < 17
+  }
+
+  const faqCategories = [
+    {
+      id: 'orders',
+      title: 'Orders & Delivery',
+      questions: [
+        { q: 'How long does delivery take?', a: 'Delivery typically takes 2-3 business days within Riyadh and 3-5 days for other cities.' },
+        { q: 'Can I track my order?', a: 'Yes, you can track your order using the order number in our track order page.' },
+        { q: 'What if my order is delayed?', a: 'We\'ll notify you immediately and provide updates on the new delivery timeline.' }
+      ]
+    },
+    {
+      id: 'refill',
+      title: 'Refill & Exchange',
+      questions: [
+        { q: 'How do I refill my CO2 cylinder?', a: 'You can schedule a refill through our website or contact us directly.' },
+        { q: 'What is the exchange process?', a: 'We\'ll pick up your empty cylinder and deliver a full one within 24 hours.' },
+        { q: 'Is there a fee for cylinder exchange?', a: 'The first exchange is free. Subsequent exchanges have a small service fee.' }
+      ]
+    },
+    {
+      id: 'returns',
+      title: 'Returns & Warranty',
+      questions: [
+        { q: 'What is your return policy?', a: 'We offer 30-day returns for unopened products in original packaging.' },
+        { q: 'How do I return a product?', a: 'Contact our support team and we\'ll arrange pickup and processing.' },
+        { q: 'What is covered under warranty?', a: 'All soda makers come with a 2-year warranty covering manufacturing defects.' }
+      ]
+    },
+    {
+      id: 'payment',
+      title: 'Payment & Billing',
+      questions: [
+        { q: 'What payment methods do you accept?', a: 'We accept Mada, Visa, Mastercard, and American Express.' },
+        { q: 'Is my payment information secure?', a: 'Yes, all payments are processed through secure, encrypted channels.' },
+        { q: 'Can I pay in installments?', a: 'Yes, we offer installment plans for orders over 500 SAR.' }
+      ]
+    }
+  ]
+
+  return (
+    <>
+      <Banner />
+      <Header currentPage="contact" />
+      
+      <main className="min-h-screen bg-surface-50">
+        {/* Hero Section */}
+        <section className="dm-hero">
+          <div className="dm-wrap">
+            <div className="text-center">
+              <h1 className="dm-heading-1 mb-4">
+                Get in touch
+              </h1>
+              <p className="dm-text-secondary text-base leading-6 max-w-2xl mx-auto">
+                We're here to help. Choose the best way to reach us.
               </p>
-              <div className="space-y-2 text-sm md:text-base">
-                <p className="flex items-center font-medium">
-                  <Clock className="w-4 h-4 mr-2 text-gray-500" />
-                  {t("contact.offices.riyadh.hours")}
-                </p>
-                <p className="flex items-center font-medium">
-                  <Phone className="w-4 h-4 mr-2 text-gray-500" />
-                  {t("contact.offices.riyadh.phone")}
-                </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Main Content */}
+        <section className="py-8 lg:py-12">
+          <div className="dm-wrap px-6">
+            {/* Desktop Layout - Two Column Grid */}
+            <div className="hidden lg:grid lg:grid-cols-12 gap-6">
+              {/* Left Column - Contact Options */}
+              <div className="lg:col-span-5">
+                <div className="sticky top-8">
+                  <h2 className="dm-heading-2 mb-8">Contact Options</h2>
+                  <div className="space-y-6">
+                    <ContactOptionCard
+                      icon={MessageCircle}
+                      title="WhatsApp"
+                      availability="Available 24/7 • Typical replies 9–5"
+                      buttonText="Chat on WhatsApp"
+                      buttonAction={handleWhatsAppClick}
+                      status="24/7"
+                    />
+                    
+                    <ContactOptionCard
+                      icon={Mail}
+                      title="Email"
+                      availability="We reply within 1 business day"
+                      buttonText="Email support@drinkmates.com"
+                      buttonAction={handleEmailClick}
+                      status="24/7"
+                    />
+                    
+                    <ContactOptionCard
+                      icon={MessageCircle}
+                      title="Live Chat"
+                      availability={isChatOnline() ? "Live now • Avg. reply ~2 min" : "Chat offline • Opens 09:00 AM"}
+                      buttonText="Start live chat"
+                      buttonAction={handleChatClick}
+                      status={isChatOnline() ? "available" : "offline"}
+                      disabled={!isAuthenticated || !isChatOnline()}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - FAQ */}
+              <div className="lg:col-span-7">
+                <h2 className="dm-heading-2 mb-8">Frequently Asked Questions</h2>
+                
+                {/* FAQ Search */}
+                <div className="dm-card mb-8">
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <input
+                      type="text"
+                      placeholder="Search our FAQ…"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="dm-search w-full"
+                    />
+                  </div>
+                </div>
+
+                {/* FAQ Categories */}
+                <div className="space-y-6">
+                  {faqCategories.map((category) => (
+                    <FAQAccordion
+                      key={category.id}
+                      category={category.title}
+                      questions={category.questions}
+                      isExpanded={expandedFAQ === category.id}
+                      onToggle={() => setExpandedFAQ(expandedFAQ === category.id ? null : category.id)}
+                    />
+                  ))}
+                  
+                  <div className="text-center pt-6">
+                    <button
+                      onClick={() => {
+                        const subject = encodeURIComponent('FAQ Question')
+                        const body = encodeURIComponent('I couldn\'t find the answer to my question in the FAQ. Here\'s what I need help with:\n\n')
+                        window.open(`mailto:support@drinkmates.com?subject=${subject}&body=${body}`)
+                      }}
+                      className="dm-btn px-8 py-3 dm-shine"
+                    >
+                      <HelpCircle className="h-4 w-4 mr-2" />
+                      Didn't find what you need?
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xl border border-gray-200 hover:shadow-2xl transition-all duration-300 hover:transform hover:-translate-y-1">
-              <div className="flex items-center mb-4">
-                <MapPin className="w-6 h-6 text-[#a8f387] mr-3" />
-                <h3
-                  className={`text-lg md:text-xl font-bold text-black ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight`}
-                >
-                  {t("contact.offices.jeddah.title")}
-                </h3>
+            {/* Mobile Layout - Single Column */}
+            <div className="lg:hidden space-y-8">
+              {/* Contact Options */}
+              <div>
+                <h2 className="dm-heading-2 mb-6">Contact Options</h2>
+                <div className="space-y-4">
+                  <ContactOptionCard
+                    icon={MessageCircle}
+                    title="WhatsApp"
+                    availability="Available 24/7 • Typical replies 9–5"
+                    buttonText="Chat on WhatsApp"
+                    buttonAction={handleWhatsAppClick}
+                    status="24/7"
+                  />
+                  
+                  <ContactOptionCard
+                    icon={Mail}
+                    title="Email"
+                    availability="We reply within 1 business day"
+                    buttonText="Email support@drinkmates.com"
+                    buttonAction={handleEmailClick}
+                    status="24/7"
+                  />
+                  
+                  <ContactOptionCard
+                    icon={MessageCircle}
+                    title="Live Chat"
+                    availability={isChatOnline() ? "Live now • Avg. reply ~2 min" : "Chat offline • Opens 09:00 AM"}
+                    buttonText="Start live chat"
+                    buttonAction={handleChatClick}
+                    status={isChatOnline() ? "available" : "offline"}
+                    disabled={!isAuthenticated || !isChatOnline()}
+                  />
+                </div>
               </div>
-              <p className="text-gray-600 text-sm md:text-base mb-4 font-medium leading-relaxed">
-                {t("contact.offices.jeddah.address")}
-              </p>
-              <div className="space-y-2 text-sm md:text-base">
-                <p className="flex items-center font-medium">
-                  <Clock className="w-4 h-4 mr-2 text-gray-500" />
-                  {t("contact.offices.jeddah.hours")}
-                </p>
-                <p className="flex items-center font-medium">
-                  <Phone className="w-4 h-4 mr-2 text-gray-500" />
-                  {t("contact.offices.jeddah.phone")}
-                </p>
+
+              {/* FAQ Section */}
+              <div>
+                <h2 className="dm-heading-2 mb-6">Frequently Asked Questions</h2>
+                <div className="dm-card mb-6">
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <input
+                      type="text"
+                      placeholder="Search our FAQ…"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="dm-search w-full"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {faqCategories.map((category) => (
+                    <FAQAccordion
+                      key={category.id}
+                      category={category.title}
+                      questions={category.questions}
+                      isExpanded={expandedFAQ === category.id}
+                      onToggle={() => setExpandedFAQ(expandedFAQ === category.id ? null : category.id)}
+                    />
+                  ))}
+                  
+                  <div className="text-center pt-4">
+                    <button
+                      onClick={() => {
+                        const subject = encodeURIComponent('FAQ Question')
+                        const body = encodeURIComponent('I couldn\'t find the answer to my question in the FAQ. Here\'s what I need help with:\n\n')
+                        window.open(`mailto:support@drinkmates.com?subject=${subject}&body=${body}`)
+                      }}
+                      className="dm-btn px-8 py-3 dm-shine"
+                    >
+                      <HelpCircle className="h-4 w-4 mr-2" />
+                      Didn't find what you need?
+                    </button>
+                  </div>
+                </div>
               </div>
+
+              {/* Contact Form */}
+              <ContactForm />
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      {/* Live Chat Widget */}
-      <CustomerChatWidget 
-        isOpen={isChatOpen} 
-        onClose={() => setIsChatOpen(false)} 
-      />
-    </PageLayout>
+      <Footer />
+    </>
+  )
+}
+
+// Main Export with Provider
+export default function ContactPage() {
+  return (
+    <ContactProvider>
+      <ContactPageContent />
+    </ContactProvider>
   )
 }

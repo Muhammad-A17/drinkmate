@@ -36,20 +36,73 @@ const config: Config = {
         },
       },
       colors: {
-        // Brand colors
+        // Soft Drinkmate Brand Colors
         brand: {
-          DEFAULT: '#00C2DF',   // aqua (primary)
-          dark: '#0795AC',
-          light: '#E8FAFD'
+          50: '#EAFBFE', // Icon chip background
+          100: '#D5F7FD',
+          200: '#ABEFFB',
+          300: '#81E7F9',
+          400: '#57DFF7',
+          500: '#04C4DB', // Primary aqua
+          600: '#02B4CA', // Primary hover
+          700: '#0294A3',
+          800: '#01747C',
+          900: '#015455',
+          DEFAULT: '#04C4DB',
+          dark: '#02B4CA',
+          light: '#EAFBFE'
+        },
+        surface: {
+          50: '#F7FBFD', // Surface background
+          100: '#EFF7FA',
+          200: '#DFEFF5',
+          300: '#CFE7F0',
+          400: '#BFDFEB',
+          500: '#AFD7E6',
+          600: '#9FCFE1',
+          700: '#8FC7DC',
+          800: '#7FBFD7',
+          900: '#6FB7D2',
         },
         ink: {
-          950: '#0F172A', 900: '#111827', 800: '#1F2937', 700: '#374151',
-          600: '#4B5563', 500: '#6B7280', 400: '#9CA3AF', 300: '#D1D5DB',
-          200: '#E5E7EB', 100: '#F3F4F6', 50: '#F9FAFB'
+          50: '#F8FAFB',
+          100: '#F1F5F7',
+          200: '#E2EBF0',
+          300: '#D1DDE6',
+          400: '#B8C9D6',
+          500: '#9BB0C1',
+          600: '#7A95A8',
+          700: '#5A6B7B', // Text secondary
+          800: '#4A5A6A',
+          900: '#0E1B2A', // Text primary
         },
-        success: { DEFAULT: '#18A957', light: '#E9FBF2' },
-        danger: { DEFAULT: '#E11D48', light: '#FDE8EE' },
-        warning: { DEFAULT: '#F59E0B', light: '#FFF7E6' },
+        outline: {
+          50: '#F8FAFB',
+          100: '#F1F5F7',
+          200: '#E9EFF4', // Outline/border
+          300: '#E1E8ED',
+          400: '#D9E1E6',
+          500: '#D1DADF',
+          600: '#C9D3D8',
+          700: '#C1CCD1',
+          800: '#B9C5CA',
+          900: '#B1BEC3',
+        },
+        success: { 
+          DEFAULT: '#22C55E', 
+          light: '#dcfce7',
+          dark: '#16a34a'
+        },
+        danger: { 
+          DEFAULT: '#ef4444', 
+          light: '#fee2e2', // Validation error border
+          dark: '#b91c1c' // Validation error text
+        },
+        warning: { 
+          DEFAULT: '#F59E0B', 
+          light: '#fef3c7',
+          dark: '#d97706'
+        },
         // Existing shadcn colors
         background: 'var(--background)',
         foreground: 'var(--foreground)',
@@ -91,10 +144,27 @@ const config: Config = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
         xl: 'calc(var(--radius) + 4px)',
-        soft: '16px',
+        soft: '16px', // Card radius
+        pill: '999px', // Button radius
       },
       boxShadow: {
-        card: '0 6px 20px rgba(0,0,0,0.06)'
+        card: '0 10px 30px -12px rgba(2, 51, 72, .12)', // Soft shadow
+        'card-elevated': '0 14px 40px -12px rgba(2, 51, 72, .18)', // Focus elevated
+        'card-hover': '0 8px 25px -8px rgba(2, 51, 72, .15)', // Hover shadow
+      },
+      spacing: {
+        'card-padding': '20px', // Card inner padding
+        'card-padding-lg': '24px', // Card inner padding large
+        'section-gap': '32px', // Section gaps
+        'section-gap-lg': '40px', // Section gaps large
+        'grid-gutter': '24px', // Grid gutter
+      },
+      fontSize: {
+        'h1': ['36px', '44px'], // H1 36/44
+        'h2': ['24px', '32px'], // H2 24/32
+        'card-title': ['18px', '26px'], // Card title 18/26
+        'body': ['15px', '22px'], // Body 15/22
+        'secondary': ['13px', '20px'], // Secondary/help text 13/20
       },
       fontFamily: {
         // Primary fonts with proper fallbacks

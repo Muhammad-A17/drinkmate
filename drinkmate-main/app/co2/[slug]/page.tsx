@@ -83,7 +83,7 @@ interface CO2Cylinder {
   status: string
   isBestSeller: boolean
   isFeatured: boolean
-  isNew: boolean
+  isNewProduct: boolean
   isEcoFriendly: boolean
   description: string
   features: string[]
@@ -855,7 +855,7 @@ export default function CO2ProductDetail() {
                           Best Seller
                         </Badge>
                       )}
-                      {product.isNew && (
+                      {product.isNewProduct && (
                         <Badge className="bg-green-500 text-white shadow-lg">
                           <Sparkles className="w-3 h-3 mr-1" />
                           New

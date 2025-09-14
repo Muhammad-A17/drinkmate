@@ -18,23 +18,47 @@ class SocketService {
       try {
         const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
         
+        console.log('Socket auth attempt - token:', token ? 'present' : 'missing');
+        console.log('Socket auth attempt - auth object:', socket.handshake.auth);
+        
         if (!token) {
+          console.log('No token provided for socket connection');
           return next(new Error('Authentication error: No token provided'));
         }
 
+        // Check if token is a demo token
+        if (token.startsWith('demo_token_')) {
+          console.log('Demo token detected, allowing connection');
+          socket.userId = 'demo_user_123';
+          socket.user = {
+            _id: 'demo_user_123',
+            username: 'Demo User',
+            email: 'demo@example.com',
+            firstName: 'Demo',
+            lastName: 'User',
+            isAdmin: false
+          };
+          return next();
+        }
+
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log('Token decoded successfully:', decoded);
+        
         const user = await User.findById(decoded.id).select('_id username email firstName lastName isAdmin');
         
         if (!user) {
+          console.log('User not found for token:', decoded.id);
           return next(new Error('Authentication error: User not found'));
         }
 
+        console.log('User found for socket connection:', user.username);
         socket.userId = user._id.toString();
         socket.user = user;
         next();
       } catch (error) {
         console.error('Socket authentication error:', error);
-        next(new Error('Authentication error: Invalid token'));
+        console.error('Error details:', error.message);
+        next(new Error('Authentication error: Invalid token format'));
       }
     });
   }
@@ -103,7 +127,8 @@ class SocketService {
           await message.save();
 
           // Update chat last message time
-          await chat.updateLastMessage();
+          chat.lastMessageAt = new Date();
+          await chat.save();
 
           // Mark messages as read for sender
           await Message.markAllAsRead(chatId, socket.userId);

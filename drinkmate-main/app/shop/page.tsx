@@ -48,7 +48,7 @@ export default function ShopPage() {
     brand: [],
     rating: 0,
     inStock: false,
-    isNew: false,
+    isNewProduct: false,
     isBestSeller: false,
     sortBy: 'popularity',
     sortOrder: 'desc'
@@ -152,8 +152,8 @@ export default function ShopPage() {
     }
 
     // New products filter
-    if (filters.isNew) {
-      filtered = filtered.filter(product => (product as any).isNew)
+    if (filters.isNewProduct) {
+      filtered = filtered.filter(product => (product as any).isNewProduct)
     }
 
     // Best seller filter
@@ -225,7 +225,7 @@ export default function ShopPage() {
       brand: [],
       rating: 0,
       inStock: false,
-      isNew: false,
+      isNewProduct: false,
       isBestSeller: false,
       sortBy: 'popularity',
       sortOrder: 'desc'

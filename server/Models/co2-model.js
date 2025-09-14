@@ -120,7 +120,7 @@ const co2CylinderSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  isNew: {
+  isNewProduct: {
     type: Boolean,
     default: false
   },

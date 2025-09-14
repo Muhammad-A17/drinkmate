@@ -407,6 +407,24 @@
   --sidebar-accent-foreground: #171717;
   --sidebar-border: #e5e5e5;
   --sidebar-ring: #a3a3a3;
+
+  /* Drinkmate Brand Variables */
+  --dm-primary: #04C4DB;
+  --dm-primary-hover: #02B4CA;
+  --dm-bg-soft: #F7FBFD;
+  --dm-surface: #FFFFFF;
+  --dm-border: #E9EFF4;
+  --dm-text: #0E1B2A;
+  --dm-text-2: #5A6B7B;
+  --dm-success-bg: #E9F9EF;
+  --dm-success: #22C55E;
+  --dm-warn-bg: #FFF4E5;
+  --dm-warn: #F59E0B;
+  --dm-chip-tint: #EAFBFE;
+  --dm-shadow: 0 10px 30px -12px rgba(2,51,72,.12);
+  --dm-shadow-2: 0 14px 40px -12px rgba(2,51,72,.18);
+  --dm-radius-card: 16px;
+  --dm-radius-pill: 999px;
 }
 
 .dark {
@@ -710,6 +728,354 @@
   @keyframes shine {
     to { 
       transform: translateX(100%); 
+    }
+  }
+
+  /* Drinkmate Contact Page Components */
+  .dm-hero {
+    background: linear-gradient(180deg, var(--dm-bg-soft) 0%, #fff 55%);
+    padding: 56px 24px 28px;
+  }
+  
+  .dm-wrap { 
+    max-width: 1100px; 
+    margin: 0 auto; 
+  }
+
+  .dm-card {
+    background: var(--dm-surface);
+    border: 1px solid var(--dm-border);
+    border-radius: var(--dm-radius-card);
+    box-shadow: var(--dm-shadow);
+    padding: 20px;
+  }
+
+  .dm-chip {
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px;
+    height: 28px; 
+    padding: 0 10px;
+    border-radius: 999px; 
+    font-size: 12px; 
+    font-weight: 600;
+    background: var(--dm-chip-tint); 
+    color: #028EA1;
+  }
+
+  .dm-btn {
+    height: 48px; 
+    border-radius: var(--dm-radius-pill);
+    background: var(--dm-primary); 
+    color: #fff; 
+    border: none; 
+    padding: 0 20px;
+    transition: all 200ms ease;
+  }
+  
+  .dm-btn:hover { 
+    background: var(--dm-primary-hover);
+    transform: translateY(-1px);
+  }
+  
+  .dm-btn:focus-visible { 
+    outline: 2px solid var(--dm-primary); 
+    outline-offset: 2px; 
+  }
+
+  .dm-btn--disabled { 
+    background: #E9EFF4; 
+    color: #8CA0B0; 
+    cursor: not-allowed; 
+  }
+  
+  .dm-icon-chip { 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 999px; 
+    background: var(--dm-chip-tint);
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: #028EA1; 
+  }
+
+  /* Status pill variants */
+  .dm-chip--24-7 {
+    background: var(--dm-chip-tint);
+    color: #028EA1;
+  }
+
+  .dm-chip--live {
+    background: var(--dm-success-bg);
+    color: #157F3D;
+  }
+
+  .dm-chip--closed {
+    background: var(--dm-warn-bg);
+    color: #9A5C00;
+  }
+
+  /* Card hover effects */
+  .dm-card-hover {
+    transition: all 300ms ease;
+  }
+
+  .dm-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--dm-shadow-2);
+  }
+
+  /* Accordion styles */
+  .dm-accordion {
+    background: var(--dm-surface);
+    border: 1px solid var(--dm-border);
+    border-radius: var(--dm-radius-card);
+    box-shadow: var(--dm-shadow);
+    transition: all 200ms ease;
+  }
+
+  .dm-accordion:hover {
+    background: var(--dm-bg-soft);
+  }
+
+  .dm-accordion--open {
+    border-left: 2px solid var(--dm-primary);
+  }
+
+  /* Search input */
+  .dm-search {
+    height: 48px;
+    border: 1px solid var(--dm-border);
+    border-radius: var(--dm-radius-card);
+    padding: 0 16px 0 48px;
+    background: var(--dm-surface);
+    color: var(--dm-text);
+    transition: all 200ms ease;
+  }
+
+  .dm-search:focus {
+    outline: none;
+    border-color: var(--dm-primary);
+    box-shadow: 0 0 0 3px rgba(4, 196, 219, 0.1);
+  }
+
+  .dm-search::placeholder {
+    color: #8CA0B0;
+  }
+
+  /* Typography */
+  .dm-heading-1 {
+    font-size: 36px;
+    line-height: 44px;
+    font-weight: 700;
+    color: var(--dm-text);
+  }
+
+  .dm-heading-2 {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    color: var(--dm-text);
+  }
+
+  .dm-text-primary {
+    font-size: 15px;
+    line-height: 22px;
+    color: var(--dm-text);
+  }
+
+  .dm-text-secondary {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--dm-text-2);
+  }
+
+  .dm-text-helper {
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--dm-text-2);
+  }
+
+  /* Micro-interactions */
+  .dm-shine {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dm-shine::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 200ms ease;
+  }
+
+  .dm-shine:hover::after {
+    left: 100%;
+  }
+
+  .dm-fade-in {
+    animation: fadeIn 160ms ease-out;
+  }
+
+  .dm-slide-up {
+    animation: slideUp 160ms ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(2px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Chat Widget Styles */
+  .chat-widget {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 9999;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(16,24,40,.18);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Desktop: resizable panel */
+  @media (min-width: 768px) {
+    .chat-widget {
+      width: 360px;
+      height: 520px;
+      max-height: calc(100dvh - 120px);
+      max-width: min(560px, 92vw);
+      min-width: 280px;
+      min-height: 360px;
+      resize: both;
+      overflow: auto;
+    }
+
+    /* Optional visible drag handle (bottom-right corner) */
+    .chat-resize-handle {
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      width: 16px;
+      height: 16px;
+      cursor: nwse-resize;
+      opacity: .4;
+      background:
+        linear-gradient(135deg, transparent 50%, #94a3b8 0) right/8px 8px no-repeat;
+      pointer-events: auto;
+    }
+  }
+
+  /* Mobile: full-screen sheet */
+  @media (max-width: 767px) {
+    .chat-widget {
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      border-radius: 0;
+      bottom: auto;
+      right: auto;
+    }
+    /* Respect iOS safe areas */
+    .chat-header { 
+      padding-top: max(16px, env(safe-area-inset-top)); 
+    }
+    .chat-footer { 
+      padding-bottom: max(12px, env(safe-area-inset-bottom)); 
+    }
+  }
+
+  /* When "maximized" on desktop */
+  .chat--fullscreen {
+    width: min(720px, 95vw) !important;
+    height: min(80dvh, 900px) !important;
+    resize: none;
+  }
+
+  /* Disable body scroll when mobile sheet is open */
+  body.chat-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+
+  /* Chat header styles */
+  .chat-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid rgba(0,0,0,.08);
+    background: #fff;
+    flex-shrink: 0;
+  }
+
+  .chat-header strong {
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .chat-header .spacer {
+    flex: 1;
+  }
+
+  .chat-header button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s ease;
+  }
+
+  .chat-header button:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+
+  /* Chat body styles */
+  .chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: #f8fafc;
+  }
+
+  /* Chat footer styles */
+  .chat-footer {
+    padding: 16px;
+    border-top: 1px solid rgba(0,0,0,.08);
+    background: #fff;
+    flex-shrink: 0;
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .chat-widget {
+      transition: none;
     }
   }
 }

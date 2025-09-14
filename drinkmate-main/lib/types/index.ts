@@ -25,7 +25,7 @@ export interface BaseProduct {
   status?: string
   isBestSeller?: boolean
   isFeatured?: boolean
-  isNew?: boolean
+  isNewProduct?: boolean
   isEcoFriendly?: boolean
   sku?: string
   createdAt?: string
@@ -220,7 +220,7 @@ export interface ProductFilters {
   priceRange?: [number, number]
   rating?: number
   inStock?: boolean
-  isNew?: boolean
+  isNewProduct?: boolean
   isBestSeller?: boolean
   search?: string
   sortBy?: 'name' | 'price' | 'rating' | 'createdAt' | 'popularity'

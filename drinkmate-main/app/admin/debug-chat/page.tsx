@@ -1,170 +1,486 @@
 "use client"
 
-import { useAuth } from "@/lib/auth-context"
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from 'react'
+import AdminLayout from '@/components/layout/AdminLayout'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { 
+  MessageSquare, 
+  Send, 
+  User, 
+  Bot, 
+  Clock, 
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  RefreshCcw,
+  Trash2,
+  Settings
+} from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
+import { toast } from 'sonner'
+
+interface ChatMessage {
+  id: string
+  sender: 'customer' | 'agent' | 'system'
+  content: string
+  timestamp: string
+  readByCustomer: boolean
+  readByAgent: boolean
+}
+
+interface ChatSession {
+  _id: string
+  sessionId: string
+  customer: {
+    name: string
+    email: string
+    phone?: string
+  }
+  agent?: {
+    userId: string
+    name: string
+    email: string
+  }
+  status: 'open' | 'pending' | 'closed' | 'resolved'
+  category: 'general' | 'order' | 'technical' | 'billing' | 'refund' | 'other'
+  orderNumber?: string
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  messages: ChatMessage[]
+  lastMessageAt: string
+  createdAt: string
+  updatedAt: string
+}
 
 export default function DebugChatPage() {
-  const { user, token } = useAuth()
-  const [chatData, setChatData] = useState<any>(null)
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const [chats, setChats] = useState<ChatSession[]>([])
+  const [selectedChat, setSelectedChat] = useState<ChatSession | null>(null)
+  const [newMessage, setNewMessage] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
 
-  const testChatAPI = async () => {
+  const fetchChats = async () => {
     setLoading(true)
     setError(null)
-    
     try {
-      console.log('Testing chat API with token:', token ? 'Present' : 'Missing')
-      
-      const response = await fetch('http://localhost:3000/chat/admin/all', {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setError('Authentication token not found.')
+        setLoading(false)
+        return
+      }
+
+      const response = await fetch('http://localhost:3000/chat', {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       })
-      
-      console.log('Response status:', response.status)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to fetch chat sessions.')
+      }
+
       const data = await response.json()
-      console.log('Response data:', data)
+      setChats(data.data)
       
-      setChatData(data)
-      
-      if (!data.success) {
-        setError(data.message || 'API returned error')
+      // Auto-select first chat if none selected
+      if (data.data.length > 0 && !selectedChat) {
+        setSelectedChat(data.data[0])
       }
     } catch (err: any) {
-      console.error('Chat API test failed:', err)
       setError(err.message)
+      toast.error(err.message)
     } finally {
       setLoading(false)
     }
   }
 
-  const testWithNewToken = async () => {
-    setLoading(true)
-    setError(null)
-    
+  const fetchChatMessages = async (chatId: string) => {
     try {
-      // Get a fresh token
-      const loginResponse = await fetch('http://localhost:3000/auth/login', {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      const response = await fetch(`http://localhost:3000/chat/${chatId}/messages`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to fetch chat messages.')
+      }
+
+      const data = await response.json()
+      
+      // Update the selected chat with messages
+      setSelectedChat(prev => {
+        if (prev && prev._id === chatId) {
+          return { ...prev, messages: data.data }
+        }
+        return prev
+      })
+    } catch (err: any) {
+      console.error('Error fetching chat messages:', err)
+      toast.error('Failed to fetch chat messages')
+    }
+  }
+
+  const sendMessage = async () => {
+    if (!selectedChat || !newMessage.trim()) return
+
+    setSending(true)
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        toast.error('Authentication token not found.')
+        return
+      }
+
+      const response = await fetch(`http://localhost:3000/chat/${selectedChat._id}/messages`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          email: 'admin@drinkmate.com',
-          password: 'admin123'
+          content: newMessage,
+          sender: 'agent',
+          messageType: 'text'
         })
       })
-      
-      const loginData = await loginResponse.json()
-      console.log('Login response:', loginData)
-      
-      if (loginData.token) {
-        // Test with fresh token
-        const chatResponse = await fetch('http://localhost:3000/chat/admin/all', {
-          headers: {
-            'Authorization': `Bearer ${loginData.token}`
-          }
-        })
-        
-        const chatData = await chatResponse.json()
-        console.log('Chat response with fresh token:', chatData)
-        setChatData(chatData)
-      } else {
-        setError('Failed to get fresh token')
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to send message.')
       }
+
+      // Add message to local state
+      const newMsg: ChatMessage = {
+        id: Date.now().toString(),
+        sender: 'agent',
+        content: newMessage,
+        timestamp: new Date().toISOString(),
+        readByCustomer: false,
+        readByAgent: true
+      }
+
+      setSelectedChat(prev => {
+        if (prev) {
+          return {
+            ...prev,
+            messages: [...prev.messages, newMsg],
+            lastMessageAt: new Date().toISOString()
+          }
+        }
+        return prev
+      })
+
+      setNewMessage('')
+      toast.success('Message sent successfully')
     } catch (err: any) {
-      console.error('Fresh token test failed:', err)
-      setError(err.message)
+      console.error('Error sending message:', err)
+      toast.error(err.message)
     } finally {
-      setLoading(false)
+      setSending(false)
+    }
+  }
+
+  const updateChatStatus = async (chatId: string, status: string) => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      const response = await fetch(`http://localhost:3000/chat/${chatId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to update chat status.')
+      }
+
+      // Update local state
+      setChats(prev => prev.map(chat => 
+        chat._id === chatId ? { ...chat, status: status as any } : chat
+      ))
+
+      if (selectedChat && selectedChat._id === chatId) {
+        setSelectedChat(prev => prev ? { ...prev, status: status as any } : null)
+      }
+
+      toast.success('Chat status updated')
+    } catch (err: any) {
+      console.error('Error updating chat status:', err)
+      toast.error('Failed to update chat status')
     }
   }
 
   useEffect(() => {
-    if (user?.isAdmin) {
-      testChatAPI()
+    if (isAuthenticated && user?.isAdmin) {
+      fetchChats()
     }
-  }, [user, token])
+  }, [isAuthenticated, user])
 
-  if (!user?.isAdmin) {
+  useEffect(() => {
+    if (selectedChat) {
+      fetchChatMessages(selectedChat._id)
+    }
+  }, [selectedChat])
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'open': return 'bg-green-100 text-green-800'
+      case 'pending': return 'bg-yellow-100 text-yellow-800'
+      case 'closed': return 'bg-gray-100 text-gray-800'
+      case 'resolved': return 'bg-blue-100 text-blue-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'bg-red-100 text-red-800'
+      case 'high': return 'bg-orange-100 text-orange-800'
+      case 'medium': return 'bg-yellow-100 text-yellow-800'
+      case 'low': return 'bg-green-100 text-green-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  if (authLoading) {
     return (
-      <div className="p-8">
-        <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-        <p>You need admin privileges to access this page.</p>
-      </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin text-[#12d6fa]" />
+        </div>
+      </AdminLayout>
+    )
+  }
+
+  if (!isAuthenticated || !user?.isAdmin) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-full text-red-500">
+          Access Denied. You must be an admin to view this page.
+        </div>
+      </AdminLayout>
     )
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Chat API Debug</h1>
-      
-      <div className="space-y-6">
-        {/* Auth Info */}
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <h2 className="text-xl font-semibold mb-3">Authentication Info</h2>
-          <div className="space-y-2 text-sm">
-            <div><strong>User:</strong> {user?.username} ({user?.email})</div>
-            <div><strong>Is Admin:</strong> {user?.isAdmin ? 'Yes' : 'No'}</div>
-            <div><strong>Token:</strong> {token ? 'Present (' + token.substring(0, 20) + '...)' : 'Missing'}</div>
-          </div>
+    <AdminLayout>
+      <div className="container mx-auto p-6 max-w-7xl">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold flex items-center">
+            <MessageSquare className="h-7 w-7 mr-3 text-[#12d6fa]" /> 
+            Debug Chat System
+          </h1>
+          <Button onClick={fetchChats} className="flex items-center gap-2">
+            <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
 
-        {/* Actions */}
-        <div className="space-x-4">
-          <button 
-            onClick={testChatAPI}
-            disabled={loading}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-          >
-            {loading ? 'Testing...' : 'Test Current Token'}
-          </button>
-          <button 
-            onClick={testWithNewToken}
-            disabled={loading}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
-          >
-            {loading ? 'Testing...' : 'Test with Fresh Token'}
-          </button>
-        </div>
-
-        {/* Error Display */}
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            <strong>Error:</strong> {error}
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong className="font-bold">Error!</strong>
+            <span className="block sm:inline"> {error}</span>
           </div>
         )}
 
-        {/* Results */}
-        {chatData && (
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-2">API Response:</h3>
-            <div className="space-y-2">
-              <div><strong>Success:</strong> {chatData.success ? 'Yes' : 'No'}</div>
-              <div><strong>Chats Count:</strong> {chatData.chats?.length || 0}</div>
-              {chatData.chats && chatData.chats.length > 0 && (
-                <div>
-                  <strong>Chats:</strong>
-                  <ul className="ml-4 mt-2 space-y-1">
-                    {chatData.chats.map((chat: any, index: number) => (
-                      <li key={index} className="text-sm">
-                        {index + 1}. {chat.subject} - {chat.customer?.email} ({chat.status})
-                      </li>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Chat List */}
+          <div className="lg:col-span-1">
+            <Card className="h-[600px] overflow-hidden">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Chat Sessions</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 h-full overflow-y-auto">
+                {loading ? (
+                  <div className="flex items-center justify-center h-32">
+                    <Loader2 className="h-6 w-6 animate-spin text-[#12d6fa]" />
+                  </div>
+                ) : chats.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">
+                    No chat sessions found
+                  </div>
+                ) : (
+                  <div className="space-y-2 p-2">
+                    {chats.map((chat) => (
+                      <div
+                        key={chat._id}
+                        onClick={() => setSelectedChat(chat)}
+                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                          selectedChat?._id === chat._id
+                            ? 'bg-brand-50 border border-brand-200'
+                            : 'hover:bg-gray-50 border border-transparent'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm text-gray-900 truncate">
+                              {chat.customer.name}
+                            </h3>
+                            <p className="text-xs text-gray-500 truncate">
+                              {chat.customer.email}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end space-y-1">
+                            <Badge className={`text-xs ${getStatusColor(chat.status)}`}>
+                              {chat.status}
+                            </Badge>
+                            <Badge className={`text-xs ${getPriorityColor(chat.priority)}`}>
+                              {chat.priority}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {chat.messages.length} messages • {chat.category}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {new Date(chat.lastMessageAt).toLocaleString()}
+                        </div>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Chat Messages */}
+          <div className="lg:col-span-2">
+            <Card className="h-[600px] flex flex-col">
+              {selectedChat ? (
+                <>
+                  <CardHeader className="pb-3 border-b">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg">{selectedChat.customer.name}</CardTitle>
+                        <p className="text-sm text-gray-500">{selectedChat.customer.email}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge className={getStatusColor(selectedChat.status)}>
+                          {selectedChat.status}
+                        </Badge>
+                        <Badge className={getPriorityColor(selectedChat.priority)}>
+                          {selectedChat.priority}
+                        </Badge>
+                        <div className="flex space-x-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateChatStatus(selectedChat._id, 'closed')}
+                            disabled={selectedChat.status === 'closed'}
+                          >
+                            Close
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateChatStatus(selectedChat._id, 'resolved')}
+                            disabled={selectedChat.status === 'resolved'}
+                          >
+                            Resolve
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="flex-1 p-0 overflow-y-auto">
+                    <div className="p-4 space-y-4">
+                      {selectedChat.messages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`flex ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                              message.sender === 'agent'
+                                ? 'bg-brand-500 text-white'
+                                : message.sender === 'system'
+                                ? 'bg-gray-100 text-gray-700'
+                                : 'bg-gray-200 text-gray-900'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-2 mb-1">
+                              {message.sender === 'agent' ? (
+                                <Bot className="h-3 w-3" />
+                              ) : message.sender === 'system' ? (
+                                <Settings className="h-3 w-3" />
+                              ) : (
+                                <User className="h-3 w-3" />
+                              )}
+                              <span className="text-xs font-medium">
+                                {message.sender === 'agent' ? 'Agent' : 
+                                 message.sender === 'system' ? 'System' : 'Customer'}
+                              </span>
+                            </div>
+                            <p className="text-sm">{message.content}</p>
+                            <div className="text-xs opacity-75 mt-1">
+                              {new Date(message.timestamp).toLocaleTimeString()}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+
+                  <div className="p-4 border-t">
+                    <div className="flex space-x-2">
+                      <Textarea
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Type your message..."
+                        className="flex-1 min-h-[40px] max-h-32"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault()
+                            sendMessage()
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={sendMessage}
+                        disabled={!newMessage.trim() || sending}
+                        className="px-4"
+                      >
+                        {sending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  <div className="text-center">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>Select a chat to start messaging</p>
+                  </div>
                 </div>
               )}
-            </div>
-            <details className="mt-4">
-              <summary className="cursor-pointer font-medium">Full Response</summary>
-              <pre className="mt-2 text-xs bg-white p-2 rounded overflow-auto">
-                {JSON.stringify(chatData, null, 2)}
-              </pre>
-            </details>
+            </Card>
           </div>
-        )}
+        </div>
       </div>
-    </div>
+    </AdminLayout>
   )
 }

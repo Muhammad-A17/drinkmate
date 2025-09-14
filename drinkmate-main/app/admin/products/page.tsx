@@ -81,7 +81,7 @@ interface ProductFormData {
   images: string[]
   colors: string[]
   isBestSeller: boolean
-  isNew: boolean
+  isNewProduct: boolean
   isFeatured: boolean
   weight: string
   dimensions: string
@@ -213,7 +213,7 @@ export default function ProductsPage() {
           hexCode: '#000000' // Default color
         })),
         isBestSeller: productData.isBestSeller,
-        isNewArrival: productData.isNew,
+        isNewArrival: productData.isNewProduct,
         isFeatured: productData.isFeatured,
         sku: productData.sku || `SKU-${Date.now()}`,
         weight: productData.weight ? parseFloat(productData.weight) : undefined,
@@ -272,7 +272,7 @@ export default function ProductsPage() {
           hexCode: '#000000'
         })),
         isBestSeller: productData.isBestSeller,
-        isNewArrival: productData.isNew,
+        isNewArrival: productData.isNewProduct,
         isFeatured: productData.isFeatured,
         sku: productData.sku,
         weight: productData.weight ? parseFloat(productData.weight) : undefined,

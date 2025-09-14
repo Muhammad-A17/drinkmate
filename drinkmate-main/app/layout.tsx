@@ -8,6 +8,7 @@ import { SocketProvider } from "@/lib/socket-context"
 import SWRProvider from "@/lib/swr-provider"
 import SecurityMiddleware from "./security-middleware"
 import FontProvider from "@/components/layout/FontProvider"
+import ChatProvider from "@/components/layout/ChatProvider"
 import { Providers } from "@/components/providers"
 import { suppressHydrationWarnings } from "@/lib/suppress-hydration-warnings"
 // Suppress hydration warnings caused by browser extensions
@@ -209,6 +210,7 @@ export default function RootLayout({
                   <SWRProvider>
                     <Providers>
                       <div suppressHydrationWarning>{children}</div>
+                      <ChatProvider />
                     </Providers>
                   </SWRProvider>
                 </SocketProvider>
