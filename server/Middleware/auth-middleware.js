@@ -119,6 +119,15 @@ const authenticateToken = async (req, res, next) => {
       
       // Update last activity
       user.lastLogin = new Date();
+      
+      // Ensure required fields exist before saving
+      if (!user.firstName) {
+        user.firstName = user.username || 'User';
+      }
+      if (!user.lastName) {
+        user.lastName = 'Name';
+      }
+      
       await user.save();
       
       req.user = user;
@@ -126,7 +135,20 @@ const authenticateToken = async (req, res, next) => {
     } catch (mongoError) {
       console.error("MongoDB error in auth middleware:", mongoError);
       
-      // In production, don't allow fallback to token data
+      // Handle validation errors gracefully
+      if (mongoError.name === 'ValidationError') {
+        console.warn("User validation error, continuing with token data:", mongoError.message);
+        // Continue with token data instead of failing
+        req.user = { 
+          id: decoded.id, 
+          username: decoded.username, 
+          email: decoded.email,
+          role: decoded.role || 'user'
+        };
+        return next();
+      }
+      
+      // In production, don't allow fallback to token data for other errors
       if (process.env.NODE_ENV === 'production') {
         return res.status(503).json({ 
           error: 'Authentication service temporarily unavailable',

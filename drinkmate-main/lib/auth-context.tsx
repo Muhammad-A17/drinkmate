@@ -92,13 +92,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               isLoading: false,
             });
           } else {
-            // For other errors, keep the token but mark as not authenticated
+            // For other errors (like 503), keep the token and try to use cached user data
+            console.warn("Token verification failed with non-401 error, using cached data");
             setAuthState({
-              user: null,
+              user: null, // Will be set from token data below
               token,
-              isAuthenticated: false,
+              isAuthenticated: true, // Keep as authenticated for now
               isLoading: false,
             });
+            
+            // Try to extract user data from token as fallback
+            try {
+              const tokenData = JSON.parse(atob(token.split('.')[1]));
+              if (tokenData && tokenData.id) {
+                setAuthState(prev => ({
+                  ...prev,
+                  user: {
+                    _id: tokenData.id,
+                    username: tokenData.username || 'User',
+                    email: tokenData.email || '',
+                    firstName: tokenData.firstName || 'User',
+                    lastName: tokenData.lastName || 'Name',
+                    isAdmin: tokenData.role === 'admin',
+                    phone: tokenData.phone || '',
+                    avatar: tokenData.avatar || '',
+                    createdAt: tokenData.createdAt || new Date().toISOString(),
+                    lastLogin: tokenData.lastLogin
+                  }
+                }));
+              }
+            } catch (tokenError) {
+              console.error("Failed to parse token data:", tokenError);
+            }
           }
         }
       } catch (error) {

@@ -72,13 +72,13 @@ interface Order {
 }
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, isLoading, logout } = useAuth()
   const router = useRouter()
   const { t, isRTL } = useTranslation()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
   const [isEditing, setIsEditing] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isPageLoading, setIsPageLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
@@ -102,6 +102,11 @@ export default function ProfilePage() {
 
   // Redirect if not authenticated and load profile data
   useEffect(() => {
+    // Wait for authentication to finish loading
+    if (isLoading) {
+      return
+    }
+    
     if (!isAuthenticated) {
       router.push("/login")
       return
@@ -111,22 +116,22 @@ export default function ProfilePage() {
       // Set initial profile data from auth context
       setProfile({
         _id: user._id,
-        username: user.username,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        phone: user.phone,
-        avatar: user.avatar,
-        isAdmin: user.isAdmin,
+        username: user.username || 'User',
+        email: user.email || '',
+        firstName: user.firstName || 'User',
+        lastName: user.lastName || 'Name',
+        phone: user.phone || '',
+        avatar: user.avatar || '',
+        isAdmin: user.isAdmin || false,
         createdAt: user.createdAt || new Date().toISOString(),
         lastLogin: user.lastLogin,
       })
       setFormData({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
+        firstName: user.firstName || "User",
+        lastName: user.lastName || "Name",
         phone: user.phone || "",
-        email: user.email,
-        username: user.username,
+        email: user.email || "",
+        username: user.username || "User",
       })
 
       // Load fresh profile data and orders from API
@@ -156,14 +161,14 @@ export default function ProfilePage() {
 
   const loadUserOrders = async () => {
     try {
-      setIsLoading(true)
+      setIsPageLoading(true)
       const response = await orderAPI.getUserOrders()
       setOrders(response.orders || [])
     } catch (error) {
       console.error("Error loading orders:", error)
       toast.error(t("profile.messages.failedToLoadOrders"))
     } finally {
-      setIsLoading(false)
+      setIsPageLoading(false)
     }
   }
 
@@ -327,6 +332,25 @@ export default function ProfilePage() {
       default:
         return "bg-gray-100 text-gray-800"
     }
+  }
+
+  if (isLoading) {
+    return (
+      <PageLayout currentPage="profile">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100">
+          <div className="text-center space-y-6">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-[#12d6fa] mx-auto"></div>
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#12d6fa]/20 to-[#a8f387]/20 animate-pulse"></div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold text-slate-800">Verifying Authentication</h3>
+              <p className="text-slate-600">Please wait while we verify your login...</p>
+            </div>
+          </div>
+        </div>
+      </PageLayout>
+    )
   }
 
   if (!isAuthenticated || !profile) {
