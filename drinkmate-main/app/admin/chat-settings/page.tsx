@@ -845,6 +845,8 @@ export default function ChatSettingsPage() {
                             min="0"
                             max="100"
                             value={notificationSettings.sound.volume}
+                            aria-label="Sound volume"
+                            title="Adjust sound volume"
                             onChange={(e) => setNotificationSettings(prev => ({
                               ...prev,
                               sound: { ...prev.sound, volume: parseInt(e.target.value) }

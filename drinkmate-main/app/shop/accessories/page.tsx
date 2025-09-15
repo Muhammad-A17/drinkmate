@@ -53,6 +53,7 @@ export default function AccessoriesPage() {
 
   // State for products and bundles
   const [bundles, setBundles] = useState<Bundle[]>([])
+  const [bundleSubcategorySections, setBundleSubcategorySections] = useState<Array<{ _id: string; name: string; bundles: Bundle[] }>>([])
   const [allAccessories, setAllAccessories] = useState<Product[]>([])
   const [subcategorySections, setSubcategorySections] = useState<Array<{ _id: string; name: string; products: Product[] }>>([])
 
@@ -116,6 +117,7 @@ export default function AccessoriesPage() {
           name: bundle.name,
           price: bundle.price,
           originalPrice: bundle.originalPrice,
+          subcategory: bundle.subcategory || "Bundles & Promotions of Accessories",
           image: (() => {
             console.log("Bundle image data:", bundle.images)
             if (bundle.images && bundle.images.length > 0) {
@@ -138,6 +140,25 @@ export default function AccessoriesPage() {
 
         setBundles(formattedBundles)
         console.log("Formatted bundles for accessories:", formattedBundles)
+
+        // Organize bundles by subcategory
+        const bundleBySubcategory: Record<string, Bundle[]> = {}
+        for (const bundle of formattedBundles) {
+          const subcategory = bundle.subcategory || "Bundles & Promotions of Accessories"
+          if (!bundleBySubcategory[subcategory]) {
+            bundleBySubcategory[subcategory] = []
+          }
+          bundleBySubcategory[subcategory].push(bundle)
+        }
+        
+        const bundleSections = Object.entries(bundleBySubcategory).map(([subcategory, bundles]) => ({
+          _id: subcategory.toLowerCase().replace(/\s+/g, '-'),
+          name: subcategory,
+          bundles
+        }))
+        
+        setBundleSubcategorySections(bundleSections)
+        console.log("Bundle subcategory sections:", bundleSections)
 
         // Get categories using public API (no login required)
         let categoriesResponse
@@ -462,10 +483,16 @@ export default function AccessoriesPage() {
           <>
             {/* Bundles & Promotions Section */}
             <div className="mb-16">
-              <h2 className="text-2xl font-medium mb-6 text-gray-900">Bundles & Promotions</h2>
-              {bundles.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {bundles.map((bundle) => (
+              
+              {bundleSubcategorySections.length > 0 ? (
+                <div className="space-y-12">
+                  {bundleSubcategorySections.map((section) => (
+                    <div key={section._id} className="space-y-6">
+                      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                        {section.name}
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                        {section.bundles.map((bundle) => (
                     <div
                       key={bundle._id}
                       className="bg-white rounded-3xl transition-all duration-300 p-6 flex flex-col border border-gray-100 hover:border-gray-200 relative transform hover:-translate-y-1"
@@ -521,6 +548,9 @@ export default function AccessoriesPage() {
                           {bundle.badge}
                         </div>
                       )}
+                    </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>

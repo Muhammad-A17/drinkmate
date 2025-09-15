@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
-import { Star, Loader2, Check, Heart, Share2, Plus, Minus, Truck, Shield, Zap, Award, Users, Package, Settings, Filter, X, ChevronLeft, ChevronRight, Maximize2, Bell, Clock, CheckCircle, AlertCircle, Info, Sparkles, TrendingUp, MessageCircle, Play, Eye, ArrowLeft, ThumbsUp, ChevronDown, ChevronUp, Copy, Facebook, Twitter, ShoppingCart } from "lucide-react"
+import { Star, Loader2, Check, Heart, Share2, Plus, Minus, Truck, Shield, Zap, Award, Users, Package, Settings, Filter, X, ChevronLeft, ChevronRight, Maximize2, Bell, Clock, CheckCircle, AlertCircle, Info, Sparkles, TrendingUp, MessageCircle, Play, Eye, ArrowLeft, ThumbsUp, ChevronDown, ChevronUp, Copy, Facebook, Twitter, ShoppingCart, Leaf, Recycle } from "lucide-react"
 import { shopAPI } from "@/lib/api"
 import { YouTubeVideo, isYouTubeUrl, getYouTubeVideoId } from "@/components/ui/youtube-video"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -32,46 +32,76 @@ import { useRouter } from "next/navigation"
 interface Bundle {
   _id: string
   name: string
+  description: string
   price: number
   originalPrice?: number
-  discount?: number
+  bundleDiscount: number
+  category: string
+  subcategory?: string
   images: string[]
   videos?: string[]
-  category: string
-  description: string
+  youtubeLinks?: string[]
   badge?: {
     text: string
     color: string
   }
-  items: Array<{
+  sku?: string
+  isActive: boolean
+  isFeatured: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
+  isLimited?: boolean
+  stock: number
+  createdAt: string
+  // Specifications and features
+  specifications?: string
+  features?: string
+  warranty?: string
+  dimensions?: string
+  weight?: string
+  faq?: Array<{
+    question: string
+    answer: string
+  }>
+  // Legacy fields for compatibility
+  discount?: number
+  items?: Array<{
     product: string
     name: string
     price: number
     image?: string
   }>
-  stock: number
-  sku: string
-  averageRating: number
-  reviewCount: number
-  isLimited: boolean
-  isFeatured: boolean
+  averageRating?: number
+  reviewCount?: number
 }
 
 // Mock bundle data for fallback
 const mockBundle = {
   _id: "mock-bundle-001",
   name: "Aqualine Starter Kit Soda Maker",
+  description: "Complete starter kit for home soda making with everything you need to get started.",
   price: 499.00,
   originalPrice: 549.00,
-  discount: 50.00,
+  bundleDiscount: 9.1,
+  category: "Soda Maker Bundle",
+  subcategory: "Starter Kit",
   images: ["/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png"],
   videos: [],
-  category: "Soda Maker Bundle",
-  description: "Complete starter kit for home soda making with everything you need to get started.",
+  youtubeLinks: [],
   badge: {
     text: "Bundle Deal",
-    color: "blue"
+    color: "#12d6fa"
   },
+  sku: "BNDL-SM-001",
+  isActive: true,
+  isFeatured: true,
+  isNewArrival: false,
+  isBestSeller: true,
+  isLimited: false,
+  stock: 50,
+  createdAt: "2024-01-01T00:00:00.000Z",
+  // Legacy fields
+  discount: 50.00,
   items: [
     {
       product: "soda-maker-001",
@@ -98,12 +128,9 @@ const mockBundle = {
       image: "/images/placeholder.svg"
     }
   ],
-  stock: 25,
-  sku: "AQSMB-001",
+  // Legacy fields
   averageRating: 4.5,
-  reviewCount: 24,
-  isLimited: false,
-  isFeatured: true
+  reviewCount: 24
 }
 
 // Mock data for bundle reviews
@@ -254,6 +281,27 @@ export default function BundleDetailPage() {
   const [isVideoMuted, setIsVideoMuted] = useState(true)
   const [cartAnimation, setCartAnimation] = useState(false)
   const [wishlistAnimation, setWishlistAnimation] = useState(false)
+  
+  // Advanced Features State
+  const [showComparison, setShowComparison] = useState(false)
+  const [comparisonProducts, setComparisonProducts] = useState<Bundle[]>([])
+  const [showSizeGuide, setShowSizeGuide] = useState(false)
+  const [showDeliveryCalculator, setShowDeliveryCalculator] = useState(false)
+  const [deliveryZipCode, setDeliveryZipCode] = useState("")
+  const [estimatedDelivery, setEstimatedDelivery] = useState("")
+  const [showLiveChat, setShowLiveChat] = useState(false)
+  const [showWishlistModal, setShowWishlistModal] = useState(false)
+  const [wishlistName, setWishlistName] = useState("")
+  const [showBundleBuilder, setShowBundleBuilder] = useState(false)
+  const [customBundleItems, setCustomBundleItems] = useState<Bundle[]>([])
+  const [showPriceAlert, setShowPriceAlert] = useState(false)
+  const [priceAlertThreshold, setPriceAlertThreshold] = useState(0)
+  const [showProductTour, setShowProductTour] = useState(false)
+  const [tourStep, setTourStep] = useState(0)
+  const [showSustainabilityInfo, setShowSustainabilityInfo] = useState(false)
+  const [showFinancingOptions, setShowFinancingOptions] = useState(false)
+  const [showBulkPricing, setShowBulkPricing] = useState(false)
+  const [bulkQuantity, setBulkQuantity] = useState(1)
 
   const toggleQA = useCallback((id: number) => {
     setExpandedQA((prev) => {
@@ -473,12 +521,105 @@ export default function BundleDetailPage() {
     })
   }, [newQuestion, qaData])
 
-  // Combined media array for images and videos
+  // Advanced Feature Handlers
+  const handleAddToComparison = useCallback(async (bundleId: string) => {
+    try {
+      const response = await shopAPI.getBundleFlexible(bundleId)
+      if (response.success && response.bundle) {
+        setComparisonProducts(prev => [...prev, response.bundle])
+        alert("Product added to comparison!")
+      }
+    } catch (error) {
+      console.error("Error adding to comparison:", error)
+    }
+  }, [])
+
+  const handleRemoveFromComparison = useCallback((bundleId: string) => {
+    setComparisonProducts(prev => prev.filter(bundle => bundle._id !== bundleId))
+  }, [])
+
+  const handleCalculateDelivery = useCallback(() => {
+    if (!deliveryZipCode) return
+    
+    // Simulate delivery calculation
+    const deliveryDays = Math.floor(Math.random() * 3) + 1
+    const deliveryDate = new Date()
+    deliveryDate.setDate(deliveryDate.getDate() + deliveryDays)
+    
+    setEstimatedDelivery(deliveryDate.toLocaleDateString())
+    alert(`Estimated delivery: ${deliveryDate.toLocaleDateString()}`)
+  }, [deliveryZipCode])
+
+  const handleCreateWishlist = useCallback(() => {
+    if (!wishlistName) return
+    
+    // Simulate wishlist creation
+    alert(`Wishlist "${wishlistName}" created successfully!`)
+    setShowWishlistModal(false)
+    setWishlistName("")
+  }, [wishlistName])
+
+  const handleAddToWishlistWithName = useCallback(() => {
+    if (!bundle) return
+    
+    setWishlistAnimation(true)
+    setIsInWishlist(!isInWishlist)
+    
+    setTimeout(() => {
+      setWishlistAnimation(false)
+    }, 500)
+    
+    alert(`Added to wishlist: ${wishlistName || "Default"}`)
+  }, [bundle, isInWishlist, wishlistName])
+
+  const handleSetPriceAlert = useCallback(() => {
+    if (priceAlertThreshold <= 0) return
+    
+    alert(`Price alert set! You'll be notified when the price drops below ${priceAlertThreshold} SAR`)
+    setShowPriceAlert(false)
+  }, [priceAlertThreshold])
+
+  const handleStartProductTour = useCallback(() => {
+    setShowProductTour(true)
+    setTourStep(0)
+  }, [])
+
+  const handleNextTourStep = useCallback(() => {
+    setTourStep(prev => prev + 1)
+  }, [])
+
+  const handlePrevTourStep = useCallback(() => {
+    setTourStep(prev => prev - 1)
+  }, [])
+
+  const handleFinishTour = useCallback(() => {
+    setShowProductTour(false)
+    setTourStep(0)
+  }, [])
+
+  const handleCalculateBulkPricing = useCallback(() => {
+    if (!bundle || bulkQuantity < 2) return
+    
+    const basePrice = bundle.price
+    let discount = 0
+    
+    if (bulkQuantity >= 10) discount = 0.15
+    else if (bulkQuantity >= 5) discount = 0.10
+    else if (bulkQuantity >= 3) discount = 0.05
+    
+    const discountedPrice = basePrice * (1 - discount)
+    const totalSavings = (basePrice - discountedPrice) * bulkQuantity
+    
+    alert(`Bulk pricing: ${bulkQuantity} units at ${discountedPrice.toFixed(2)} SAR each (${(discount * 100).toFixed(0)}% discount). Total savings: ${totalSavings.toFixed(2)} SAR`)
+  }, [bundle, bulkQuantity])
+
+  // Combined media array for images, videos, and YouTube links
   const mediaArray = useMemo(() => {
     if (!bundle) return []
     
     const images = bundle.images || []
     const videos = bundle.videos || []
+    const youtubeLinks = bundle.youtubeLinks || []
     
     const mediaItems = [
       ...images.map((img, index) => ({
@@ -490,6 +631,11 @@ export default function BundleDetailPage() {
         type: 'video' as const,
         url: video,
         index: images.length + index
+      })),
+      ...youtubeLinks.map((link, index) => ({
+        type: 'youtube' as const,
+        url: link,
+        index: images.length + videos.length + index
       }))
     ]
     
@@ -768,7 +914,7 @@ export default function BundleDetailPage() {
                 <TooltipTrigger asChild>
                   <button
                     className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
-                    onClick={() => alert("Compare feature coming soon!")}
+                    onClick={() => {}}
                     aria-label="Compare products"
                   >
                     <TrendingUp className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -784,7 +930,7 @@ export default function BundleDetailPage() {
                 <TooltipTrigger asChild>
                   <button
                     className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
-                    onClick={() => alert("Quick view feature coming soon!")}
+                    onClick={() => {}}
                     aria-label="Quick view product details"
                   >
                     <Eye className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -799,16 +945,18 @@ export default function BundleDetailPage() {
             {/* Main Content Area */}
             <div className="flex-1">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
-                {/* Enhanced Bundle Images */}
+                {/* Enhanced Product Images */}
                 <div className="space-y-4">
-                  <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden cursor-zoom-in group shadow-lg"
-                       onMouseEnter={() => !isShowingVideo && setIsZoomed(true)}
-                       onMouseLeave={() => setIsZoomed(false)}
-                       onMouseMove={!isShowingVideo ? handleImageZoom : undefined}
-                       onClick={() => setShowImageGallery(true)}>
+                  <div
+                    className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden cursor-zoom-in group shadow-lg"
+                    onMouseEnter={() => !isShowingVideo && setIsZoomed(true)}
+                    onMouseLeave={() => setIsZoomed(false)}
+                    onMouseMove={!isShowingVideo ? handleImageZoom : undefined}
+                    onClick={() => setShowImageGallery(true)}
+                  >
                     {isShowingVideo ? (
                       <div className="w-full h-full">
-                        {mediaArray[selectedImage] && isYouTubeUrl(mediaArray[selectedImage].url) ? (
+                        {mediaArray[selectedImage] && (isYouTubeUrl(mediaArray[selectedImage].url) || mediaArray[selectedImage].type === 'youtube') ? (
                           <YouTubeVideo
                             videoUrl={mediaArray[selectedImage].url}
                             title={`${bundle.name} - Bundle Video`}
@@ -911,7 +1059,7 @@ export default function BundleDetailPage() {
                         key={index}
                         onClick={() => {
                           setSelectedImage(index)
-                          setIsShowingVideo(media.type === 'video')
+                          setIsShowingVideo(media.type === 'video' || media.type === 'youtube')
                         }}
                         className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 relative ${
                           selectedImage === index
@@ -919,9 +1067,9 @@ export default function BundleDetailPage() {
                             : "border-gray-200 hover:border-gray-300 hover:scale-102"
                         }`}
                       >
-                        {media.type === 'video' ? (
+                        {media.type === 'video' || media.type === 'youtube' ? (
                           <>
-                            {isYouTubeUrl(media.url) ? (
+                            {(isYouTubeUrl(media.url) || media.type === 'youtube') ? (
                               <img
                                 src={`${process.env.NEXT_PUBLIC_YOUTUBE_THUMBNAIL_BASE || 'https://img.youtube.com/vi'}/${getYouTubeVideoId(media.url)}/mqdefault.jpg`}
                                 alt="Video thumbnail"
@@ -961,12 +1109,12 @@ export default function BundleDetailPage() {
                   {/* Bundle Header */}
                   <div>
                     <div className="flex items-center flex-wrap gap-2 mb-2">
-                      <Badge variant="outline" className="text-[#12d6fa] border-[#12d6fa] text-xs sm:text-sm">
-                        Bundle
+                      <Badge variant="outline" className="text-[#12d6fa] border-[#12d6fa] text-sm sm:text-base">
+                        {bundle.category || "Soda Maker Bundle"}
                       </Badge>
-                      {bundle.category && (
-                        <Badge variant="secondary" className="capitalize text-xs sm:text-sm">
-                          {bundle.category}
+                      {bundle.badge && bundle.badge.text && (
+                        <Badge variant="secondary" className="capitalize text-sm sm:text-base">
+                          {bundle.badge.text}
                         </Badge>
                       )}
                       {bundle.isLimited && (
@@ -976,7 +1124,7 @@ export default function BundleDetailPage() {
                       )}
                     </div>
 
-                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 text-balance leading-tight">{bundle.name}</h1>
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-balance leading-tight">{bundle.name}</h1>
 
                     {/* Enhanced Rating */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
@@ -986,20 +1134,20 @@ export default function BundleDetailPage() {
                             <Star
                               key={i}
                               className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                                i < Math.floor(bundle.averageRating) ? "text-yellow-400 fill-current" : "text-gray-300"
+                                i < Math.floor(bundle.averageRating || 0) ? "text-yellow-400 fill-current" : "text-gray-300"
                               }`}
                             />
                           ))}
                         </div>
-                        <span className="font-semibold text-sm sm:text-base">{bundle.averageRating}</span>
-                        <span className="text-xs sm:text-sm text-muted-foreground">
-                          ({bundle.reviewCount.toLocaleString()} reviews)
+                        <span className="font-semibold text-base sm:text-lg">{bundle.averageRating || 0}</span>
+                        <span className="text-sm sm:text-base text-muted-foreground">
+                          ({(bundle.reviewCount || 0).toLocaleString()} reviews)
                         </span>
                       </div>
                       <Separator orientation="vertical" className="h-4 hidden sm:block" />
-                      <div className="flex items-center space-x-1 text-xs sm:text-sm text-muted-foreground">
+                      <div className="flex items-center space-x-1 text-sm sm:text-base text-muted-foreground">
                         <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span>{Math.floor(bundle.reviewCount * 1.2).toLocaleString()} sold</span>
+                        <span>{Math.floor((bundle.reviewCount || 0) * 1.2).toLocaleString()} sold</span>
                       </div>
                     </div>
 
@@ -1011,9 +1159,9 @@ export default function BundleDetailPage() {
                       {bundle.originalPrice && bundle.originalPrice > bundle.price && (
                         <div className="flex items-center gap-2 sm:gap-4">
                           <span className="text-lg sm:text-xl text-muted-foreground line-through">
-                            <SaudiRiyal amount={bundle.originalPrice} size="md" />
+                            <SaudiRiyal amount={bundle.originalPrice || 0} size="md" />
                           </span>
-                          <Badge className="bg-green-100 text-green-800 border-green-200 text-xs sm:text-sm">
+                          <Badge className="bg-green-100 text-green-800 border-green-200 text-sm sm:text-base">
                             Save <SaudiRiyal amount={savingsAmount} size="sm" />
                           </Badge>
                         </div>
@@ -1022,21 +1170,21 @@ export default function BundleDetailPage() {
 
                     {/* Enhanced Stock and Badges */}
                     <div className="flex items-center flex-wrap gap-2 mb-6">
-                      <Badge variant={bundle.stock > 0 ? "default" : "destructive"} className={`${getStockColor()} text-xs sm:text-sm`}>
+                      <Badge variant={bundle.stock > 0 ? "default" : "destructive"} className={`${getStockColor()} text-sm sm:text-base`}>
                         <Package className="w-3 h-3 mr-1" />
                         {stockMessage()}
                       </Badge>
-                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs sm:text-sm">
+                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-sm sm:text-base">
                         <Truck className="w-3 h-3 mr-1" />
                         Free Shipping
                       </Badge>
                       {bundle.isFeatured && (
-                        <Badge variant="outline" className="border-amber-200 text-amber-700 text-xs sm:text-sm">
+                        <Badge variant="outline" className="border-amber-200 text-amber-700 text-sm sm:text-base">
                           <Award className="w-3 h-3 mr-1" />
                           Featured
                         </Badge>
                       )}
-                      <Badge variant="outline" className="border-blue-200 text-blue-700 text-xs sm:text-sm">
+                      <Badge variant="outline" className="border-blue-200 text-blue-700 text-sm sm:text-base">
                         <Clock className="w-3 h-3 mr-1" />
                         Bundle Deal
                       </Badge>
@@ -1056,7 +1204,7 @@ export default function BundleDetailPage() {
                       >
                         <Minus className="w-4 h-4" />
                       </button>
-                      <span className="px-4 sm:px-6 py-2 sm:py-3 font-semibold text-base sm:text-lg min-w-[50px] sm:min-w-[60px] text-center">{quantity}</span>
+                      <span className="px-4 sm:px-6 py-2 sm:py-3 font-semibold text-lg sm:text-xl min-w-[50px] sm:min-w-[60px] text-center">{quantity}</span>
                       <button
                         onClick={() => handleQuantityChange(1)}
                         className="p-2 sm:p-3 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1067,19 +1215,19 @@ export default function BundleDetailPage() {
                       </button>
                     </div>
 
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-base text-muted-foreground">
                       <div>
                         Total:{" "}
-                        <span className="font-semibold text-base sm:text-lg text-[#12d6fa]">
+                        <span className="font-semibold text-lg sm:text-xl text-[#12d6fa]">
                           <SaudiRiyal amount={bundle.price * quantity} size="md" />
                         </span>
                       </div>
                       {quantity > 1 && (
-                        <div className="text-xs">
+                        <div className="text-sm">
                           <SaudiRiyal amount={bundle.price} size="sm" /> each
                         </div>
                       )}
-              </div>
+                    </div>
             </div>
             
                   {/* Enhanced Action Buttons */}
@@ -1093,7 +1241,7 @@ export default function BundleDetailPage() {
                         size="lg"
                       >
                         <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                        <span className="text-sm sm:text-base">{isInCart(bundle._id) ? "Go to Cart" : "Add to Cart"}</span>
+                        <span className="text-base sm:text-lg">{isInCart(bundle._id) ? "Go to Cart" : "Add to Cart"}</span>
                       </Button>
                     ) : (
                       <Dialog open={showNotifyMe} onOpenChange={setShowNotifyMe}>
@@ -1103,7 +1251,7 @@ export default function BundleDetailPage() {
                             size="lg"
                           >
                             <Bell className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                            <span className="text-sm sm:text-base">Notify When Available</span>
+                            <span className="text-base sm:text-lg">Notify When Available</span>
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
@@ -1139,7 +1287,7 @@ export default function BundleDetailPage() {
 
                     <Button
                       variant="outline"
-                      onClick={handleAddToWishlist}
+                      onClick={() => setShowWishlistModal(true)}
                       className={`border-2 transition-all duration-200 ${
                         isInWishlist
                           ? "text-[#12d6fa] border-[#12d6fa] bg-[#12d6fa]/10"
@@ -1149,6 +1297,59 @@ export default function BundleDetailPage() {
                     >
                       <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isInWishlist ? "fill-current" : ""}`} />
                     </Button>
+
+                    {/* Advanced Action Buttons */}
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowComparison(true)}
+                        className="text-xs sm:text-sm"
+                        size="sm"
+                      >
+                        <TrendingUp className="w-3 h-3 mr-1" />
+                        Compare
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowPriceAlert(true)}
+                        className="text-xs sm:text-sm"
+                        size="sm"
+                      >
+                        <Bell className="w-3 h-3 mr-1" />
+                        Price Alert
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowBulkPricing(true)}
+                        className="text-xs sm:text-sm"
+                        size="sm"
+                      >
+                        <Package className="w-3 h-3 mr-1" />
+                        Bulk Pricing
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowFinancingOptions(true)}
+                        className="text-xs sm:text-sm"
+                        size="sm"
+                      >
+                        <Shield className="w-3 h-3 mr-1" />
+                        Financing
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowSustainabilityInfo(true)}
+                        className="text-xs sm:text-sm"
+                        size="sm"
+                      >
+                        <Leaf className="w-3 h-3 mr-1" />
+                        Sustainability
+                      </Button>
+                    </div>
 
                     <div className="relative">
                       <Button
@@ -1223,7 +1424,7 @@ export default function BundleDetailPage() {
 
         {/* Enhanced Product Details Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-12">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 h-auto sm:h-12 gap-1 sm:gap-0">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto sm:h-12 gap-1 sm:gap-0">
             <TabsTrigger
               value="description"
               className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
@@ -1233,6 +1434,14 @@ export default function BundleDetailPage() {
               <span className="sm:hidden">Info</span>
             </TabsTrigger>
             <TabsTrigger
+              value="specifications"
+              className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+            >
+              <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline">Specifications</span>
+              <span className="sm:hidden">Specs</span>
+            </TabsTrigger>
+            <TabsTrigger
               value="reviews"
               className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
             >
@@ -1240,14 +1449,6 @@ export default function BundleDetailPage() {
               <span className="hidden sm:inline">Reviews ({reviews.length})</span>
               <span className="sm:hidden">Reviews</span>
               <span className="sm:hidden text-xs ml-1">({reviews.length})</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="specifications"
-              className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
-            >
-              <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">Specifications</span>
-              <span className="sm:hidden">Specs</span>
             </TabsTrigger>
             <TabsTrigger
               value="videos"
@@ -1270,32 +1471,44 @@ export default function BundleDetailPage() {
           <TabsContent value="description" className="mt-6 sm:mt-8">
             <div className="prose max-w-none">
               <div className="bg-gradient-to-r from-[#12d6fa]/10 to-blue-50 p-4 sm:p-6 rounded-xl mb-6">
-                <p className="text-base sm:text-lg leading-relaxed text-gray-700">{bundle.description}</p>
+                <p className="text-lg sm:text-xl leading-relaxed text-gray-700">{bundle.description}</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                 <div>
-                  <h3 className="text-lg sm:text-xl font-semibold mb-4 flex items-center">
+                  <h3 className="text-xl sm:text-2xl font-semibold mb-4 flex items-center">
                     <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#12d6fa] flex-shrink-0" />
                     Key Features
                   </h3>
                   <ul className="space-y-3">
-                    <li className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
-                      <span className="text-sm sm:text-base text-gray-700">Complete soda making solution</span>
-                    </li>
-                    <li className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
-                      <span className="text-sm sm:text-base text-gray-700">Premium quality components</span>
-                    </li>
-                    <li className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
-                      <span className="text-sm sm:text-base text-gray-700">Easy setup and operation</span>
-                    </li>
-                    <li className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
-                      <span className="text-sm sm:text-base text-gray-700">Money-saving bundle pricing</span>
-                    </li>
+                    {bundle.features ? (
+                      bundle.features.split('\n').filter((feature: string) => feature.trim()).map((feature: string, index: number) => (
+                        <li key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
+                          <span className="text-base sm:text-lg text-gray-700">{feature.trim()}</span>
+                        </li>
+                      ))
+                    ) : (
+                      // Fallback features
+                      <>
+                        <li className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
+                          <span className="text-base sm:text-lg text-gray-700">Complete soda making solution</span>
+                        </li>
+                        <li className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
+                          <span className="text-base sm:text-lg text-gray-700">Premium quality components</span>
+                        </li>
+                        <li className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
+                          <span className="text-base sm:text-lg text-gray-700">Easy setup and operation</span>
+                        </li>
+                        <li className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#12d6fa] mt-0.5 flex-shrink-0" />
+                          <span className="text-base sm:text-lg text-gray-700">Money-saving bundle pricing</span>
+                        </li>
+                      </>
+                    )}
                   </ul>
                 </div>
 
@@ -1560,28 +1773,44 @@ export default function BundleDetailPage() {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="font-medium text-gray-600">Bundle Type</span>
-                    <span className="text-gray-900">Soda Maker Starter Kit</span>
+                    <span className="text-gray-900">{bundle.subcategory || "Bundles & Promotions of Soda Makers"}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="font-medium text-gray-600">Items Included</span>
                     <span className="text-gray-900">{bundle.items?.length || 0} items</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-600">Total Weight</span>
-                    <span className="text-gray-900">~5.5 kg</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-600">Package Dimensions</span>
-                    <span className="text-gray-900">45 x 35 x 25 cm</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-600">Warranty</span>
-                    <span className="text-gray-900">2 Years</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="font-medium text-gray-600">Compatibility</span>
-                    <span className="text-gray-900">Universal</span>
-                  </div>
+                  {bundle.weight && (
+                    <div className="flex justify-between py-2 border-b border-gray-100">
+                      <span className="font-medium text-gray-600">Weight</span>
+                      <span className="text-gray-900">{bundle.weight}</span>
+                    </div>
+                  )}
+                  {bundle.dimensions && (
+                    <div className="flex justify-between py-2 border-b border-gray-100">
+                      <span className="font-medium text-gray-600">Dimensions</span>
+                      <span className="text-gray-900">{bundle.dimensions}</span>
+                    </div>
+                  )}
+                  {bundle.warranty && (
+                    <div className="flex justify-between py-2 border-b border-gray-100">
+                      <span className="font-medium text-gray-600">Warranty</span>
+                      <span className="text-gray-900">{bundle.warranty}</span>
+                    </div>
+                  )}
+                  {/* Dynamic specifications from admin */}
+                  {bundle.specifications && (() => {
+                    try {
+                      const specs = JSON.parse(bundle.specifications)
+                      return Object.entries(specs).map(([key, value]) => (
+                        <div key={key} className="flex justify-between py-2 border-b border-gray-100">
+                          <span className="font-medium text-gray-600">{key}</span>
+                          <span className="text-gray-900">{value as string}</span>
+                        </div>
+                      ))
+                    } catch {
+                      return null
+                    }
+                  })()}
                 </CardContent>
               </Card>
 
@@ -1605,9 +1834,9 @@ export default function BundleDetailPage() {
                         <div className="w-5 h-5 bg-gray-200 rounded-full flex-shrink-0"></div>
                       </div>
                     ))
-                  ) : bundle.items?.length > 0 ? (
+                  ) : (bundle.items?.length || 0) > 0 ? (
                     <>
-                      {bundle.items.map((item, index) => (
+                      {(bundle.items || []).map((item, index) => (
                         <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                           <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200">
                             <Package className="w-6 h-6 text-gray-400" />
@@ -1628,7 +1857,7 @@ export default function BundleDetailPage() {
                           <span className="font-medium text-gray-700">Total Value:</span>
                           <span className="font-bold text-[#12d6fa]">
                             <SaudiRiyal 
-                              amount={bundle.items.reduce((total, item) => total + (item.price || 0), 0)} 
+                              amount={(bundle.items || []).reduce((total, item) => total + (item.price || 0), 0)} 
                               size="sm" 
                             />
                           </span>
@@ -1643,7 +1872,7 @@ export default function BundleDetailPage() {
                           <span className="text-gray-700">You Save:</span>
                           <span className="text-green-600">
                             <SaudiRiyal 
-                              amount={bundle.items.reduce((total, item) => total + (item.price || 0), 0) - bundle.price} 
+                              amount={(bundle.items || []).reduce((total, item) => total + (item.price || 0), 0) - bundle.price} 
                               size="sm" 
                             />
                           </span>
@@ -1799,7 +2028,7 @@ export default function BundleDetailPage() {
             <div className="relative">
               {isShowingVideo ? (
                 <div className="w-full h-[60vh] sm:h-[80vh]">
-                  {mediaArray[selectedImage] && isYouTubeUrl(mediaArray[selectedImage].url) ? (
+                  {mediaArray[selectedImage] && (isYouTubeUrl(mediaArray[selectedImage].url) || mediaArray[selectedImage].type === 'youtube') ? (
                     <YouTubeVideo
                       videoUrl={mediaArray[selectedImage].url}
                       title={`${bundle.name} - Bundle Video`}
@@ -1847,7 +2076,7 @@ export default function BundleDetailPage() {
                     onClick={() => {
                       const newIndex = selectedImage > 0 ? selectedImage - 1 : mediaArray.length - 1
                       setSelectedImage(newIndex)
-                      setIsShowingVideo(mediaArray[newIndex]?.type === 'video')
+                      setIsShowingVideo(mediaArray[newIndex]?.type === 'video' || mediaArray[newIndex]?.type === 'youtube')
                     }}
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -1859,7 +2088,7 @@ export default function BundleDetailPage() {
                     onClick={() => {
                       const newIndex = selectedImage < mediaArray.length - 1 ? selectedImage + 1 : 0
                       setSelectedImage(newIndex)
-                      setIsShowingVideo(mediaArray[newIndex]?.type === 'video')
+                      setIsShowingVideo(mediaArray[newIndex]?.type === 'video' || mediaArray[newIndex]?.type === 'youtube')
                     }}
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -1883,9 +2112,9 @@ export default function BundleDetailPage() {
                           : "border-white/50 hover:border-white"
                       }`}
                     >
-                      {media.type === 'video' ? (
+                      {media.type === 'video' || media.type === 'youtube' ? (
                         <>
-                          {isYouTubeUrl(media.url) ? (
+                          {(isYouTubeUrl(media.url) || media.type === 'youtube') ? (
                             <img
                               src={`${process.env.NEXT_PUBLIC_YOUTUBE_THUMBNAIL_BASE || 'https://img.youtube.com/vi'}/${getYouTubeVideoId(media.url)}/mqdefault.jpg`}
                               alt="Video thumbnail"
@@ -1920,6 +2149,144 @@ export default function BundleDetailPage() {
           </DialogContent>
         </Dialog>
 
+
+        {/* Live Chat Modal */}
+        <Dialog open={showLiveChat} onOpenChange={setShowLiveChat}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Live Chat Support
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="h-64 bg-gray-50 rounded-lg p-4 overflow-y-auto">
+                <div className="space-y-3">
+                  <div className="flex justify-end">
+                    <div className="bg-[#12d6fa] text-white p-2 rounded-lg max-w-xs">
+                      Hi! I'm interested in this bundle. Can you help me?
+                    </div>
+                  </div>
+                  <div className="flex justify-start">
+                    <div className="bg-gray-200 p-2 rounded-lg max-w-xs">
+                      Hello! I'd be happy to help you with the {bundle?.name}. What would you like to know?
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <Input placeholder="Type your message..." />
+                <Button className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white">
+                  Send
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Price Alert Modal */}
+        <Dialog open={showPriceAlert} onOpenChange={setShowPriceAlert}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <Bell className="w-5 h-5 mr-2" />
+                Set Price Alert
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Alert me when price drops below:</label>
+                <Input
+                  type="number"
+                  value={priceAlertThreshold}
+                  onChange={(e) => setPriceAlertThreshold(Number(e.target.value))}
+                  placeholder="Enter price threshold"
+                />
+              </div>
+              <Button
+                onClick={handleSetPriceAlert}
+                className="w-full bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
+                disabled={priceAlertThreshold <= 0}
+              >
+                Set Price Alert
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Bulk Pricing Modal */}
+        <Dialog open={showBulkPricing} onOpenChange={setShowBulkPricing}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <Package className="w-5 h-5 mr-2" />
+                Bulk Pricing
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Quantity</label>
+                <Input
+                  type="number"
+                  value={bulkQuantity}
+                  onChange={(e) => setBulkQuantity(Number(e.target.value))}
+                  min="2"
+                />
+              </div>
+              <Button
+                onClick={handleCalculateBulkPricing}
+                className="w-full bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
+                disabled={bulkQuantity < 2}
+              >
+                Calculate Bulk Price
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Product Tour Overlay */}
+        {showProductTour && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-4">Product Tour</h3>
+              <div className="space-y-4">
+                {tourStep === 0 && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Welcome! Let's explore the key features of this bundle.
+                    </p>
+                    <div className="flex justify-between">
+                      <Button onClick={handleFinishTour} variant="outline">Skip Tour</Button>
+                      <Button onClick={handleNextTourStep} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white">Next</Button>
+                    </div>
+                  </div>
+                )}
+                {tourStep === 1 && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      This is the main product image. You can zoom and view different angles.
+                    </p>
+                    <div className="flex justify-between">
+                      <Button onClick={handlePrevTourStep} variant="outline">Previous</Button>
+                      <Button onClick={handleNextTourStep} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white">Next</Button>
+                    </div>
+                  </div>
+                )}
+                {tourStep === 2 && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Here you can adjust quantity and add to cart. Check out the advanced features below!
+                    </p>
+                    <div className="flex justify-between">
+                      <Button onClick={handlePrevTourStep} variant="outline">Previous</Button>
+                      <Button onClick={handleFinishTour} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white">Finish</Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       
         </div>
       </TooltipProvider>

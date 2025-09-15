@@ -422,6 +422,8 @@ export default function CartSettingsPage() {
                   <select
                     id="source"
                     value={settings.recommendations.source}
+                    aria-label="Recommendation source"
+                    title="Select recommendation source"
                     onChange={(e) =>
                       setSettings(prev => ({
                         ...prev,

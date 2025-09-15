@@ -40,7 +40,9 @@ import {
   ChevronRight,
   Filter,
   Loader2,
-  Eye
+  Eye,
+  RefreshCw,
+  X
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -357,73 +359,242 @@ export default function ProductsPage() {
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Products Management</h1>
-        <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#12d6fa] hover:bg-[#0fb8d9]">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Product
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add New Product</DialogTitle>
-            </DialogHeader>
-            <ProductForm 
-              onSubmit={handleCreateProduct}
-              onCancel={() => setIsAddProductOpen(false)}
-              isSubmitting={isSubmitting}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search products..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-4">
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category._id} value={category._id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <span className="hidden sm:inline">More Filters</span>
-              </Button>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        {/* Premium Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#12d6fa]/10 to-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+        </div>
+        
+        <div className="space-y-8 p-4 md:p-6 relative z-10">
+          {/* Premium Header */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20"></div>
+            <div className="relative p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                      <Package className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                        Products Management
+                      </h1>
+                      <p className="text-gray-600 text-lg">
+                        Manage your product catalog with advanced features and analytics
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-gray-900">{filteredProducts.length}</div>
+                    <div className="text-sm text-gray-500">Filtered Products</div>
+                  </div>
+                  <div className="w-px h-12 bg-gray-300"></div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-[#12d6fa]">{products.length}</div>
+                    <div className="text-sm text-gray-500">Total Products</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                        <Plus className="h-5 w-5 mr-2" />
+                        Add New Product
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Add New Product</DialogTitle>
+                      </DialogHeader>
+                      <ProductForm 
+                        onSubmit={handleCreateProduct}
+                        onCancel={() => setIsAddProductOpen(false)}
+                        isSubmitting={isSubmitting}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>System Online</span>
+                </div>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader className="pb-0">
-          <CardTitle>Products ({filteredProducts.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-[#12d6fa] mr-2" />
-              <span>Loading products...</span>
+          {/* Premium Search & Filters */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-gradient-to-br from-[#12d6fa]/20 to-blue-500/20 rounded-xl">
+                  <Search className="h-6 w-6 text-[#12d6fa]" />
+                </div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  Search & Filters
+                </h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <Search className="h-4 w-4 text-[#12d6fa]" />
+                    Search Products
+                  </label>
+                  <div className="relative group">
+                    <Input
+                      placeholder="Search by name, SKU, or description..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-12 pr-4 py-3 border-2 border-gray-200 focus:border-[#12d6fa] focus:ring-4 focus:ring-[#12d6fa]/20 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-300 group-hover:border-[#12d6fa]/50"
+                    />
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                      <Search className="h-5 w-5 text-gray-400 group-focus-within:text-[#12d6fa] transition-colors duration-300" />
+                    </div>
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                        aria-label="Clear search"
+                      >
+                        <X className="h-4 w-4 text-gray-400" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-[#12d6fa]" />
+                    Category Filter
+                  </label>
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="border-2 border-gray-200 focus:border-[#12d6fa] focus:ring-4 focus:ring-[#12d6fa]/20 rounded-xl py-3 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:border-[#12d6fa]/50">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-2 border-gray-200 shadow-xl">
+                      <SelectItem value="all" className="rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-gradient-to-r from-[#12d6fa] to-blue-500" />
+                          All Categories
+                        </div>
+                      </SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category._id} value={category._id} className="rounded-lg">
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    Quick Actions
+                  </label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSearchTerm("")
+                        setCategoryFilter("all")
+                      }}
+                      className="text-xs px-4 py-2 rounded-lg border-2 border-gray-200 hover:border-orange-500 hover:bg-orange-50 transition-all duration-300"
+                    >
+                      <div className="flex items-center gap-1">
+                        <X className="h-3 w-3" />
+                        Clear All
+                      </div>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => fetchProducts()}
+                      className="text-xs px-4 py-2 rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
+                    >
+                      <div className="flex items-center gap-1">
+                        <RefreshCw className="h-3 w-3" />
+                        Refresh
+                      </div>
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-[#12d6fa] rounded-full"></div>
+                    Results
+                  </label>
+                  <div className="text-sm text-gray-600 bg-gray-50 px-4 py-3 rounded-xl">
+                    {filteredProducts.length} of {products.length} products
+                    {searchTerm && ` • Filtered by "${searchTerm}"`}
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* Premium Products Table */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/95 to-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/30"></div>
+            <div className="relative overflow-hidden rounded-2xl">
+              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                      <Package className="h-7 w-7 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-bold text-white">Products Catalog</h2>
+                      <div className="flex items-center gap-4 mt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-[#12d6fa] rounded-full animate-pulse"></div>
+                          <span className="text-gray-300">
+                            {filteredProducts.length} of {products.length} products
+                          </span>
+                        </div>
+                        {searchTerm && (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                            <span className="text-yellow-300">Filtered by "{searchTerm}"</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button 
+                      onClick={() => fetchProducts()}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs px-4 py-2 bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-lg transition-all duration-300"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white p-6">
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <div className="text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-[#12d6fa]/20 to-blue-500/20 rounded-full flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-[#12d6fa]" />
+                      </div>
+                      <span className="text-lg font-medium text-gray-600">Loading products...</span>
+                    </div>
+                  </div>
           ) : (
             <>
               <Table>
@@ -543,9 +714,26 @@ export default function ProductsPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-6">
-                        <Package className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                        <p className="text-gray-500">No products found</p>
+                      <TableCell colSpan={6} className="text-center py-20">
+                        <div className="relative">
+                          <div className="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center shadow-lg">
+                            <Package className="h-16 w-16 text-gray-400" />
+                          </div>
+                          <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-[#12d6fa] to-blue-500 rounded-full animate-pulse"></div>
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-3">No products found</h3>
+                        <p className="text-gray-600 mb-8 text-lg max-w-md mx-auto">
+                          {searchTerm ? `No products match your search "${searchTerm}"` : "Create your first product to get started"}
+                        </p>
+                        {!searchTerm && (
+                          <Button 
+                            onClick={() => setIsAddProductOpen(true)}
+                            className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                          >
+                            <Plus className="h-5 w-5 mr-2" />
+                            Add First Product
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   )}
@@ -624,8 +812,11 @@ export default function ProductsPage() {
               )}
             </>
           )}
-        </CardContent>
-      </Card>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Edit Product Dialog */}
       {editingProduct && (

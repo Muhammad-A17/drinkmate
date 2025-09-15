@@ -1092,7 +1092,7 @@ export default function FlavorDetailPage() {
                                     >
                                       {colorHex && (
                                         <div
-                                          className={`w-3 h-3 rounded-full border border-gray-300 ${styles.colorSwatch}`}
+                                          className={`color-swatch ${styles.colorSwatch}`}
                                           style={{ '--color-hex': colorHex } as React.CSSProperties}
                                         />
                                       )}

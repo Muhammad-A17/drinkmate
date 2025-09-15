@@ -408,8 +408,8 @@ exports.getBundles = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
         
-        // Build filter object
-        const filter = { status: 'active' };
+        // Build filter object - bundles use isActive instead of status
+        const filter = { isActive: true };
         
         // Category filter
         if (req.query.category) {
@@ -526,12 +526,21 @@ exports.createBundle = async (req, res) => {
             });
         }
 
-        // Generate slug from name if not provided
-        if (!bundleData.slug) {
-            bundleData.slug = bundleData.name.toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/(^-|-$)/g, '');
+        // Generate unique slug from name
+        let baseSlug = bundleData.name.toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+        
+        // Check for existing slug and make it unique if needed
+        let slug = baseSlug;
+        let counter = 1;
+        
+        while (await Bundle.findOne({ slug })) {
+            slug = `${baseSlug}-${counter}`;
+            counter++;
         }
+        
+        bundleData.slug = slug;
 
         // Ensure numeric fields are properly converted
         if (bundleData.price) bundleData.price = parseFloat(bundleData.price);
@@ -554,6 +563,16 @@ exports.createBundle = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in createBundle:', error);
+        
+        // Handle duplicate key error specifically
+        if (error.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message: 'A bundle with this name already exists. Please choose a different name.',
+                error: 'Duplicate bundle name'
+            });
+        }
+        
         res.status(500).json({
             success: false,
             message: 'Failed to create bundle',

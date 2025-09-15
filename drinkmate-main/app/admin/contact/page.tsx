@@ -969,8 +969,8 @@ export default function ContactPage() {
                                 <div className="flex items-center gap-2">
                                   <div className="w-20 bg-gray-200 rounded-full h-2">
                                     <div 
-                                      className="bg-blue-600 h-2 rounded-full" 
-                                      style={{ width: `${(count / analytics.totalMessages) * 100}%` }}
+                                      className="bg-blue-600 h-2 rounded-full progress-width" 
+                                      style={{ '--progress-width': `${(count / analytics.totalMessages) * 100}%` } as React.CSSProperties}
                                     />
                                   </div>
                                   <span className="text-sm font-medium w-8">{count}</span>
@@ -993,8 +993,8 @@ export default function ContactPage() {
                                 <div className="flex items-center gap-2">
                                   <div className="w-20 bg-gray-200 rounded-full h-2">
                                     <div 
-                                      className="bg-green-600 h-2 rounded-full" 
-                                      style={{ width: `${(count / analytics.totalMessages) * 100}%` }}
+                                      className="bg-green-600 h-2 rounded-full progress-width" 
+                                      style={{ '--progress-width': `${(count / analytics.totalMessages) * 100}%` } as React.CSSProperties}
                                     />
                                   </div>
                                   <span className="text-sm font-medium w-8">{count}</span>
@@ -1017,12 +1017,12 @@ export default function ContactPage() {
                                 <div className="flex items-center gap-2">
                                   <div className="w-20 bg-gray-200 rounded-full h-2">
                                     <div 
-                                      className={`h-2 rounded-full ${
+                                      className={`h-2 rounded-full progress-width ${
                                         priority === 'urgent' ? 'bg-red-600' :
                                         priority === 'high' ? 'bg-orange-600' :
                                         priority === 'medium' ? 'bg-yellow-600' : 'bg-gray-600'
                                       }`}
-                                      style={{ width: `${(count / analytics.totalMessages) * 100}%` }}
+                                      style={{ '--progress-width': `${(count / analytics.totalMessages) * 100}%` } as React.CSSProperties}
                                     />
                                   </div>
                                   <span className="text-sm font-medium w-8">{count}</span>

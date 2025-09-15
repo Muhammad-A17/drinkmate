@@ -57,6 +57,7 @@ export default function SodamakersPage() {
 
   // State for products and bundles
   const [bundles, setBundles] = useState<Bundle[]>([])
+  const [bundleSubcategorySections, setBundleSubcategorySections] = useState<Array<{ _id: string; name: string; bundles: Bundle[] }>>([])
   const [allSodaMakers, setAllSodaMakers] = useState<Product[]>([])
   const [subcategorySections, setSubcategorySections] = useState<Array<{ _id: string; name: string; products: Product[] }>>([])
 
@@ -119,6 +120,7 @@ export default function SodamakersPage() {
         name: bundle.name,
         price: bundle.price,
         originalPrice: bundle.originalPrice,
+        subcategory: bundle.subcategory || "Bundles & Promotions of Soda Makers",
         image: (() => {
           console.log("Bundle image data:", bundle.images)
           if (bundle.images && bundle.images.length > 0) {
@@ -141,6 +143,25 @@ export default function SodamakersPage() {
 
       setBundles(formattedBundles)
       console.log("Formatted bundles for sodamakers:", formattedBundles)
+
+      // Organize bundles by subcategory
+      const bundleBySubcategory: Record<string, Bundle[]> = {}
+      for (const bundle of formattedBundles) {
+        const subcategory = bundle.subcategory || "Bundles & Promotions of Soda Makers"
+        if (!bundleBySubcategory[subcategory]) {
+          bundleBySubcategory[subcategory] = []
+        }
+        bundleBySubcategory[subcategory].push(bundle)
+      }
+      
+      const bundleSections = Object.entries(bundleBySubcategory).map(([subcategory, bundles]) => ({
+        _id: subcategory.toLowerCase().replace(/\s+/g, '-'),
+        name: subcategory,
+        bundles
+      }))
+      
+      setBundleSubcategorySections(bundleSections)
+      console.log("Bundle subcategory sections:", bundleSections)
 
       // Fetch categories and find Soda Makers category
       const categoriesResp = await shopAPI.getCategories()
@@ -468,10 +489,16 @@ export default function SodamakersPage() {
           <>
             {/* Bundles & Promotions Section */}
             <div className="mb-16">
-              <h2 className="text-xl font-medium mb-6 text-gray-900">Bundles & Promotions</h2>
-              {bundles.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {bundles.map((bundle) => (
+             
+              {bundleSubcategorySections.length > 0 ? (
+                <div className="space-y-12">
+                  {bundleSubcategorySections.map((section) => (
+                    <div key={section._id} className="space-y-6">
+                      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                        {section.name}
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                        {section.bundles.map((bundle) => (
                     <div
                       key={bundle._id}
                       className="bg-white rounded-3xl transition-all duration-300 p-6 flex flex-col border border-gray-100 hover:border-gray-200 relative transform hover:-translate-y-1"
@@ -547,6 +574,9 @@ export default function SodamakersPage() {
                           {bundle.badge}
                         </div>
                       )}
+                    </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>

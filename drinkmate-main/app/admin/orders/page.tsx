@@ -947,139 +947,209 @@ export default function OrdersPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{orderStats.total}</div>
-              <p className="text-xs text-muted-foreground">
-                {filteredOrders.length !== orderStats.total && `${filteredOrders.length} filtered`}
-              </p>
-            </CardContent>
-          </Card>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        {/* Premium Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#12d6fa]/10 to-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+        </div>
+        
+        <div className="space-y-8 p-4 md:p-6 relative z-10">
+          {/* Premium Order Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+              <div className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-gray-900">{orderStats.total}</div>
+                    <p className="text-sm text-gray-600 mt-1">Total Orders</p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl">
+                    <Package className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500">
+                    {filteredOrders.length !== orderStats.total ? `${filteredOrders.length} filtered` : "All orders"}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{orderStats.pending}</div>
-              <p className="text-xs text-muted-foreground">Awaiting processing</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Processing</CardTitle>
-              <TrendingUp className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{orderStats.processing}</div>
-              <p className="text-xs text-muted-foreground">Being prepared</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{CellRenderers.currency(orderStats.revenue, "SAR")}</div>
-              <p className="text-xs text-muted-foreground">Total paid orders</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Order</CardTitle>
-              <TrendingUp className="h-4 w-4 text-purple-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{CellRenderers.currency(orderStats.avgOrderValue, "SAR")}</div>
-              <p className="text-xs text-muted-foreground">Average order value</p>
-            </CardContent>
-          </Card>
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+              <div className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-yellow-600">{orderStats.pending}</div>
+                    <p className="text-sm text-gray-600 mt-1">Pending Orders</p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 rounded-xl">
+                    <Clock className="h-6 w-6 text-yellow-600" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500">Awaiting processing</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+              <div className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-blue-600">{orderStats.processing}</div>
+                    <p className="text-sm text-gray-600 mt-1">Processing</p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl">
+                    <TrendingUp className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500">Being prepared</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+              <div className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-green-600">{CellRenderers.currency(orderStats.revenue, "SAR")}</div>
+                    <p className="text-sm text-gray-600 mt-1">Total Revenue</p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl">
+                    <DollarSign className="h-6 w-6 text-green-600" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500">From paid orders</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+              <div className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-purple-600">{CellRenderers.currency(orderStats.avgOrderValue, "SAR")}</div>
+                    <p className="text-sm text-gray-600 mt-1">Avg Order Value</p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-xl">
+                    <TrendingUp className="h-6 w-6 text-purple-600" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500">Average per order</span>
+                </div>
+              </div>
+            </div>
         </div>
 
-        {/* Header with Actions */}
-        <AdminActionBar
-          title="Orders Management"
-          description="Manage customer orders, track shipments, and process payments"
-          // Search
-          searchValue={searchTerm}
-          onSearchChange={setSearchTerm}
-          searchPlaceholder="Search orders, customers, tracking..."
-          // Statistics
-          totalItems={orders.length}
-          filteredItems={filteredOrders.length}
-          // Primary actions
-          primaryActions={[AdminActions.addNew("Create Order", handleCreateOrder)]}
-          secondaryActions={[
-            {
-              id: "refresh",
-              label: loading ? "Refreshing..." : "Refresh",
-              icon: loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />,
-              onClick: fetchOrders,
-              variant: "outline",
-              disabled: loading
-            },
-            {
-              id: "export",
-              label: "Export CSV",
-              icon: <Download className="h-4 w-4 mr-2" />,
-              onClick: handleExportOrders,
-              variant: "outline",
-            },
-            {
-              id: "filters",
-              label: showFilters ? "Hide Filters" : "Show Filters",
-              icon: <Filter className="h-4 w-4 mr-2" />,
-              onClick: () => setShowFilters(!showFilters),
-              variant: "outline",
-            },
-            {
-              id: "print-labels",
-              label: "Print Labels",
-              icon: <Package className="h-4 w-4 mr-2" />,
-              onClick: () => toast.info("Print labels functionality"),
-              variant: "outline",
-            },
-          ]}
-          // Bulk actions
-          selectedItems={selectedItems}
-          onSelectionChange={setSelectedItems}
-          bulkActions={[
-            {
-              id: "bulk-process",
-              label: processingOrders ? "Processing..." : "Process Selected",
-              icon: processingOrders ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />,
-              onClick: handleBulkProcess,
-              variant: "default",
-              disabled: processingOrders || selectedRows.length === 0
-            },
-            {
-              id: "bulk-cancel",
-              label: cancellingOrders ? "Cancelling..." : "Cancel Selected",
-              icon: cancellingOrders ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />,
-              onClick: handleBulkCancel,
-              variant: "destructive",
-              disabled: cancellingOrders || selectedRows.length === 0
-            },
-          ]}
-        />
+          {/* Premium Header */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20"></div>
+            <div className="relative p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                      <Package className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                        Orders Management
+                      </h1>
+                      <p className="text-gray-600 text-lg">
+                        Manage customer orders, track shipments, and process payments
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-gray-900">{filteredOrders.length}</div>
+                    <div className="text-sm text-gray-500">Filtered Orders</div>
+                  </div>
+                  <div className="w-px h-12 bg-gray-300"></div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-[#12d6fa]">{orders.length}</div>
+                    <div className="text-sm text-gray-500">Total Orders</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Button
+                    onClick={handleCreateOrder}
+                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <Plus className="h-5 w-5 mr-2" />
+                    Create Order
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={fetchOrders}
+                    disabled={loading}
+                    className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 px-6 py-3 rounded-xl transition-all duration-300"
+                  >
+                    {loading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <RefreshCw className="h-5 w-5 mr-2" />}
+                    {loading ? "Refreshing..." : "Refresh"}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={handleExportOrders}
+                    className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 px-6 py-3 rounded-xl transition-all duration-300"
+                  >
+                    <Download className="h-5 w-5 mr-2" />
+                    Export CSV
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="border-2 border-gray-300 hover:border-purple-500 hover:bg-purple-50 px-6 py-3 rounded-xl transition-all duration-300"
+                  >
+                    <Filter className="h-5 w-5 mr-2" />
+                    {showFilters ? "Hide Filters" : "Show Filters"}
+                  </Button>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>System Online</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {showFilters && (
-        <Card>
-          <CardHeader>
-              <CardTitle className="text-lg">Advanced Filters</CardTitle>
-          </CardHeader>
-          <CardContent>
+          {/* Premium Search & Filters */}
+          {showFilters && (
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+              <div className="relative p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-gradient-to-br from-[#12d6fa]/20 to-blue-500/20 rounded-xl">
+                    <Filter className="h-6 w-6 text-[#12d6fa]" />
+                  </div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                    Advanced Filters
+                  </h2>
+                </div>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
               <div>
                   <Label htmlFor="status-filter">Order Status</Label>
@@ -1195,23 +1265,90 @@ export default function OrdersPage() {
                 </Button>
                 <div className="text-sm text-muted-foreground flex items-center">
                   Showing {filteredOrders.length} of {orders.length} orders
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-        )}
-
-        {/* Orders Table */}
-        <div className="relative">
-          {loading && (
-            <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
-              <div className="flex flex-col items-center">
-                <Loader2 className="h-10 w-10 animate-spin text-primary mb-2" />
-                <p className="text-sm text-gray-600">Loading orders...</p>
-              </div>
-            </div>
+          </div>
           )}
-          <AdminTable
+
+          {/* Premium Orders Table */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/95 to-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/30"></div>
+            <div className="relative overflow-hidden rounded-2xl">
+              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                      <Package className="h-7 w-7 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-bold text-white">Orders Directory</h2>
+                      <div className="flex items-center gap-4 mt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-[#12d6fa] rounded-full animate-pulse"></div>
+                          <span className="text-gray-300">
+                            {filteredOrders.length} of {orders.length} orders
+                          </span>
+                        </div>
+                        {selectedItems.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <span className="text-green-300">{selectedItems.length} selected</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {selectedItems.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleBulkProcess}
+                          disabled={processingOrders || selectedItems.length === 0}
+                          className="text-xs px-3 py-2 bg-green-500/10 border-green-500/20 text-green-300 hover:bg-green-500/20 rounded-lg transition-all duration-300"
+                        >
+                          {processingOrders ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                          {processingOrders ? "Processing..." : "Process Selected"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleBulkCancel}
+                          disabled={cancellingOrders || selectedItems.length === 0}
+                          className="text-xs px-3 py-2 bg-red-500/10 border-red-500/20 text-red-300 hover:bg-red-500/20 rounded-lg transition-all duration-300"
+                        >
+                          {cancellingOrders ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Trash2 className="h-4 w-4 mr-1" />}
+                          {cancellingOrders ? "Cancelling..." : "Cancel Selected"}
+                        </Button>
+                      </div>
+                    )}
+                    <Button 
+                      onClick={fetchOrders}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs px-4 py-2 bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-lg transition-all duration-300"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white p-6">
+                {loading && (
+                  <div className="flex items-center justify-center py-20">
+                    <div className="text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-[#12d6fa]/20 to-blue-500/20 rounded-full flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-[#12d6fa]" />
+                      </div>
+                      <span className="text-lg font-medium text-gray-600">Loading orders...</span>
+                    </div>
+                  </div>
+                )}
+                {!loading && (
+                  <AdminTable
             data={paginatedOrders}
             columns={columns}
           // Selection
@@ -1232,6 +1369,10 @@ export default function OrdersPage() {
           loading={loading}
           emptyMessage="No orders found. Orders will appear here once customers make purchases."
         />
+                )}
+              </div>
+            </div>
+          </div>
 
         <Dialog open={showOrderDetails} onOpenChange={setShowOrderDetails}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

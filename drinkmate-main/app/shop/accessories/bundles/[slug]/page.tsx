@@ -67,52 +67,62 @@ import SaudiRiyal from "@/components/ui/SaudiRiyal"
 
 interface Bundle {
   _id: string
-  id?: string // For compatibility with mock data
-  slug: string
   name: string
-  brand: string
-  type: string
-  price: number
-  originalPrice: number
-  discount: number
-  category: string
-  stock: number
-  minStock: number
-  status: string
-  isBestSeller: boolean
-  isFeatured: boolean
-  isNewProduct: boolean
-  isEcoFriendly: boolean
   description: string
-  features: string[]
-  specifications: Record<string, string>
+  price: number
+  originalPrice?: number
+  bundleDiscount: number
+  category: string
+  subcategory?: string
   images: string[]
-  image?: string // For compatibility with mock data
-  videos: string[]
-  documents: { name: string; url: string; type: string }[]
-  certifications: string[]
-  warranty: string
-  dimensions: { width: number; height: number; depth: number; weight: number }
-  compatibility: string[]
-  safetyFeatures: string[]
-  items: Array<{
+  videos?: string[]
+  youtubeLinks?: string[]
+  badge?: {
+    text: string
+    color: string
+  }
+  sku?: string
+  isActive: boolean
+  isFeatured: boolean
+  isNewArrival?: boolean
+  isBestSeller?: boolean
+  isLimited?: boolean
+  stock: number
+  createdAt: string
+  // Legacy fields for compatibility
+  id?: string
+  slug?: string
+  brand?: string
+  type?: string
+  discount?: number
+  minStock?: number
+  status?: string
+  isNewProduct?: boolean
+  isEcoFriendly?: boolean
+  features?: string[]
+  specifications?: Record<string, string>
+  image?: string
+  documents?: { name: string; url: string; type: string }[]
+  certifications?: string[]
+  warranty?: string
+  dimensions?: { width: number; height: number; depth: number; weight: number }
+  compatibility?: string[]
+  safetyFeatures?: string[]
+  items?: Array<{
     product: string
     name: string
     price: number
     image?: string
   }>
-  createdAt: string
-  updatedAt: string
-  averageRating: number
-  totalReviews: number
-  categoryId: string
-  tags: string[]
+  updatedAt?: string
+  averageRating?: number
+  totalReviews?: number
+  categoryId?: string
+  tags?: string[]
   seoTitle?: string
   seoDescription?: string
-  rating?: number // For compatibility with mock data
-  reviews?: number // For compatibility with mock data
-  badge?: string // For compatibility with mock data
-  sku: string
+  rating?: number
+  reviews?: number
 }
 
 const productReviews = [
@@ -532,9 +542,9 @@ export default function AccessoriesBundleDetail() {
     [quantity, product?.stock],
   )
 
-  // Create combined media array (images + videos)
+  // Create combined media array (images + videos + YouTube links)
   const combinedMedia = useMemo(() => {
-    const media: Array<{ type: 'image' | 'video', src: string, index: number, title?: string }> = []
+    const media: Array<{ type: 'image' | 'video' | 'youtube', src: string, index: number, title?: string }> = []
 
     // Add images first
     if (product?.images && product.images.length > 0) {
@@ -564,13 +574,27 @@ export default function AccessoriesBundleDetail() {
       })
     }
 
+    // Add YouTube links after videos
+    if (product?.youtubeLinks && product.youtubeLinks.length > 0) {
+      product.youtubeLinks.forEach((link, index) => {
+        if (link && link.trim()) {
+          media.push({ 
+            type: 'youtube', 
+            src: link, 
+            index: media.length,
+            title: `${product.name} - YouTube Video ${index + 1}`
+          })
+        }
+      })
+    }
+
     return media
-  }, [product?.images, product?.videos, product?.name])
+  }, [product?.images, product?.videos, product?.youtubeLinks, product?.name])
 
   const handleImageSelect = useCallback((index: number) => {
     setSelectedImage(index)
     const media = combinedMedia[index]
-    setIsShowingVideo(media?.type === 'video')
+    setIsShowingVideo(media?.type === 'video' || media?.type === 'youtube')
     // Clear any previous errors and loading states when switching media
     setVideoError(null)
     setImageError(null)
@@ -728,7 +752,7 @@ export default function AccessoriesBundleDetail() {
 
   const calculateSavings = useCallback(() => {
     if (!product) return 0
-    return product.originalPrice - product.price
+    return (product.originalPrice || 0) - product.price
   }, [product])
 
   const getEstimatedUsage = useCallback(() => {
@@ -844,7 +868,7 @@ export default function AccessoriesBundleDetail() {
                   <button
                     className="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white transition-all duration-200 group"
                     onClick={() => alert("3D View coming soon!")}
-                    aria-label="View bundle in 3D"
+                    aria-label="View product in 3D"
                   >
                     <svg
                       className="w-5 h-5 group-hover:scale-110 transition-transform"
@@ -925,7 +949,7 @@ export default function AccessoriesBundleDetail() {
                   >
                     {isShowingVideo ? (
                       <div className="w-full h-full">
-                        {combinedMedia[selectedImage] && isYouTubeUrl(combinedMedia[selectedImage].src) ? (
+                        {combinedMedia[selectedImage] && (isYouTubeUrl(combinedMedia[selectedImage].src) || combinedMedia[selectedImage].type === 'youtube') ? (
                           <YouTubeVideo
                             videoUrl={combinedMedia[selectedImage].src}
                             title={combinedMedia[selectedImage].title || `${product.name} - Bundle Video`}
@@ -986,7 +1010,7 @@ export default function AccessoriesBundleDetail() {
 
                     {/* Enhanced Badges */}
                     <div className="absolute top-4 left-4 flex flex-col space-y-2">
-                      {product.originalPrice > product.price && (
+                      {(product.originalPrice || 0) > product.price && (
                         <Badge className="bg-red-500 text-white shadow-lg animate-pulse">{product.discount}% OFF</Badge>
                       )}
                       {product.isBestSeller && (
@@ -1081,9 +1105,9 @@ export default function AccessoriesBundleDetail() {
                           aria-label={`View ${media.type} ${index + 1}`}
                           title={`View ${media.type} ${index + 1}`}
                         >
-                          {media.type === 'video' ? (
+                          {media.type === 'video' || media.type === 'youtube' ? (
                             <>
-                              {isYouTubeUrl(media.src) ? (
+                              {(isYouTubeUrl(media.src) || media.type === 'youtube') ? (
                                 <img
                                   src={`https://img.youtube.com/vi/${getYouTubeVideoId(media.src)}/mqdefault.jpg`}
                                   alt={media.title || "Video thumbnail"}
@@ -1132,21 +1156,21 @@ export default function AccessoriesBundleDetail() {
                 <div className="space-y-6">
                   {/* Product Title and Rating */}
                   <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+                    <h1 className="text-4xl font-bold text-gray-900 mb-4">{product.name}</h1>
                     <div className="flex items-center space-x-4 mb-4">
                       <div className="flex items-center space-x-1">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
                             key={star}
                             className={`w-5 h-5 ${
-                              star <= Math.floor(product.averageRating)
+                              star <= Math.floor(product.averageRating || 0)
                                 ? "text-yellow-400 fill-current"
                                 : "text-gray-300"
                             }`}
                           />
                         ))}
-                        <span className="text-sm font-medium ml-2">{product.averageRating}</span>
-                        <span className="text-sm text-muted-foreground">({product.totalReviews} reviews)</span>
+                        <span className="text-base font-medium ml-2">{product.averageRating}</span>
+                        <span className="text-base text-muted-foreground">({product.totalReviews || 0} reviews)</span>
                       </div>
                     </div>
                   </div>
@@ -1154,13 +1178,13 @@ export default function AccessoriesBundleDetail() {
                   {/* Pricing */}
                   <div className="space-y-2">
                     <div className="flex items-center space-x-3">
-                      <span className="text-3xl font-bold text-[#12d6fa]">
-                        <SaudiRiyal amount={product.price} />
+                      <span className="text-2xl font-bold text-[#12d6fa]">
+                        <SaudiRiyal amount={product.price || 0} />
                       </span>
-                      {product.originalPrice > product.price && (
+                      {(product.originalPrice || 0) > product.price && (
                         <>
-                          <span className="text-xl text-muted-foreground line-through">
-                            <SaudiRiyal amount={product.originalPrice} />
+                          <span className="text-lg text-muted-foreground line-through">
+                            <SaudiRiyal amount={product.originalPrice || 0} />
                           </span>
                           <Badge className="bg-red-500 text-white">
                             Save <SaudiRiyal amount={calculateSavings()} />
@@ -1328,12 +1352,48 @@ export default function AccessoriesBundleDetail() {
 
               {/* Enhanced Tabs Section */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
-                  <TabsTrigger value="description">Description</TabsTrigger>
-                  <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                  <TabsTrigger value="videos">Videos ({product.videos?.length || 0})</TabsTrigger>
-                  <TabsTrigger value="reviews">Reviews ({product.totalReviews})</TabsTrigger>
-                  <TabsTrigger value="qa">Q&A</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto sm:h-12 gap-1 sm:gap-0">
+                  <TabsTrigger
+                    value="description"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <Info className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Description</span>
+                    <span className="sm:hidden">Info</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="specifications"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Specifications</span>
+                    <span className="sm:hidden">Specs</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="reviews"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Reviews ({product.totalReviews})</span>
+                    <span className="sm:hidden">Reviews</span>
+                    <span className="sm:hidden text-xs ml-1">({product.totalReviews})</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="videos"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Videos ({product.videos?.length || 0})</span>
+                    <span className="sm:hidden">Video</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="qa"
+                    className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
+                  >
+                    <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Q&A</span>
+                    <span className="sm:hidden">Q&A</span>
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="description" className="mt-8">
@@ -1442,20 +1502,20 @@ export default function AccessoriesBundleDetail() {
                                 <Star
                                   key={star}
                                   className={`w-5 h-5 ${
-                                    star <= Math.floor(product.averageRating)
+                                    star <= Math.floor(product.averageRating || 0)
                                       ? "text-yellow-400 fill-current"
                                       : "text-gray-300"
                                   }`}
                                 />
                               ))}
                             </div>
-                            <div className="text-sm text-muted-foreground">{product.totalReviews} reviews</div>
+                            <div className="text-sm text-muted-foreground">{product.totalReviews || 0} reviews</div>
                           </div>
 
                           <div className="col-span-2">
                             {[5, 4, 3, 2, 1].map((rating) => {
                               const count = filteredReviews().filter((r) => r.rating === rating).length
-                              const percentage = product.totalReviews > 0 ? (count / product.totalReviews) * 100 : 0
+                              const percentage = (product.totalReviews || 0) > 0 ? (count / (product.totalReviews || 1)) * 100 : 0
                               return (
                                 <div key={rating} className="flex items-center space-x-2 mb-2">
                                   <span className="text-sm w-8">{rating}★</span>
@@ -2022,15 +2082,18 @@ export default function AccessoriesBundleDetail() {
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                             />
                             {relatedProduct.badge && (
-                              <Badge className="absolute top-2 left-2 bg-[#12d6fa] text-white">
-                                {relatedProduct.badge}
+                              <Badge 
+                                className="absolute top-2 left-2 text-white"
+                                style={{ backgroundColor: relatedProduct.badge.color || '#12d6fa' }}
+                              >
+                                {typeof relatedProduct.badge === 'string' ? relatedProduct.badge : relatedProduct.badge.text}
                               </Badge>
                             )}
-                            {relatedProduct.originalPrice > relatedProduct.price && (
+                            {(relatedProduct.originalPrice || 0) > relatedProduct.price && (
                               <Badge className="absolute top-2 right-2 bg-red-500 text-white">
                                 {Math.round(
-                                  ((relatedProduct.originalPrice - relatedProduct.price) /
-                                    relatedProduct.originalPrice) *
+                                  (((relatedProduct.originalPrice || 0) - relatedProduct.price) /
+                                    (relatedProduct.originalPrice || 1)) *
                                     100,
                                 )}%
                                 OFF
@@ -2047,7 +2110,7 @@ export default function AccessoriesBundleDetail() {
                               <span className="font-bold text-[#12d6fa]">
                                 <SaudiRiyal amount={relatedProduct.price} size="sm" />
                               </span>
-                              {relatedProduct.originalPrice > relatedProduct.price && (
+                              {(relatedProduct.originalPrice || 0) > relatedProduct.price && (
                                 <span className="text-sm text-muted-foreground line-through">
                                   <SaudiRiyal amount={relatedProduct.originalPrice} size="sm" />
                                 </span>
@@ -2102,7 +2165,7 @@ export default function AccessoriesBundleDetail() {
               <div className="relative">
                 {isShowingVideo ? (
                   <div className="w-full h-[60vh] sm:h-[80vh]">
-                    {combinedMedia[selectedImage] && isYouTubeUrl(combinedMedia[selectedImage].src) ? (
+                    {combinedMedia[selectedImage] && (isYouTubeUrl(combinedMedia[selectedImage].src) || combinedMedia[selectedImage].type === 'youtube') ? (
                       <YouTubeVideo
                         videoUrl={combinedMedia[selectedImage].src}
                         title={`${product.name} - Bundle Video`}
@@ -2177,9 +2240,9 @@ export default function AccessoriesBundleDetail() {
                         selectedImage === index ? "border-[#12d6fa]" : "border-gray-200"
                       }`}
                     >
-                      {media.type === 'video' ? (
+                      {media.type === 'video' || media.type === 'youtube' ? (
                         <>
-                          {isYouTubeUrl(media.src) ? (
+                          {(isYouTubeUrl(media.src) || media.type === 'youtube') ? (
                             <img
                               src={`https://img.youtube.com/vi/${getYouTubeVideoId(media.src)}/mqdefault.jpg`}
                               alt="Video thumbnail"

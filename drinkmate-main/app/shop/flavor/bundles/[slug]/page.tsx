@@ -97,12 +97,14 @@ interface BundleProduct {
   originalPrice?: number
   salePrice?: number
   discount?: number
+  bundleDiscount?: number
   sku?: string
   stock?: number
   isActive?: boolean
   isFeatured?: boolean
   isBestSeller?: boolean
   isNewProduct?: boolean
+  isNewArrival?: boolean
   isEcoFriendly?: boolean
   averageRating?: number
   rating?: number
@@ -119,7 +121,10 @@ interface BundleProduct {
   // SEO and marketing
   seoTitle?: string
   seoDescription?: string
-  badge?: string
+  badge?: {
+    text: string
+    color: string
+  }
   brand?: string
 
   // Media
@@ -144,6 +149,7 @@ interface BundleProduct {
   certifications?: string[]
   compatibility?: string[]
   videos?: string[]
+  youtubeLinks?: string[]
   documents?: string[]
 }
 
@@ -395,9 +401,9 @@ export default function BundleDetailPage() {
     [quantity, product?.stock],
   )
 
-  // Create combined media array (images + videos)
+  // Create combined media array (images + videos + YouTube links)
   const combinedMedia = useMemo(() => {
-    const media: Array<{ type: 'image' | 'video', src: string, index: number }> = []
+    const media: Array<{ type: 'image' | 'video' | 'youtube', src: string, index: number }> = []
 
     // Add images
     if (product?.images) {
@@ -414,13 +420,20 @@ export default function BundleDetailPage() {
       })
     }
 
+    // Add YouTube links
+    if (product?.youtubeLinks) {
+      product.youtubeLinks.forEach((link, index) => {
+        media.push({ type: 'youtube', src: link, index })
+      })
+    }
+
     return media
-  }, [product?.images, product?.videos])
+  }, [product?.images, product?.videos, product?.youtubeLinks])
 
   const handleImageSelect = useCallback((index: number) => {
     setSelectedImage(index)
     const media = combinedMedia[index]
-    setIsShowingVideo(media?.type === 'video')
+    setIsShowingVideo(media?.type === 'video' || media?.type === 'youtube')
   }, [combinedMedia])
 
   const handleImageZoom = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -944,8 +957,8 @@ export default function BundleDetailPage() {
                   {/* Product Header */}
                   <div>
                     <div className="flex items-center flex-wrap gap-2 mb-2">
-                      <Badge variant="outline" className="text-[#12d6fa] border-[#12d6fa] text-xs sm:text-sm">
-                        {typeof product.category === 'object' ? product.category.name : (product.category || "Bundle")}
+                      <Badge variant="outline" className="text-[#12d6fa] border-[#12d6fa] text-sm sm:text-base">
+                        {typeof product.category === 'object' ? product.category.name : (product.category || "Flavor Bundle")}
                       </Badge>
                       {product.brand && (
                         <Badge variant="outline" className="border-gray-300 text-xs sm:text-sm">
@@ -964,7 +977,7 @@ export default function BundleDetailPage() {
                       )}
                     </div>
 
-                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 text-balance leading-tight">{product.name}</h1>
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-balance leading-tight">{product.name}</h1>
 
                     {/* Enhanced Rating */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
@@ -997,12 +1010,12 @@ export default function BundleDetailPage() {
 
                     {/* Enhanced Pricing */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
-                      <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#12d6fa]">
+                      <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#12d6fa]">
                         <SaudiRiyal amount={product.salePrice || product.price} size="lg" />
                       </span>
                       {/* @ts-ignore - product exists at this point since we checked earlier */}
                       {(product.originalPrice || product.salePrice) && (product.originalPrice || product.salePrice) > (product.salePrice || product.price) && (
-                        <span className="text-lg text-muted-foreground line-through">
+                        <span className="text-base text-muted-foreground line-through">
                           <SaudiRiyal amount={product.originalPrice || product.salePrice} size="md" />
                         </span>
                       )}
@@ -1342,7 +1355,7 @@ export default function BundleDetailPage() {
                           <>
                             <div className="flex justify-between py-2 border-b border-gray-100">
                               <span className="font-medium text-gray-700">Bundle Type</span>
-                              <span className="text-gray-600">Flavor Collection</span>
+                              <span className="text-gray-600">{product.subcategory || "Bundles & Promotions of Flavors"}</span>
                             </div>
                             <div className="flex justify-between py-2 border-b border-gray-100">
                               <span className="font-medium text-gray-700">Items Included</span>
