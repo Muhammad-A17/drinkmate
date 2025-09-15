@@ -160,16 +160,54 @@ const defaultSettings: CartSettings = {
   }
 }
 
+interface FreeGiftProduct {
+  id: number
+  name: string
+  image: string
+  originalPrice: number
+  isActive: boolean
+}
+
 export default function CartSettingsPage() {
   const [settings, setSettings] = useState<CartSettings>(defaultSettings)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [freeGiftProducts, setFreeGiftProducts] = useState<FreeGiftProduct[]>([
+    {
+      id: 101,
+      name: "Drinkmate Flavor Sachet - Cherry",
+      image: "/images/italian-strawberry-lemon-syrup.png",
+      originalPrice: 15.0,
+      isActive: true,
+    },
+    {
+      id: 102,
+      name: "Drinkmate Flavor Sachet - Lemon",
+      image: "/images/italian-strawberry-lemon-syrup.png",
+      originalPrice: 15.0,
+      isActive: true,
+    },
+    {
+      id: 103,
+      name: "Drinkmate Flavor Sachet - Peach",
+      image: "/images/italian-strawberry-lemon-syrup.png",
+      originalPrice: 15.0,
+      isActive: true,
+    },
+  ])
 
   useEffect(() => {
     // Load settings from API or localStorage
-    const savedSettings = localStorage.getItem('cart-settings')
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings))
+    if (typeof window !== 'undefined') {
+      const savedSettings = localStorage.getItem('cart-settings')
+      if (savedSettings) {
+        setSettings(JSON.parse(savedSettings))
+      }
+      
+      const savedProducts = localStorage.getItem('free-gift-products')
+      if (savedProducts) {
+        setFreeGiftProducts(JSON.parse(savedProducts))
+      }
     }
   }, [])
 
@@ -177,7 +215,10 @@ export default function CartSettingsPage() {
     setSaving(true)
     try {
       // Save to localStorage (in real app, save to API)
-      localStorage.setItem('cart-settings', JSON.stringify(settings))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cart-settings', JSON.stringify(settings))
+        localStorage.setItem('free-gift-products', JSON.stringify(freeGiftProducts))
+      }
       toast.success('Cart settings saved successfully')
     } catch (error) {
       toast.error('Failed to save settings')
@@ -592,6 +633,82 @@ export default function CartSettingsPage() {
                       }))
                     }
                   />
+                </div>
+              </div>
+
+              {/* Free Gift Products Management */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Free Gift Products</h3>
+                  <Button
+                    onClick={() => {
+                      const newProduct = {
+                        id: Date.now(),
+                        name: `New Free Gift ${freeGiftProducts.length + 1}`,
+                        image: "/placeholder.svg",
+                        originalPrice: 15.0,
+                        isActive: true
+                      }
+                      setFreeGiftProducts(prev => [...prev, newProduct])
+                    }}
+                    size="sm"
+                  >
+                    Add Product
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  {freeGiftProducts.map((product, index) => (
+                    <div key={product.id} className="flex items-center gap-4 p-4 border rounded-lg">
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span className="text-xs text-gray-500">IMG</span>
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <Input
+                          value={product.name}
+                          onChange={(e) => {
+                            const updated = [...freeGiftProducts]
+                            updated[index].name = e.target.value
+                            setFreeGiftProducts(updated)
+                          }}
+                          placeholder="Product name"
+                        />
+                        <div className="flex gap-2">
+                          <Input
+                            type="number"
+                            value={product.originalPrice}
+                            onChange={(e) => {
+                              const updated = [...freeGiftProducts]
+                              updated[index].originalPrice = Number(e.target.value)
+                              setFreeGiftProducts(updated)
+                            }}
+                            placeholder="Original price"
+                            className="w-32"
+                          />
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={product.isActive}
+                              onCheckedChange={(checked) => {
+                                const updated = [...freeGiftProducts]
+                                updated[index].isActive = checked
+                                setFreeGiftProducts(updated)
+                              }}
+                            />
+                            <Label className="text-sm">Active</Label>
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setFreeGiftProducts(prev => prev.filter((_, i) => i !== index))
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </div>
             </CardContent>

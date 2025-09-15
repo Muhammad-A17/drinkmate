@@ -152,7 +152,7 @@ export default function CheckoutPage() {
       const paymentRequest = {
         amount: total,
         currency: 'SAR',
-        orderId: orderResponse.orderId || `ORDER-${Date.now()}`,
+        orderId: orderResponse.orderId || `ORDER-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         customerEmail: deliveryAddress.email,
         customerName: `${deliveryAddress.firstName} ${deliveryAddress.lastName}`,
         description: `DrinkMate Order - ${state.itemCount} items`,
@@ -168,7 +168,7 @@ export default function CheckoutPage() {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
+            'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null}`
           },
           body: JSON.stringify(paymentRequest)
         })

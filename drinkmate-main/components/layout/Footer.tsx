@@ -505,7 +505,7 @@ export default function Footer() {
         </div>
 
         <div className="text-xs text-black/60 text-center">
-          © {new Date().getFullYear()} Drinkmate. All rights reserved.
+          © <span suppressHydrationWarning>{new Date().getFullYear()}</span> Drinkmate. All rights reserved.
         </div>
       </div>
 

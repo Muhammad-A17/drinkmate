@@ -71,18 +71,20 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
   useEffect(() => {
     if (isMobile) return
     
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      try { 
-        setSize(JSON.parse(raw)) 
-      } catch (e) {
-        console.warn('Failed to parse saved chat size:', e)
+    if (typeof window !== 'undefined') {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (raw) {
+        try { 
+          setSize(JSON.parse(raw)) 
+        } catch (e) {
+          console.warn('Failed to parse saved chat size:', e)
+        }
       }
     }
   }, [isMobile])
 
   useEffect(() => {
-    if (isMobile) return
+    if (isMobile || typeof window === 'undefined') return
     localStorage.setItem(STORAGE_KEY, JSON.stringify(size))
   }, [size, isMobile])
 

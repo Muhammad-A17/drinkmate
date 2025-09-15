@@ -96,12 +96,15 @@ export default function ReportingDashboard({ className }: ReportingDashboardProp
       chats: Math.floor(Math.random() * 20) + 5,
       messages: Math.floor(Math.random() * 100) + 20
     })),
-    dailyTrends: Array.from({ length: 7 }, (_, i) => ({
-      date: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toLocaleDateString(),
-      chats: Math.floor(Math.random() * 50) + 100,
-      satisfaction: 4 + Math.random(),
-      responseTime: 3 + Math.random() * 3
-    }))
+    dailyTrends: Array.from({ length: 7 }, (_, i) => {
+      const baseDate = new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000)
+      return {
+        date: baseDate.toLocaleDateString(),
+        chats: Math.floor(Math.random() * 50) + 100,
+        satisfaction: 4 + Math.random(),
+        responseTime: 3 + Math.random() * 3
+      }
+    })
   }
 
   const formatTime = (minutes: number) => {

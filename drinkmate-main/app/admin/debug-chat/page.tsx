@@ -68,7 +68,7 @@ export default function DebugChatPage() {
     setLoading(true)
     setError(null)
     try {
-      const token = localStorage.getItem('token')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       if (!token) {
         setError('Authentication token not found.')
         setLoading(false)
@@ -104,7 +104,7 @@ export default function DebugChatPage() {
 
   const fetchChatMessages = async (chatId: string) => {
     try {
-      const token = localStorage.getItem('token')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       if (!token) return
 
       const response = await fetch(`http://localhost:3000/chat/${chatId}/messages`, {
@@ -139,7 +139,7 @@ export default function DebugChatPage() {
 
     setSending(true)
     try {
-      const token = localStorage.getItem('token')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       if (!token) {
         toast.error('Authentication token not found.')
         return
@@ -165,7 +165,7 @@ export default function DebugChatPage() {
 
       // Add message to local state
       const newMsg: ChatMessage = {
-        id: Date.now().toString(),
+        id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         sender: 'agent',
         content: newMessage,
         timestamp: new Date().toISOString(),
@@ -196,7 +196,7 @@ export default function DebugChatPage() {
 
   const updateChatStatus = async (chatId: string, status: string) => {
     try {
-      const token = localStorage.getItem('token')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       if (!token) return
 
       const response = await fetch(`http://localhost:3000/chat/${chatId}`, {

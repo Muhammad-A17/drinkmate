@@ -76,15 +76,19 @@ export default function NotificationsManager({
 
   // Load settings from localStorage
   useEffect(() => {
-    const savedSettings = localStorage.getItem('chat-notification-settings')
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings))
+    if (typeof window !== 'undefined') {
+      const savedSettings = localStorage.getItem('chat-notification-settings')
+      if (savedSettings) {
+        setSettings(JSON.parse(savedSettings))
+      }
     }
   }, [])
 
   // Save settings to localStorage
   useEffect(() => {
-    localStorage.setItem('chat-notification-settings', JSON.stringify(settings))
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('chat-notification-settings', JSON.stringify(settings))
+    }
   }, [settings])
 
   // Request notification permission

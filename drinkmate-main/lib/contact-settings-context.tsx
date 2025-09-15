@@ -375,14 +375,16 @@ export function ContactProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Load settings from localStorage
-    try {
-      const savedSettings = localStorage.getItem('contact-settings')
-      if (savedSettings) {
-        const parsed = JSON.parse(savedSettings)
-        setSettings(prev => ({ ...prev, ...parsed }))
+    if (typeof window !== 'undefined') {
+      try {
+        const savedSettings = localStorage.getItem('contact-settings')
+        if (savedSettings) {
+          const parsed = JSON.parse(savedSettings)
+          setSettings(prev => ({ ...prev, ...parsed }))
+        }
+      } catch (error) {
+        console.error('Failed to load contact settings:', error)
       }
-    } catch (error) {
-      console.error('Failed to load contact settings:', error)
     }
   }, [])
 
@@ -390,10 +392,12 @@ export function ContactProvider({ children }: { children: ReactNode }) {
     setSettings(prev => ({ ...prev, ...newSettings }))
     
     // Save to localStorage
-    try {
-      localStorage.setItem('contact-settings', JSON.stringify({ ...settings, ...newSettings }))
-    } catch (error) {
-      console.error('Failed to save contact settings:', error)
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('contact-settings', JSON.stringify({ ...settings, ...newSettings }))
+      } catch (error) {
+        console.error('Failed to save contact settings:', error)
+      }
     }
   }
 

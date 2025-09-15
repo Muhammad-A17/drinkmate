@@ -134,9 +134,10 @@ export default function ChatManagementPage() {
         }
       })
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const response = await fetch(`http://localhost:3000/chat?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
@@ -158,9 +159,10 @@ export default function ChatManagementPage() {
   // Fetch stats
   const fetchStats = useCallback(async () => {
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const response = await fetch('http://localhost:3000/chat/stats', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
@@ -177,9 +179,10 @@ export default function ChatManagementPage() {
   // Fetch agents
   const fetchAgents = useCallback(async () => {
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const response = await fetch('http://localhost:3000/agents', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
@@ -258,7 +261,7 @@ export default function ChatManagementPage() {
       const response = await fetch(`http://localhost:3000/chat/${selectedConversation.id}/messages`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('token') : null}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -286,7 +289,7 @@ export default function ChatManagementPage() {
       const response = await fetch(`http://localhost:3000/chat/${conversationId}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('token') : null}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(updates)

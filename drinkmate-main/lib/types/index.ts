@@ -137,12 +137,17 @@ export interface User {
 
 // Cart item interface
 export interface CartItem {
-  id: string
+  id: string | number
   name: string
   price: number
   image: string
   quantity: number
   productType?: 'product' | 'bundle' | 'cylinder'
+  isFree?: boolean
+  category?: string
+  color?: string
+  size?: string
+  isBundle?: boolean
 }
 
 // Order interface

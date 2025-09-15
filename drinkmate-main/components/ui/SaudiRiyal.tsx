@@ -1,5 +1,7 @@
 import React from 'react';
 import { toArabicNumerals } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import RiyalIcon from '@/components/icons/RiyalIcon';
 
 interface SaudiRiyalProps {
   amount: number | undefined | null;
@@ -10,7 +12,7 @@ interface SaudiRiyalProps {
 }
 
 /**
- * SaudiRiyal Component - Displays amounts with the custom Saudi Riyal symbol
+ * SaudiRiyal Component - Displays amounts with the Saudi Riyal SVG symbol
  * 
  * @param amount - The amount to display
  * @param size - Size variant: 'sm', 'md', 'lg', 'xl' (defaults to 'md')
@@ -38,24 +40,44 @@ const SaudiRiyal: React.FC<SaudiRiyalProps> = ({
     return language === 'AR' ? toArabicNumerals(formatted) : formatted;
   };
 
-  // Get size class
-  const getSizeClass = (): string => {
+  // Get size classes for text and icon
+  const getSizeClasses = () => {
     switch (size) {
-      case 'sm': return 'riyal-symbol-sm';
-      case 'lg': return 'riyal-symbol-lg';
-      case 'xl': return 'riyal-symbol-xl';
-      default: return 'riyal-symbol';
+      case 'sm': 
+        return {
+          text: 'text-sm',
+          icon: 'w-3 h-3'
+        };
+      case 'lg': 
+        return {
+          text: 'text-lg',
+          icon: 'w-4 h-4'
+        };
+      case 'xl': 
+        return {
+          text: 'text-xl',
+          icon: 'w-5 h-5'
+        };
+      default: 
+        return {
+          text: 'text-base',
+          icon: 'w-3.5 h-3.5'
+        };
     }
   };
 
   const formattedAmount = formatAmount(amount);
-  const sizeClass = getSizeClass();
+  const { text: textSize, icon: iconSize } = getSizeClasses();
 
   return (
-    <span className={`${sizeClass} ${className}`}>
-      {formattedAmount}
-      {showSymbol && <span className="currency-riyal text-xs">SAR</span>}
-    </span>
+    <div className={cn("flex items-baseline gap-1", className)}>
+      <span className={cn("tabular-nums font-semibold", textSize)}>
+        {formattedAmount}
+      </span>
+      {showSymbol && (
+        <RiyalIcon className={iconSize} />
+      )}
+    </div>
   );
 };
 

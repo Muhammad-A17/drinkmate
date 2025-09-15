@@ -123,9 +123,10 @@ export default function AdminRecipesPage() {
   const fetchRecipes = async () => {
     try {
       setLoading(true)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const response = await fetch('/api/recipes', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       })
       
@@ -168,11 +169,12 @@ export default function AdminRecipesPage() {
       const url = editingRecipe ? `/api/recipes/${editingRecipe._id}` : '/api/recipes'
       const method = editingRecipe ? 'PUT' : 'POST'
       
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(formData)
       })
@@ -237,10 +239,11 @@ export default function AdminRecipesPage() {
     if (!confirm('Are you sure you want to delete this recipe?')) return
     
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const response = await fetch(`/api/recipes/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       })
       

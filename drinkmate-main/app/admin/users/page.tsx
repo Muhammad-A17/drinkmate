@@ -603,7 +603,7 @@ export default function UsersPage() {
 
   const handleBlockUser = async (userId: string) => {
     const user = users.find(u => u._id === userId)
-    if (!confirm(`Are you sure you want to block ${user?.name || user?.username}?`)) return
+    if (!confirm(`Are you sure you want to block ${user?.firstName || user?.username}?`)) return
     
     try {
       setUsers(users.map(user => 

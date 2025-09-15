@@ -119,7 +119,8 @@ export default function ChatRatingModal({
   const getFeedbackPrompt = () => {
     if (!selectedCategory) return "Please share your feedback..."
     const prompts = feedbackPrompts[selectedCategory as keyof typeof feedbackPrompts]
-    return prompts[Math.floor(Math.random() * prompts.length)]
+    const randomIndex = Math.floor(Math.random() * prompts.length)
+    return prompts[randomIndex]
   }
 
   const isFormValid = selectedScore > 0
