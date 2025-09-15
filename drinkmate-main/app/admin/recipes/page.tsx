@@ -710,6 +710,8 @@ export default function AdminRecipesPage() {
                               type="button"
                               onClick={() => removeTag(tag)}
                               className="ml-1 hover:text-red-500"
+                              aria-label={`Remove tag ${tag}`}
+                              title={`Remove tag ${tag}`}
                             >
                               <X className="w-3 h-3" />
                             </button>

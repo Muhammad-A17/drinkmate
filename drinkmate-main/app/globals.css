@@ -17,6 +17,29 @@
   }
 }
 
+/* Progress Bar Styles */
+.progress-bar {
+  @apply bg-blue-600 h-2 rounded-full transition-all duration-300;
+  width: var(--progress-width, 0%);
+}
+
+/* Color Indicator Styles */
+.color-indicator {
+  @apply w-4 h-4 rounded-full;
+  background-color: var(--indicator-color, #6b7280);
+}
+
+/* Color Swatch Styles */
+.color-swatch {
+  @apply w-3 h-3 rounded-full border border-gray-300;
+  background-color: var(--color-hex, transparent);
+}
+
+/* Progress Bar Width Styles */
+.progress-width {
+  width: var(--progress-width, 0%);
+}
+
 @keyframes pulse {
   0%, 100% {
     transform: scale(1);

@@ -47,193 +47,320 @@ export default function SettingsPage() {
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <Button className="bg-[#12d6fa] hover:bg-[#0fb8d9]" onClick={handleSaveSettings}>
-          <Save className="mr-2 h-4 w-4" />
-          Save All Settings
-        </Button>
-      </div>
-
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2">
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">General</span>
-          </TabsTrigger>
-          <TabsTrigger value="store" className="flex items-center gap-2">
-            <Store className="h-4 w-4" />
-            <span className="hidden sm:inline">Store</span>
-          </TabsTrigger>
-          <TabsTrigger value="payment" className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            <span className="hidden sm:inline">Payment</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            <span className="hidden sm:inline">Notifications</span>
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            <span className="hidden sm:inline">Security</span>
-          </TabsTrigger>
-        </TabsList>
-
-        {/* General Settings */}
-        <TabsContent value="general">
-          <Card>
-            <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-              <CardDescription>
-                Manage your site's general settings and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Site Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="site-name">Site Name</Label>
-                    <Input id="site-name" defaultValue="Drinkmate" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="site-url">Site URL</Label>
-                    <Input id="site-url" defaultValue="https://drinkmate.sa" />
-                  </div>
-                </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        {/* Premium Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#12d6fa]/10 to-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+        </div>
+        
+        <div className="relative z-10 p-6">
+          {/* Premium Header */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20"></div>
+            <div className="relative p-8">
+              <div className="flex items-center justify-between mb-6">
                 <div className="space-y-2">
-                  <Label htmlFor="site-description">Site Description</Label>
-                  <Textarea 
-                    id="site-description" 
-                    defaultValue="Drinkmate - Premium soda makers and accessories for your home carbonation needs."
-                    rows={3}
-                  />
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Localization</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="language">Default Language</Label>
-                    <Select value={language} onValueChange={setLanguage}>
-                      <SelectTrigger id="language">
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="ar">Arabic</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="currency">Default Currency</Label>
-                    <Select value={currency} onValueChange={setCurrency}>
-                      <SelectTrigger id="currency">
-                        <SelectValue placeholder="Select currency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="SAR">Saudi Riyal (ر.س)</SelectItem>
-                        <SelectItem value="USD">US Dollar ($)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="timezone">Timezone</Label>
-                    <Select defaultValue="Asia/Riyadh">
-                      <SelectTrigger id="timezone">
-                        <SelectValue placeholder="Select timezone" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Asia/Riyadh">Asia/Riyadh (GMT+3)</SelectItem>
-                        <SelectItem value="UTC">UTC</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="date-format">Date Format</Label>
-                    <Select defaultValue="dd/MM/yyyy">
-                      <SelectTrigger id="date-format">
-                        <SelectValue placeholder="Select date format" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dd/MM/yyyy">DD/MM/YYYY</SelectItem>
-                        <SelectItem value="MM/dd/yyyy">MM/DD/YYYY</SelectItem>
-                        <SelectItem value="yyyy-MM-dd">YYYY-MM-DD</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Appearance</h3>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="dark-mode">Dark Mode</Label>
-                    <p className="text-sm text-gray-500">
-                      Enable dark mode for the admin dashboard
-                    </p>
-                  </div>
-                  <Switch 
-                    id="dark-mode" 
-                    checked={isDarkMode}
-                    onCheckedChange={setIsDarkMode}
-                  />
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Maintenance</h3>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="maintenance-mode">Maintenance Mode</Label>
-                      {isMaintenanceMode && (
-                        <Badge variant="destructive">Site Offline</Badge>
-                      )}
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                      <Settings className="h-8 w-8 text-white" />
                     </div>
-                    <p className="text-sm text-gray-500">
-                      Put the site in maintenance mode to prevent user access
-                    </p>
+                    <div>
+                      <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                        System Settings
+                      </h1>
+                      <p className="text-gray-600 text-lg">
+                        Configure your application settings, preferences, and system parameters
+                      </p>
+                    </div>
                   </div>
-                  <Switch 
-                    id="maintenance-mode" 
-                    checked={isMaintenanceMode}
-                    onCheckedChange={setIsMaintenanceMode}
-                  />
                 </div>
-                {isMaintenanceMode && (
-                  <div className="space-y-2 mt-4">
-                    <Label htmlFor="maintenance-message">Maintenance Message</Label>
-                    <Textarea 
-                      id="maintenance-message" 
-                      defaultValue="We're currently performing maintenance. Please check back soon."
-                      rows={3}
-                    />
+                
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-gray-900">5</div>
+                    <div className="text-sm text-gray-500">Settings Categories</div>
                   </div>
-                )}
+                  <div className="w-px h-12 bg-gray-300"></div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-[#12d6fa]">Active</div>
+                    <div className="text-sm text-gray-500">System Status</div>
+                  </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Button 
+                    onClick={handleSaveSettings}
+                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+                  >
+                    <Save className="h-5 w-5" />
+                    Save All Settings
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2"
+                  >
+                    <FileJson className="h-5 w-5" />
+                    Export Config
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2"
+                  >
+                    <FileJson className="h-5 w-5" />
+                    Import Config
+                  </Button>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>System Online</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {/* Store Settings */}
-        <TabsContent value="store">
-          <Card>
-            <CardHeader>
-              <CardTitle>Store Settings</CardTitle>
-              <CardDescription>
-                Configure your store settings and product options
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          {/* Premium Settings Tabs */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/95 to-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/30"></div>
+            <div className="relative overflow-hidden rounded-2xl">
+              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                      <Settings className="h-7 w-7 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-bold text-white">Configuration Center</h2>
+                      <div className="flex items-center gap-4 mt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-[#12d6fa] rounded-full animate-pulse"></div>
+                          <span className="text-gray-300">5 configuration categories available</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white p-6">
+                <Tabs defaultValue="general" className="space-y-6">
+                  <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2 bg-gray-100 rounded-xl p-1">
+                    <TabsTrigger 
+                      value="general" 
+                      className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
+                    >
+                      <Settings className="h-4 w-4" />
+                      <span className="hidden sm:inline">General</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="store" 
+                      className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
+                    >
+                      <Store className="h-4 w-4" />
+                      <span className="hidden sm:inline">Store</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="payment" 
+                      className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
+                    >
+                      <CreditCard className="h-4 w-4" />
+                      <span className="hidden sm:inline">Payment</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="notifications" 
+                      className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
+                    >
+                      <Bell className="h-4 w-4" />
+                      <span className="hidden sm:inline">Notifications</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="security" 
+                      className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
+                    >
+                      <Shield className="h-4 w-4" />
+                      <span className="hidden sm:inline">Security</span>
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* General Settings */}
+                  <TabsContent value="general">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+                      <div className="relative p-6">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="p-2 bg-gradient-to-br from-[#12d6fa]/20 to-blue-500/20 rounded-xl">
+                            <Settings className="h-6 w-6 text-[#12d6fa]" />
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                              General Settings
+                            </h3>
+                            <p className="text-gray-600">
+                              Manage your site's general settings and preferences
+                            </p>
+                          </div>
+                        </div>
+                        <div className="space-y-6">
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-medium">Site Information</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="site-name">Site Name</Label>
+                                <Input id="site-name" defaultValue="Drinkmate" />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="site-url">Site URL</Label>
+                                <Input id="site-url" defaultValue="https://drinkmate.sa" />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="site-description">Site Description</Label>
+                              <Textarea 
+                                id="site-description" 
+                                defaultValue="Drinkmate - Premium soda makers and accessories for your home carbonation needs."
+                                rows={3}
+                              />
+                            </div>
+                          </div>
+
+                          <Separator />
+
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-medium">Localization</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="language">Default Language</Label>
+                                <Select value={language} onValueChange={setLanguage}>
+                                  <SelectTrigger id="language">
+                                    <SelectValue placeholder="Select language" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="en">English</SelectItem>
+                                    <SelectItem value="ar">Arabic</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="currency">Default Currency</Label>
+                                <Select value={currency} onValueChange={setCurrency}>
+                                  <SelectTrigger id="currency">
+                                    <SelectValue placeholder="Select currency" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="SAR">Saudi Riyal (ر.س)</SelectItem>
+                                    <SelectItem value="USD">US Dollar ($)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="timezone">Timezone</Label>
+                                <Select defaultValue="Asia/Riyadh">
+                                  <SelectTrigger id="timezone">
+                                    <SelectValue placeholder="Select timezone" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Asia/Riyadh">Asia/Riyadh (GMT+3)</SelectItem>
+                                    <SelectItem value="UTC">UTC</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="date-format">Date Format</Label>
+                                <Select defaultValue="dd/MM/yyyy">
+                                  <SelectTrigger id="date-format">
+                                    <SelectValue placeholder="Select date format" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="dd/MM/yyyy">DD/MM/YYYY</SelectItem>
+                                    <SelectItem value="MM/dd/yyyy">MM/DD/YYYY</SelectItem>
+                                    <SelectItem value="yyyy-MM-dd">YYYY-MM-DD</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
+
+                          <Separator />
+
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-medium">Appearance</h3>
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-0.5">
+                                <Label htmlFor="dark-mode">Dark Mode</Label>
+                                <p className="text-sm text-gray-500">
+                                  Enable dark mode for the admin dashboard
+                                </p>
+                              </div>
+                              <Switch 
+                                id="dark-mode" 
+                                checked={isDarkMode}
+                                onCheckedChange={setIsDarkMode}
+                              />
+                            </div>
+                          </div>
+
+                          <Separator />
+
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-medium">Maintenance</h3>
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-2">
+                                  <Label htmlFor="maintenance-mode">Maintenance Mode</Label>
+                                  {isMaintenanceMode && (
+                                    <Badge variant="destructive">Site Offline</Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-500">
+                                  Put the site in maintenance mode to prevent user access
+                                </p>
+                              </div>
+                              <Switch 
+                                id="maintenance-mode" 
+                                checked={isMaintenanceMode}
+                                onCheckedChange={setIsMaintenanceMode}
+                              />
+                            </div>
+                            {isMaintenanceMode && (
+                              <div className="space-y-2 mt-4">
+                                <Label htmlFor="maintenance-message">Maintenance Message</Label>
+                                <Textarea 
+                                  id="maintenance-message" 
+                                  defaultValue="We're currently performing maintenance. Please check back soon."
+                                  rows={3}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* Store Settings */}
+                  <TabsContent value="store">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+                      <div className="relative p-6">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="p-2 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl">
+                            <Store className="h-6 w-6 text-green-600" />
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                              Store Settings
+                            </h3>
+                            <p className="text-gray-600">
+                              Configure your store settings and product options
+                            </p>
+                          </div>
+                        </div>
+                        <div className="space-y-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Store Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -304,11 +431,12 @@ export default function SettingsPage() {
                   <Switch id="allow-backorders" />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
 
-        {/* Payment Settings */}
+                  {/* Payment Settings */}
         <TabsContent value="payment">
           <Card>
             <CardHeader>
@@ -644,8 +772,13 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </AdminLayout>
   )
 }

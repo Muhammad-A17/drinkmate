@@ -59,7 +59,10 @@ import {
   Trash2,
   CheckCircle,
   XCircle,
-  Loader2
+  Loader2,
+  RefreshCw,
+  Download,
+  X
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
@@ -726,180 +729,378 @@ export default function UsersPage() {
 
   return (
     <AdminLayout>
-      {/* Header with standardized actions */}
-      <AdminActionBar
-        title="User Management"
-        description="Manage user accounts, permissions, and access control"
-        totalItems={users.length}
-        filteredItems={filteredUsers.length}
-        searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Search users..."
-        primaryActions={[
-          AdminActions.addNew("Add User", () => setIsAddUserOpen(true))
-        ]}
-        secondaryActions={[
-          AdminActions.refresh(() => fetchUsers()),
-          AdminActions.export(() => handleExportUsers()),
-          {
-            id: "invite-users",
-            label: "Send Invites",
-            icon: <Mail className="h-4 w-4 mr-2" />,
-            onClick: () => toast.info("Bulk invite functionality"),
-            variant: "outline"
-          }
-        ]}
-        selectedItems={selectedUsers}
-        onSelectionChange={setSelectedUsers}
-        bulkActions={[
-          {
-            id: "bulk-activate",
-            label: "Activate Selected",
-            icon: <CheckCircle className="h-4 w-4 mr-2" />,
-            onClick: (ids) => handleBulkStatusUpdate(ids, 'active'),
-            variant: "default"
-          },
-          {
-            id: "bulk-deactivate", 
-            label: "Deactivate Selected",
-            icon: <XCircle className="h-4 w-4 mr-2" />,
-            onClick: (ids) => handleBulkStatusUpdate(ids, 'inactive'),
-            variant: "outline"
-          },
-          {
-            id: "bulk-block",
-            label: "Block Selected", 
-            icon: <UserX className="h-4 w-4 mr-2" />,
-            onClick: (ids) => handleBulkStatusUpdate(ids, 'blocked'),
-            variant: "destructive"
-          },
-          AdminActions.bulkDelete(handleBulkDelete)
-        ]}
-      />
-
-      {/* User Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <div className="text-2xl font-bold">{users.length}</div>
-            </div>
-            <p className="text-xs text-muted-foreground">Total Users</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <UserCheck className="h-4 w-4 text-green-600" />
-              <div className="text-2xl font-bold">
-                {users.filter(u => u.status === 'active').length}
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        {/* Premium Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#12d6fa]/10 to-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+        </div>
+        
+        <div className="space-y-8 p-4 md:p-6 relative z-10">
+          {/* Premium Header */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20"></div>
+            <div className="relative p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                      <User className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                        User Management
+                      </h1>
+                      <p className="text-gray-600 text-lg">
+                        Manage user accounts, permissions, and access control with advanced features
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-gray-900">{filteredUsers.length}</div>
+                    <div className="text-sm text-gray-500">Filtered Users</div>
+                  </div>
+                  <div className="w-px h-12 bg-gray-300"></div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-[#12d6fa]">{users.length}</div>
+                    <div className="text-sm text-gray-500">Total Users</div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <p className="text-xs text-muted-foreground">Active Users</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <ShieldCheck className="h-4 w-4 text-purple-600" />
-              <div className="text-2xl font-bold">
-                {users.filter(u => u.isAdmin).length}
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Button
+                    onClick={() => setIsAddUserOpen(true)}
+                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <UserPlus className="h-5 w-5 mr-2" />
+                    Add New User
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => fetchUsers()}
+                    className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 px-6 py-3 rounded-xl transition-all duration-300"
+                  >
+                    <RefreshCw className="h-5 w-5 mr-2" />
+                    Refresh
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => handleExportUsers()}
+                    className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 px-6 py-3 rounded-xl transition-all duration-300"
+                  >
+                    <Download className="h-5 w-5 mr-2" />
+                    Export
+                  </Button>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>System Online</span>
+                </div>
               </div>
-            </div>
-            <p className="text-xs text-muted-foreground">Admin Users</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <UserX className="h-4 w-4 text-red-600" />
-              <div className="text-2xl font-bold">
-                {users.filter(u => u.status === 'blocked').length}
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">Blocked Users</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search by username or email..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-4">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="blocked">Blocked</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <span className="hidden sm:inline">More Filters</span>
-              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader className="pb-0">
-          <div className="flex items-center justify-between">
-            <CardTitle>Users ({filteredUsers.length})</CardTitle>
-            {selectedUsers.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">
-                  {selectedUsers.length} user(s) selected
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkStatusUpdate(selectedUsers, 'active')}
-                  disabled={isSubmitting}
-                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                >
-                  <UserCheck className="h-4 w-4 mr-1" />
-                  Activate
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkStatusUpdate(selectedUsers, 'blocked')}
-                  disabled={isSubmitting}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <UserX className="h-4 w-4 mr-1" />
-                  Block
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleBulkDelete}
-                  disabled={isSubmitting}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Delete
-                </Button>
+          {/* Premium User Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+              <div className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-gray-900">{users.length}</div>
+                    <p className="text-sm text-gray-600 mt-1">Total Users</p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl">
+                    <User className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500">All registered users</span>
+                </div>
               </div>
-            )}
+            </div>
+            
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+              <div className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-green-600">
+                      {users.filter(u => u.status === 'active').length}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">Active Users</p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl">
+                    <UserCheck className="h-6 w-6 text-green-600" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500">Currently active</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+              <div className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-purple-600">
+                      {users.filter(u => u.isAdmin).length}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">Admin Users</p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-xl">
+                    <ShieldCheck className="h-6 w-6 text-purple-600" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500">Administrative access</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+              <div className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-red-600">
+                      {users.filter(u => u.status === 'blocked').length}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">Blocked Users</p>
+                  </div>
+                  <div className="p-3 bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-xl">
+                    <UserX className="h-6 w-6 text-red-600" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500">Access restricted</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent>
+
+          {/* Premium Search & Filters */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-gradient-to-br from-[#12d6fa]/20 to-blue-500/20 rounded-xl">
+                  <Search className="h-6 w-6 text-[#12d6fa]" />
+                </div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  Search & Filters
+                </h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <Search className="h-4 w-4 text-[#12d6fa]" />
+                    Search Users
+                  </label>
+                  <div className="relative group">
+                    <Input
+                      placeholder="Search by username or email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-12 pr-4 py-3 border-2 border-gray-200 focus:border-[#12d6fa] focus:ring-4 focus:ring-[#12d6fa]/20 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-300 group-hover:border-[#12d6fa]/50"
+                    />
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                      <Search className="h-5 w-5 text-gray-400 group-focus-within:text-[#12d6fa] transition-colors duration-300" />
+                    </div>
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                        aria-label="Clear search"
+                      >
+                        <X className="h-4 w-4 text-gray-400" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-[#12d6fa]" />
+                    Status Filter
+                  </label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="border-2 border-gray-200 focus:border-[#12d6fa] focus:ring-4 focus:ring-[#12d6fa]/20 rounded-xl py-3 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:border-[#12d6fa]/50">
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-2 border-gray-200 shadow-xl">
+                      <SelectItem value="all" className="rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-gradient-to-r from-[#12d6fa] to-blue-500" />
+                          All Statuses
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="active" className="rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-green-500" />
+                          Active
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="inactive" className="rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-gray-500" />
+                          Inactive
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="blocked" className="rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-red-500" />
+                          Blocked
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    Quick Actions
+                  </label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSearchTerm("")
+                        setStatusFilter("all")
+                      }}
+                      className="text-xs px-4 py-2 rounded-lg border-2 border-gray-200 hover:border-orange-500 hover:bg-orange-50 transition-all duration-300"
+                    >
+                      <div className="flex items-center gap-1">
+                        <X className="h-3 w-3" />
+                        Clear All
+                      </div>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => fetchUsers()}
+                      className="text-xs px-4 py-2 rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
+                    >
+                      <div className="flex items-center gap-1">
+                        <RefreshCw className="h-3 w-3" />
+                        Refresh
+                      </div>
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-[#12d6fa] rounded-full"></div>
+                    Results
+                  </label>
+                  <div className="text-sm text-gray-600 bg-gray-50 px-4 py-3 rounded-xl">
+                    {filteredUsers.length} of {users.length} users
+                    {searchTerm && ` • Filtered by "${searchTerm}"`}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Premium Users Table */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/95 to-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/30"></div>
+            <div className="relative overflow-hidden rounded-2xl">
+              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                      <User className="h-7 w-7 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-bold text-white">Users Directory</h2>
+                      <div className="flex items-center gap-4 mt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-[#12d6fa] rounded-full animate-pulse"></div>
+                          <span className="text-gray-300">
+                            {filteredUsers.length} of {users.length} users
+                          </span>
+                        </div>
+                        {searchTerm && (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                            <span className="text-yellow-300">Filtered by "{searchTerm}"</span>
+                          </div>
+                        )}
+                        {selectedUsers.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <span className="text-green-300">{selectedUsers.length} selected</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {selectedUsers.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleBulkStatusUpdate(selectedUsers, 'active')}
+                          disabled={isSubmitting}
+                          className="text-xs px-3 py-2 bg-green-500/10 border-green-500/20 text-green-300 hover:bg-green-500/20 rounded-lg transition-all duration-300"
+                        >
+                          <UserCheck className="h-4 w-4 mr-1" />
+                          Activate
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleBulkStatusUpdate(selectedUsers, 'blocked')}
+                          disabled={isSubmitting}
+                          className="text-xs px-3 py-2 bg-red-500/10 border-red-500/20 text-red-300 hover:bg-red-500/20 rounded-lg transition-all duration-300"
+                        >
+                          <UserX className="h-4 w-4 mr-1" />
+                          Block
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleBulkDelete}
+                          disabled={isSubmitting}
+                          className="text-xs px-3 py-2 bg-red-500/10 border-red-500/20 text-red-300 hover:bg-red-500/20 rounded-lg transition-all duration-300"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+                    )}
+                    <Button 
+                      onClick={() => fetchUsers()}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs px-4 py-2 bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-lg transition-all duration-300"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white p-6">
           <Table>
             <TableHeader>
               <TableRow>
@@ -1122,8 +1323,11 @@ export default function UsersPage() {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Add User Dialog */}
       <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>

@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { adminAPI } from '@/lib/api';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Eye, EyeOff, FolderOpen, Tag, Settings, Package, Search, Filter, SortAsc, SortDesc, Copy, MoreHorizontal, CheckSquare, Square, Download, Upload, X, FileText, BarChart3, Save, RotateCcw, Calendar, Hash, Zap, Layers, History, BookOpen, Keyboard } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, EyeOff, FolderOpen, Tag, Settings, Package, Search, Filter, SortAsc, SortDesc, Copy, MoreHorizontal, CheckSquare, Square, Download, Upload, X, FileText, BarChart3, Save, RotateCcw, Calendar, Hash, Zap, Layers, History, BookOpen, Keyboard, RefreshCw } from 'lucide-react';
 
 interface Category {
   _id: string;
@@ -820,225 +820,285 @@ export default function AdminCategoriesPage() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Category Management</h1>
-            <p className="text-gray-600 mt-2">Manage product categories and subcategories</p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {/* Primary Actions */}
-            <Button onClick={openCategoryCreate} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Category
-            </Button>
-
-            <Button onClick={openSubcategoryCreate} variant="outline">
-              <Tag className="w-4 h-4 mr-2" />
-              Add Subcategory
-            </Button>
-
-            {/* Advanced Actions */}
-            <Button onClick={() => setIsExportDialogOpen(true)} variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-
-            <Button onClick={() => setIsImportDialogOpen(true)} variant="outline">
-              <Upload className="w-4 h-4 mr-2" />
-              Import
-            </Button>
-
-            {selectedItems.length > 0 && (
-              <Button onClick={() => setIsBulkEditDialogOpen(true)} variant="outline">
-                <Edit className="w-4 h-4 mr-2" />
-                Bulk Edit ({selectedItems.length})
-              </Button>
-            )}
-
-            <Button onClick={() => setIsAnalyticsDialogOpen(true)} variant="outline">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Analytics
-            </Button>
-
-            <Button onClick={() => setIsTemplateDialogOpen(true)} variant="outline">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Templates
-            </Button>
-
-            <Button onClick={() => setIsKeyboardShortcutsOpen(true)} variant="outline">
-              <Keyboard className="w-4 h-4 mr-2" />
-              Shortcuts
-            </Button>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        {/* Premium Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#12d6fa]/10 to-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
-
-        {/* Search and Filter Controls */}
-        <div className="bg-white p-4 rounded-lg border mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder={`Search ${activeTab}...`}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-10"
-                />
-                {searchTerm && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-6 w-6"
+        
+        <div className="container mx-auto px-4 py-8 relative z-10">
+          {/* Premium Header */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20"></div>
+            <div className="relative p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                      <FolderOpen className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                        Category Management
+                      </h1>
+                      <p className="text-gray-600 text-lg">
+                        Manage product categories and subcategories with advanced features
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-gray-900">{getFilteredCategories().length}</div>
+                    <div className="text-sm text-gray-500">Filtered Categories</div>
+                  </div>
+                  <div className="w-px h-12 bg-gray-300"></div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-[#12d6fa]">{categories.length}</div>
+                    <div className="text-sm text-gray-500">Total Categories</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <Button 
+                    onClick={openCategoryCreate} 
+                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   >
-                    <X className="w-3 h-3" />
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add Category
                   </Button>
-                )}
-              </div>
-            </div>
 
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active Only</SelectItem>
-                <SelectItem value="inactive">Inactive Only</SelectItem>
-              </SelectContent>
-            </Select>
+                  <Button 
+                    onClick={openSubcategoryCreate} 
+                    variant="outline"
+                    className="border-2 border-gray-300 hover:border-[#12d6fa] hover:bg-[#12d6fa]/5 px-6 py-3 rounded-xl transition-all duration-300"
+                  >
+                    <Tag className="w-5 h-5 mr-2" />
+                    Add Subcategory
+                  </Button>
 
-            {/* Sort By */}
-            <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sortOrder">Sort Order</SelectItem>
-                <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="createdAt">Created Date</SelectItem>
-                <SelectItem value="productCount">Product Count</SelectItem>
-              </SelectContent>
-            </Select>
+                  <Button 
+                    onClick={() => setIsExportDialogOpen(true)} 
+                    variant="outline"
+                    className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 px-6 py-3 rounded-xl transition-all duration-300"
+                  >
+                    <Download className="w-5 h-5 mr-2" />
+                    Export
+                  </Button>
 
-            {/* Sort Order */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="w-12"
-            >
-              {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
-            </Button>
+                  <Button 
+                    onClick={() => setIsImportDialogOpen(true)} 
+                    variant="outline"
+                    className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 px-6 py-3 rounded-xl transition-all duration-300"
+                  >
+                    <Upload className="w-5 h-5 mr-2" />
+                    Import
+                  </Button>
 
-            {/* Advanced Filters Toggle */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            >
-              <Filter className="w-4 h-4 mr-1" />
-              {showAdvancedFilters ? 'Hide' : 'Show'} Advanced
-            </Button>
+                  {selectedItems.length > 0 && (
+                    <Button 
+                      onClick={() => setIsBulkEditDialogOpen(true)} 
+                      variant="outline"
+                      className="border-2 border-gray-300 hover:border-purple-500 hover:bg-purple-50 px-6 py-3 rounded-xl transition-all duration-300"
+                    >
+                      <Edit className="w-5 h-5 mr-2" />
+                      Bulk Edit ({selectedItems.length})
+                    </Button>
+                  )}
 
-            {/* Bulk Actions */}
-            {selectedItems.length > 0 && (
-              <div className="flex gap-2">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleBulkDelete}
-                >
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  Delete ({selectedItems.length})
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleBulkToggleStatus}
-                >
-                  <Eye className="w-4 h-4 mr-1" />
-                  Toggle Status
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Advanced Filters */}
-        {showAdvancedFilters && (
-          <div className="bg-gray-50 p-4 rounded-lg border mb-6">
-            <h3 className="text-lg font-medium mb-4">Advanced Filters</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Date Range Filter */}
-              <div>
-                <Label htmlFor="dateFrom">Created From</Label>
-                <Input
-                  id="dateFrom"
-                  type="date"
-                  value={dateRange.from}
-                  onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="dateTo">Created To</Label>
-                <Input
-                  id="dateTo"
-                  type="date"
-                  value={dateRange.to}
-                  onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="productCountMin">Min Products</Label>
-                <Input
-                  id="productCountMin"
-                  type="number"
-                  placeholder="0"
-                  value={productCountRange.min}
-                  onChange={(e) => setProductCountRange({ ...productCountRange, min: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="productCountMax">Max Products</Label>
-                <Input
-                  id="productCountMax"
-                  type="number"
-                  placeholder="100"
-                  value={productCountRange.max}
-                  onChange={(e) => setProductCountRange({ ...productCountRange, max: e.target.value })}
-                />
-              </div>
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setDateRange({ from: '', to: '' });
-                    setProductCountRange({ min: '', max: '' });
-                  }}
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Clear Filters
-                </Button>
+                  <Button 
+                    onClick={() => setIsAnalyticsDialogOpen(true)} 
+                    variant="outline"
+                    className="border-2 border-gray-300 hover:border-orange-500 hover:bg-orange-50 px-6 py-3 rounded-xl transition-all duration-300"
+                  >
+                    <BarChart3 className="w-5 h-5 mr-2" />
+                    Analytics
+                  </Button>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>System Online</span>
+                </div>
               </div>
             </div>
           </div>
-        )}
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="categories" className="flex items-center gap-2">
-              <FolderOpen className="w-4 h-4" />
-              Categories ({getFilteredCategories().length}/{categories.length})
-            </TabsTrigger>
-            <TabsTrigger value="subcategories" className="flex items-center gap-2">
-              <Tag className="w-4 h-4" />
-              Subcategories ({getFilteredSubcategories().length}/{subcategories.length})
-            </TabsTrigger>
-          </TabsList>
+          {/* Premium Search & Filters */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-gradient-to-br from-[#12d6fa]/20 to-blue-500/20 rounded-xl">
+                  <Search className="h-6 w-6 text-[#12d6fa]" />
+                </div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  Search & Filters
+                </h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <Search className="h-4 w-4 text-[#12d6fa]" />
+                    Search Categories
+                  </label>
+                  <div className="relative group">
+                    <Input
+                      placeholder={`Search ${activeTab}...`}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-12 pr-4 py-3 border-2 border-gray-200 focus:border-[#12d6fa] focus:ring-4 focus:ring-[#12d6fa]/20 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-300 group-hover:border-[#12d6fa]/50"
+                    />
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                      <Search className="h-5 w-5 text-gray-400 group-focus-within:text-[#12d6fa] transition-colors duration-300" />
+                    </div>
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                        aria-label="Clear search"
+                      >
+                        <X className="h-4 w-4 text-gray-400" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-[#12d6fa]" />
+                    Status Filter
+                  </label>
+                  <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+                    <SelectTrigger className="border-2 border-gray-200 focus:border-[#12d6fa] focus:ring-4 focus:ring-[#12d6fa]/20 rounded-xl py-3 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:border-[#12d6fa]/50">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-2 border-gray-200 shadow-xl">
+                      <SelectItem value="all" className="rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-gradient-to-r from-[#12d6fa] to-blue-500" />
+                          All Status
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="active" className="rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-green-500" />
+                          Active Only
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="inactive" className="rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-gray-500" />
+                          Inactive Only
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <SortAsc className="h-4 w-4 text-[#12d6fa]" />
+                    Sort By
+                  </label>
+                  <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                    <SelectTrigger className="border-2 border-gray-200 focus:border-[#12d6fa] focus:ring-4 focus:ring-[#12d6fa]/20 rounded-xl py-3 bg-white/80 backdrop-blur-sm transition-all duration-300 hover:border-[#12d6fa]/50">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-2 border-gray-200 shadow-xl">
+                      <SelectItem value="sortOrder" className="rounded-lg">Sort Order</SelectItem>
+                      <SelectItem value="name" className="rounded-lg">Name</SelectItem>
+                      <SelectItem value="createdAt" className="rounded-lg">Created Date</SelectItem>
+                      <SelectItem value="productCount" className="rounded-lg">Product Count</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    Quick Actions
+                  </label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSearchTerm('')
+                        setStatusFilter('all')
+                        setSortBy('sortOrder')
+                        setSortOrder('asc')
+                      }}
+                      className="text-xs px-4 py-2 rounded-lg border-2 border-gray-200 hover:border-orange-500 hover:bg-orange-50 transition-all duration-300"
+                    >
+                      <div className="flex items-center gap-1">
+                        <X className="h-3 w-3" />
+                        Clear All
+                      </div>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => window.location.reload()}
+                      className="text-xs px-4 py-2 rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
+                    >
+                      <div className="flex items-center gap-1">
+                        <RefreshCw className="h-3 w-3" />
+                        Refresh
+                      </div>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Premium Tabs */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/95 to-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/30"></div>
+            <div className="relative overflow-hidden rounded-2xl">
+              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                      <FolderOpen className="h-7 w-7 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-bold text-white">Categories & Subcategories</h2>
+                      <div className="flex items-center gap-4 mt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-[#12d6fa] rounded-full animate-pulse"></div>
+                          <span className="text-gray-300">
+                            {getFilteredCategories().length} categories, {getFilteredSubcategories().length} subcategories
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white p-6">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 bg-gray-100 rounded-xl p-1">
+                    <TabsTrigger 
+                      value="categories" 
+                      className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                      Categories ({getFilteredCategories().length}/{categories.length})
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="subcategories" 
+                      className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
+                    >
+                      <Tag className="w-4 h-4" />
+                      Subcategories ({getFilteredSubcategories().length}/{subcategories.length})
+                    </TabsTrigger>
+                  </TabsList>
 
           <TabsContent value="categories" className="mt-6">
             {/* Select All Checkbox */}
@@ -1104,8 +1164,8 @@ export default function AdminCategoriesPage() {
                         </Button>
                         <CardTitle className="text-lg flex items-center gap-2">
                           <div 
-                            className="w-4 h-4 rounded-full" 
-                            style={{ backgroundColor: category.color }}
+                            className="color-indicator" 
+                            style={{ '--indicator-color': category.color } as React.CSSProperties}
                           />
                           {category.name}
                         </CardTitle>
@@ -1248,8 +1308,8 @@ export default function AdminCategoriesPage() {
                         </Button>
                         <CardTitle className="text-lg flex items-center gap-2">
                           <div 
-                            className="w-4 h-4 rounded-full" 
-                            style={{ backgroundColor: subcategory.color }}
+                            className="color-indicator" 
+                            style={{ '--indicator-color': subcategory.color } as React.CSSProperties}
                           />
                           {subcategory.name}
                         </CardTitle>
@@ -1328,9 +1388,14 @@ export default function AdminCategoriesPage() {
               </div>
             )}
           </TabsContent>
-        </Tabs>
+                </Tabs>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {/* Category Dialog */}
+      {/* Category Dialog */}
         <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
@@ -1637,6 +1702,8 @@ export default function AdminCategoriesPage() {
                   name="isActive"
                   type="checkbox"
                   defaultChecked
+                  aria-label="Set all categories as active"
+                  title="Set all categories as active"
                 />
                 <Label htmlFor="bulkActive">Active</Label>
               </div>
@@ -1760,7 +1827,6 @@ export default function AdminCategoriesPage() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
     </AdminLayout>
   );
 }

@@ -606,6 +606,7 @@ export default function ProductForm({
                             type="button"
                             className="ml-2 text-gray-500 hover:text-red-500"
                             onClick={() => removeColor(index)}
+                            aria-label={`Remove color ${color}`}
                           >
                             <X className="h-3 w-3" />
                           </button>

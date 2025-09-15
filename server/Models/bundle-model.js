@@ -39,6 +39,46 @@ const BundleSchema = new Schema({
         type: String,
         required: false
     }],
+    videos: [{
+        type: String,
+        required: false
+    }],
+    youtubeLinks: [{
+        type: String,
+        required: false
+    }],
+    // Specifications and features
+    specifications: {
+        type: String,
+        required: false
+    },
+    features: {
+        type: String,
+        required: false
+    },
+    warranty: {
+        type: String,
+        required: false
+    },
+    dimensions: {
+        type: String,
+        required: false
+    },
+    weight: {
+        type: String,
+        required: false
+    },
+    // FAQ and Q&A
+    faq: [{
+        question: {
+            type: String,
+            required: true
+        },
+        answer: {
+            type: String,
+            required: true
+        }
+    }],
     badge: {
         text: {
             type: String,
