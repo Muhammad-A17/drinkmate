@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, X } from 'lucide-react'
 import { useCart } from '@/hooks/use-cart'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Currency } from '@/utils/currency'
 
@@ -13,18 +14,24 @@ interface FloatingCartButtonProps {
 
 export default function FloatingCartButton({ className = '' }: FloatingCartButtonProps) {
   const { totalItems, totalPrice } = useCart()
+  const pathname = usePathname()
   const [isVisible, setIsVisible] = useState(false)
   const [lastItemCount, setLastItemCount] = useState(0)
+
+  // Check if we're on a page that shows chat widget
+  const isSupportPage = pathname?.startsWith('/account/support') || pathname?.startsWith('/support')
+  const isContactPage = pathname === '/contact'
+  const showChatWidget = isSupportPage || isContactPage
 
   useEffect(() => {
     if (totalItems > 0) {
       setIsVisible(false) // Hide when cart has items
       setLastItemCount(totalItems)
     } else {
-      // Show when cart is empty
-      setIsVisible(true)
+      // Show when cart is empty, but only if chat widget is not shown
+      setIsVisible(!showChatWidget)
     }
-  }, [totalItems, lastItemCount])
+  }, [totalItems, lastItemCount, showChatWidget])
 
   if (!isVisible) return null
 

@@ -9,6 +9,7 @@ import SWRProvider from "@/lib/swr-provider"
 import SecurityMiddleware from "./security-middleware"
 import FontProvider from "@/components/layout/FontProvider"
 import ChatProvider from "@/components/layout/ChatProvider"
+import { ChatStatusProvider } from "@/lib/chat-status-context"
 import { Providers } from "@/components/providers"
 import { suppressHydrationWarnings } from "@/lib/suppress-hydration-warnings"
 import FloatingCartButton from "@/components/cart/FloatingCartButton"
@@ -209,11 +210,13 @@ export default function RootLayout({
               <AuthProvider>
                 <SocketProvider>
                   <SWRProvider>
-                    <Providers>
-                      <div suppressHydrationWarning>{children}</div>
+                    <ChatStatusProvider>
+                      <Providers>
+                        <div suppressHydrationWarning>{children}</div>
+                        <FloatingCartButton />
+                      </Providers>
                       <ChatProvider />
-                      <FloatingCartButton />
-                    </Providers>
+                    </ChatStatusProvider>
                   </SWRProvider>
                 </SocketProvider>
               </AuthProvider>

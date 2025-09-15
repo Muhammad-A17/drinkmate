@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 const chatController = require('../Controller/chat-controller');
 const { authenticateToken, isAdmin } = require('../Middleware/auth-middleware');
-const { generalLimiter } = require('../Middleware/security-middleware');
-
-// Apply rate limiting to all routes
-router.use(generalLimiter);
+// Removed rate limiting for chat routes
 
 // Get all chats (admin only)
 router.get('/', authenticateToken, isAdmin, chatController.getAllChats);
+
+// Get customer's own chat sessions (authenticated users)
+router.get('/customer', authenticateToken, chatController.getCustomerChats);
 
 // Get chat statistics (admin only)
 router.get('/stats', authenticateToken, isAdmin, chatController.getChatStats);
@@ -21,6 +21,9 @@ router.post('/', chatController.createChat);
 
 // Add message to chat (admin only)
 router.post('/:chatId/messages', authenticateToken, isAdmin, chatController.addMessage);
+
+// Add message to chat (customer - requires authentication)
+router.post('/:chatId/message', authenticateToken, chatController.addMessage);
 
 // Assign chat to admin (admin only)
 router.post('/:chatId/assign', authenticateToken, isAdmin, chatController.assignChat);

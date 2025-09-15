@@ -28,7 +28,10 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const { user, token } = useAuth()
 
   useEffect(() => {
+    console.log('Socket context effect running:', { user, token, hasUser: !!user, hasToken: !!token })
+    
     if (!user || !token) {
+      console.log('No user or token, disconnecting socket')
       if (socket) {
         socket.disconnect()
         setSocket(null)
@@ -38,12 +41,15 @@ export function SocketProvider({ children }: SocketProviderProps) {
     }
 
     // Initialize socket connection
+    console.log('Initializing socket connection with token:', token ? 'present' : 'missing')
     const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000', {
       auth: {
         token: token
       },
       transports: ['websocket', 'polling']
     })
+    
+    console.log('Socket created:', newSocket, 'Type:', typeof newSocket, 'Has on method:', typeof newSocket.on === 'function')
 
     // Connection event handlers
     newSocket.on('connect', () => {
@@ -62,10 +68,12 @@ export function SocketProvider({ children }: SocketProviderProps) {
       setIsConnected(false)
     })
 
+    console.log('Setting socket in state:', newSocket)
     setSocket(newSocket)
 
     // Cleanup on unmount
     return () => {
+      console.log('Cleaning up socket connection')
       newSocket.disconnect()
     }
   }, [user, token])
