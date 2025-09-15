@@ -388,6 +388,7 @@ function ContactForm() {
                 onChange={handleFileChange}
                 accept=".jpg,.jpeg,.png,.gif,.pdf"
                 className="hidden"
+                aria-label="File attachments upload"
               />
               <Button
                 type="button"

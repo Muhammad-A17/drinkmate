@@ -46,7 +46,26 @@ import {
   Building,
   CheckCircle,
   Clock,
-  ThumbsUp
+  ThumbsUp,
+  BarChart3,
+  Download,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Settings,
+  Zap,
+  Shield,
+  Activity,
+  X,
+  Upload,
+  Save,
+  RefreshCw,
+  Search,
+  Filter,
+  TrendingUp,
+  Users,
+  Eye,
+  AlertTriangle
 } from "lucide-react"
 import { testimonialAPI } from "@/lib/api"
 import { toast } from "sonner"
@@ -254,90 +273,164 @@ export default function TestimonialsPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Testimonials Management</h1>
-            <p className="text-muted-foreground">
-              Manage customer testimonials and reviews
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        {/* Premium Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-indigo-600/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-400/20 to-pink-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-400/10 to-blue-600/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+        </div>
+
+        <div className="relative z-10 space-y-8 p-6">
+          {/* Premium Header */}
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8">
+            <div className="flex justify-between items-start">
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                    <MessageSquare className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                      Testimonials Management
+                    </h1>
+                    <p className="text-gray-600 text-lg mt-2">Manage customer testimonials and reviews</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200">
+                    <Activity className="w-4 h-4 mr-1" />
+                    {testimonials.length} Total Testimonials
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    {testimonials.filter(t => t.isActive).length} Active
+                  </span>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Button 
+                  onClick={() => setIsDialogOpen(true)}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Testimonial
+                </Button>
+                <Button 
+                  onClick={fetchTestimonials}
+                  variant="outline"
+                  className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all duration-300"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh
+                </Button>
+              </div>
+            </div>
           </div>
-          <Button 
-            onClick={() => setIsDialogOpen(true)}
-            className="bg-[#12d6fa] hover:bg-[#0fb8d9]"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Testimonial
-          </Button>
-        </div>
 
-        {/* Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                <div className="text-2xl font-bold">{testimonials.length}</div>
-              </div>
-              <p className="text-xs text-muted-foreground">Total Testimonials</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <div className="text-2xl font-bold">
-                  {testimonials.filter(t => t.isActive).length}
+          {/* Premium Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Total Testimonials</p>
+                  <p className="text-3xl font-bold text-gray-900">{testimonials.length}</p>
+                  <p className="text-xs text-gray-500 mt-1">All testimonials</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                  <MessageSquare className="h-6 w-6 text-white" />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Active</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Star className="h-4 w-4 text-yellow-500" />
-                <div className="text-2xl font-bold">
-                  {(testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length).toFixed(1)}
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Active</p>
+                  <p className="text-3xl font-bold text-green-600">{testimonials.filter(t => t.isActive).length}</p>
+                  <p className="text-xs text-gray-500 mt-1">Published testimonials</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
+                  <CheckCircle className="h-6 w-6 text-white" />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Average Rating</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <ThumbsUp className="h-4 w-4 text-blue-600" />
-                <div className="text-2xl font-bold">
-                  {testimonials.filter(t => t.featured).length}
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Average Rating</p>
+                  <p className="text-3xl font-bold text-yellow-600">
+                    {testimonials.length > 0 ? (testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length).toFixed(1) : '0.0'}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Out of 5 stars</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-lg">
+                  <Star className="h-6 w-6 text-white" />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Featured</p>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Featured</p>
+                  <p className="text-3xl font-bold text-purple-600">{testimonials.filter(t => t.featured).length}</p>
+                  <p className="text-xs text-gray-500 mt-1">Highlighted testimonials</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg">
+                  <ThumbsUp className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {/* Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Filters</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <Label htmlFor="search">Search</Label>
-                <Input
-                  id="search"
-                  placeholder="Search testimonials..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+          {/* Premium Filters and Search */}
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg">
+                <Filter className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <Label htmlFor="status">Status</Label>
+              <h3 className="text-xl font-semibold text-gray-900">Advanced Filters</h3>
+              <div className="ml-auto flex items-center gap-2">
+                <span className="text-sm text-gray-500">
+                  Showing {filteredTestimonials.length} of {testimonials.length} testimonials
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("")
+                    setSelectedStatus("all")
+                    setSelectedRating("all")
+                  }}
+                  className="border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 transition-all duration-300"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Clear All
+                </Button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="search" className="text-sm font-medium text-gray-700">Search</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="search"
+                    placeholder="Search testimonials..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="status" className="text-sm font-medium text-gray-700">Status</Label>
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
                     <SelectValue placeholder="All statuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -347,10 +440,11 @@ export default function TestimonialsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="rating">Rating</Label>
+              
+              <div className="space-y-2">
+                <Label htmlFor="rating" className="text-sm font-medium text-gray-700">Rating</Label>
                 <Select value={selectedRating} onValueChange={setSelectedRating}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
                     <SelectValue placeholder="All ratings" />
                   </SelectTrigger>
                   <SelectContent>
@@ -361,296 +455,427 @@ export default function TestimonialsPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Testimonials Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Testimonials ({filteredTestimonials.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {filteredTestimonials.length === 0 ? (
-              <div className="text-center py-8">
-                <MessageSquare className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500">No testimonials found</p>
-                <p className="text-sm text-gray-400">Create your first testimonial to get started</p>
+              
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Quick Actions</Label>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedStatus("active")}
+                    className="flex-1 border-2 border-green-200 hover:border-green-500 hover:bg-green-50 transition-all duration-300"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    Active
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedRating("5")}
+                    className="flex-1 border-2 border-yellow-200 hover:border-yellow-500 hover:bg-yellow-50 transition-all duration-300"
+                  >
+                    <Star className="w-4 h-4 mr-1" />
+                    5 Stars
+                  </Button>
+                </div>
               </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Author</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Text</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredTestimonials.map((testimonial) => (
-                    <TableRow key={testimonial._id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{testimonial.author}</div>
-                          {testimonial.role && (
-                            <div className="text-sm text-gray-500">{testimonial.role}</div>
-                          )}
-                          {testimonial.company && (
-                            <div className="text-sm text-gray-500">{testimonial.company}</div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < testimonial.rating
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          ))}
-                          <span className="ml-2 text-sm text-gray-600">
-                            {testimonial.rating}/5
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="max-w-xs">
-                          <p className="text-sm line-clamp-2">{testimonial.text}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Badge variant={testimonial.isActive ? "default" : "secondary"}>
-                            {testimonial.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                          {testimonial.featured && (
-                            <Badge variant="outline">Featured</Badge>
-                          )}
-                          {testimonial.isVerified && (
-                            <Badge variant="outline">Verified</Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-500">
-                          {new Date(testimonial.createdAt).toLocaleDateString()}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(testimonial)}
-                            className="h-8 px-3"
-                            title="Edit Testimonial"
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                          {!testimonial.isActive && (
+            </div>
+          </div>
+
+          {/* Premium Testimonials Table */}
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl overflow-hidden">
+            <div className="p-6 border-b border-gray-200/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                    <BarChart3 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Testimonials Management</h3>
+                    <p className="text-sm text-gray-500">
+                      {filteredTestimonials.length} of {testimonials.length} testimonials
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all duration-300"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="overflow-x-auto">
+              {filteredTestimonials.length === 0 ? (
+                <div className="p-12 text-center">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MessageSquare className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No testimonials found</h3>
+                  <p className="text-gray-500 mb-4">Try adjusting your search or filter criteria</p>
+                  <Button 
+                    onClick={() => {
+                      setSearchTerm("")
+                      setSelectedStatus("all")
+                      setSelectedRating("all")
+                    }}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/50">
+                      <TableHead className="font-semibold text-gray-700">Author Details</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Rating</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Testimonial</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Status</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Created</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredTestimonials.map((testimonial) => (
+                      <TableRow 
+                        key={testimonial._id}
+                        className="hover:bg-blue-50/50 transition-all duration-200 border-b border-gray-100"
+                      >
+                        <TableCell className="font-medium py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
+                              {testimonial.avatar ? (
+                                <img 
+                                  src={testimonial.avatar} 
+                                  alt={testimonial.author}
+                                  className="w-10 h-10 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-sm font-medium text-blue-600">
+                                  {testimonial.author.charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">{testimonial.author}</p>
+                              {testimonial.role && (
+                                <p className="text-xs text-gray-500">{testimonial.role}</p>
+                              )}
+                              {testimonial.company && (
+                                <p className="text-xs text-gray-500">{testimonial.company}</p>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-2">
+                            <div className="flex gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < testimonial.rating
+                                      ? "fill-yellow-400 text-yellow-400"
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm font-medium text-gray-600">
+                              {testimonial.rating}/5
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="max-w-xs">
+                            <p className="text-sm text-gray-900 line-clamp-3 leading-relaxed">
+                              {testimonial.text}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              {testimonial.language && (
+                                <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+                                  {testimonial.language.toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="flex flex-col gap-1">
+                            <Badge 
+                              variant={testimonial.isActive ? "default" : "secondary"}
+                              className={testimonial.isActive 
+                                ? "bg-green-100 text-green-700 hover:bg-green-200" 
+                                : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                              }
+                            >
+                              {testimonial.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                            {testimonial.featured && (
+                              <Badge variant="outline" className="border-yellow-300 text-yellow-700">
+                                <Star className="w-3 h-3 mr-1" />
+                                Featured
+                              </Badge>
+                            )}
+                            {testimonial.isVerified && (
+                              <Badge variant="outline" className="border-blue-300 text-blue-700">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Verified
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="text-sm text-gray-900">
+                            {new Date(testimonial.createdAt).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(testimonial.createdAt).toLocaleTimeString()}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="flex items-center space-x-2">
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleApprove(testimonial._id)}
-                              className="h-8 px-3 text-green-600 hover:text-green-700 hover:bg-green-50"
-                              title="Approve Testimonial"
+                              onClick={() => handleEdit(testimonial)}
+                              title="Edit Testimonial"
+                              className="border-2 border-blue-200 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
                             >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Approve
+                              <Edit className="w-4 h-4" />
                             </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(testimonial._id)}
-                            className="h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            title="Delete Testimonial"
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                            {!testimonial.isActive && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleApprove(testimonial._id)}
+                                title="Approve Testimonial"
+                                className="border-2 border-green-200 hover:border-green-500 hover:bg-green-50 transition-all duration-300"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(testimonial._id)}
+                              title="Delete Testimonial"
+                              className="border-2 border-red-200 hover:border-red-500 hover:bg-red-50 transition-all duration-300"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </div>
 
-        {/* Add/Edit Testimonial Dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingTestimonial ? "Edit Testimonial" : "Create New Testimonial"}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="author">Author Name</Label>
-                  <Input
-                    id="author"
-                    value={formData.author}
-                    onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role/Position</Label>
-                  <Input
-                    id="role"
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    placeholder="e.g., CEO, Customer"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="company">Company</Label>
-                <Input
-                  id="company"
-                  value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  placeholder="Company name (optional)"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="text">Testimonial Text</Label>
-                <Textarea
-                  id="text"
-                  value={formData.text}
-                  onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-                  rows={4}
-                  placeholder="Write the testimonial content..."
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="rating">Rating</Label>
-                  <Select 
-                    value={formData.rating.toString()} 
-                    onValueChange={(value) => setFormData({ ...formData, rating: parseInt(value) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select rating" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 Star</SelectItem>
-                      <SelectItem value="2">2 Stars</SelectItem>
-                      <SelectItem value="3">3 Stars</SelectItem>
-                      <SelectItem value="4">4 Stars</SelectItem>
-                      <SelectItem value="5">5 Stars</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="language">Language</Label>
-                  <Select 
-                    value={formData.language} 
-                    onValueChange={(value) => setFormData({ ...formData, language: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="ar">Arabic</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="avatar">Avatar URL</Label>
-                  <Input
-                    id="avatar"
-                    value={formData.avatar}
-                    onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-                    placeholder="https://example.com/avatar.jpg"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="avatarColor">Avatar Color</Label>
-                  <Input
-                    id="avatarColor"
-                    type="color"
-                    value={formData.avatarColor}
-                    onChange={(e) => setFormData({ ...formData, avatarColor: e.target.value })}
-                    className="h-10"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="isVerified" 
-                      checked={formData.isVerified}
-                      onCheckedChange={(checked) => 
-                        setFormData({...formData, isVerified: checked === true})
-                      }
-                    />
-                    <Label htmlFor="isVerified">Verified Customer</Label>
+          {/* Premium Add/Edit Testimonial Dialog */}
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogContent className="max-w-3xl max-h-[95vh] overflow-hidden bg-white/95 backdrop-blur-xl border-2 border-white/20 shadow-2xl">
+              <DialogHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-200/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                    <MessageSquare className="w-6 h-6 text-white" />
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="isActive" 
-                      checked={formData.isActive}
-                      onCheckedChange={(checked) => 
-                        setFormData({...formData, isActive: checked === true})
-                      }
-                    />
-                    <Label htmlFor="isActive">Active</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="featured" 
-                      checked={formData.featured}
-                      onCheckedChange={(checked) => 
-                        setFormData({...formData, featured: checked === true})
-                      }
-                    />
-                    <Label htmlFor="featured">Featured</Label>
+                  <div>
+                    <DialogTitle className="text-2xl font-bold text-gray-900">
+                      {editingTestimonial ? "Edit Testimonial" : "Create New Testimonial"}
+                    </DialogTitle>
+                    <p className="text-gray-600 mt-1">
+                      {editingTestimonial ? "Update the testimonial information below." : "Fill in the details to create a new testimonial."}
+                    </p>
                   </div>
                 </div>
-              </div>
+              </DialogHeader>
+              <div className="p-6 max-h-[70vh] overflow-y-auto">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="author" className="text-sm font-medium text-gray-700">Author Name *</Label>
+                      <Input
+                        id="author"
+                        value={formData.author}
+                        onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                        required
+                        className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                        placeholder="Enter author name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="role" className="text-sm font-medium text-gray-700">Role/Position</Label>
+                      <Input
+                        id="role"
+                        value={formData.role}
+                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                        placeholder="e.g., CEO, Customer"
+                        className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                      />
+                    </div>
+                  </div>
 
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="bg-[#12d6fa] hover:bg-[#0fb8d9]"
-                >
-                  {isSubmitting ? "Saving..." : editingTestimonial ? "Update Testimonial" : "Create Testimonial"}
-                </Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="company" className="text-sm font-medium text-gray-700">Company</Label>
+                    <Input
+                      id="company"
+                      value={formData.company}
+                      onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                      placeholder="Company name (optional)"
+                      className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="text" className="text-sm font-medium text-gray-700">Testimonial Text *</Label>
+                    <Textarea
+                      id="text"
+                      value={formData.text}
+                      onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+                      rows={4}
+                      placeholder="Write the testimonial content..."
+                      required
+                      className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="rating" className="text-sm font-medium text-gray-700">Rating *</Label>
+                      <Select 
+                        value={formData.rating.toString()} 
+                        onValueChange={(value) => setFormData({ ...formData, rating: parseInt(value) })}
+                      >
+                        <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
+                          <SelectValue placeholder="Select rating" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1 Star</SelectItem>
+                          <SelectItem value="2">2 Stars</SelectItem>
+                          <SelectItem value="3">3 Stars</SelectItem>
+                          <SelectItem value="4">4 Stars</SelectItem>
+                          <SelectItem value="5">5 Stars</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="language" className="text-sm font-medium text-gray-700">Language</Label>
+                      <Select 
+                        value={formData.language} 
+                        onValueChange={(value) => setFormData({ ...formData, language: value })}
+                      >
+                        <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="ar">Arabic</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="avatar" className="text-sm font-medium text-gray-700">Avatar URL</Label>
+                      <Input
+                        id="avatar"
+                        value={formData.avatar}
+                        onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
+                        placeholder="https://example.com/avatar.jpg"
+                        className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="avatarColor" className="text-sm font-medium text-gray-700">Avatar Color</Label>
+                      <Input
+                        id="avatarColor"
+                        type="color"
+                        value={formData.avatarColor}
+                        onChange={(e) => setFormData({ ...formData, avatarColor: e.target.value })}
+                        className="h-10 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex gap-6">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="isVerified" 
+                          checked={formData.isVerified}
+                          onCheckedChange={(checked) => 
+                            setFormData({...formData, isVerified: checked === true})
+                          }
+                          className="rounded text-blue-600 focus:ring-blue-500"
+                        />
+                        <Label htmlFor="isVerified" className="text-sm font-medium text-gray-700">Verified Customer</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="isActive" 
+                          checked={formData.isActive}
+                          onCheckedChange={(checked) => 
+                            setFormData({...formData, isActive: checked === true})
+                          }
+                          className="rounded text-blue-600 focus:ring-blue-500"
+                        />
+                        <Label htmlFor="isActive" className="text-sm font-medium text-gray-700">Active</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="featured" 
+                          checked={formData.featured}
+                          onCheckedChange={(checked) => 
+                            setFormData({...formData, featured: checked === true})
+                          }
+                          className="rounded text-blue-600 focus:ring-blue-500"
+                        />
+                        <Label htmlFor="featured" className="text-sm font-medium text-gray-700">Featured</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                      className="border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-300"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={isSubmitting}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      {isSubmitting ? "Saving..." : editingTestimonial ? "Update Testimonial" : "Create Testimonial"}
+                    </Button>
+                  </div>
+                </form>
               </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
     </AdminLayout>
   )

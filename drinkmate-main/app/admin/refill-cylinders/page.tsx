@@ -27,7 +27,23 @@ import {
   AlertTriangle,
   Eye,
   MoreHorizontal,
-  RefreshCw
+  RefreshCw,
+  BarChart3,
+  Download,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+  Settings,
+  Zap,
+  Shield,
+  Star,
+  Clock,
+  Users,
+  Activity,
+  X,
+  Upload,
+  Save
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -348,43 +364,169 @@ export default function RefillCylindersPage() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Refill Cylinder Management</h1>
-            <p className="text-muted-foreground">
-              Manage CO2 cylinder refill services and pricing
-            </p>
-          </div>
-          <Button 
-            onClick={() => setShowAddDialog(true)}
-            className="bg-[#12d6fa] hover:bg-[#0fb8d9]"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Refill Service
-          </Button>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        {/* Premium Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-indigo-600/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-400/20 to-pink-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-400/10 to-blue-600/10 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
 
-        {/* Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Filters</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <Label htmlFor="search">Search</Label>
-                <Input
-                  id="search"
-                  placeholder="Search cylinders..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+        <div className="relative z-10 space-y-8 p-6">
+          {/* Premium Header */}
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8">
+            <div className="flex justify-between items-start">
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                    <RefreshCw className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                      Refill Cylinder Management
+                    </h1>
+                    <p className="text-gray-600 text-lg mt-2">Manage CO2 cylinder refill services and pricing</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200">
+                    <Activity className="w-4 h-4 mr-1" />
+                    {cylinders.length} Total Refill Services
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    {cylinders.filter(c => c.status === 'active').length} Active
+                  </span>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="brand">Brand</Label>
+              <div className="flex gap-3">
+                <Button 
+                  onClick={() => setShowAddDialog(true)}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Refill Service
+                </Button>
+                <Button 
+                  onClick={fetchCylinders}
+                  variant="outline"
+                  className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all duration-300"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Premium Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Total Refill Services</p>
+                  <p className="text-3xl font-bold text-gray-900">{cylinders.length}</p>
+                  <p className="text-xs text-gray-500 mt-1">All refill services</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                  <RefreshCw className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Active Services</p>
+                  <p className="text-3xl font-bold text-green-600">
+                    {cylinders.filter(c => c.status === 'active').length}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Currently available</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
+                  <CheckCircle className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Available for Refill</p>
+                  <p className="text-3xl font-bold text-blue-600">
+                    {cylinders.reduce((sum, c) => sum + c.availableForRefill, 0)}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Total cylinders ready</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl shadow-lg">
+                  <Package className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Best Sellers</p>
+                  <p className="text-3xl font-bold text-purple-600">
+                    {cylinders.filter(c => c.isBestSeller).length}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Top performers</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg">
+                  <Star className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Premium Filters and Search */}
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg">
+                <Filter className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">Advanced Filters</h3>
+              <div className="ml-auto flex items-center gap-2">
+                <span className="text-sm text-gray-500">
+                  Showing {filteredCylinders.length} of {cylinders.length} refill services
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("")
+                    setFilterBrand("all")
+                    setFilterType("all")
+                    setFilterStatus("all")
+                  }}
+                  className="border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 transition-all duration-300"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Clear All
+                </Button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="search" className="text-sm font-medium text-gray-700">Search</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="search"
+                    placeholder="Search refill services..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="brand" className="text-sm font-medium text-gray-700">Brand</Label>
                 <Select value={filterBrand} onValueChange={setFilterBrand}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
                     <SelectValue placeholder="All brands" />
                   </SelectTrigger>
                   <SelectContent>
@@ -394,10 +536,11 @@ export default function RefillCylindersPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="type">Type</Label>
+              
+              <div className="space-y-2">
+                <Label htmlFor="type" className="text-sm font-medium text-gray-700">Type</Label>
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
                     <SelectValue placeholder="All types" />
                   </SelectTrigger>
                   <SelectContent>
@@ -408,10 +551,11 @@ export default function RefillCylindersPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="status">Status</Label>
+              
+              <div className="space-y-2">
+                <Label htmlFor="status" className="text-sm font-medium text-gray-700">Status</Label>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
                     <SelectValue placeholder="All statuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -423,129 +567,212 @@ export default function RefillCylindersPage() {
                 </Select>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Refill Cylinders Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Refill Cylinders ({filteredCylinders.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {filteredCylinders.length === 0 ? (
-              <div className="text-center py-8">
-                <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500">No refill cylinders found</p>
-                <p className="text-sm text-gray-400">Add your first refill service to get started</p>
+          {/* Premium Refill Cylinders Table */}
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl overflow-hidden">
+            <div className="p-6 border-b border-gray-200/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                    <BarChart3 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Refill Services Inventory</h3>
+                    <p className="text-sm text-gray-500">
+                      {filteredCylinders.length} of {cylinders.length} refill services
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all duration-300"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
               </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Brand</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Refill Price</TableHead>
-                    <TableHead>Capacity</TableHead>
-                    <TableHead>Available</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCylinders.map((cylinder) => (
-                    <TableRow key={cylinder._id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{cylinder.name}</div>
-                          <div className="text-sm text-gray-500 line-clamp-2">
-                            {cylinder.description}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{cylinder.brand}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{cylinder.type}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">
-                            <SaudiRiyal amount={cylinder.refillPrice} size="sm" />
-                          </span>
-                          {cylinder.originalPrice && (
-                            <span className="text-sm text-gray-500 line-through">
-                              <SaudiRiyal amount={cylinder.originalPrice} size="sm" />
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{cylinder.capacity}L</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={cylinder.availableForRefill > 0 ? "default" : "destructive"}>
-                          {cylinder.availableForRefill > 0 ? `${cylinder.availableForRefill} available` : "Out of stock"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(cylinder.status)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(cylinder)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(cylinder._id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Add/Edit Dialog */}
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-black">
-                {editingCylinder ? 'Edit Cylinder' : 'Add New Cylinder'}
-              </DialogTitle>
-            </DialogHeader>
+            </div>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name" className="text-gray-700 font-medium">Name *</Label>
+            <div className="overflow-x-auto">
+              {filteredCylinders.length === 0 ? (
+                <div className="p-12 text-center">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Package className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No refill services found</h3>
+                  <p className="text-gray-500 mb-4">Try adjusting your search or filter criteria</p>
+                  <Button 
+                    onClick={() => {
+                      setSearchTerm("")
+                      setFilterBrand("all")
+                      setFilterType("all")
+                      setFilterStatus("all")
+                    }}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/50">
+                      <TableHead className="font-semibold text-gray-700">Service Details</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Brand</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Refill Price</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Capacity</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Available</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Status</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCylinders.map((cylinder) => (
+                      <TableRow 
+                        key={cylinder._id}
+                        className="hover:bg-blue-50/50 transition-all duration-200 border-b border-gray-100"
+                      >
+                        <TableCell className="font-medium py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center">
+                              <RefreshCw className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">{cylinder.name}</p>
+                              <p className="text-xs text-gray-500 line-clamp-2">
+                                {cylinder.description}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                              {cylinder.brand}
+                            </span>
+                            {cylinder.isBestSeller && (
+                              <Star className="w-4 h-4 text-yellow-500" />
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                            {cylinder.type}
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-semibold text-gray-900">
+                              <SaudiRiyal amount={cylinder.refillPrice} size="sm" />
+                            </span>
+                            {cylinder.originalPrice && cylinder.originalPrice > cylinder.refillPrice && (
+                              <span className="text-xs text-gray-500 line-through">
+                                <SaudiRiyal amount={cylinder.originalPrice} size="sm" />
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                            {cylinder.capacity}L
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-2">
+                            <Badge variant={cylinder.availableForRefill > 0 ? "default" : "destructive"} className="text-xs">
+                              {cylinder.availableForRefill > 0 ? `${cylinder.availableForRefill} available` : "Out of stock"}
+                            </Badge>
+                            <span className="text-xs text-gray-500">
+                              Min: {cylinder.minStock}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          {getStatusBadge(cylinder.status)}
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(cylinder)}
+                              title="Edit Refill Service"
+                              className="border-2 border-blue-200 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(cylinder._id)}
+                              title="Delete Refill Service"
+                              className="border-2 border-red-200 hover:border-red-500 hover:bg-red-50 transition-all duration-300"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </div>
+
+          </div>
+        </div>
+
+        {/* Premium Add/Edit Dialog */}
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden bg-white/95 backdrop-blur-xl border-2 border-white/20 shadow-2xl">
+          <DialogHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-200/50">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                <RefreshCw className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-bold text-gray-900">
+                  {editingCylinder ? 'Edit Refill Service' : 'Add New Refill Service'}
+                </DialogTitle>
+                <p className="text-gray-600 mt-1">
+                  {editingCylinder ? 'Update the refill service information below.' : 'Fill in the details to create a new refill service.'}
+                </p>
+              </div>
+            </div>
+          </DialogHeader>
+            
+          <div className="p-6 max-h-[70vh] overflow-y-auto">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-medium text-gray-700">Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20"
+                    className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                    placeholder="Enter refill service name"
                     required
                   />
                 </div>
-                <div>
-                  <Label htmlFor="brand" className="text-gray-700 font-medium">Brand *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="brand" className="text-sm font-medium text-gray-700">Brand *</Label>
                   <Select value={formData.brand} onValueChange={(value) => setFormData({ ...formData, brand: value })}>
-                    <SelectTrigger className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20">
+                    <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
                       <SelectValue placeholder="Select brand" />
                     </SelectTrigger>
                     <SelectContent>
@@ -691,7 +918,7 @@ export default function RefillCylindersPage() {
                 </Select>
               </div>
 
-              <div className="flex justify-end gap-2 pt-4">
+              <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200/50">
                 <Button
                   type="button"
                   variant="outline"
@@ -700,21 +927,23 @@ export default function RefillCylindersPage() {
                     setEditingCylinder(null)
                     resetForm()
                   }}
-                  className="rounded-xl border-gray-300 hover:border-gray-400 bg-transparent"
+                  className="border-2 border-gray-300 hover:border-gray-500 hover:bg-gray-50 transition-all duration-300"
                 >
+                  <X className="w-4 h-4 mr-2" />
                   Cancel
                 </Button>
                 <Button 
-                  type="submit" 
-                  className="bg-black hover:bg-gray-800 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  type="submit"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 >
-                  {editingCylinder ? 'Update Cylinder' : 'Add Cylinder'}
+                  <Save className="w-4 h-4 mr-2" />
+                  {editingCylinder ? 'Update Refill Service' : 'Add Refill Service'}
                 </Button>
               </div>
             </form>
-          </DialogContent>
+          </div>
+        </DialogContent>
         </Dialog>
-      </div>
     </AdminLayout>
   )
 }

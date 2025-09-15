@@ -35,6 +35,31 @@ import {
   Target,
   Users,
   Activity,
+  Edit,
+  Search,
+  Filter,
+  RefreshCw,
+  X,
+  Save,
+  Upload,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
+  MessageSquare,
+  Phone,
+  Globe,
+  Calendar,
+  Tag,
+  ThumbsUp,
+  AlertTriangle,
+  CheckCircle2,
+  Clock3,
+  User,
+  Mail as MailIcon,
+  Phone as PhoneIcon,
+  MapPin,
+  ExternalLink
 } from "lucide-react"
 import { contactAPI } from "@/lib/api"
 import { toast } from "sonner"
@@ -739,142 +764,158 @@ export default function ContactPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Contact Management</h1>
-            <p className="text-muted-foreground">View and manage customer contact messages</p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={handleExport} variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-            <Button 
-              onClick={() => setShowAnalytics(!showAnalytics)} 
-              variant={showAnalytics ? "default" : "outline"}
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Analytics
-            </Button>
-            <Button 
-              onClick={() => setShowReports(!showReports)} 
-              variant="outline"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Reports
-            </Button>
-            <Button 
-              onClick={() => setShowAutomation(!showAutomation)} 
-              variant="outline"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Automation
-            </Button>
-            <Button 
-              onClick={() => setShowWorkflow(!showWorkflow)} 
-              variant="outline"
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              Workflow
-            </Button>
-            <Button 
-              onClick={() => setShowNotifications(!showNotifications)} 
-              variant="outline"
-            >
-              <Bell className="h-4 w-4 mr-2" />
-              Notifications
-            </Button>
-            <Button 
-              onClick={() => setShowEmailIntegration(!showEmailIntegration)} 
-              variant="outline"
-            >
-              <Mail className="h-4 w-4 mr-2" />
-              Email
-            </Button>
-            <Button 
-              onClick={() => setShowCRMIntegration(!showCRMIntegration)} 
-              variant="outline"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              CRM
-            </Button>
-            <Button 
-              onClick={() => setShowCustomerProfiles(!showCustomerProfiles)} 
-              variant="outline"
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Profiles
-            </Button>
-            {selectedContacts.length > 0 && (
-              <Button onClick={() => setShowBulkActions(!showBulkActions)}>
-                Bulk Actions ({selectedContacts.length})
-              </Button>
-            )}
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        {/* Premium Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-indigo-600/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-400/20 to-pink-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-400/10 to-blue-600/10 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <div className="text-2xl font-bold">{contacts.length}</div>
-              </div>
-              <p className="text-xs text-muted-foreground">Total Messages</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-yellow-600" />
-                <div className="text-2xl font-bold">{contacts.filter((c) => c.status === "new").length}</div>
-              </div>
-              <p className="text-xs text-muted-foreground">New</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <AlertCircle className="h-4 w-4 text-orange-600" />
-                <div className="text-2xl font-bold">
-                  {contacts.filter((c) => c.priority === "high" || c.priority === "urgent").length}
+        <div className="relative z-10 space-y-8 p-6">
+          {/* Premium Header */}
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8">
+            <div className="flex justify-between items-start">
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                    <MessageSquare className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                      Contact Management
+                    </h1>
+                    <p className="text-gray-600 text-lg mt-2">View and manage customer contact messages</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200">
+                    <Activity className="w-4 h-4 mr-1" />
+                    {contacts.length} Total Messages
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    {contacts.filter(c => c.status === "resolved").length} Resolved
+                  </span>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">High Priority</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <div className="text-2xl font-bold">{contacts.filter((c) => c.status === "resolved").length}</div>
+              <div className="flex gap-3 flex-wrap">
+                <Button onClick={handleExport} variant="outline" className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+                <Button 
+                  onClick={() => setShowAnalytics(!showAnalytics)} 
+                  variant={showAnalytics ? "default" : "outline"}
+                  className={showAnalytics ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105" : "border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all duration-300"}
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Analytics
+                </Button>
+                <Button 
+                  onClick={() => setShowReports(!showReports)} 
+                  variant="outline"
+                  className="border-2 border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-all duration-300"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Reports
+                </Button>
+                <Button 
+                  onClick={() => setShowBulkActions(!showBulkActions)}
+                  className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  disabled={selectedContacts.length === 0}
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Bulk Actions ({selectedContacts.length})
+                </Button>
               </div>
-              <p className="text-xs text-muted-foreground">Resolved</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Star className="h-4 w-4 text-yellow-600" />
-                <div className="text-2xl font-bold">{contacts.filter((c) => c.starred).length}</div>
-              </div>
-              <p className="text-xs text-muted-foreground">Starred</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-blue-600" />
-                <div className="text-2xl font-bold">
-                  {Math.round(contacts.reduce((acc, c) => acc + (c.responseTime || 0), 0) / contacts.length) || 0}h
+            </div>
+          </div>
+
+          {/* Premium Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Total Messages</p>
+                  <p className="text-3xl font-bold text-gray-900">{contacts.length}</p>
+                  <p className="text-xs text-gray-500 mt-1">All contacts</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                  <Mail className="h-6 w-6 text-white" />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Avg Response</p>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">New Messages</p>
+                  <p className="text-3xl font-bold text-yellow-600">{contacts.filter((c) => c.status === "new").length}</p>
+                  <p className="text-xs text-gray-500 mt-1">Unread messages</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-lg">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">High Priority</p>
+                  <p className="text-3xl font-bold text-red-600">
+                    {contacts.filter((c) => c.priority === "high" || c.priority === "urgent").length}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Urgent messages</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl shadow-lg">
+                  <AlertCircle className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Resolved</p>
+                  <p className="text-3xl font-bold text-green-600">{contacts.filter((c) => c.status === "resolved").length}</p>
+                  <p className="text-xs text-gray-500 mt-1">Completed messages</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
+                  <CheckCircle className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Starred</p>
+                  <p className="text-3xl font-bold text-purple-600">{contacts.filter((c) => c.starred).length}</p>
+                  <p className="text-xs text-gray-500 mt-1">Important messages</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg">
+                  <Star className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Avg Response</p>
+                  <p className="text-3xl font-bold text-blue-600">
+                    {Math.round(contacts.reduce((acc, c) => acc + (c.responseTime || 0), 0) / contacts.length) || 0}h
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Response time</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl shadow-lg">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+          </div>
 
         {/* Analytics Dashboard */}
         {showAnalytics && (
@@ -1736,34 +1777,58 @@ export default function ContactPage() {
           </Card>
         )}
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Filters</CardTitle>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              >
-                {showAdvancedFilters ? "Hide" : "Show"} Advanced Filters
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div>
-                <Label htmlFor="search">Search</Label>
-                <Input
-                  id="search"
-                  placeholder="Search messages..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+        {/* Premium Filters and Search */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg">
+                <Filter className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <Label htmlFor="status">Status</Label>
+              <h3 className="text-xl font-semibold text-gray-900">Advanced Filters</h3>
+              <div className="ml-auto flex items-center gap-2">
+                <span className="text-sm text-gray-500">
+                  Showing {filteredContacts.length} of {contacts.length} messages
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("")
+                    setSelectedStatus("all")
+                    setSelectedPriority("all")
+                    setSelectedSource("all")
+                    setSelectedAssignee("all")
+                    setCompanyFilter("")
+                    setResponseTimeFilter("all")
+                    setSelectedTags([])
+                    setDateRange({ from: "", to: "" })
+                  }}
+                  className="border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 transition-all duration-300"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Clear All
+                </Button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="search" className="text-sm font-medium text-gray-700">Search</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="search"
+                    placeholder="Search messages..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="status" className="text-sm font-medium text-gray-700">Status</Label>
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
                     <SelectValue placeholder="All statuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1775,10 +1840,11 @@ export default function ContactPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="priority">Priority</Label>
+              
+              <div className="space-y-2">
+                <Label htmlFor="priority" className="text-sm font-medium text-gray-700">Priority</Label>
                 <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
                     <SelectValue placeholder="All priorities" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1790,10 +1856,11 @@ export default function ContactPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="source">Source</Label>
+              
+              <div className="space-y-2">
+                <Label htmlFor="source" className="text-sm font-medium text-gray-700">Source</Label>
                 <Select value={selectedSource} onValueChange={setSelectedSource}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
                     <SelectValue placeholder="All sources" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1806,10 +1873,11 @@ export default function ContactPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="assignee">Assignee</Label>
+              
+              <div className="space-y-2">
+                <Label htmlFor="assignee" className="text-sm font-medium text-gray-700">Assignee</Label>
                 <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
                     <SelectValue placeholder="All assignees" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1894,162 +1962,245 @@ export default function ContactPage() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Contact Messages ({filteredContacts.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {filteredContacts.length === 0 ? (
-              <div className="text-center py-8">
-                <Mail className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500">No contact messages found</p>
-                <p className="text-sm text-gray-400">Messages will appear here when customers contact you</p>
+        {/* Premium Contact Messages Table */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl overflow-hidden">
+            <div className="p-6 border-b border-gray-200/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                    <BarChart3 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Contact Messages Management</h3>
+                    <p className="text-sm text-gray-500">
+                      {filteredContacts.length} of {contacts.length} messages
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all duration-300"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
               </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={selectedContacts.length === filteredContacts.length}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedContacts(filteredContacts.map((c) => c._id))
-                          } else {
-                            setSelectedContacts([])
-                          }
-                        }}
-                      />
-                    </TableHead>
-                    <TableHead>Contact Info</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Message</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Source</TableHead>
-                    <TableHead>Response Time</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredContacts.map((contact) => (
-                    <TableRow key={contact._id}>
-                      <TableCell>
+            </div>
+            
+            <div className="overflow-x-auto">
+              {filteredContacts.length === 0 ? (
+                <div className="p-12 text-center">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Mail className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No contact messages found</h3>
+                  <p className="text-gray-500 mb-4">Try adjusting your search or filter criteria</p>
+                  <Button 
+                    onClick={() => {
+                      setSearchTerm("")
+                      setSelectedStatus("all")
+                      setSelectedPriority("all")
+                      setSelectedSource("all")
+                      setSelectedAssignee("all")
+                    }}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/50">
+                      <TableHead className="w-12 font-semibold text-gray-700">
                         <Checkbox
-                          checked={selectedContacts.includes(contact._id)}
+                          checked={selectedContacts.length === filteredContacts.length}
                           onCheckedChange={(checked) => {
                             if (checked) {
-                              setSelectedContacts([...selectedContacts, contact._id])
+                              setSelectedContacts(filteredContacts.map((c) => c._id))
                             } else {
-                              setSelectedContacts(selectedContacts.filter((id) => id !== contact._id))
+                              setSelectedContacts([])
                             }
                           }}
+                          className="rounded text-blue-600 focus:ring-blue-500"
                         />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-start gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleStar(contact._id)}
-                            className="p-1 h-auto"
-                          >
-                            <Star
-                              className={`h-4 w-4 ${contact.starred ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`}
-                            />
-                          </Button>
-                          <div>
-                            <div className="font-medium">{contact.name}</div>
-                            <div className="text-sm text-gray-500">{contact.email}</div>
-                            {contact.phone && <div className="text-sm text-gray-500">{contact.phone}</div>}
-                            {contact.company && (
-                              <div className="text-sm text-gray-500 flex items-center gap-1">
-                                <Building className="h-3 w-3" />
-                                {contact.company}
-                              </div>
-                            )}
-                            {contact.tags.length > 0 && (
-                              <div className="flex gap-1 mt-1">
-                                {contact.tags.slice(0, 2).map((tag) => (
-                                  <Badge key={tag} variant="outline" className="text-xs">
-                                    {tag}
-                                  </Badge>
-                                ))}
-                                {contact.tags.length > 2 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    +{contact.tags.length - 2}
-                                  </Badge>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{contact.subject}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="max-w-xs">
-                          <p className="text-sm line-clamp-2">{contact.message}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusColor(contact.status)}>
-                          {contact.status.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getPriorityColor(contact.priority)}>
-                          {contact.priority.charAt(0).toUpperCase() + contact.priority.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getSourceColor(contact.source || "website")}>
-                          {(contact.source || "website").charAt(0).toUpperCase() +
-                            (contact.source || "website").slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-500">
-                          {contact.responseTime ? `${contact.responseTime}h` : "N/A"}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-500">{new Date(contact.createdAt).toLocaleDateString()}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewContact(contact)}
-                            className="h-8 px-3"
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(contact._id)}
-                            className="h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
-                      </TableCell>
+                      </TableHead>
+                      <TableHead className="font-semibold text-gray-700">Contact Details</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Subject</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Message</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Status</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Priority</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Source</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Response Time</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Created</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredContacts.map((contact) => (
+                      <TableRow 
+                        key={contact._id}
+                        className="hover:bg-blue-50/50 transition-all duration-200 border-b border-gray-100"
+                      >
+                        <TableCell className="py-4">
+                          <Checkbox
+                            checked={selectedContacts.includes(contact._id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedContacts([...selectedContacts, contact._id])
+                              } else {
+                                setSelectedContacts(selectedContacts.filter((id) => id !== contact._id))
+                              }
+                            }}
+                            className="rounded text-blue-600 focus:ring-blue-500"
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
+                              <span className="text-sm font-medium text-blue-600">
+                                {contact.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-gray-900">{contact.name}</p>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleToggleStar(contact._id)}
+                                  className="p-1 h-auto"
+                                >
+                                  <Star
+                                    className={`h-4 w-4 ${contact.starred ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`}
+                                  />
+                                </Button>
+                              </div>
+                              <div className="text-sm text-gray-600">{contact.email}</div>
+                              {contact.phone && (
+                                <div className="text-xs text-gray-500 flex items-center gap-1">
+                                  <PhoneIcon className="h-3 w-3" />
+                                  {contact.phone}
+                                </div>
+                              )}
+                              {contact.company && (
+                                <div className="text-xs text-gray-500 flex items-center gap-1">
+                                  <Building className="h-3 w-3" />
+                                  {contact.company}
+                                </div>
+                              )}
+                              {contact.tags.length > 0 && (
+                                <div className="flex gap-1 mt-2">
+                                  {contact.tags.slice(0, 2).map((tag) => (
+                                    <Badge key={tag} variant="outline" className="text-xs border-blue-200 text-blue-700">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                  {contact.tags.length > 2 && (
+                                    <Badge variant="outline" className="text-xs border-gray-200 text-gray-600">
+                                      +{contact.tags.length - 2}
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="font-medium text-gray-900">{contact.subject}</div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="max-w-xs">
+                            <p className="text-sm text-gray-700 line-clamp-2 leading-relaxed">{contact.message}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <Badge 
+                            variant={getStatusColor(contact.status)}
+                            className={contact.status === "new" ? "bg-blue-100 text-blue-700 hover:bg-blue-200" :
+                                     contact.status === "in_progress" ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200" :
+                                     contact.status === "resolved" ? "bg-green-100 text-green-700 hover:bg-green-200" :
+                                     "bg-gray-100 text-gray-700 hover:bg-gray-200"}
+                          >
+                            {contact.status.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <Badge 
+                            variant={getPriorityColor(contact.priority)}
+                            className={contact.priority === "urgent" ? "bg-red-100 text-red-700 hover:bg-red-200" :
+                                     contact.priority === "high" ? "bg-orange-100 text-orange-700 hover:bg-orange-200" :
+                                     contact.priority === "medium" ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200" :
+                                     "bg-gray-100 text-gray-700 hover:bg-gray-200"}
+                          >
+                            {contact.priority.charAt(0).toUpperCase() + contact.priority.slice(1)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <Badge 
+                            variant={getSourceColor(contact.source || "website")}
+                            className="bg-blue-100 text-blue-700 hover:bg-blue-200"
+                          >
+                            {(contact.source || "website").charAt(0).toUpperCase() +
+                              (contact.source || "website").slice(1)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="text-sm text-gray-600 font-medium">
+                            {contact.responseTime ? `${contact.responseTime}h` : "N/A"}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="text-sm text-gray-900">
+                            {new Date(contact.createdAt).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(contact.createdAt).toLocaleTimeString()}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewContact(contact)}
+                              title="View Contact"
+                              className="border-2 border-blue-200 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(contact._id)}
+                              title="Delete Contact"
+                              className="border-2 border-red-200 hover:border-red-500 hover:bg-red-50 transition-all duration-300"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

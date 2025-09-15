@@ -264,8 +264,11 @@ export default function DebugChatPage() {
   if (authLoading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-full">
-          <Loader2 className="h-8 w-8 animate-spin text-[#12d6fa]" />
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
+            <p className="mt-4 text-gray-600 text-center">Loading chat management system...</p>
+          </div>
         </div>
       </AdminLayout>
     )
@@ -274,8 +277,14 @@ export default function DebugChatPage() {
   if (!isAuthenticated || !user?.isAdmin) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-full text-red-500">
-          Access Denied. You must be an admin to view this page.
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-red-100 shadow-xl p-8 max-w-md">
+            <div className="p-3 bg-red-100 rounded-full w-fit mx-auto mb-4">
+              <AlertCircle className="h-6 w-6 text-red-500" />
+            </div>
+            <h2 className="text-xl font-semibold text-center mb-2">Access Denied</h2>
+            <p className="text-gray-600 text-center">You must be an admin to view the chat management system.</p>
+          </div>
         </div>
       </AdminLayout>
     )
@@ -283,20 +292,38 @@ export default function DebugChatPage() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto p-6 max-w-7xl">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold flex items-center">
-            <MessageSquare className="h-7 w-7 mr-3 text-[#12d6fa]" /> 
-            Debug Chat System
-          </h1>
-          <Button onClick={fetchChats} className="flex items-center gap-2">
-            <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        {/* Premium Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-indigo-600/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-400/20 to-pink-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-400/10 to-blue-600/10 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
 
+        <div className="relative z-10 space-y-8 p-6">
+          {/* Premium Header */}
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8">
+            <div className="flex justify-between items-start">
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
+                    <MessageSquare className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900">Chat Management System</h1>
+                    <p className="text-gray-500">View and manage customer chat sessions</p>
+                  </div>
+                </div>
+              </div>
+              <Button onClick={fetchChats} className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 transition-all">
+                <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
+          </div>
+
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <div className="bg-red-100/80 backdrop-blur-sm border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-4 shadow-lg" role="alert">
             <strong className="font-bold">Error!</strong>
             <span className="block sm:inline"> {error}</span>
           </div>
@@ -305,14 +332,19 @@ export default function DebugChatPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Chat List */}
           <div className="lg:col-span-1">
-            <Card className="h-[600px] overflow-hidden">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Chat Sessions</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 h-full overflow-y-auto">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl overflow-hidden h-[600px]">
+              <div className="p-4 border-b border-gray-200/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg">
+                    <MessageSquare className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">Chat Sessions</h3>
+                </div>
+              </div>
+              <div className="h-[calc(600px-4rem)] overflow-y-auto p-0">
                 {loading ? (
                   <div className="flex items-center justify-center h-32">
-                    <Loader2 className="h-6 w-6 animate-spin text-[#12d6fa]" />
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
                   </div>
                 ) : chats.length === 0 ? (
                   <div className="p-4 text-center text-gray-500">
@@ -324,10 +356,10 @@ export default function DebugChatPage() {
                       <div
                         key={chat._id}
                         onClick={() => setSelectedChat(chat)}
-                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                        className={`p-3 rounded-lg cursor-pointer transition-all ${
                           selectedChat?._id === chat._id
-                            ? 'bg-brand-50 border border-brand-200'
-                            : 'hover:bg-gray-50 border border-transparent'
+                            ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/70'
+                            : 'hover:bg-slate-50 border border-transparent'
                         }`}
                       >
                         <div className="flex items-start justify-between mb-2">
@@ -358,20 +390,25 @@ export default function DebugChatPage() {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* Chat Messages */}
           <div className="lg:col-span-2">
-            <Card className="h-[600px] flex flex-col">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl h-[600px] flex flex-col overflow-hidden">
               {selectedChat ? (
                 <>
-                  <CardHeader className="pb-3 border-b">
+                  <div className="p-4 border-b border-gray-200/50">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-lg">{selectedChat.customer.name}</CardTitle>
-                        <p className="text-sm text-gray-500">{selectedChat.customer.email}</p>
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg">
+                          <User className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">{selectedChat.customer.name}</h3>
+                          <p className="text-sm text-gray-500">{selectedChat.customer.email}</p>
+                        </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Badge className={getStatusColor(selectedChat.status)}>
@@ -386,6 +423,7 @@ export default function DebugChatPage() {
                             variant="outline"
                             onClick={() => updateChatStatus(selectedChat._id, 'closed')}
                             disabled={selectedChat.status === 'closed'}
+                            className="bg-white/80 border-gray-300 hover:bg-red-50 hover:border-red-300"
                           >
                             Close
                           </Button>
@@ -394,15 +432,16 @@ export default function DebugChatPage() {
                             variant="outline"
                             onClick={() => updateChatStatus(selectedChat._id, 'resolved')}
                             disabled={selectedChat.status === 'resolved'}
+                            className="bg-white/80 border-gray-300 hover:bg-green-50 hover:border-green-300"
                           >
                             Resolve
                           </Button>
                         </div>
                       </div>
                     </div>
-                  </CardHeader>
+                  </div>
                   
-                  <CardContent className="flex-1 p-0 overflow-y-auto">
+                  <div className="flex-1 p-0 overflow-y-auto">
                     <div className="p-4 space-y-4">
                       {selectedChat.messages.map((message) => (
                         <div
@@ -412,10 +451,10 @@ export default function DebugChatPage() {
                           <div
                             className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                               message.sender === 'agent'
-                                ? 'bg-brand-500 text-white'
+                                ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md'
                                 : message.sender === 'system'
-                                ? 'bg-gray-100 text-gray-700'
-                                : 'bg-gray-200 text-gray-900'
+                                ? 'bg-gray-100/80 backdrop-blur-sm text-gray-700 border border-gray-200/50'
+                                : 'bg-white/80 backdrop-blur-sm text-gray-900 border border-gray-200/50 shadow-sm'
                             }`}
                           >
                             <div className="flex items-center space-x-2 mb-1">
@@ -439,15 +478,15 @@ export default function DebugChatPage() {
                         </div>
                       ))}
                     </div>
-                  </CardContent>
+                  </div>
 
-                  <div className="p-4 border-t">
+                  <div className="p-4 border-t border-gray-200/50 bg-white/50">
                     <div className="flex space-x-2">
                       <Textarea
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type your message..."
-                        className="flex-1 min-h-[40px] max-h-32"
+                        className="flex-1 min-h-[40px] max-h-32 bg-white/80 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
                         onKeyPress={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault()
@@ -458,7 +497,7 @@ export default function DebugChatPage() {
                       <Button
                         onClick={sendMessage}
                         disabled={!newMessage.trim() || sending}
-                        className="px-4"
+                        className="px-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 transition-all"
                       >
                         {sending ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -472,15 +511,18 @@ export default function DebugChatPage() {
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   <div className="text-center">
-                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <div className="p-4 bg-gradient-to-br from-blue-500/20 to-indigo-600/20 rounded-full mx-auto mb-4">
+                      <MessageSquare className="h-12 w-12 text-blue-500" />
+                    </div>
                     <p>Select a chat to start messaging</p>
                   </div>
                 </div>
               )}
-            </Card>
+            </div>
           </div>
         </div>
       </div>
+    </div>
     </AdminLayout>
   )
 }

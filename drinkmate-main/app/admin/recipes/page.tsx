@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Plus, Search, Edit, Trash2, Eye, Star, Clock, Users, Filter, Save, X, Image as ImageIcon, ChefHat } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, Star, Clock, Users, Filter, Save, X, Image as ImageIcon, ChefHat, TrendingUp, CheckCircle, BarChart3, Download, MoreHorizontal, ChevronLeft, ChevronRight, Loader2, RefreshCw } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
 
@@ -341,181 +341,338 @@ export default function AdminRecipesPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Recipe Management</h1>
-            <p className="text-gray-600 mt-1">Manage your drink recipes and content</p>
-          </div>
-          <Button
-            onClick={() => {
-              setShowForm(true)
-              setEditingRecipe(null)
-              resetForm()
-            }}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Recipe
-          </Button>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        {/* Premium Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#12d6fa]/10 to-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center">
-                <ChefHat className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Recipes</p>
-                  <p className="text-2xl font-bold text-gray-900">{recipes.length}</p>
+        
+        <div className="space-y-8 p-4 md:p-6 relative z-10">
+          {/* Premium Header */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20"></div>
+            <div className="relative p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                      <ChefHat className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                        Recipe Management
+                      </h1>
+                      <p className="text-gray-600 text-lg">
+                        Manage your drink recipes with advanced features and analytics
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center">
-                <Eye className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Published</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {recipes.filter(r => r.published).length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center">
-                <Star className="h-8 w-8 text-yellow-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Featured</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {recipes.filter(r => r.featured).length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center">
-                <Users className="h-8 w-8 text-purple-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Views</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {recipes.reduce((sum, r) => sum + r.views, 0)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-wrap gap-4">
-              <div className="flex-1 min-w-64">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search recipes..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recipe Form Modal */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold">
-                    {editingRecipe ? 'Edit Recipe' : 'Add New Recipe'}
-                  </h2>
+                
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-gray-900">{filteredRecipes.length}</div>
+                    <div className="text-sm text-gray-500">Filtered Recipes</div>
+                  </div>
+                  <div className="w-px h-12 bg-gray-300"></div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-[#12d6fa]">{recipes.length}</div>
+                    <div className="text-sm text-gray-500">Total Recipes</div>
+                  </div>
                   <Button
-                    variant="ghost"
-                    size="sm"
                     onClick={() => {
-                      setShowForm(false)
+                      setShowForm(true)
                       setEditingRecipe(null)
                       resetForm()
                     }}
+                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#0fb8d9] hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   >
-                    <X className="w-4 h-4" />
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add Recipe
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Premium Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="relative overflow-hidden group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 group-hover:from-blue-500/20 group-hover:to-cyan-500/20 transition-all duration-500"></div>
+              <CardContent className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Recipes</p>
+                    <p className="text-3xl font-bold text-gray-900">{recipes.length}</p>
+                    <div className="flex items-center text-sm text-green-600">
+                      <TrendingUp className="h-4 w-4 mr-1" />
+                      +12% this month
+                    </div>
+                  </div>
+                  <div className="p-4 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <ChefHat className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="relative overflow-hidden group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/10 group-hover:from-green-500/20 group-hover:to-emerald-500/20 transition-all duration-500"></div>
+              <CardContent className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Published</p>
+                    <p className="text-3xl font-bold text-gray-900">
+                      {recipes.filter(r => r.published).length}
+                    </p>
+                    <div className="flex items-center text-sm text-green-600">
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      {Math.round((recipes.filter(r => r.published).length / recipes.length) * 100) || 0}% of total
+                    </div>
+                  </div>
+                  <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <Eye className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="relative overflow-hidden group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-amber-500/10 group-hover:from-yellow-500/20 group-hover:to-amber-500/20 transition-all duration-500"></div>
+              <CardContent className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Featured</p>
+                    <p className="text-3xl font-bold text-gray-900">
+                      {recipes.filter(r => r.featured).length}
+                    </p>
+                    <div className="flex items-center text-sm text-yellow-600">
+                      <Star className="h-4 w-4 mr-1" />
+                      Premium content
+                    </div>
+                  </div>
+                  <div className="p-4 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <Star className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="relative overflow-hidden group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 group-hover:from-purple-500/20 group-hover:to-pink-500/20 transition-all duration-500"></div>
+              <CardContent className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Views</p>
+                    <p className="text-3xl font-bold text-gray-900">
+                      {recipes.reduce((sum, r) => sum + r.views, 0).toLocaleString()}
+                    </p>
+                    <div className="flex items-center text-sm text-purple-600">
+                      <Users className="h-4 w-4 mr-1" />
+                      {Math.round(recipes.reduce((sum, r) => sum + r.views, 0) / recipes.length) || 0} avg per recipe
+                    </div>
+                  </div>
+                  <div className="p-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <Users className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Premium Filters */}
+          <Card className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm"></div>
+            <CardContent className="relative p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-lg">
+                    <Filter className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="hover:bg-gray-50">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Reset
+                  </Button>
+                  <Button variant="outline" size="sm" className="hover:bg-gray-50">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
                   </Button>
                 </div>
               </div>
               
-              <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                    <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
-                    <TabsTrigger value="instructions">Instructions</TabsTrigger>
-                    <TabsTrigger value="media">Media & SEO</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="basic" className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="title">Title *</Label>
-                        <Input
-                          id="title"
-                          value={formData.title}
-                          onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                          placeholder="Recipe title"
-                          required
-                        />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Search Recipes</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Search by title, description..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20 transition-all duration-200"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Category</Label>
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {categories.map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Status</Label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Difficulty</Label>
+                  <Select value="all" onValueChange={() => {}}>
+                    <SelectTrigger className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20">
+                      <SelectValue placeholder="All Difficulties" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Difficulties</SelectItem>
+                      <SelectItem value="easy">Easy</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="mt-4 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Showing <span className="font-semibold text-gray-900">{filteredRecipes.length}</span> of <span className="font-semibold text-gray-900">{recipes.length}</span> recipes
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="hover:bg-gray-50">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Analytics
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Premium Recipe Form Modal */}
+          {showForm && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden shadow-2xl border border-white/20">
+                {/* Premium Modal Header */}
+                <div className="relative bg-gradient-to-r from-[#12d6fa]/10 to-blue-600/10 p-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                        <ChefHat className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <Label htmlFor="category">Category *</Label>
-                        <Select
-                          value={formData.category}
-                          onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map(cat => (
-                              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          {editingRecipe ? 'Edit Recipe' : 'Create New Recipe'}
+                        </h2>
+                        <p className="text-gray-600">
+                          {editingRecipe ? 'Update your recipe details and settings' : 'Add a new delicious recipe to your collection'}
+                        </p>
                       </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowForm(false)
+                        setEditingRecipe(null)
+                        resetForm()
+                      }}
+                      className="hover:bg-gray-100 rounded-xl p-2"
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+              
+                <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+                  <form id="recipe-form" onSubmit={handleSubmit} className="space-y-6">
+                    <Tabs defaultValue="basic" className="w-full">
+                      <TabsList className="grid w-full grid-cols-4 bg-gray-100 rounded-xl p-1">
+                        <TabsTrigger 
+                          value="basic" 
+                          className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#12d6fa]"
+                        >
+                          Basic Info
+                        </TabsTrigger>
+                        <TabsTrigger 
+                          value="ingredients"
+                          className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#12d6fa]"
+                        >
+                          Ingredients
+                        </TabsTrigger>
+                        <TabsTrigger 
+                          value="instructions"
+                          className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#12d6fa]"
+                        >
+                          Instructions
+                        </TabsTrigger>
+                        <TabsTrigger 
+                          value="media"
+                          className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#12d6fa]"
+                        >
+                          Media & SEO
+                        </TabsTrigger>
+                      </TabsList>
+                  
+                      <TabsContent value="basic" className="space-y-6 mt-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="title" className="text-sm font-semibold text-gray-700">Recipe Title *</Label>
+                            <Input
+                              id="title"
+                              value={formData.title}
+                              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                              placeholder="Enter a delicious recipe title..."
+                              className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20 transition-all duration-200"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="category" className="text-sm font-semibold text-gray-700">Category *</Label>
+                            <Select
+                              value={formData.category}
+                              onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                            >
+                              <SelectTrigger className="rounded-xl border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa]/20">
+                                <SelectValue placeholder="Select category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categories.map(cat => (
+                                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
                     
                     <div>
                       <Label htmlFor="description">Description *</Label>
@@ -743,10 +900,13 @@ export default function AdminRecipesPage() {
                         </Button>
                       </div>
                     </div>
-                  </TabsContent>
-                </Tabs>
+                      </TabsContent>
+                    </Tabs>
+                  </form>
+                </div>
                 
-                <div className="flex justify-end gap-2 pt-4 border-t">
+                {/* Premium Modal Footer */}
+                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
                   <Button
                     type="button"
                     variant="outline"
@@ -755,138 +915,189 @@ export default function AdminRecipesPage() {
                       setEditingRecipe(null)
                       resetForm()
                     }}
+                    className="px-6 py-2 rounded-xl border-gray-300 hover:bg-gray-50 transition-all duration-200"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                  <Button 
+                    type="submit" 
+                    form="recipe-form"
+                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#0fb8d9] hover:to-blue-700 text-white px-8 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
                     <Save className="w-4 h-4 mr-2" />
                     {editingRecipe ? 'Update Recipe' : 'Create Recipe'}
                   </Button>
                 </div>
-              </form>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Recipes List */}
-        <div className="space-y-4">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-4">
-                    <div className="h-48 bg-gray-200 rounded mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : filteredRecipes.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <ChefHat className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No recipes found</h3>
-                <p className="text-gray-600 mb-4">
-                  {searchTerm || categoryFilter !== 'all' || statusFilter !== 'all'
-                    ? 'Try adjusting your filters or search terms.'
-                    : 'Get started by creating your first recipe.'}
-                </p>
-                <Button
-                  onClick={() => {
-                    setShowForm(true)
-                    setEditingRecipe(null)
-                    resetForm()
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Recipe
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredRecipes.map((recipe) => (
-                <Card key={recipe._id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="relative h-48 bg-gray-100">
-                    {recipe.images && recipe.images.length > 0 ? (
-                      <Image
-                        src={recipe.images[0].url}
-                        alt={recipe.images[0].alt || recipe.title}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-gray-400">
-                        <ImageIcon className="w-12 h-12" />
+          {/* Premium Recipes List */}
+          <div className="space-y-6">
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Card key={i} className="animate-pulse overflow-hidden">
+                    <div className="h-64 bg-gradient-to-br from-gray-200 to-gray-300"></div>
+                    <CardContent className="p-6">
+                      <div className="h-6 bg-gray-200 rounded mb-3"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+                      <div className="flex gap-2 mb-4">
+                        <div className="h-6 bg-gray-200 rounded w-16"></div>
+                        <div className="h-6 bg-gray-200 rounded w-20"></div>
                       </div>
-                    )}
-                    <div className="absolute top-2 right-2 flex gap-1">
-                      {recipe.featured && (
-                        <Badge className="bg-yellow-500 text-white">
-                          <Star className="w-3 h-3 mr-1" />
-                          Featured
-                        </Badge>
-                      )}
-                      <Badge variant={recipe.published ? "default" : "secondary"}>
-                        {recipe.published ? 'Published' : 'Draft'}
-                      </Badge>
-                    </div>
+                      <div className="flex justify-between">
+                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        <div className="flex gap-2">
+                          <div className="h-8 bg-gray-200 rounded w-8"></div>
+                          <div className="h-8 bg-gray-200 rounded w-8"></div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : filteredRecipes.length === 0 ? (
+              <Card className="relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100"></div>
+                <CardContent className="relative p-12 text-center">
+                  <div className="mx-auto w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mb-6">
+                    <ChefHat className="w-12 h-12 text-gray-400" />
                   </div>
-                  <CardContent className="p-4">
-                    <div className="space-y-2">
-                      <h3 className="font-semibold text-lg line-clamp-2">{recipe.title}</h3>
-                      <p className="text-gray-600 text-sm line-clamp-2">{recipe.description}</p>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">No recipes found</h3>
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                    {searchTerm || categoryFilter !== 'all' || statusFilter !== 'all'
+                      ? 'Try adjusting your filters or search terms to find what you\'re looking for.'
+                      : 'Get started by creating your first delicious recipe for your customers.'}
+                  </p>
+                  <Button
+                    onClick={() => {
+                      setShowForm(true)
+                      setEditingRecipe(null)
+                      resetForm()
+                    }}
+                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#0fb8d9] hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Create Your First Recipe
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredRecipes.map((recipe) => (
+                  <Card key={recipe._id} className="group relative overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-white border-0 shadow-lg">
+                    <div className="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                      {recipe.images && recipe.images.length > 0 ? (
+                        <Image
+                          src={recipe.images[0].url}
+                          alt={recipe.images[0].alt || recipe.title}
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-400">
+                          <ImageIcon className="w-16 h-16" />
+                        </div>
+                      )}
                       
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {recipe.prepTime + recipe.cookTime}m
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          {recipe.servings}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4" />
-                          {recipe.rating.average.toFixed(1)}
-                        </div>
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      
+                      {/* Status Badges */}
+                      <div className="absolute top-4 right-4 flex flex-col gap-2">
+                        {recipe.featured && (
+                          <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg">
+                            <Star className="w-3 h-3 mr-1" />
+                            Featured
+                          </Badge>
+                        )}
+                        <Badge 
+                          variant={recipe.published ? "default" : "secondary"}
+                          className={recipe.published 
+                            ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg" 
+                            : "bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-lg"
+                          }
+                        >
+                          {recipe.published ? 'Published' : 'Draft'}
+                        </Badge>
                       </div>
                       
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{recipe.category}</Badge>
-                        <Badge variant="outline">{recipe.difficulty}</Badge>
-                      </div>
-                      
-                      <div className="flex justify-between items-center pt-2">
-                        <div className="text-sm text-gray-500">
-                          {recipe.views} views • {recipe.likes} likes
-                        </div>
-                        <div className="flex gap-1">
+                      {/* Quick Actions on Hover */}
+                      <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="flex gap-2">
                           <Button
-                            variant="outline"
                             size="sm"
+                            className="bg-white/90 hover:bg-white text-gray-900 shadow-lg"
                             onClick={() => handleEdit(recipe)}
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit
                           </Button>
                           <Button
-                            variant="outline"
                             size="sm"
+                            variant="outline"
+                            className="bg-white/90 hover:bg-white text-gray-900 border-white/50 shadow-lg"
                             onClick={() => handleDelete(recipe._id)}
-                            className="text-red-600 hover:text-red-700"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                    
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="font-bold text-xl text-gray-900 line-clamp-2 group-hover:text-[#12d6fa] transition-colors duration-200">
+                            {recipe.title}
+                          </h3>
+                          <p className="text-gray-600 text-sm line-clamp-2 mt-2">
+                            {recipe.description}
+                          </p>
+                        </div>
+                        
+                        <div className="flex items-center gap-6 text-sm text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-[#12d6fa]" />
+                            <span className="font-medium">{recipe.prepTime + recipe.cookTime}m</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-[#12d6fa]" />
+                            <span className="font-medium">{recipe.servings} servings</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Star className="w-4 h-4 text-yellow-500" />
+                            <span className="font-medium">{recipe.rating.average.toFixed(1)}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            {recipe.category}
+                          </Badge>
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            {recipe.difficulty}
+                          </Badge>
+                        </div>
+                        
+                        <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                          <div className="text-sm text-gray-500">
+                            <span className="font-semibold text-gray-900">{recipe.views.toLocaleString()}</span> views • 
+                            <span className="font-semibold text-gray-900 ml-1">{recipe.likes}</span> likes
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {new Date(recipe.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </AdminLayout>
