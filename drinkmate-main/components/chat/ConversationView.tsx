@@ -68,9 +68,10 @@ export default function ConversationView({
   const fetchMessages = async () => {
     try {
       setLoading(true)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       const response = await fetch(`http://localhost:3000/chat/${conversation.id}/messages`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
@@ -92,7 +93,7 @@ export default function ConversationView({
       const response = await fetch(`http://localhost:3000/chat/${conversation.id}/messages`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('token') : null}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -105,7 +106,7 @@ export default function ConversationView({
       if (response.ok) {
         // Add message to local state
         const newMessage: Message = {
-          id: Date.now().toString(),
+          id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           conversationId: conversation.id,
           senderType: 'agent',
           senderId: 'current-user',

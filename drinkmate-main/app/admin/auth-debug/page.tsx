@@ -11,22 +11,24 @@ export default function AuthDebugPage() {
   const [debugInfo, setDebugInfo] = useState<any>({})
 
   useEffect(() => {
-    const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-    setDebugInfo({
-      user,
-      isAuthenticated,
-      isLoading,
-      userIsAdmin: user?.isAdmin,
-      token: token ? `${token.substring(0, 20)}...` : 'No token',
-      tokenLength: token ? token.length : 0,
-      localStorage: localStorage.getItem('auth-token') ? 'Has token' : 'No token',
-      sessionStorage: sessionStorage.getItem('auth-token') ? 'Has token' : 'No token',
-      timestamp: new Date().toISOString()
-    })
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      setDebugInfo({
+        user,
+        isAuthenticated,
+        isLoading,
+        userIsAdmin: user?.isAdmin,
+        token: token ? `${token.substring(0, 20)}...` : 'No token',
+        tokenLength: token ? token.length : 0,
+        localStorage: localStorage.getItem('auth-token') ? 'Has token' : 'No token',
+        sessionStorage: sessionStorage.getItem('auth-token') ? 'Has token' : 'No token',
+        timestamp: new Date().toISOString()
+      })
+    }
   }, [user, isAuthenticated, isLoading])
 
   const testAuth = async () => {
-    const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')) : null
     if (!token) {
       alert('No token found')
       return

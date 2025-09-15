@@ -44,7 +44,6 @@ function MenuTile({
       className={`tile group relative block rounded-2xl p-3 sm:p-4 bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200/60 overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:border-slate-300/80 min-h-[120px] sm:min-h-[140px] ${className}`}
       onMouseEnter={onMouseEnter}
       onClick={onClick}
-      onPointerDown={(e) => e.preventDefault()}
     >
       {badge && (
         <span className={`badge absolute top-2 left-2 sm:top-3 sm:left-3 z-10 text-xs font-semibold px-2 py-1 rounded-full text-white ${badgeColor}`}>
@@ -147,41 +146,8 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
           onMouseEnter={handleMouseEnter}
         >
           {/* Hero Section - Two Column Layout */}
-          <div className="mega-grid grid grid-cols-1 lg:grid-cols-[1.3fr,1fr] gap-4 sm:gap-6 mb-4 sm:mb-6">
-            {/* Featured Hero Tile */}
-            <Link
-              href="/shop/sodamakers/artic-black"
-              className="hero-tile group relative block rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] text-white overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02] min-h-[200px] sm:min-h-[240px]"
-              onMouseEnter={() => handlePrefetch("/shop/sodamakers/artic-black")}
-              onClick={() => onOpenChange(false)}
-              onPointerDown={(e) => e.preventDefault()}
-            >
-              <span className="badge absolute top-3 left-3 sm:top-4 sm:left-4 z-10 text-xs font-bold px-2 py-1 sm:px-3 sm:py-1 rounded-full bg-white/20 backdrop-blur-sm">
-                New
-              </span>
-              <div className="flex flex-col sm:flex-row items-center justify-between h-full">
-                <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-xl sm:text-2xl font-bold mb-2">Artic Black</h3>
-                  <p className="text-sm opacity-90 mb-3 sm:mb-4">Crisper fizz, zero mess.</p>
-                  <span className="cta inline-flex items-center text-sm font-semibold bg-white/20 backdrop-blur-sm px-3 py-2 sm:px-4 sm:py-2 rounded-full hover:bg-white/30 transition-colors duration-200">
-                    Shop now <ArrowRight className="w-4 h-4 ml-2" />
-                  </span>
-                </div>
-                <div className="flex-shrink-0 mt-4 sm:mt-0 sm:ml-4">
-                  <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559855/Artic-Black-Machine---Front_pxsies.png"
-                    alt="Artic Black Soda Maker"
-                    width={100}
-                    height={100}
-                    className="object-contain group-hover:scale-110 transition-transform duration-300 sm:w-[120px] sm:h-[120px]"
-                    priority={false}
-                  />
-                </div>
-              </div>
-            </Link>
-
-            {/* Category Grid - 2x2 */}
-            <div className="cat-grid grid grid-cols-2 gap-3 sm:gap-4">
+          {/* Category Grid - 2x2 */}
+          <div className="mega-grid grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
               <MenuTile
                 href="/shop/sodamakers"
                 title="Soda Makers"
@@ -220,7 +186,6 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
                 onMouseEnter={() => handlePrefetch("/co2")}
                 onClick={() => onOpenChange(false)}
               />
-            </div>
           </div>
 
           {/* Quick Links Rail */}

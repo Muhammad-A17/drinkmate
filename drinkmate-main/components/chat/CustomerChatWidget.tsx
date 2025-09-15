@@ -276,7 +276,7 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
       
       // Add message to local state immediately for better UX
       const tempMessage = {
-        _id: `temp_${Date.now()}`,
+        _id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         content: messageContent,
         sender: {
           _id: user?._id || '',

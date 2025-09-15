@@ -2,6 +2,7 @@
 
 import { Currency } from '@/utils/currency'
 import { useCartSettings } from '@/lib/cart-settings-context'
+import { useRouter } from 'next/navigation'
 
 interface CartTotals {
   subtotal: number
@@ -19,6 +20,7 @@ interface StickyCheckoutProps {
 
 export default function StickyCheckout({ visible, totals }: StickyCheckoutProps) {
   const { settings, getText } = useCartSettings()
+  const router = useRouter()
   
   if (!settings.stickyCheckout.enabled) return null
   return (
@@ -35,7 +37,10 @@ export default function StickyCheckout({ visible, totals }: StickyCheckoutProps)
               <Currency amount={totals.total} />
             </div>
           </div>
-          <button className="h-12 px-5 rounded-md bg-emerald-600 text-white font-semibold">
+          <button 
+            onClick={() => router.push('/checkout')}
+            className="h-12 px-5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors"
+          >
             {getText('stickyCheckout.textEn')}
           </button>
         </div>

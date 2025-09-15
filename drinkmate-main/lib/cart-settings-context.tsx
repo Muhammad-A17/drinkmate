@@ -165,24 +165,28 @@ export function CartSettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Load settings from localStorage or API
-    try {
-      const savedSettings = localStorage.getItem('cart-settings')
-      if (savedSettings) {
-        setSettings(JSON.parse(savedSettings))
+    if (typeof window !== 'undefined') {
+      try {
+        const savedSettings = localStorage.getItem('cart-settings')
+        if (savedSettings) {
+          setSettings(JSON.parse(savedSettings))
+        }
+      } catch (error) {
+        console.error('Failed to load cart settings:', error)
+        // Keep default settings if localStorage fails
       }
-    } catch (error) {
-      console.error('Failed to load cart settings:', error)
-      // Keep default settings if localStorage fails
     }
   }, [])
 
   const updateSettings = (newSettings: Partial<CartSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }))
     // Save to localStorage
-    try {
-      localStorage.setItem('cart-settings', JSON.stringify({ ...settings, ...newSettings }))
-    } catch (error) {
-      console.error('Failed to save cart settings:', error)
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('cart-settings', JSON.stringify({ ...settings, ...newSettings }))
+      } catch (error) {
+        console.error('Failed to save cart settings:', error)
+      }
     }
   }
 

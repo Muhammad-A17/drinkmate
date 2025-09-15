@@ -110,7 +110,7 @@ export default function LiveChatModal({ isOpen, onClose }: LiveChatModalProps) {
       setIsLoading(true)
       setError(null)
 
-      const token = localStorage.getItem('token')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       if (!token) {
         setError('Please log in to start a chat session.')
         return
@@ -191,7 +191,7 @@ export default function LiveChatModal({ isOpen, onClose }: LiveChatModalProps) {
       await fetch(`http://localhost:3000/chat/${chatSession._id}/messages`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('token') : null}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(messageData)

@@ -5,6 +5,7 @@ import { useCart } from '@/hooks/use-cart'
 import { useCartSettings } from '@/lib/cart-settings-context'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 interface CartTotals {
   subtotal: number
@@ -23,6 +24,7 @@ export default function Summary({ totals }: SummaryProps) {
   const { getText } = useCartSettings()
   const [code, setCode] = useState('')
   const [isApplying, setIsApplying] = useState(false)
+  const router = useRouter()
 
   const handleApplyCoupon = async () => {
     if (!code.trim()) {
@@ -84,7 +86,10 @@ export default function Summary({ totals }: SummaryProps) {
         
       </div>
 
-      <button className="mt-4 w-full h-12 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
+      <button 
+        onClick={() => router.push('/checkout')}
+        className="mt-4 w-full h-12 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors"
+      >
         {getText('general.secureCheckoutEn')}
       </button>
 

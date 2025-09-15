@@ -143,3 +143,4 @@ export interface AgentKPIs {
   responseRate: number // percentage
   resolutionRate: number // percentage
 }
+

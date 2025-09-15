@@ -64,14 +64,14 @@
   }
 }
 
-/* Saudi Riyal Font */
-@font-face {
+/* Saudi Riyal Font - Disabled in favor of SVG icons */
+/* @font-face {
   font-family: 'SaudiRiyalSymbol';
   src: url('/fonts/saudiriyalsymbol.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-}
+} */
 
 /* Font Variables */
 :root {
@@ -127,22 +127,29 @@
   }
 }
 
-/* Saudi Riyal Currency Symbol - Global Styles */
-.riyal-symbol {
+/* Card styling utilities */
+.rounded-soft {
+  border-radius: 0.75rem; /* 12px */
+}
+
+.shadow-card {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Saudi Riyal Currency Symbol - Disabled in favor of SVG icons */
+/* .riyal-symbol {
   font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
   font-size: 1em;
   line-height: 1;
   position: relative;
 }
 
-/* Fallback for when the custom font is not loaded */
 .riyal-symbol-fallback {
   font-family: 'Arial', sans-serif;
   font-size: 1em;
   line-height: 1;
 }
 
-/* Global utility classes for Saudi Riyal */
 .currency-riyal {
   font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
   font-size: 0.7em !important;
@@ -156,7 +163,6 @@
   line-height: 1;
 }
 
-/* Responsive font sizes for different contexts */
 .riyal-symbol-sm {
   font-family: 'SaudiRiyalSymbol', 'Arial', sans-serif;
   font-size: 0.875em;
@@ -188,7 +194,7 @@
 .riyal-symbol-xl .currency-riyal {
   font-size: 0.8em !important;
   top: -0.15em;
-}
+} */
 
 /* Ensure consistent appearance across all price displays */
 .price-display,

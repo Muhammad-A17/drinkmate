@@ -11,6 +11,7 @@ import FontProvider from "@/components/layout/FontProvider"
 import ChatProvider from "@/components/layout/ChatProvider"
 import { Providers } from "@/components/providers"
 import { suppressHydrationWarnings } from "@/lib/suppress-hydration-warnings"
+import FloatingCartButton from "@/components/cart/FloatingCartButton"
 // Suppress hydration warnings caused by browser extensions
 typeof window !== 'undefined' && suppressHydrationWarnings()
 
@@ -211,6 +212,7 @@ export default function RootLayout({
                     <Providers>
                       <div suppressHydrationWarning>{children}</div>
                       <ChatProvider />
+                      <FloatingCartButton />
                     </Providers>
                   </SWRProvider>
                 </SocketProvider>

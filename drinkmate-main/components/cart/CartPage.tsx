@@ -2,6 +2,7 @@
 
 import CartHeader from './CartHeader'
 import CartItemRow from './CartItemRow'
+import AnimatedCartItem from './AnimatedCartItem'
 import CartNote from './CartNote'
 import FreeGift from './FreeGift'
 import Recommendations from './Recommendations'
@@ -14,6 +15,7 @@ import Footer from '@/components/layout/Footer'
 import Banner from '@/components/layout/Banner'
 import { CartSettingsProvider } from '@/lib/cart-settings-context'
 import { Currency } from '@/utils/currency'
+import { motion, AnimatePresence } from 'framer-motion'
 
 // Mock recommendations data - replace with your actual data source
 const mockRecommendations = [
@@ -41,11 +43,10 @@ const mockRecommendations = [
 ]
 
 export default function CartPage() {
-  const { items, totalPrice, totalItems, loading, error, updateTrigger, addItem, clearCart } = useCart()
+  const { items, totalPrice, totalItems, loading, error, updateTrigger, addItem, clearCart, updateQuantity, removeItem } = useCart()
   const { ref: summaryRef, inView: summaryInView } = useStickyInView()
   
-  // Debug logging to track cart updates
-  console.log('CartPage render - items:', items.length, 'totalPrice:', totalPrice, 'updateTrigger:', updateTrigger)
+  // Debug logging removed to prevent hydration issues
 
   // Calculate totals
   const subtotal = totalPrice
@@ -112,51 +113,43 @@ export default function CartPage() {
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-28">
         <CartHeader />
         
-        {/* Debug test button - remove in production */}
-        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
-          <h3 className="font-semibold mb-2">Debug Cart Test</h3>
-          <div className="space-x-2">
-            <button 
-              onClick={() => {
-                const testItem = {
-                  id: 'test-' + Date.now(),
-                  name: 'Test Product',
-                  price: 25.00,
-                  quantity: 1,
-                  image: '/images/italian-strawberry-lemon-syrup.png'
-                }
-                addItem(testItem)
-              }}
-              className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
-            >
-              Add Test Item
-            </button>
-            <button 
-              onClick={() => clearCart()}
-              className="px-3 py-1 bg-red-500 text-white rounded text-sm"
-            >
-              Clear Cart
-            </button>
-            <span className="text-sm text-gray-600">
-              Items: {items.length} | Total: {totalPrice.toFixed(2)} | Trigger: {updateTrigger}
-            </span>
-          </div>
-        </div>
-        
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left column */}
         <div className="lg:col-span-8 space-y-6">
           <section className="bg-white rounded-soft shadow-card">
             {items.length === 0 ? (
-              <div className="p-10 text-center text-ink-500">Your cart is empty.</div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-10 text-center text-ink-500"
+              >
+                <div className="text-6xl mb-4">🛒</div>
+                <h3 className="text-xl font-semibold mb-2">Your cart is empty</h3>
+                <p className="text-gray-500 mb-4">Add some products to get started!</p>
+                <a 
+                  href="/shop" 
+                  className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Continue Shopping
+                </a>
+              </motion.div>
             ) : (
-              <ul className="divide-y divide-ink-100" key={updateTrigger}>
-                {items.map((item) => (
-                  <li key={`${item.id}-${updateTrigger}`} className="p-5">
-                    <CartItemRow item={item} />
-                  </li>
-                ))}
-              </ul>
+              <div className="p-4 space-y-4" key={updateTrigger}>
+                <AnimatePresence mode="popLayout">
+                  {items.map((item) => (
+                    <AnimatedCartItem
+                      key={`${item.id}-${updateTrigger}`}
+                      item={item}
+                      onUpdateQuantity={updateQuantity}
+                      onRemove={removeItem}
+                      onMoveToWishlist={(id) => {
+                        // Move to wishlist logic here
+                        // console.log('Move to wishlist:', id)
+                      }}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
             )}
           </section>
 

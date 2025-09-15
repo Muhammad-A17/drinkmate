@@ -125,3 +125,4 @@ export default function ChatStatsCards({ stats, onStatsClick, isRTL = false }: C
     </div>
   )
 }
+

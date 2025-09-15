@@ -57,15 +57,19 @@ export default function GlobalSearch({
 
   // Load search history from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('chat-search-history')
-    if (saved) {
-      setSearchHistory(JSON.parse(saved))
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('chat-search-history')
+      if (saved) {
+        setSearchHistory(JSON.parse(saved))
+      }
     }
   }, [])
 
   // Save search history to localStorage
   useEffect(() => {
-    localStorage.setItem('chat-search-history', JSON.stringify(searchHistory))
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('chat-search-history', JSON.stringify(searchHistory))
+    }
   }, [searchHistory])
 
   // Perform search

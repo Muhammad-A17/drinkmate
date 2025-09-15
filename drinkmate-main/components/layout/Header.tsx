@@ -221,17 +221,15 @@ export default function Header({ currentPage }: HeaderProps) {
                         </div>
 
                         <Link
-                          href="/profile"
+                          href="/account"
                           className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => {
                             setIsUserDropdownOpen(false)
-                            router.push('/profile')
                           }}
                         >
                           <div className="flex items-center">
                             <User className="w-4 h-4 mr-3" />
-                            My Profile
+                            My Account
                           </div>
                         </Link>
 
@@ -239,10 +237,8 @@ export default function Header({ currentPage }: HeaderProps) {
                           <Link
                             href="/admin"
                             className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => {
                               setIsUserDropdownOpen(false)
-                              router.push('/admin')
                             }}
                           >
                             Admin Dashboard
@@ -267,10 +263,8 @@ export default function Header({ currentPage }: HeaderProps) {
                         <Link
                           href="/login"
                           className="block px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => {
                             setIsUserDropdownOpen(false)
-                            router.push('/login')
                           }}
                         >
                           Sign in
@@ -278,10 +272,8 @@ export default function Header({ currentPage }: HeaderProps) {
                         <Link
                           href="/register"
                           className="block px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => {
                             setIsUserDropdownOpen(false)
-                            router.push('/register')
                           }}
                         >
                           Create account
@@ -505,11 +497,11 @@ export default function Header({ currentPage }: HeaderProps) {
                       </div>
 
                       <Link
-                        href="/profile"
+                        href="/account"
                         className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        My Profile
+                        My Account
                       </Link>
 
                       {user?.isAdmin && (

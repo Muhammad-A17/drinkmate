@@ -194,7 +194,9 @@ export default function CO2CylindersPage() {
         createdAt: new Date().toISOString()
       }
     ]
-    localStorage.setItem('co2-cylinders', JSON.stringify(sampleCylinders))
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('co2-cylinders', JSON.stringify(sampleCylinders))
+    }
     setCylinders(sampleCylinders)
     setLoading(false)
     console.log('Sample data initialized:', sampleCylinders)
@@ -362,7 +364,7 @@ export default function CO2CylindersPage() {
         await new Promise(resolve => setTimeout(resolve, 2000))
         
         // Simulate successful upload
-        const videoUrl = `/videos/${Date.now()}-${file.name}`
+        const videoUrl = `/videos/${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${file.name}`
         setUploadedVideos(prev => [...prev, videoUrl])
         toast.success('Video uploaded successfully')
       } catch (error) {
@@ -410,7 +412,7 @@ export default function CO2CylindersPage() {
   const fetchCylinders = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      const token = typeof window !== 'undefined' ? (localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')) : null
       
       console.log('Admin fetchCylinders - Auth check:', {
         hasToken: !!token,
@@ -527,7 +529,7 @@ export default function CO2CylindersPage() {
     }
     
     try {
-      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      const token = typeof window !== 'undefined' ? (localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')) : null
       if (!token) {
         toast.error('No authentication token found. Please log in.')
         router.push('/login')
@@ -636,7 +638,7 @@ export default function CO2CylindersPage() {
     if (!confirm('Are you sure you want to delete this cylinder?')) return
     
     try {
-      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      const token = typeof window !== 'undefined' ? (localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')) : null
       console.log('Delete - Auth check:', { hasToken: !!token, token: token ? 'present' : 'missing' })
       
       if (!token) {
@@ -839,8 +841,10 @@ export default function CO2CylindersPage() {
               onClick={() => {
                 console.log('Force refresh - current state:', { loading, cylinders: cylinders.length, user: user?.email })
                 // Clear any cached data and force fresh fetch
-                localStorage.removeItem('co2-cylinders')
-                sessionStorage.clear()
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem('co2-cylinders')
+                  sessionStorage.clear()
+                }
                 fetchCylinders()
               }}
               variant="outline"

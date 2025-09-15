@@ -154,7 +154,7 @@ interface BundleProduct {
 }
 
 interface Review {
-  id: number
+  id: string
   user: string
   avatar: string
   rating: number
@@ -170,7 +170,7 @@ interface Review {
 }
 
 interface QA {
-  id: number
+  id: string
   category: string
   question: string
   answer: string
@@ -520,7 +520,7 @@ export default function BundleDetailPage() {
 
       // For now, we'll add it locally since we don't have a review API endpoint yet
       const review = {
-        id: Date.now(),
+        id: `review-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         user: newReview.name,
         avatar: "/diverse-user-avatars.png",
         rating: newReview.rating,
@@ -553,7 +553,7 @@ export default function BundleDetailPage() {
 
     // For now, we'll add it locally since we don't have a Q&A API endpoint yet
     const question = {
-      id: Date.now(),
+      id: `review-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       category: newQuestion.category,
       question: newQuestion.question,
       answer: "",

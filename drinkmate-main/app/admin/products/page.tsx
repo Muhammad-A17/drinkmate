@@ -121,14 +121,14 @@ export default function ProductsPage() {
       
       // Since we don't have a createCategory API yet, we'll use a mock ID
       // This is a temporary solution for development
-      const mockCategoryId = `mock_${categoryName}_${Date.now()}`
+      const mockCategoryId = `mock_${categoryName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       console.log('Created mock category ID:', mockCategoryId)
       
       return mockCategoryId
     } catch (error) {
       console.error('Error creating category:', error)
       // Return a fallback ID
-      return `fallback_${categoryName}_${Date.now()}`
+      return `fallback_${categoryName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     }
   }
 
@@ -217,7 +217,7 @@ export default function ProductsPage() {
         isBestSeller: productData.isBestSeller,
         isNewArrival: productData.isNewProduct,
         isFeatured: productData.isFeatured,
-        sku: productData.sku || `SKU-${Date.now()}`,
+        sku: productData.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         weight: productData.weight ? parseFloat(productData.weight) : undefined,
         dimensions: productData.dimensions
       }

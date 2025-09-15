@@ -6,6 +6,9 @@ import { AlertCircle, RefreshCw } from 'lucide-react'
 import ProductCard from './ProductCard'
 import ProductCardSkeleton from './ProductCardSkeleton'
 import { ProductGridProps, Product } from '@/types/product'
+import { useCart } from '@/hooks/use-cart'
+import { useCartAnimations } from '@/hooks/use-cart-animations'
+import CartNotification from '@/components/cart/CartNotification'
 
 const EmptyState = ({ onRetry, isRTL }: { onRetry?: () => void; isRTL?: boolean }) => (
   <div className="text-center py-16">
@@ -33,6 +36,8 @@ export default function ProductGrid({
   className = "",
   loading = false
 }: ProductGridProps) {
+  const { addItem } = useCart()
+  const { animationState, triggerAddAnimation, hideNotification } = useCartAnimations()
   // Loading state
   if (loading) {
     return (
@@ -71,7 +76,7 @@ export default function ProductGrid({
       inStock: (product.stock || 0) > 0,
       badges: product.badges || [],
       variants: product.variants?.map((v: any) => ({
-        id: v._id || v.id || Math.random().toString(),
+        id: v._id || v.id || `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         colorName: v.name || v.colorName,
         colorHex: v.colorHex || v.value,
         image: v.image || product.images?.[0]?.url,
@@ -86,22 +91,48 @@ export default function ProductGrid({
     }
   }
 
+  const handleAddToCart = (payload: { productId: string; variantId?: string; qty: number }) => {
+    const product = convertProduct(products.find(p => p.id === payload.productId)!)
+    
+    const cartItem = {
+      id: payload.productId,
+      name: product.title,
+      price: product.price,
+      quantity: payload.qty,
+      image: product.image,
+      category: product.category || 'Product'
+    }
+
+    addItem(cartItem)
+    triggerAddAnimation(cartItem)
+  }
+
   return (
-    <div
-      dir={dir}
-      className={`grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 ${className}`}
-    >
-      {products.map((product) => (
-        <ProductCard
-          key={product.id}
-          product={convertProduct(product)}
-          dir={dir}
-          onAddToCart={(payload) => {
-            console.log('Add to cart:', payload)
-            // TODO: Implement add to cart functionality
-          }}
-        />
-      ))}
-    </div>
+    <>
+      <div
+        dir={dir}
+        className={`grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 ${className}`}
+      >
+        {products.map((product, index) => (
+          <ProductCard
+            key={product.id || `product-${index}`}
+            product={convertProduct(product)}
+            dir={dir}
+            onAddToCart={handleAddToCart}
+          />
+        ))}
+      </div>
+
+      {/* Cart Notification */}
+      <CartNotification
+        item={animationState.lastAddedItem}
+        isVisible={animationState.showNotification}
+        onClose={hideNotification}
+        onViewCart={() => {
+          // Navigate to cart page
+          window.location.href = '/cart'
+        }}
+      />
+    </>
   )
 }
