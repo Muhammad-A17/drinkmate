@@ -220,7 +220,7 @@ export default function Header({ currentPage }: HeaderProps) {
               <button
                 onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                 aria-label={t("header.userMenu")}
-                aria-expanded={isUserDropdownOpen}
+                aria-expanded={isUserDropdownOpen ? "true" : "false"}
                 aria-haspopup="true"
                 className="user-button p-3 rounded-lg hover:bg-slate-50 transition-all duration-200 group hover:shadow-sm border border-transparent hover:border-slate-200"
               >
@@ -325,7 +325,7 @@ export default function Header({ currentPage }: HeaderProps) {
             <button
               onClick={toggleMobileMenu}
               aria-label={isMobileMenuOpen ? t("common.closeMenu") : t("common.openMenu")}
-              aria-expanded="false"
+              aria-expanded={isMobileMenuOpen ? "true" : "false"}
               aria-controls="mobile-menu"
               className="md:hidden p-3 rounded-lg hover:bg-slate-50 transition-all duration-200 border border-transparent hover:border-slate-200 hover:shadow-sm"
             >
@@ -344,67 +344,83 @@ export default function Header({ currentPage }: HeaderProps) {
             {showMobileShopGrid ? (
               // Mobile Shop Grid View
               <div id="mobile-shop-grid" className="px-4">
-                {/* Back Button */}
-                <button
-                  onClick={handleBackToMenu}
-                  className="flex items-center text-slate-600 hover:text-slate-900 mb-6 transition-colors duration-200"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  <span className={`text-sm font-medium ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("common.back")}</span>
-                </button>
+                {/* Header Section */}
+                <div className="mb-6">
+                  <button
+                    onClick={handleBackToMenu}
+                    className="flex items-center text-slate-600 hover:text-slate-900 mb-4 transition-colors duration-200"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    <span className={`text-sm font-medium ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("common.back")}</span>
+                  </button>
+                  <h2 className={`text-lg font-bold text-slate-900 mb-2 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                    Shop Categories
+                  </h2>
+                  <p className="text-sm text-slate-600 font-noto-sans">
+                    Choose a category to explore our products
+                  </p>
+                </div>
 
                 {/* Shop Categories Grid */}
                 <div className="grid grid-cols-2 gap-4">
                   {/* Soda Makers */}
                   <Link
                     href="/shop/sodamakers"
-                    className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-2xl p-6 text-white hover:from-[#12d6fa] hover:to-[#0bc4e8] transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square"
+                    className="bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-2xl p-6 text-white hover:from-[#0bc4e8] hover:to-[#12d6fa] transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square shadow-lg hover:shadow-xl hover:scale-105"
                     onClick={() => {
                       setIsMobileMenuOpen(false)
                       setShowMobileShopGrid(false)
                     }}
                   >
+                    <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
+                      <span className="text-xs font-bold">Bestseller</span>
+                    </div>
                     <div className="relative z-10 text-center">
                       <div className="flex justify-center mb-4">
                         <Image
                           src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559855/Artic-Black-Machine---Front_pxsies.png"
                           alt="Sample Soda Maker"
-                          width={80}
-                          height={80}
+                          width={70}
+                          height={70}
                           className="object-contain group-hover:scale-110 transition-transform duration-300"
                         />
                       </div>
                       <h3 className={`text-sm font-bold ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.sodamakers")}</h3>
+                      <p className="text-xs opacity-90 mt-1">Premium Quality</p>
                     </div>
                   </Link>
 
                   {/* Flavors */}
                   <Link
                     href="/shop/flavor"
-                    className="bg-[#a8f387] hover:bg-[#96e075] rounded-2xl p-6 text-white transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square"
+                    className="bg-gradient-to-br from-green-400 to-green-500 rounded-2xl p-6 text-white hover:from-green-500 hover:to-green-600 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square shadow-lg hover:shadow-xl hover:scale-105"
                     onClick={() => {
                       setIsMobileMenuOpen(false)
                       setShowMobileShopGrid(false)
                     }}
                   >
+                    <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
+                      <span className="text-xs font-bold">Save 15%</span>
+                    </div>
                     <div className="relative z-10 text-center">
                       <div className="flex justify-center mb-4">
                         <Image
                           src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892917/italian-strawberry-lemon-syrup_x0cz9h.png"
                           alt="Sample Flavor"
                           width={60}
-                          height={80}
+                          height={60}
                           className="object-contain group-hover:scale-110 transition-transform duration-300"
                         />
                       </div>
                       <h3 className={`text-sm font-bold ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.flavor")}</h3>
+                      <p className="text-xs opacity-90 mt-1">Natural Taste</p>
                     </div>
                   </Link>
 
                   {/* Accessories */}
                   <Link
                     href="/shop/accessories"
-                    className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl p-6 hover:from-slate-200 hover:to-slate-300 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square"
+                    className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl p-6 hover:from-slate-200 hover:to-slate-300 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square shadow-lg hover:shadow-xl hover:scale-105 border border-slate-200"
                     onClick={() => {
                       setIsMobileMenuOpen(false)
                       setShowMobileShopGrid(false)
@@ -416,36 +432,90 @@ export default function Header({ currentPage }: HeaderProps) {
                           src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892916/empty-drinkmate-bottle_dkmtzo.png"
                           alt="Sample Accessory"
                           width={60}
-                          height={80}
+                          height={60}
                           className="object-contain group-hover:scale-110 transition-transform duration-300"
                         />
                       </div>
                       <h3 className={`text-sm font-bold text-slate-800 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.accessories")}</h3>
+                      <p className="text-xs text-slate-600 mt-1">Essential Items</p>
                     </div>
                   </Link>
 
                   {/* CO2 Cylinders */}
                   <Link
                     href="/shop/co2-cylinders"
-                    className="bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl p-6 text-white hover:from-orange-500 hover:to-orange-600 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square"
+                    className="bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl p-6 text-white hover:from-orange-500 hover:to-orange-600 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square shadow-lg hover:shadow-xl hover:scale-105"
                     onClick={() => {
                       setIsMobileMenuOpen(false)
                       setShowMobileShopGrid(false)
                     }}
                   >
+                    <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
+                      <span className="text-xs font-bold">Exchange</span>
+                    </div>
                     <div className="relative z-10 text-center">
                       <div className="flex justify-center mb-4">
                         <Image
                           src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892915/co2-cylinder_placeholder.png"
                           alt="CO2 Cylinder"
                           width={60}
-                          height={80}
+                          height={60}
                           className="object-contain group-hover:scale-110 transition-transform duration-300"
                         />
                       </div>
                       <h3 className={`text-sm font-bold ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.co2")}</h3>
+                      <p className="text-xs opacity-90 mt-1">Refill Service</p>
                     </div>
                   </Link>
+                </div>
+
+                {/* Quick Links Section */}
+                <div className="mt-6 pt-6 border-t border-slate-200">
+                  <h3 className={`text-sm font-semibold text-slate-700 mb-3 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
+                    Quick Links
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link
+                      href="/shop"
+                      className="text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-center"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false)
+                        setShowMobileShopGrid(false)
+                      }}
+                    >
+                      All Products
+                    </Link>
+                    <Link
+                      href="/shop/bundles"
+                      className="text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-center"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false)
+                        setShowMobileShopGrid(false)
+                      }}
+                    >
+                      Bundles
+                    </Link>
+                    <Link
+                      href="/shop/best-sellers"
+                      className="text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-center"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false)
+                        setShowMobileShopGrid(false)
+                      }}
+                    >
+                      Best Sellers
+                    </Link>
+                    <Link
+                      href="/shop/starter-kits"
+                      className="text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-center"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false)
+                        setShowMobileShopGrid(false)
+                      }}
+                    >
+                      Starter Kits
+                    </Link>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -471,7 +541,7 @@ export default function Header({ currentPage }: HeaderProps) {
                   }`}
                   onClick={handleMobileShopClick}
                   aria-label={t("header.shop")}
-                  aria-expanded="false"
+                  aria-expanded={showMobileShopGrid ? "true" : "false"}
                   aria-controls="mobile-shop-grid"
                   aria-haspopup="true"
                 >

@@ -1,7 +1,6 @@
 "use client"
 
 import * as Popover from "@radix-ui/react-popover"
-import * as NavigationMenu from "@radix-ui/react-navigation-menu"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -41,31 +40,33 @@ function MenuTile({
   return (
     <Link 
       href={href} 
-      className={`tile group relative block rounded-2xl p-3 sm:p-4 bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200/60 overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:border-slate-300/80 min-h-[120px] sm:min-h-[140px] ${className}`}
+      className={`tile group relative block rounded-xl p-3 sm:p-4 bg-white border border-slate-200/60 overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.03] hover:border-[#12d6fa]/30 hover:-translate-y-1 min-h-[100px] sm:min-h-[90px] ${className}`}
       onMouseEnter={onMouseEnter}
       onClick={onClick}
     >
       {badge && (
-        <span className={`badge absolute top-2 left-2 sm:top-3 sm:left-3 z-10 text-xs font-semibold px-2 py-1 rounded-full text-white ${badgeColor}`}>
+        <span className={`badge absolute top-2 left-2 z-10 text-xs font-bold px-2.5 py-1 rounded-full text-white shadow-md ${badgeColor}`}>
           {badge}
         </span>
       )}
-      <div className="aspect-square flex items-center justify-center mb-2 sm:mb-3">
+      <div className="flex items-center justify-center mb-1 sm:mb-2 h-14 sm:h-16">
         <Image
           src={img}
           alt={alt}
-          width={60}
-          height={60}
-          className="object-contain group-hover:scale-110 transition-transform duration-300 sm:w-[80px] sm:h-[80px]"
+          width={56}
+          height={56}
+          className="object-contain group-hover:scale-110 transition-transform duration-300 w-14 h-14 sm:w-16 sm:h-16"
           priority={false}
         />
       </div>
-      <span className="title block text-xs sm:text-sm font-bold text-slate-800 mb-1">
-        {title}
-      </span>
-      <span className="subcta opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs text-slate-600 font-medium flex items-center">
-        Shop <ArrowRight className="w-3 h-3 ml-1" />
-      </span>
+      <div className="text-center">
+        <span className="title block text-sm font-bold text-slate-900 mb-1 group-hover:text-[#12d6fa] transition-colors duration-200">
+          {title}
+        </span>
+        <span className="subcta opacity-0 group-hover:opacity-100 transition-all duration-200 text-xs text-slate-500 font-medium flex items-center justify-center">
+          Shop now <ArrowRight className="w-3 h-3 ml-1" />
+        </span>
+      </div>
     </Link>
   )
 }
@@ -77,34 +78,50 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
   const [closeTimeout, setCloseTimeout] = useState<NodeJS.Timeout | null>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
 
-  // Prefetch on hover with delay
-  const handlePrefetch = (href: string) => {
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout)
-    }
-    const timeout = setTimeout(() => {
-      router.prefetch(href)
-    }, 150)
-    setHoverTimeout(timeout)
-  }
-
-  // Exit forgiveness - delay close
-  const handleMouseLeave = () => {
-    if (closeTimeout) {
-      clearTimeout(closeTimeout)
-    }
-    const timeout = setTimeout(() => {
-      onOpenChange(false)
-    }, 200)
-    setCloseTimeout(timeout)
-  }
-
+  // Handle hover to show dropdown
   const handleMouseEnter = () => {
     if (closeTimeout) {
       clearTimeout(closeTimeout)
       setCloseTimeout(null)
     }
+    // Small delay to prevent accidental triggers
+    const timeout = setTimeout(() => {
+      onOpenChange(true)
+    }, 100)
+    setHoverTimeout(timeout)
   }
+
+  // Handle mouse leave with delay
+  const handleMouseLeave = () => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+    }
+    if (closeTimeout) {
+      clearTimeout(closeTimeout)
+    }
+    const timeout = setTimeout(() => {
+      onOpenChange(false)
+    }, 300)
+    setCloseTimeout(timeout)
+  }
+
+  // Handle click to navigate to shop page
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    // Close dropdown first
+    onOpenChange(false)
+    // Then navigate
+    setTimeout(() => {
+      router.push('/shop')
+    }, 100)
+  }
+
+  // Prefetch on hover with delay
+  const handlePrefetch = (href: string) => {
+    // Prefetch immediately for better performance
+    router.prefetch(href)
+  }
+
 
   // Cleanup timeouts
   useEffect(() => {
@@ -112,17 +129,20 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
       if (hoverTimeout) clearTimeout(hoverTimeout)
       if (closeTimeout) clearTimeout(closeTimeout)
     }
-  }, [hoverTimeout, closeTimeout])
+  }, [])
 
   return (
     <Popover.Root open={isOpen} onOpenChange={onOpenChange}>
       <Popover.Trigger asChild>
         <button
           ref={triggerRef}
-          className="shop-button flex items-center text-sm font-semibold tracking-wide transition-all duration-300 relative group px-2 text-slate-600 hover:text-slate-900"
+          className="shop-button flex items-center text-sm font-semibold tracking-wide transition-all duration-300 relative group px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50"
           aria-haspopup="menu"
-          aria-expanded={isOpen}
+          aria-expanded={isOpen ? "true" : "false"}
           aria-controls="shop-mega-menu"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onClick={handleClick}
         >
           {t("header.shop")}
           <ChevronDown
@@ -134,20 +154,29 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
       <Popover.Portal>
         <Popover.Content
           id="shop-mega-menu"
-          sideOffset={12}
+          sideOffset={8}
           align="start"
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => {
             e.preventDefault()
             triggerRef.current?.focus()
           }}
-          className="mega-panel w-[min(980px,96vw)] bg-white rounded-2xl shadow-2xl border border-slate-200/60 p-4 sm:p-6 z-50 max-h-[90vh] overflow-y-auto"
+          className="mega-panel w-[min(1000px,96vw)] bg-white rounded-2xl shadow-2xl border border-slate-200/60 p-4 sm:p-6 z-50 max-h-[65vh] overflow-y-auto backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-200"
           onMouseLeave={handleMouseLeave}
           onMouseEnter={handleMouseEnter}
         >
-          {/* Hero Section - Two Column Layout */}
-          {/* Category Grid - 2x2 */}
-          <div className="mega-grid grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          {/* Header Section */}
+          <div className="mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-1 font-montserrat">
+              Shop by Category
+            </h2>
+            <p className="text-xs text-slate-600 font-noto-sans">
+              Discover our premium collection of soda makers, flavors, and accessories
+            </p>
+          </div>
+
+          {/* Category Grid - Row Layout */}
+          <div className="mega-grid grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
               <MenuTile
                 href="/shop/sodamakers"
                 title="Soda Makers"
@@ -188,61 +217,71 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
               />
           </div>
 
-          {/* Quick Links Rail */}
-          <nav className="quick-links flex flex-wrap gap-2 sm:gap-4 mb-3 sm:mb-4" aria-label="Shop quick links">
-            <Link
-              href="/shop"
-              className="quick text-sm text-slate-600 hover:text-slate-900 hover:underline transition-colors duration-200"
-              onClick={() => onOpenChange(false)}
-              onMouseEnter={() => handlePrefetch("/shop")}
-            >
-              All Soda Makers
-            </Link>
-            <Link
-              href="/shop/bundles"
-              className="quick text-sm text-slate-600 hover:text-slate-900 hover:underline transition-colors duration-200"
-              onClick={() => onOpenChange(false)}
-              onMouseEnter={() => handlePrefetch("/shop/bundles")}
-            >
-              Bundles
-            </Link>
-            <Link
-              href="/co2/exchange"
-              className="quick text-sm text-slate-600 hover:text-slate-900 hover:underline transition-colors duration-200"
-              onClick={() => onOpenChange(false)}
-              onMouseEnter={() => handlePrefetch("/co2/exchange")}
-            >
-              Cylinder Exchange
-            </Link>
-            <Link
-              href="/shop/starter-kits"
-              className="quick text-sm text-slate-600 hover:text-slate-900 hover:underline transition-colors duration-200"
-              onClick={() => onOpenChange(false)}
-              onMouseEnter={() => handlePrefetch("/shop/starter-kits")}
-            >
-              Starter Kits
-            </Link>
-            <Link
-              href="/shop/best-sellers"
-              className="quick text-sm text-slate-600 hover:text-slate-900 hover:underline transition-colors duration-200"
-              onClick={() => onOpenChange(false)}
-              onMouseEnter={() => handlePrefetch("/shop/best-sellers")}
-            >
-              Best Sellers
-            </Link>
-          </nav>
+          {/* Quick Links Section */}
+          <div className="mb-4 sm:mb-6">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3 font-montserrat">Quick Links</h3>
+            <nav className="quick-links flex flex-wrap gap-2 sm:gap-3" aria-label="Shop quick links">
+              <Link
+                href="/shop"
+                className="quick text-xs text-slate-600 hover:text-[#12d6fa] hover:bg-[#12d6fa]/5 px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-transparent hover:border-[#12d6fa]/20"
+                onClick={() => onOpenChange(false)}
+                onMouseEnter={() => handlePrefetch("/shop")}
+              >
+                All Soda Makers
+              </Link>
+              <Link
+                href="/shop/bundles"
+                className="quick text-xs text-slate-600 hover:text-[#12d6fa] hover:bg-[#12d6fa]/5 px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-transparent hover:border-[#12d6fa]/20"
+                onClick={() => onOpenChange(false)}
+                onMouseEnter={() => handlePrefetch("/shop/bundles")}
+              >
+                Bundles
+              </Link>
+              <Link
+                href="/shop/co2-cylinders"
+                className="quick text-xs text-slate-600 hover:text-[#12d6fa] hover:bg-[#12d6fa]/5 px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-transparent hover:border-[#12d6fa]/20"
+                onClick={() => onOpenChange(false)}
+                onMouseEnter={() => handlePrefetch("/shop/co2-cylinders")}
+              >
+                Cylinder Exchange
+              </Link>
+              <Link
+                href="/shop/starter-kits"
+                className="quick text-xs text-slate-600 hover:text-[#12d6fa] hover:bg-[#12d6fa]/5 px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-transparent hover:border-[#12d6fa]/20"
+                onClick={() => onOpenChange(false)}
+                onMouseEnter={() => handlePrefetch("/shop/starter-kits")}
+              >
+                Starter Kits
+              </Link>
+              <Link
+                href="/shop/best-sellers"
+                className="quick text-xs text-slate-600 hover:text-[#12d6fa] hover:bg-[#12d6fa]/5 px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-transparent hover:border-[#12d6fa]/20"
+                onClick={() => onOpenChange(false)}
+                onMouseEnter={() => handlePrefetch("/shop/best-sellers")}
+              >
+                Best Sellers
+              </Link>
+            </nav>
+          </div>
 
-          {/* Mini Promo Slot */}
-          <div className="promo flex flex-col sm:flex-row items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200/60 rounded-xl p-3 sm:p-4 gap-2 sm:gap-0">
+          {/* Promo Section */}
+          <div className="promo flex flex-col sm:flex-row items-center justify-between bg-gradient-to-r from-[#12d6fa]/5 to-[#0bc4e8]/5 border border-[#12d6fa]/30 rounded-xl p-4 sm:p-5 gap-3 sm:gap-0">
             <div className="flex items-center">
-              <Gift className="w-5 h-5 text-green-600 mr-2" />
-              <span className="text-sm font-medium text-green-800">
-                Free delivery above 150 ﷼
-              </span>
+              <div className="w-10 h-10 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-full flex items-center justify-center mr-3 shadow-lg">
+                <Gift className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <span className="text-sm font-bold text-slate-900 block font-montserrat">
+                  Free delivery above 150 ﷼
+                </span>
+                <span className="text-xs text-slate-600 font-noto-sans">
+                  On all orders within Saudi Arabia
+                </span>
+              </div>
             </div>
-            <div className="flex items-center text-xs text-green-600">
-              <Zap className="w-4 h-4 mr-1" />
-              Limited time
+            <div className="flex items-center text-xs text-slate-600 bg-white/70 px-3 py-1.5 rounded-full border border-slate-200">
+              <Zap className="w-3 h-3 mr-1 text-[#12d6fa]" />
+              Limited time offer
             </div>
           </div>
 

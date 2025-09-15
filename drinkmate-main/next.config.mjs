@@ -70,7 +70,11 @@ const nextConfig = {
       },
       {
         source: '/cylinder/:slug',
-        destination: '/co2/:slug',
+        destination: '/shop/co2-cylinders/:slug',
+      },
+      {
+        source: '/co2/:slug',
+        destination: '/shop/co2-cylinders/:slug',
       },
       {
         source: '/article/:slug',
@@ -176,12 +180,17 @@ const nextConfig = {
       },
       {
         source: '/cylinder',
-        destination: '/co2',
+        destination: '/shop/co2-cylinders',
         permanent: true,
       },
       {
         source: '/cylinders',
-        destination: '/co2',
+        destination: '/shop/co2-cylinders',
+        permanent: true,
+      },
+      {
+        source: '/co2',
+        destination: '/shop/co2-cylinders',
         permanent: true,
       },
       {
