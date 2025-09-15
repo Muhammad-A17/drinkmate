@@ -47,3 +47,4 @@ export interface ProductGridProps {
   className?: string
   loading?: boolean
 }
+

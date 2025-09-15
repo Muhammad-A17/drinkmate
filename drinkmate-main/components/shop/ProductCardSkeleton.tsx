@@ -42,3 +42,4 @@ export const ProductCardSkeleton = ({ className }: ProductCardSkeletonProps) => 
 )
 
 export default ProductCardSkeleton
+
