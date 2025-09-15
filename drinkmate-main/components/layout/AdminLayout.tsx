@@ -94,6 +94,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         if (isAuthenticated && user && user.isAdmin) {
           console.log("Admin access granted");
           setIsLayoutLoading(false);
+          setAuthError(null); // Clear any previous errors
         }
       } catch (error) {
         console.error("Auth check error:", error);
@@ -102,8 +103,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       }
     };
     
-    // Add a small delay to ensure auth context is fully initialized
-    const timer = setTimeout(checkAuth, 100);
+    // Reduce delay for faster navigation
+    const timer = setTimeout(checkAuth, 50);
     return () => clearTimeout(timer);
   }, [isAuthenticated, user, authLoading, router]);
 
@@ -283,7 +284,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   ]
 
   // If loading
-  if (authLoading) {
+  if (authLoading || isLayoutLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

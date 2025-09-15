@@ -70,14 +70,14 @@ const SaudiRiyal: React.FC<SaudiRiyalProps> = ({
   const { text: textSize, icon: iconSize } = getSizeClasses();
 
   return (
-    <div className={cn("flex items-baseline gap-1", className)}>
+    <span className={cn("flex items-baseline gap-1", className)}>
       <span className={cn("tabular-nums font-semibold", textSize)}>
         {formattedAmount}
       </span>
       {showSymbol && (
         <RiyalIcon className={iconSize} />
       )}
-    </div>
+    </span>
   );
 };
 

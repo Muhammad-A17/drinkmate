@@ -27,10 +27,10 @@ const statCards = [
     key: 'total',
     label: 'Total',
     icon: MessageSquare,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    hoverColor: 'hover:bg-blue-100'
+    color: 'text-brand',
+    bgColor: 'bg-brand/5',
+    borderColor: 'border-brand/20',
+    hoverColor: 'hover:bg-brand/10'
   },
   {
     key: 'new',
@@ -72,10 +72,10 @@ const statCards = [
     key: 'closed',
     label: 'Closed',
     icon: CheckCircle,
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50',
-    borderColor: 'border-gray-200',
-    hoverColor: 'hover:bg-gray-100'
+    color: 'text-ink-600',
+    bgColor: 'bg-ink-50',
+    borderColor: 'border-ink-200',
+    hoverColor: 'hover:bg-ink-100'
   }
 ]
 
@@ -91,26 +91,26 @@ export default function ChatStatsCards({ stats, onStatsClick, isRTL = false }: C
           <Card
             key={card.key}
             className={cn(
-              "cursor-pointer transition-all duration-200",
+              "cursor-pointer transition-all duration-200 bg-white rounded-soft shadow-card border-0",
               isClickable && card.hoverColor,
               card.borderColor
             )}
             onClick={() => isClickable && onStatsClick(card.key)}
           >
-            <CardContent className="p-4">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-600">{card.label}</p>
-                  <p className={cn("text-2xl font-bold", card.color)}>{value}</p>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-ink-600">{card.label}</p>
+                  <p className={cn("text-3xl font-bold", card.color)}>{value}</p>
                 </div>
-                <div className={cn("p-2 rounded-lg", card.bgColor)}>
-                  <Icon className={cn("w-5 h-5", card.color)} />
+                <div className={cn("p-3 rounded-soft", card.bgColor)}>
+                  <Icon className={cn("w-6 h-6", card.color)} />
                 </div>
               </div>
               
               {/* Pulse animation for non-zero values */}
               {value > 0 && (
-                <div className="mt-2">
+                <div className="mt-3">
                   <div className={cn(
                     "h-1 rounded-full bg-gradient-to-r from-transparent via-current to-transparent",
                     card.color,

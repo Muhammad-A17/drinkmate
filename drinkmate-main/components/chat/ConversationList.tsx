@@ -114,13 +114,13 @@ export default function ConversationList({
 
   if (loading) {
     return (
-      <Card className="h-full">
+      <Card className="h-full bg-white rounded-soft shadow-card">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Conversations</CardTitle>
+            <CardTitle className="text-lg text-ink-900">Conversations</CardTitle>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-gray-200 rounded animate-pulse" />
-              <div className="w-6 h-6 bg-gray-200 rounded animate-pulse" />
+              <div className="w-6 h-6 bg-ink-200 rounded animate-pulse" />
+              <div className="w-6 h-6 bg-ink-200 rounded animate-pulse" />
             </div>
           </div>
         </CardHeader>
@@ -128,10 +128,10 @@ export default function ConversationList({
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
+                <div className="w-8 h-8 bg-ink-200 rounded-full animate-pulse" />
                 <div className="flex-1 space-y-1">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-                  <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
+                  <div className="h-4 bg-ink-200 rounded animate-pulse w-3/4" />
+                  <div className="h-3 bg-ink-200 rounded animate-pulse w-1/2" />
                 </div>
               </div>
             </div>
@@ -142,10 +142,10 @@ export default function ConversationList({
   }
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col bg-white rounded-soft shadow-card">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Conversations</CardTitle>
+          <CardTitle className="text-lg text-ink-900">Conversations</CardTitle>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -153,7 +153,7 @@ export default function ConversationList({
               onClick={onToggleFilters}
               className={cn(
                 "flex items-center gap-1",
-                showFilters && "bg-blue-50 text-blue-700 border-blue-200"
+                showFilters && "bg-brand/10 text-brand border-brand/20"
               )}
             >
               <Filter className="w-4 h-4" />
@@ -168,6 +168,7 @@ export default function ConversationList({
               variant="outline"
               size="sm"
               onClick={() => onViewModeChange(viewMode === 'compact' ? 'cozy' : 'compact')}
+              className="border-ink-200 hover:border-brand hover:text-brand"
             >
               {viewMode === 'compact' ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
             </Button>
@@ -176,12 +177,12 @@ export default function ConversationList({
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ink-400 w-4 h-4" />
           <Input
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 border-ink-200 focus:border-brand focus:ring-brand/20"
             dir={isRTL ? "rtl" : "ltr"}
           />
         </div>

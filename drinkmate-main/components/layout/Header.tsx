@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { ShoppingCart, User, Menu, X, ChevronDown, LogOut, ArrowLeft } from "lucide-react"
+import { ShoppingCart, User, Menu, X, ChevronDown, LogOut, ArrowLeft, LayoutDashboard, Loader2 } from "lucide-react"
 import { useTranslation } from "@/lib/translation-context"
 import { useState, useEffect } from "react"
 import { useCart } from "@/lib/cart-context"
@@ -26,9 +26,14 @@ export default function Header({ currentPage }: HeaderProps) {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const [isAdminPage, setIsAdminPage] = useState(false)
   const [showMobileShopGrid, setShowMobileShopGrid] = useState(false)
+  const [isNavigatingToAdmin, setIsNavigatingToAdmin] = useState(false)
 
   useEffect(() => {
     setIsAdminPage(pathname?.startsWith("/admin") || false)
+    // Reset navigation loading state when successfully navigating to admin
+    if (pathname?.startsWith("/admin")) {
+      setIsNavigatingToAdmin(false)
+    }
   }, [pathname])
 
   // Close dropdowns when clicking outside
@@ -80,6 +85,21 @@ export default function Header({ currentPage }: HeaderProps) {
 
   const handleBackToMenu = () => {
     setShowMobileShopGrid(false)
+  }
+
+  const handleAdminNavigation = async () => {
+    setIsNavigatingToAdmin(true)
+    setIsUserDropdownOpen(false)
+    setIsMobileMenuOpen(false)
+    
+    try {
+      await router.push("/admin")
+    } catch (error) {
+      console.error("Navigation error:", error)
+    } finally {
+      // Reset loading state after a short delay
+      setTimeout(() => setIsNavigatingToAdmin(false), 1000)
+    }
   }
 
   return (
@@ -234,15 +254,20 @@ export default function Header({ currentPage }: HeaderProps) {
                         </Link>
 
                         {user?.isAdmin && (
-                          <Link
-                            href="/admin"
-                            className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                            onClick={() => {
-                              setIsUserDropdownOpen(false)
-                            }}
+                          <button
+                            onClick={handleAdminNavigation}
+                            disabled={isNavigatingToAdmin}
+                            className="block w-full text-left px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Admin Dashboard
-                          </Link>
+                            <div className="flex items-center">
+                              {isNavigatingToAdmin ? (
+                                <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                              ) : (
+                                <LayoutDashboard className="w-4 h-4 mr-3" />
+                              )}
+                              {isNavigatingToAdmin ? "Loading..." : "Admin Dashboard"}
+                            </div>
+                          </button>
                         )}
 
                         <button
@@ -505,13 +530,18 @@ export default function Header({ currentPage }: HeaderProps) {
                       </Link>
 
                       {user?.isAdmin && (
-                        <Link
-                          href="/admin"
-                          className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
-                          onClick={() => setIsMobileMenuOpen(false)}
+                        <button
+                          onClick={handleAdminNavigation}
+                          disabled={isNavigatingToAdmin}
+                          className="flex items-center w-full text-left px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Admin Dashboard
-                        </Link>
+                          {isNavigatingToAdmin ? (
+                            <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                          ) : (
+                            <LayoutDashboard className="w-4 h-4 mr-3" />
+                          )}
+                          {isNavigatingToAdmin ? "Loading..." : "Admin Dashboard"}
+                        </button>
                       )}
 
                       <button

@@ -346,32 +346,33 @@ export default function ChatManagementPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Chat Management</h1>
-            <p className="text-gray-600">Manage customer conversations and support tickets</p>
+            <h1 className="text-3xl font-bold text-ink-900">Chat Management</h1>
+            <p className="text-ink-600 mt-1">Manage customer conversations and support tickets</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <NotificationsManager
               isDoNotDisturb={isDoNotDisturb}
               onToggleDoNotDisturb={setIsDoNotDisturb}
             />
             <Button variant="outline" size="sm" asChild>
               <Link href="/admin/chat-settings">
-                <Settings className="w-4 h-4" />
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
               </Link>
             </Button>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-ink-200">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('chats')}
               className={cn(
-                "py-2 px-1 border-b-2 font-medium text-sm",
+                "py-3 px-1 border-b-2 font-medium text-sm transition-colors",
                 activeTab === 'chats'
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-brand text-brand"
+                  : "border-transparent text-ink-500 hover:text-ink-700 hover:border-ink-300"
               )}
             >
               <MessageSquare className="w-4 h-4 mr-2 inline" />
@@ -380,10 +381,10 @@ export default function ChatManagementPage() {
             <button
               onClick={() => setActiveTab('reporting')}
               className={cn(
-                "py-2 px-1 border-b-2 font-medium text-sm",
+                "py-3 px-1 border-b-2 font-medium text-sm transition-colors",
                 activeTab === 'reporting'
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-brand text-brand"
+                  : "border-transparent text-ink-500 hover:text-ink-700 hover:border-ink-300"
               )}
             >
               <BarChart3 className="w-4 h-4 mr-2 inline" />
@@ -412,7 +413,7 @@ export default function ChatManagementPage() {
         {/* Tab Content */}
         {activeTab === 'chats' ? (
           /* Main Content - Three Pane Layout */
-        <div className="grid grid-cols-12 gap-6 h-[calc(100vh-300px)]">
+        <div className="grid grid-cols-12 gap-6 h-[calc(100vh-320px)]">
           {/* Left Panel - Conversations List */}
           <div className="col-span-4">
             <ConversationList
@@ -441,18 +442,19 @@ export default function ChatManagementPage() {
                 isRTL={isRTL}
               />
             ) : (
-              <Card className="h-full flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <MessageCircle className="w-12 h-12 text-gray-400 mx-auto" />
+              <Card className="h-full flex items-center justify-center bg-white rounded-soft shadow-card">
+                <div className="text-center space-y-6 p-8">
+                  <MessageCircle className="w-16 h-16 text-ink-300 mx-auto" />
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">Select a conversation</h3>
-                    <p className="text-gray-600">Choose a chat from the list to view messages</p>
+                    <h3 className="text-xl font-semibold text-ink-900 mb-2">Select a conversation</h3>
+                    <p className="text-ink-600">Choose a chat from the list to view messages</p>
                   </div>
-                  <div className="flex gap-2 justify-center">
+                  <div className="flex gap-3 justify-center">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleFilterChange('status', 'waiting_for_agent')}
+                      className="border-ink-200 hover:border-brand hover:text-brand"
                     >
                       <Clock className="w-4 h-4 mr-2" />
                       Open Waiting
@@ -461,6 +463,7 @@ export default function ChatManagementPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleFilterChange('assignee', 'unassigned')}
+                      className="border-ink-200 hover:border-brand hover:text-brand"
                     >
                       <Users className="w-4 h-4 mr-2" />
                       Open Unassigned
@@ -481,12 +484,12 @@ export default function ChatManagementPage() {
                 isRTL={isRTL}
               />
             ) : (
-              <Card className="h-full flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <User className="w-12 h-12 text-gray-400 mx-auto" />
+              <Card className="h-full flex items-center justify-center bg-white rounded-soft shadow-card">
+                <div className="text-center space-y-6 p-8">
+                  <User className="w-16 h-16 text-ink-300 mx-auto" />
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">Customer Details</h3>
-                    <p className="text-gray-600">Select a conversation to view customer information</p>
+                    <h3 className="text-xl font-semibold text-ink-900 mb-2">Customer Details</h3>
+                    <p className="text-ink-600">Select a conversation to view customer information</p>
                   </div>
                 </div>
               </Card>
