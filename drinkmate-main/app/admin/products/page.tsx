@@ -198,8 +198,7 @@ export default function ProductsPage() {
       const productPayload = {
         name: productData.name,
         slug: productData.name.toLowerCase().replace(/\s+/g, '-'),
-        shortDescription: productData.shortDescription || productData.name,
-        fullDescription: productData.fullDescription || productData.shortDescription || productData.name,
+        description: productData.fullDescription || productData.shortDescription || productData.name, // Backend expects 'description'
         price: parseFloat(productData.price),
         originalPrice: productData.originalPrice ? parseFloat(productData.originalPrice) : undefined,
         stock: parseInt(productData.stock),
@@ -257,8 +256,7 @@ export default function ProductsPage() {
       const productPayload = {
         name: productData.name,
         slug: productData.name.toLowerCase().replace(/\s+/g, '-'),
-        shortDescription: productData.shortDescription || productData.name,
-        fullDescription: productData.fullDescription || productData.shortDescription || productData.name,
+        description: productData.fullDescription || productData.shortDescription || productData.name, // Backend expects 'description'
         price: parseFloat(productData.price),
         originalPrice: productData.originalPrice ? parseFloat(productData.originalPrice) : undefined,
         stock: parseInt(productData.stock),

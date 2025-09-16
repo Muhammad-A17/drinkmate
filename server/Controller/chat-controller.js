@@ -533,6 +533,49 @@ const rateChat = async (req, res) => {
   }
 };
 
+// Get messages for a specific chat
+const getChatMessages = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    
+    const chat = await Chat.findById(chatId)
+      .populate('messages.sender', 'firstName lastName username email isAdmin')
+      .populate('assignedTo', 'firstName lastName email')
+      .populate('customer.userId', 'firstName lastName email');
+    
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        chat: {
+          _id: chat._id,
+          subject: chat.subject,
+          status: chat.status,
+          priority: chat.priority,
+          assignedTo: chat.assignedTo,
+          customer: chat.customer,
+          messages: chat.messages || [],
+          createdAt: chat.createdAt,
+          updatedAt: chat.updatedAt
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching chat messages:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch chat messages',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getAllChats,
   getChatById,
@@ -547,5 +590,6 @@ module.exports = {
   banIP,
   unbanIP,
   rateChat,
-  deleteChat
+  deleteChat,
+  getChatMessages
 };

@@ -15,6 +15,9 @@ const {
   secureCORS
 } = require('./Middleware/security-middleware');
 
+// Auth middleware
+const { authenticateToken, isAdmin } = require('./Middleware/auth-middleware');
+
 // Optional performance middleware
 let compression;
 let morgan;
@@ -52,6 +55,9 @@ const http = require('http');
 require('./Models/user-model');
 require('./Models/chat-model');
 require('./Models/message-model');
+require('./Models/product-model');
+require('./Models/category-model');
+require('./Models/bundle-model');
 const app = express();
 
 // Trust proxy for accurate IP addresses
@@ -169,6 +175,31 @@ app.use('/refill', generalLimiter, refillRouter);
 app.use('/payments', apiLimiter, paymentRouter);
 app.use('/chat', generalLimiter, chatRouter);
 app.use('/recipes', generalLimiter, recipeRouter);
+
+// API prefix routes for frontend compatibility
+app.use('/api/admin', generalLimiter, adminRouter);
+app.use('/api/auth', authLimiter, authRouter);
+app.use('/api/shop', apiLimiter, productRouter);
+app.use('/api/checkout', apiLimiter, orderRouter);
+app.use('/api/contact', generalLimiter, contactRouter);
+app.use('/api/blog', generalLimiter, blogRouter);
+app.use('/api/testimonials', generalLimiter, testimonialRouter);
+app.use('/api/co2', generalLimiter, co2Router);
+app.use('/api/refill', generalLimiter, refillRouter);
+app.use('/api/payments', apiLimiter, paymentRouter);
+app.use('/api/chat', generalLimiter, chatRouter);
+app.use('/api/recipes', generalLimiter, recipeRouter);
+
+// Agents endpoint (placeholder for frontend compatibility)
+app.get('/agents', generalLimiter, authenticateToken, isAdmin, (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { id: '1', name: 'Admin Agent', status: 'online', activeChats: 0 },
+      { id: '2', name: 'Support Agent', status: 'online', activeChats: 0 }
+    ]
+  });
+});
 
 // Root route
 app.get('/', (req, res) => {
