@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, X } from 'lucide-react'
 import { useCart } from '@/hooks/use-cart'
 import { usePathname } from 'next/navigation'
-import Link from 'next/link'
 import { Currency } from '@/utils/currency'
+import CartPopup from './CartPopup'
+import { CartSettingsProvider } from '@/lib/cart-settings-context'
 
 interface FloatingCartButtonProps {
   className?: string
@@ -17,6 +18,7 @@ export default function FloatingCartButton({ className = '' }: FloatingCartButto
   const pathname = usePathname()
   const [isVisible, setIsVisible] = useState(false)
   const [lastItemCount, setLastItemCount] = useState(0)
+  const [isPopupOpen, setIsPopupOpen] = useState(false)
 
   // Check if we're on a page that shows chat widget
   const isSupportPage = pathname?.startsWith('/account/support') || pathname?.startsWith('/support')
@@ -25,30 +27,31 @@ export default function FloatingCartButton({ className = '' }: FloatingCartButto
 
   useEffect(() => {
     if (totalItems > 0) {
-      setIsVisible(false) // Hide when cart has items
+      setIsVisible(true) // Show when cart has items
       setLastItemCount(totalItems)
     } else {
-      // Show when cart is empty, but only if chat widget is not shown
-      setIsVisible(!showChatWidget)
+      // Hide when cart is empty, but only if chat widget is not shown
+      setIsVisible(false)
     }
   }, [totalItems, lastItemCount, showChatWidget])
 
   if (!isVisible) return null
 
   return (
-    <motion.div
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0, opacity: 0 }}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className={`fixed bottom-6 right-6 z-50 ${className}`}
-    >
-      <Link href="/cart">
-        <motion.div
-          className="relative bg-blue-600 text-white rounded-full p-4 shadow-2xl cursor-pointer group"
+    <>
+      <motion.div
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0, opacity: 0 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className={`fixed bottom-6 right-6 z-50 ${className}`}
+      >
+        <motion.button
+          onClick={() => setIsPopupOpen(true)}
+          className="relative bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] text-white rounded-full p-4 shadow-2xl cursor-pointer group"
           whileHover={{ 
-            boxShadow: "0 20px 40px rgba(59, 130, 246, 0.4)",
+            boxShadow: "0 20px 40px rgba(18, 214, 250, 0.4)",
             transition: { duration: 0.2 }
           }}
         >
@@ -98,10 +101,18 @@ export default function FloatingCartButton({ className = '' }: FloatingCartButto
               repeat: Infinity,
               ease: "easeInOut"
             }}
-            className="absolute inset-0 bg-blue-400 rounded-full"
+            className="absolute inset-0 bg-[#12d6fa] rounded-full"
           />
-        </motion.div>
-      </Link>
-    </motion.div>
+        </motion.button>
+      </motion.div>
+
+      {/* Cart Popup */}
+      <CartSettingsProvider>
+        <CartPopup 
+          isOpen={isPopupOpen} 
+          onClose={() => setIsPopupOpen(false)} 
+        />
+      </CartSettingsProvider>
+    </>
   )
 }
