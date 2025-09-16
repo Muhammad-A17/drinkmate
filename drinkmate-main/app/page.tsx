@@ -69,6 +69,15 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [activeMachineColor, setActiveMachineColor] = useState("cyan") // Default to cyan
 
+  // Handle case where context is not available during build
+  if (typeof window === 'undefined') {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading...</div>
+      </div>
+    )
+  }
+
   // Carousel banner data
   const carouselItems = [
     {

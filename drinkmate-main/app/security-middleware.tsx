@@ -13,57 +13,16 @@ interface SecurityMiddlewareProps {
  */
 export default function SecurityMiddleware({ children }: SecurityMiddlewareProps) {
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+
     // Prevent clickjacking by breaking out of frames
     if (window.self !== window.top && window.top) {
       window.top.location.href = window.self.location.href;
     }
 
-    // Disable browser features that could be security risks
-    // Note: These can be set via meta tags as well
-    try {
-      // Check if plugins property exists and is configurable
-      const pluginsDescriptor = Object.getOwnPropertyDescriptor(navigator, 'plugins');
-      if (pluginsDescriptor && pluginsDescriptor.configurable) {
-        Object.defineProperty(navigator, 'plugins', {
-          get: () => [],
-          configurable: false
-        });
-      }
-    } catch (error) {
-      // Property already defined or not configurable, skip silently
-      // This is expected behavior in modern browsers
-    }
-
-    // Add runtime protection against XSS
-    const originalCreateElement = document.createElement.bind(document);
-    document.createElement = (tag: string) => {
-      const element = originalCreateElement(tag);
-      
-      // Add protection for script tags
-      if (tag.toLowerCase() === 'script') {
-        Object.defineProperty(element, 'src', {
-          set(value) {
-            // Allow only trusted domains
-            const trustedDomains = [
-              'googletagmanager.com',
-              window.location.hostname
-            ];
-            
-            const url = new URL(value, window.location.href);
-            if (trustedDomains.some(domain => url.hostname.includes(domain))) {
-              element.setAttribute('src', value);
-            } else {
-              console.warn('Blocked untrusted script source:', value);
-            }
-          }
-        });
-      }
-      
-      return element;
-    };
-
     // Add event listener to detect XSS payloads in form submissions
-    document.addEventListener('submit', (e) => {
+    const handleSubmit = (e: Event) => {
       const form = e.target as HTMLFormElement;
       const inputs = form.querySelectorAll('input, textarea');
       
@@ -84,8 +43,14 @@ export default function SecurityMiddleware({ children }: SecurityMiddlewareProps
           alert('Invalid input detected. Please remove special characters and try again.');
         }
       });
-    });
+    };
 
+    document.addEventListener('submit', handleSubmit);
+    
+    // Cleanup function
+    return () => {
+      document.removeEventListener('submit', handleSubmit);
+    };
   }, []);
 
   return <>{children}</>;

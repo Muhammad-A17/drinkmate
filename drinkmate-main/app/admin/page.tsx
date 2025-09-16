@@ -250,9 +250,9 @@ export default function AdminDashboard() {
         orderGrowth: 0,
         userGrowth: 0
       })
-          } finally {
-        setIsDataLoading(false)
-      }
+    } finally {
+      setIsDataLoading(false)
+    }
   }
 
   // Refresh dashboard data
@@ -374,21 +374,21 @@ export default function AdminDashboard() {
 
   const lineChartOptions = {
     ...chartOptions,
-            scales: {
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: 'rgba(0, 0, 0, 0.1)',
-              drawBorder: false
-            },
-            ticks: {
-              callback: (value: any) => `﷼${Number(value).toLocaleString()}`,
-              font: {
-                size: 11,
-                family: 'SaudiRiyalSymbol, Arial, sans-serif'
-              }
-            }
-          },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+          drawBorder: false
+        },
+        ticks: {
+          callback: (value: any) => `﷼${Number(value).toLocaleString()}`,
+          font: {
+            size: 11,
+            family: 'SaudiRiyalSymbol, Arial, sans-serif'
+          }
+        }
+      },
       x: {
         grid: {
           color: 'rgba(0, 0, 0, 0.1)',
@@ -456,6 +456,15 @@ export default function AdminDashboard() {
         }
       }
     }
+  }
+
+  // Handle case where context is not available during build
+  if (typeof window === 'undefined') {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading dashboard...</div>
+      </div>
+    )
   }
 
   if (isLoading) {
