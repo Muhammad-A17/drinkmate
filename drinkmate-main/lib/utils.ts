@@ -5,6 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Validates if an image URL is valid and not empty
+ * @param image - The image URL to validate
+ * @returns boolean indicating if the image is valid
+ */
+export function isValidImageUrl(image: any): boolean {
+  return image && typeof image === 'string' && image.trim() !== ''
+}
+
 export function formatPrice(price: number, currency: string = "SAR"): string {
   return new Intl.NumberFormat("en-SA", {
     style: "currency",
