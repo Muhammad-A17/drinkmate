@@ -47,6 +47,7 @@ const co2Router = require('./Router/co2-router');
 const refillRouter = require('./Router/refill-router');
 const paymentRouter = require('./Router/payment-router');
 const chatRouter = require('./Router/chat-router');
+const chatSettingsRouter = require('./Router/chat-settings-router');
 const recipeRouter = require('./Router/recipe-router');
 const { Server } = require('socket.io');
 const http = require('http');
@@ -58,6 +59,7 @@ require('./Models/message-model');
 require('./Models/product-model');
 require('./Models/category-model');
 require('./Models/bundle-model');
+require('./Models/chat-settings-model');
 const app = express();
 
 // Trust proxy for accurate IP addresses
@@ -174,6 +176,7 @@ app.use('/co2', generalLimiter, co2Router);
 app.use('/refill', generalLimiter, refillRouter);
 app.use('/payments', apiLimiter, paymentRouter);
 app.use('/chat', generalLimiter, chatRouter);
+app.use('/chat-settings', generalLimiter, chatSettingsRouter);
 app.use('/recipes', generalLimiter, recipeRouter);
 
 // API prefix routes for frontend compatibility

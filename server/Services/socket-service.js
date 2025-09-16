@@ -22,8 +22,18 @@ class SocketService {
         console.log('Socket auth attempt - auth object:', socket.handshake.auth);
         
         if (!token) {
-          console.log('No token provided for socket connection');
-          return next(new Error('Authentication error: No token provided'));
+          console.log('No token provided for socket connection - allowing as guest');
+          // Allow connection as guest user
+          socket.userId = null;
+          socket.user = {
+            _id: null,
+            username: 'Guest',
+            email: null,
+            firstName: 'Guest',
+            lastName: 'User',
+            isAdmin: false
+          };
+          return next();
         }
 
         // Check if token is a demo token
@@ -41,24 +51,68 @@ class SocketService {
           return next();
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log('Token decoded successfully:', decoded);
-        
-        const user = await User.findById(decoded.id).select('_id username email firstName lastName isAdmin');
-        
-        if (!user) {
-          console.log('User not found for token:', decoded.id);
-          return next(new Error('Authentication error: User not found'));
-        }
+        try {
+          // Validate token format first (same as HTTP middleware)
+          if (!token.match(/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/)) {
+            throw new Error('Invalid token format');
+          }
+          
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          console.log('Token decoded successfully:', decoded);
+          
+          const user = await User.findById(decoded.id).select('_id username email firstName lastName isAdmin');
+          
+          if (!user) {
+            console.log('User not found for token:', decoded.id);
+            // Allow connection as guest if user not found
+            socket.userId = null;
+            socket.user = {
+              _id: null,
+              username: 'Guest',
+              email: null,
+              firstName: 'Guest',
+              lastName: 'User',
+              isAdmin: false
+            };
+            return next();
+          }
 
-        console.log('User found for socket connection:', user.username);
-        socket.userId = user._id.toString();
-        socket.user = user;
-        next();
+          console.log('User found for socket connection:', user.username);
+          socket.userId = user._id.toString();
+          socket.user = user;
+          next();
+        } catch (jwtError) {
+          if (jwtError.message === 'Invalid token format') {
+            console.log('Authentication error: Invalid token format');
+          } else {
+            console.log('JWT verification failed, allowing as guest:', jwtError.message);
+          }
+          // Allow connection as guest if JWT is invalid
+          socket.userId = null;
+          socket.user = {
+            _id: null,
+            username: 'Guest',
+            email: null,
+            firstName: 'Guest',
+            lastName: 'User',
+            isAdmin: false
+          };
+          next();
+        }
       } catch (error) {
         console.error('Socket authentication error:', error);
         console.error('Error details:', error.message);
-        next(new Error('Authentication error: Invalid token format'));
+        // Allow connection as guest even on error
+        socket.userId = null;
+        socket.user = {
+          _id: null,
+          username: 'Guest',
+          email: null,
+          firstName: 'Guest',
+          lastName: 'User',
+          isAdmin: false
+        };
+        next();
       }
     });
   }
@@ -66,19 +120,21 @@ class SocketService {
   // Setup event handlers
   setupEventHandlers() {
     this.io.on('connection', (socket) => {
-      console.log(`User connected: ${socket.user.username} (${socket.userId})`);
+      console.log(`User connected: ${socket.user.username} (${socket.userId || 'guest'})`);
       
-      // Store user connection
-      this.connectedUsers.set(socket.userId, socket.id);
-      
-      // Add to admin sockets if user is admin
-      if (socket.user.isAdmin) {
-        this.adminSockets.add(socket.id);
-        this.notifyAdminsOnline();
-      }
+      // Store user connection only if authenticated
+      if (socket.userId) {
+        this.connectedUsers.set(socket.userId, socket.id);
+        
+        // Add to admin sockets if user is admin
+        if (socket.user.isAdmin) {
+          this.adminSockets.add(socket.id);
+          this.notifyAdminsOnline();
+        }
 
-      // Join user to their personal room
-      socket.join(`user_${socket.userId}`);
+        // Join user to their personal room
+        socket.join(`user_${socket.userId}`);
+      }
 
       // Handle joining chat room
       socket.on('join_chat', (chatId) => {
@@ -107,8 +163,8 @@ class SocketService {
             return;
           }
 
-          const isCustomer = chat.customer.toString() === socket.userId;
-          const isAdmin = chat.admin && chat.admin.toString() === socket.userId;
+          const isCustomer = chat.customer.userId && chat.customer.userId.toString() === socket.userId;
+          const isAdmin = chat.assignedTo && chat.assignedTo.toString() === socket.userId;
           
           if (!isCustomer && !isAdmin && !socket.user.isAdmin) {
             socket.emit('error', { message: 'Access denied' });
@@ -135,10 +191,14 @@ class SocketService {
 
           // Emit message to all users in the chat room
           this.io.to(`chat_${chatId}`).emit('new_message', {
+            chatId: chatId,
             message: {
               _id: message._id,
               content: message.content,
-              type: message.type,
+              senderType: message.isFromAdmin ? 'admin' : 'customer',
+              senderId: socket.user._id,
+              timestamp: message.createdAt,
+              messageType: message.type,
               isSystem: message.isSystem,
               isFromAdmin: message.isFromAdmin,
               createdAt: message.createdAt,
@@ -288,15 +348,17 @@ class SocketService {
 
       // Handle disconnect
       socket.on('disconnect', () => {
-        console.log(`User disconnected: ${socket.user.username} (${socket.userId})`);
+        console.log(`User disconnected: ${socket.user.username} (${socket.userId || 'guest'})`);
         
-        // Remove user connection
-        this.connectedUsers.delete(socket.userId);
-        
-        // Remove from admin sockets if admin
-        if (socket.user.isAdmin) {
-          this.adminSockets.delete(socket.id);
-          this.notifyAdminsOnline();
+        // Remove user connection only if authenticated
+        if (socket.userId) {
+          this.connectedUsers.delete(socket.userId);
+          
+          // Remove from admin sockets if admin
+          if (socket.user.isAdmin) {
+            this.adminSockets.delete(socket.id);
+            this.notifyAdminsOnline();
+          }
         }
       });
     });

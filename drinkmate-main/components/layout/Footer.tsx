@@ -1,8 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ChevronUp } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useTranslation } from "@/lib/translation-context"
@@ -10,43 +9,12 @@ import { FaFacebook, FaTwitter, FaInstagram, FaWhatsapp } from "react-icons/fa"
 
 export default function Footer() {
   const { t, isRTL, isHydrated } = useTranslation()
-  const [scrollProgress, setScrollProgress] = useState(0)
-  const [showScrollTop, setShowScrollTop] = useState(false)
   
   // Newsletter form state
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [newsletterStatus, setNewsletterStatus] = useState<"idle" | "success" | "error">("idle")
   const [errorMessage, setErrorMessage] = useState("")
-
-  useEffect(() => {
-    let ticking = false
-
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const scrollTop = window.scrollY
-          const docHeight = document.documentElement.scrollHeight - window.innerHeight
-          const scrollPercent = Math.min(scrollTop / docHeight, 1) // Ensure it doesn't exceed 1
-
-          setScrollProgress(scrollPercent)
-          setShowScrollTop(scrollTop > 300) // Show button after scrolling 300px
-          ticking = false
-        })
-        ticking = true
-      }
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    })
-  }
 
   // Newsletter form handler
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
@@ -508,36 +476,6 @@ export default function Footer() {
           © <span suppressHydrationWarning>{new Date().getFullYear()}</span> Drinkmate. All rights reserved.
         </div>
       </div>
-
-      {/* Scroll Progress Button */}
-      {showScrollTop && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-8 z-50 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full transition-all duration-300 hover:scale-110 hover:shadow-lg overflow-hidden border-2 border-gray-200"
-          style={{
-            backgroundColor: "white",
-          }}
-          aria-label={isRTL ? "انتقل إلى الأعلى" : "Scroll to top"}
-        >
-          {/* Blue fill that grows from bottom based on scroll progress */}
-          <div
-            className="absolute bottom-0 left-0 w-full bg-[#12d6fa] transition-all duration-100"
-            style={{
-              height: `${scrollProgress * 100}%`,
-            }}
-          />
-
-          {/* Icon positioned above the fill */}
-          <div className="relative z-10 w-full h-full flex items-center justify-center">
-            <ChevronUp 
-              className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 transition-colors duration-300" 
-              style={{ 
-                color: scrollProgress > 0.5 ? "white" : "#12d6fa" 
-              }} 
-            />
-          </div>
-        </button>
-      )}
     </footer>
   )
 }

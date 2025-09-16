@@ -1,12 +1,13 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Banner from '@/components/layout/Banner'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import { ContactProvider, useContactSettings } from '@/lib/contact-settings-context'
 import { useAuth } from '@/lib/auth-context'
 import { useTranslation } from '@/lib/translation-context'
+import { useChatStatus } from '@/lib/chat-status-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -47,15 +48,16 @@ function ContactOptionCard({
   availability: string
   buttonText: string
   buttonAction: () => void
-  status?: 'available' | 'offline' | '24/7'
+  status?: 'available' | 'offline' | '24/7' | 'login-required'
   disabled?: boolean
 }) {
   const getStatusColor = () => {
     switch (status) {
-      case 'available': return 'bg-success-100 text-success-700'
-      case 'offline': return 'bg-warning-100 text-warning-700'
-      case '24/7': return 'bg-brand-100 text-brand-700'
-      default: return 'bg-outline-200 text-ink-700'
+      case 'available': return 'bg-green-100 text-green-800'
+      case 'offline': return 'bg-amber-100 text-amber-800'
+      case '24/7': return 'bg-blue-100 text-blue-800'
+      case 'login-required': return 'bg-orange-100 text-orange-800'
+      default: return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -64,31 +66,41 @@ function ContactOptionCard({
       case 'available': return 'Live now'
       case 'offline': return 'Offline'
       case '24/7': return '24/7'
+      case 'login-required': return 'Login required'
       default: return 'Available'
     }
   }
 
   return (
-    <div className="dm-card dm-card-hover">
+    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-4">
-          <div className="dm-icon-chip">
-            <Icon className="h-5 w-5" />
+          <div className="w-10 h-10 bg-[#12d6fa]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Icon className="h-5 w-5 text-[#12d6fa]" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="dm-text-primary font-semibold mb-1">{title}</h3>
-            <p className="dm-text-secondary leading-relaxed">{availability}</p>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900 text-base">{title}</h3>
+              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor()} ml-2`}>
+                {getStatusText()}
+              </span>
+            </div>
+            <p className="text-sm text-gray-600 mt-1 leading-relaxed">{availability}</p>
           </div>
-        </div>
-        <div className={`dm-chip ${status === 'available' ? 'dm-chip--live' : status === '24/7' ? 'dm-chip--24-7' : 'dm-chip--closed'} flex-shrink-0`}>
-          {getStatusText()}
         </div>
       </div>
       
       <button
         onClick={buttonAction}
         disabled={disabled}
-        className={`dm-btn w-full dm-shine ${disabled ? 'dm-btn--disabled' : ''}`}
+        className={`w-full h-12 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center ${
+          disabled 
+            ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-40' 
+            : status === 'login-required'
+              ? 'bg-orange-500 hover:bg-orange-600 text-white hover:shadow-md'
+              : 'bg-[#12d6fa] hover:bg-[#0fb8d9] text-white hover:shadow-md'
+        }`}
+        title={disabled ? "Chat is available 9-5. You can still use WhatsApp or the form." : ""}
       >
         {buttonText}
       </button>
@@ -109,29 +121,32 @@ function FAQAccordion({
   onToggle: () => void
 }) {
   return (
-    <div className={`dm-accordion ${isExpanded ? 'dm-accordion--open' : ''}`}>
-      <div 
-        className="cursor-pointer p-5 hover:bg-gray-50 transition-colors"
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <button 
+        className="w-full p-4 text-left hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:ring-inset"
         onClick={onToggle}
       >
         <div className="flex items-center justify-between">
-          <h3 className="dm-text-primary font-semibold">{category}</h3>
-          {isExpanded ? (
-            <ChevronUp className="h-5 w-5 text-gray-500" />
-          ) : (
-            <ChevronDown className="h-5 w-5 text-gray-500" />
-          )}
+          <h3 className="font-semibold text-gray-900 text-sm">{category}</h3>
+          <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
         </div>
-      </div>
+      </button>
       {isExpanded && (
-        <div className="pt-0 p-5 dm-fade-in dm-slide-up">
-          <div className="space-y-4">
-            {questions.map((faq, index) => (
-              <div key={index} className="border-l-2 border-blue-100 pl-4">
-                <h4 className="font-medium text-gray-900 mb-2">{faq.q}</h4>
-                <p className="dm-text-secondary leading-relaxed">{faq.a}</p>
+        <div className="px-4 pb-4 border-t border-gray-100">
+          <div className="space-y-3 pt-3">
+            {questions.slice(0, 3).map((faq, index) => (
+              <div key={index} className="border-l-2 border-[#12d6fa]/20 pl-3">
+                <h4 className="font-medium text-gray-900 text-sm mb-1">{faq.q}</h4>
+                <p className="text-xs text-gray-600 leading-relaxed">{faq.a}</p>
               </div>
             ))}
+            {questions.length > 3 && (
+              <div className="pt-2">
+                <button className="text-xs text-[#12d6fa] hover:text-[#0fb8d9] font-medium">
+                  View all {questions.length} questions →
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -156,6 +171,9 @@ function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [ticketId, setTicketId] = useState('')
+
+  // Form validation
+  const isFormValid = formData.name && formData.email && formData.message && formData.consent && formData.message.length >= 10
 
   const reasons = [
     { value: 'general', label: 'General Inquiry' },
@@ -261,19 +279,19 @@ function ContactForm() {
 
   if (showSuccess) {
     return (
-      <Card className="border-success-200 bg-success-50">
-        <CardContent className="p-card-padding text-center">
-          <CheckCircle className="h-12 w-12 text-success-500 mx-auto mb-4" />
-          <h3 className="text-h2 font-semibold text-success-800 mb-2">
-            Thanks! We'll get back to you within 1 business day.
+      <Card className="border-green-200 bg-green-50 shadow-lg">
+        <CardContent className="p-6 text-center">
+          <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-green-800 mb-2">
+            We've received your message — ticket DM-{ticketId}
           </h3>
-          <p className="text-secondary text-success-700 mb-4">
-            Ticket ID: {ticketId}
+          <p className="text-sm text-green-700 mb-4">
+            We'll reply within 1 business day. A confirmation email has been sent.
           </p>
           <Button 
             onClick={() => setShowSuccess(false)} 
             variant="outline"
-            className="rounded-pill"
+            className="rounded-xl border-green-300 text-green-700 hover:bg-green-100"
           >
             Send Another Message
           </Button>
@@ -283,43 +301,50 @@ function ContactForm() {
   }
 
   return (
-    <Card className="border-outline-200 bg-white">
-      <CardHeader className="p-card-padding">
-        <CardTitle className="text-h2 font-semibold text-ink-900">Contact form</CardTitle>
-        <p className="text-secondary text-ink-700">Send us a message anytime.</p>
-      </CardHeader>
-      <CardContent className="p-card-padding">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Reason Selection */}
+    <Card className="border-outline-200 bg-white shadow-lg">
+      <CardHeader className="p-6">
+        <div className="flex items-center justify-between">
           <div>
-            <Label className="text-body font-medium text-ink-900 mb-3 block">Reason for contact</Label>
-            <RadioGroup
-              value={formData.reason}
-              onValueChange={(value) => handleInputChange('reason', value)}
-              className="grid grid-cols-2 gap-2"
+            <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Contact form</CardTitle>
+            <p className="text-gray-600">Send us a message anytime.</p>
+          </div>
+          {user && (
+            <a 
+              href="/account/support" 
+              className="text-sm text-[#12d6fa] hover:text-[#0fb8d9] font-medium"
             >
+              View my tickets
+            </a>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Reason Selection - Segmented Chips */}
+          <div>
+            <Label className="text-sm font-medium text-gray-900 mb-4 block">Reason for contact</Label>
+            <div className="grid grid-cols-3 gap-2">
               {reasons.map((reason) => (
-                <div key={reason.value} className="flex items-center space-x-2">
-                  <RadioGroupItem 
-                    value={reason.value} 
-                    id={reason.value}
-                    className="text-brand-500 border-outline-300"
-                  />
-                  <Label 
-                    htmlFor={reason.value} 
-                    className="text-body text-ink-700 cursor-pointer"
-                  >
-                    {reason.label}
-                  </Label>
-                </div>
+                <button
+                  key={reason.value}
+                  type="button"
+                  onClick={() => handleInputChange('reason', reason.value)}
+                  className={`px-4 py-3 text-sm font-medium rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#12d6fa] focus:ring-offset-2 ${
+                    formData.reason === reason.value
+                      ? 'border-[#12d6fa] bg-[#12d6fa] text-white shadow-sm'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {reason.label}
+                </button>
               ))}
-            </RadioGroup>
+            </div>
           </div>
 
           {/* Personal Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name" className="text-body font-medium text-ink-900 mb-2 block">
+              <Label htmlFor="name" className="text-sm font-medium text-gray-900 mb-2 block">
                 Full name *
               </Label>
               <Input
@@ -327,12 +352,15 @@ function ContactForm() {
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="Enter your full name"
-                className="h-12 border-outline-200 focus:border-brand-500 focus:ring-brand-500"
+                className="h-12 border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa] rounded-xl"
                 required
               />
+              {!formData.name && formData.name !== '' && (
+                <p className="text-xs text-red-600 mt-1">Name is required</p>
+              )}
             </div>
             <div>
-              <Label htmlFor="email" className="text-body font-medium text-ink-900 mb-2 block">
+              <Label htmlFor="email" className="text-sm font-medium text-gray-900 mb-2 block">
                 Email *
               </Label>
               <Input
@@ -341,14 +369,17 @@ function ContactForm() {
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="Enter your email"
-                className="h-12 border-outline-200 focus:border-brand-500 focus:ring-brand-500"
+                className="h-12 border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa] rounded-xl"
                 required
               />
+              {!formData.email && formData.email !== '' && (
+                <p className="text-xs text-red-600 mt-1">Valid email is required</p>
+              )}
             </div>
           </div>
 
           <div>
-            <Label htmlFor="phone" className="text-body font-medium text-ink-900 mb-2 block">
+            <Label htmlFor="phone" className="text-sm font-medium text-gray-900 mb-2 block">
               Phone (optional)
             </Label>
             <Input
@@ -356,12 +387,13 @@ function ContactForm() {
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
               placeholder="Enter your phone number"
-              className="h-12 border-outline-200 focus:border-brand-500 focus:ring-brand-500"
+              className="h-12 border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa] rounded-xl"
             />
+            <p className="text-xs text-gray-500 mt-1">For faster follow-up</p>
           </div>
 
           <div>
-            <Label htmlFor="message" className="text-body font-medium text-ink-900 mb-2 block">
+            <Label htmlFor="message" className="text-sm font-medium text-gray-900 mb-2 block">
               Message *
             </Label>
             <Textarea
@@ -369,18 +401,22 @@ function ContactForm() {
               value={formData.message}
               onChange={(e) => handleInputChange('message', e.target.value)}
               placeholder="Tell us how we can help you..."
-              rows={5}
-              className="min-h-[120px] border-outline-200 focus:border-brand-500 focus:ring-brand-500"
+              rows={6}
+              className="min-h-[150px] border-gray-200 focus:border-[#12d6fa] focus:ring-[#12d6fa] rounded-xl"
               required
             />
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-xs text-gray-500">Minimum 10 characters</p>
+              <p className="text-xs text-gray-400">{formData.message.length}/500</p>
+            </div>
           </div>
 
           {/* File Upload */}
           <div>
-            <Label className="text-body font-medium text-ink-900 mb-2 block">
+            <Label className="text-sm font-medium text-gray-900 mb-2 block">
               Attachments (optional)
             </Label>
-            <div className="border-2 border-dashed border-outline-200 rounded-soft p-4 hover:border-brand-300 transition-colors">
+            <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 hover:border-[#12d6fa] transition-colors">
               <input
                 id="attachments"
                 type="file"
@@ -394,33 +430,29 @@ function ContactForm() {
                 type="button"
                 variant="outline"
                 onClick={() => document.getElementById('attachments')?.click()}
-                className="w-full h-12 rounded-pill border-outline-200 hover:border-brand-300"
+                className="w-full h-12 rounded-xl border-gray-200 hover:border-[#12d6fa] hover:text-[#12d6fa]"
               >
                 <Upload className="h-4 w-4 mr-2" />
-                Upload files (max 3 files, 10MB each)
+                Upload up to 3 files / 10MB total
               </Button>
-              <p className="text-secondary text-ink-700 mt-2 text-center">
-                JPG, PNG, GIF, PDF files only
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                (JPG, PNG, GIF, PDF)
               </p>
             </div>
 
             {files.length > 0 && (
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {files.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between bg-surface-50 p-3 rounded-soft">
-                    <div className="flex items-center space-x-2">
-                      <FileText className="h-4 w-4 text-ink-500" />
-                      <span className="text-body text-ink-700">{file.name}</span>
-                    </div>
-                    <Button
+                  <div key={index} className="flex items-center bg-gray-50 px-3 py-2 rounded-xl text-sm">
+                    <FileText className="h-4 w-4 text-gray-500 mr-2" />
+                    <span className="text-gray-700">{file.name}</span>
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="sm"
                       onClick={() => removeFile(index)}
-                      className="h-8 w-8 p-0 text-ink-500 hover:text-danger-500"
+                      className="ml-2 text-gray-400 hover:text-red-500 rounded-full p-1 hover:bg-red-50"
                     >
                       <X className="h-4 w-4" />
-                    </Button>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -435,13 +467,13 @@ function ContactForm() {
               onCheckedChange={(checked) => handleInputChange('consent', checked as boolean)}
               className="mt-1"
             />
-            <Label htmlFor="consent" className="text-body text-ink-700 leading-relaxed">
+            <Label htmlFor="consent" className="text-sm text-gray-700 leading-relaxed">
               I agree to the{' '}
-              <a href="/privacy-policy" className="text-brand-500 hover:text-brand-600 underline">
+              <a href="/privacy-policy" className="text-[#12d6fa] hover:text-[#0fb8d9] underline">
                 privacy policy
               </a>{' '}
               and{' '}
-              <a href="/terms-of-service" className="text-brand-500 hover:text-brand-600 underline">
+              <a href="/terms-of-service" className="text-[#12d6fa] hover:text-[#0fb8d9] underline">
                 terms of service
               </a>
             </Label>
@@ -449,8 +481,8 @@ function ContactForm() {
 
           <Button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full h-12 rounded-pill bg-brand-500 hover:bg-brand-600 text-white font-medium"
+            disabled={isSubmitting || !isFormValid}
+            className="w-full h-12 rounded-xl bg-[#12d6fa] hover:bg-[#0fb8d9] text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>
@@ -475,16 +507,33 @@ function ContactPageContent() {
   const { settings, getText } = useContactSettings()
   const { user, isAuthenticated } = useAuth()
   const { isRTL } = useTranslation()
+  const { chatStatus } = useChatStatus()
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null)
 
   const handleWhatsAppClick = () => {
+    // Analytics tracking
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'contact_whatsapp_click', {
+        event_category: 'Contact',
+        event_label: 'WhatsApp Contact'
+      })
+    }
+    
     const message = encodeURIComponent("Hello! I need help with my order.")
     const url = `https://wa.me/966501234567?text=${message}`
     window.open(url, '_blank')
   }
 
   const handleEmailClick = () => {
+    // Analytics tracking
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'contact_email_click', {
+        event_category: 'Contact',
+        event_label: 'Email Contact'
+      })
+    }
+    
     const subject = encodeURIComponent('Support Request')
     const body = encodeURIComponent(`Hello,\n\nI need help with: ${user ? `Order #${user._id || user.username}` : 'my inquiry'}\n\n`)
     const url = `mailto:support@drinkmates.com?subject=${subject}&body=${body}`
@@ -492,25 +541,42 @@ function ContactPageContent() {
   }
 
   const handleChatClick = () => {
+    // Analytics tracking
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'contact_chat_click', {
+        event_category: 'Contact',
+        event_label: 'Live Chat Contact'
+      })
+    }
+    
     if (!isAuthenticated) {
-      window.location.href = `/login?returnUrl=${encodeURIComponent('/contact?chat=1')}`
+      // Show proper login prompt with return URL
+      const currentUrl = encodeURIComponent(window.location.pathname + window.location.search)
+      window.location.href = `/login?returnUrl=${currentUrl}&reason=chat`
       return
     }
     
     if (!isChatOnline()) {
-      // Show offline message or redirect to contact form
-      alert('Live chat is currently offline. Please use our contact form or email us.')
+      const now = new Date()
+      const serverTime = new Date(now.toLocaleString("en-US", { timeZone: chatStatus.timezone }))
+      const currentTime = serverTime.toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })
+      const [startTime, endTime] = [chatStatus.workingHours.start, chatStatus.workingHours.end]
+      
+      alert(`Live chat is currently offline.\n\nCurrent time: ${currentTime}\nChat hours: ${startTime} - ${endTime}\n\nPlease use our contact form or email us.`)
       return
     }
     
-    // The floating chat widget will handle the chat opening
-    // This is just for the contact page button - the actual chat is handled by FloatingChatWidget
+    // Dispatch custom event to open the chat widget
+    window.dispatchEvent(new CustomEvent('openChatWidget'))
   }
 
+
   const isChatOnline = () => {
-    const now = new Date()
-    const currentHour = now.getHours()
-    return currentHour >= 9 && currentHour < 17
+    return chatStatus.isOnline
   }
 
   const faqCategories = [
@@ -574,65 +640,74 @@ function ContactPageContent() {
 
         {/* Main Content */}
         <section className="py-8 lg:py-12">
-          <div className="dm-wrap px-6">
-            {/* Desktop Layout - Two Column Grid */}
-            <div className="hidden lg:grid lg:grid-cols-12 gap-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Desktop Layout - Fixed 3-Column Grid */}
+            <div className="hidden lg:grid" style={{ gridTemplateColumns: '340px 1fr 360px', gap: '24px' }}>
               {/* Left Column - Contact Options */}
-              <div className="lg:col-span-5">
-                <div className="sticky top-8">
-                  <h2 className="dm-heading-2 mb-8">Contact Options</h2>
-                  <div className="space-y-6">
-                    <ContactOptionCard
-                      icon={MessageCircle}
-                      title="WhatsApp"
-                      availability="Available 24/7 • Typical replies 9–5"
-                      buttonText="Chat on WhatsApp"
-                      buttonAction={handleWhatsAppClick}
-                      status="24/7"
-                    />
-                    
-                    <ContactOptionCard
-                      icon={Mail}
-                      title="Email"
-                      availability="We reply within 1 business day"
-                      buttonText="Email support@drinkmates.com"
-                      buttonAction={handleEmailClick}
-                      status="24/7"
-                    />
-                    
-                    <ContactOptionCard
-                      icon={MessageCircle}
-                      title="Live Chat"
-                      availability={isChatOnline() ? "Live now • Avg. reply ~2 min" : "Chat offline • Opens 09:00 AM"}
-                      buttonText="Start live chat"
-                      buttonAction={handleChatClick}
-                      status={isChatOnline() ? "available" : "offline"}
-                      disabled={!isAuthenticated || !isChatOnline()}
-                    />
-                  </div>
+              <div className="sticky" style={{ top: '96px', alignSelf: 'start' }}>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact Options</h2>
+                <div className="space-y-6">
+                  <ContactOptionCard
+                    icon={MessageCircle}
+                    title="WhatsApp"
+                    availability="Typical replies 9–5"
+                    buttonText="Chat on WhatsApp"
+                    buttonAction={handleWhatsAppClick}
+                    status="24/7"
+                  />
+                  
+                  <ContactOptionCard
+                    icon={Mail}
+                    title="Email"
+                    availability="We reply within 1 business day"
+                    buttonText="Email support@drinkmates.com"
+                    buttonAction={handleEmailClick}
+                    status="24/7"
+                  />
+                  
+                  <ContactOptionCard
+                    icon={MessageCircle}
+                    title="Live Chat"
+                    availability={
+                      !isAuthenticated 
+                        ? "Login required to start chat" 
+                        : isChatOnline() 
+                          ? "Avg. reply ~2 min" 
+                          : `Opens ${chatStatus.workingHours.start}`
+                    }
+                    buttonText={!isAuthenticated ? "Login to chat" : "Start live chat"}
+                    buttonAction={handleChatClick}
+                    status={!isAuthenticated ? "login-required" : isChatOnline() ? "available" : "offline"}
+                    disabled={!isAuthenticated || !isChatOnline()}
+                  />
                 </div>
               </div>
 
+              {/* Center Column - Contact Form */}
+              <div className="sticky" style={{ top: '96px', alignSelf: 'start' }}>
+                <ContactForm />
+              </div>
+
               {/* Right Column - FAQ */}
-              <div className="lg:col-span-7">
-                <h2 className="dm-heading-2 mb-8">Frequently Asked Questions</h2>
+              <div className="sticky" style={{ top: '96px', alignSelf: 'start' }}>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
                 
                 {/* FAQ Search */}
-                <div className="dm-card mb-8">
+                <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-6 shadow-sm">
                   <div className="relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                     <input
                       type="text"
                       placeholder="Search our FAQ…"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="dm-search w-full"
+                      className="w-full pl-10 pr-4 py-3 border-0 bg-transparent focus:outline-none text-gray-900 placeholder-gray-500"
                     />
                   </div>
                 </div>
 
                 {/* FAQ Categories */}
-                <div className="space-y-6">
+                <div className="space-y-3">
                   {faqCategories.map((category) => (
                     <FAQAccordion
                       key={category.id}
@@ -643,14 +718,13 @@ function ContactPageContent() {
                     />
                   ))}
                   
-                  <div className="text-center pt-6">
+                  <div className="pt-4">
                     <button
                       onClick={() => {
-                        const subject = encodeURIComponent('FAQ Question')
-                        const body = encodeURIComponent('I couldn\'t find the answer to my question in the FAQ. Here\'s what I need help with:\n\n')
-                        window.open(`mailto:support@drinkmates.com?subject=${subject}&body=${body}`)
+                        // Scroll to form
+                        document.querySelector('form')?.scrollIntoView({ behavior: 'smooth' })
                       }}
-                      className="dm-btn px-8 py-3 dm-shine"
+                      className="w-full h-12 bg-[#12d6fa] hover:bg-[#0fb8d9] text-white font-medium rounded-2xl transition-colors flex items-center justify-center"
                     >
                       <HelpCircle className="h-4 w-4 mr-2" />
                       Didn't find what you need?
@@ -687,10 +761,16 @@ function ContactPageContent() {
                   <ContactOptionCard
                     icon={MessageCircle}
                     title="Live Chat"
-                    availability={isChatOnline() ? "Live now • Avg. reply ~2 min" : "Chat offline • Opens 09:00 AM"}
-                    buttonText="Start live chat"
+                    availability={
+                      !isAuthenticated 
+                        ? "Login required to start chat" 
+                        : isChatOnline() 
+                          ? "Live now • Avg. reply ~2 min" 
+                          : `Chat offline • Opens ${chatStatus.workingHours.start}`
+                    }
+                    buttonText={!isAuthenticated ? "Login to chat" : "Start live chat"}
                     buttonAction={handleChatClick}
-                    status={isChatOnline() ? "available" : "offline"}
+                    status={!isAuthenticated ? "login-required" : isChatOnline() ? "available" : "offline"}
                     disabled={!isAuthenticated || !isChatOnline()}
                   />
                 </div>

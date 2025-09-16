@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { MessageCircle, X, Send, Minimize2, Maximize2, User, Clock, CheckCircle } from 'lucide-react'
 import { useSocket } from '@/lib/socket-context'
 import { useAuth, getAuthToken } from '@/lib/auth-context'
+import { useChatStatus } from '@/lib/chat-status-context'
 
 interface Message {
   _id: string
@@ -56,6 +57,26 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
 
   const { socket, isConnected, joinChat, leaveChat, sendMessage, startTyping, stopTyping } = useSocket()
   const { user, isAuthenticated } = useAuth()
+  const { chatStatus } = useChatStatus()
+
+  // Listen for external chat open events
+  useEffect(() => {
+    const handleOpenChatEvent = () => {
+      if (isAuthenticated && isChatOnline()) {
+        setIsOpen(true)
+      }
+    }
+
+    window.addEventListener('openChatWidget', handleOpenChatEvent)
+    
+    return () => {
+      window.removeEventListener('openChatWidget', handleOpenChatEvent)
+    }
+  }, [isAuthenticated])
+
+  const isChatOnline = () => {
+    return chatStatus.isOnline
+  }
 
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -243,7 +264,7 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
       }
 
       // Check if user has an existing active chat
-      const response = await fetch('http://localhost:3000/chat', {
+      const response = await fetch('http://localhost:3000/chat/customer', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -269,7 +290,7 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
             },
             body: JSON.stringify({
               customer: {
-                name: user?.firstName + ' ' + user?.lastName,
+                name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username || 'Unknown Customer',
                 email: user?.email,
                 userId: user?._id
               },
@@ -314,7 +335,7 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
       sendMessage(chatSession._id, messageData.content, messageData.messageType)
 
       // Also send via API for persistence
-      await fetch(`http://localhost:3000/chat/${chatSession._id}/messages`, {
+      await fetch(`http://localhost:3000/chat/${chatSession._id}/message`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,
@@ -378,14 +399,26 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
     }
   }
 
+
   const handleToggleChat = () => {
     if (!user) {
-      window.location.href = '/login'
+      // Show proper login prompt with return URL
+      const currentUrl = encodeURIComponent(window.location.pathname + window.location.search)
+      window.location.href = `/login?returnUrl=${currentUrl}&reason=chat`
       return
     }
     
-    if (!isOnline) {
-      alert('Live chat is currently offline. Please use our contact form or email us.')
+    if (!isChatOnline()) {
+      const now = new Date()
+      const serverTime = new Date(now.toLocaleString("en-US", { timeZone: chatStatus.timezone }))
+      const currentTime = serverTime.toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })
+      const [startTime, endTime] = [chatStatus.workingHours.start, chatStatus.workingHours.end]
+      
+      alert(`Live chat is currently offline.\n\nCurrent time: ${currentTime}\nChat hours: ${startTime} - ${endTime}\n\nPlease use our contact form or email us.`)
       return
     }
 

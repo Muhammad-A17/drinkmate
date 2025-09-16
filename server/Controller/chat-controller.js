@@ -16,9 +16,19 @@ const getAllChats = async (req, res) => {
     const chats = await Chat.find(filter)
       .populate('assignedTo', 'firstName lastName email')
       .populate('customer.userId', 'firstName lastName email')
+      .populate('messages.senderId', 'firstName lastName email')
       .sort({ lastMessageAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
+
+    // Fix customer names for existing chats with "undefined undefined"
+    chats.forEach(chat => {
+      if (chat.customer.name === 'undefined undefined' && chat.customer.userId) {
+        const firstName = chat.customer.userId.firstName || '';
+        const lastName = chat.customer.userId.lastName || '';
+        chat.customer.name = `${firstName} ${lastName}`.trim() || chat.customer.userId.username || chat.customer.userId.fullName || 'Unknown Customer';
+      }
+    });
     
     const total = await Chat.countDocuments(filter);
     
@@ -38,6 +48,31 @@ const getAllChats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch chats',
+      error: error.message
+    });
+  }
+};
+
+// Get customer's own chat sessions
+const getCustomerChats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const chats = await Chat.find({ 'customer.userId': userId })
+      .populate('assignedTo', 'firstName lastName email')
+      .sort({ lastMessageAt: -1 });
+    
+    res.json({
+      success: true,
+      data: {
+        chats
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching customer chats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch chat sessions',
       error: error.message
     });
   }
@@ -578,6 +613,7 @@ const getChatMessages = async (req, res) => {
 
 module.exports = {
   getAllChats,
+  getCustomerChats,
   getChatById,
   createChat,
   addMessage,
