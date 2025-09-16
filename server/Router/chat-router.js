@@ -7,17 +7,43 @@ const { authenticateToken, isAdmin } = require('../Middleware/auth-middleware');
 // Get all chats (admin only)
 router.get('/', authenticateToken, isAdmin, chatController.getAllChats);
 
+// Admin route alias for frontend compatibility
+router.get('/admin/all', authenticateToken, isAdmin, chatController.getAllChats);
+
 // Get customer's own chat sessions (authenticated users)
 router.get('/customer', authenticateToken, chatController.getCustomerChats);
 
+// Agents endpoint (placeholder for frontend compatibility)
+router.get('/agents', authenticateToken, isAdmin, (req, res) => {
+  res.json({
+    success: true,
+    data: [
+      { id: '1', name: 'Admin Agent', status: 'online', activeChats: 0 },
+      { id: '2', name: 'Support Agent', status: 'online', activeChats: 0 }
+    ]
+  });
+});
+
 // Get chat statistics (admin only)
 router.get('/stats', authenticateToken, isAdmin, chatController.getChatStats);
+
+// Admin route alias for stats
+router.get('/admin/stats', authenticateToken, isAdmin, chatController.getChatStats);
 
 // Get specific chat (admin only)
 router.get('/:id', authenticateToken, isAdmin, chatController.getChatById);
 
 // Create new chat session (public for contact form)
 router.post('/', chatController.createChat);
+
+// Get messages for a specific chat
+router.get('/:chatId/messages', authenticateToken, isAdmin, chatController.getChatMessages);
+
+// Assign chat to admin
+router.put('/:chatId/assign', authenticateToken, isAdmin, chatController.assignChat);
+
+// Close chat
+router.put('/:chatId/close', authenticateToken, isAdmin, chatController.closeChat);
 
 // Add message to chat (admin only)
 router.post('/:chatId/messages', authenticateToken, isAdmin, chatController.addMessage);

@@ -5,6 +5,7 @@ const { authMiddleware } = require('../Middleware/auth-middleware');
 const adminMiddleware = require('../Middleware/admin-middleware');
 const { getAllUsers, deleteUser } = require('../Controller/admin-controller');
 const categoryController = require('../Controller/category-controller');
+const orderController = require('../Controller/order-controller');
 const { storage, deleteImage } = require('../Utils/cloudinary');
 const User = require('../Models/user-model');
 
@@ -77,6 +78,9 @@ router.post('/create-admin', async (req, res) => {
 // Protected routes (auth + admin)
 router.get('/users', authMiddleware, adminMiddleware, getAllUsers);
 router.delete('/users/:id', authMiddleware, adminMiddleware, deleteUser);
+
+// Orders routes
+router.get('/orders', authMiddleware, adminMiddleware, orderController.getAllOrders);
 
 // Review management routes
 router.get('/reviews', authMiddleware, adminMiddleware, require('../Controller/product-controller').getAllReviews);

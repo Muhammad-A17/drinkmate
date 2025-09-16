@@ -13,9 +13,6 @@ exports.getAllProducts = async (req, res) => {
         // Build filter object based on query parameters
         const filter = { 
             status: 'active',
-            published: true,
-            visibility: 'public',
-            isArchived: { $ne: true },
             stock: { $gt: 0 }
         };
         
@@ -175,6 +172,8 @@ exports.getProduct = async (req, res) => {
 // Create a new product
 exports.createProduct = async (req, res) => {
     try {
+        console.log('Creating product with data:', req.body);
+        
         // Check if product with same name or SKU already exists
         const existingProduct = await Product.findOne({
             $or: [
