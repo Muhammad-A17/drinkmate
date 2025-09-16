@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Banner from '@/components/layout/Banner'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
@@ -29,7 +30,8 @@ import {
   Clock,
   Send,
   FileText,
-  HelpCircle
+  HelpCircle,
+  MapPin
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -72,11 +74,11 @@ function ContactOptionCard({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-4">
-          <div className="w-10 h-10 bg-[#12d6fa]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-            <Icon className="h-5 w-5 text-[#12d6fa]" />
+          <div className="w-12 h-12 bg-[#12d6fa]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Icon className="h-6 w-6 text-[#12d6fa]" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
@@ -89,11 +91,11 @@ function ContactOptionCard({
           </div>
         </div>
       </div>
-      
+        
       <button
         onClick={buttonAction}
         disabled={disabled}
-        className={`w-full h-12 rounded-2xl font-medium transition-all duration-200 flex items-center justify-center ${
+        className={`w-full h-12 rounded-xl font-medium transition-all duration-200 flex items-center justify-center ${
           disabled 
             ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-40' 
             : status === 'login-required'
@@ -301,11 +303,11 @@ function ContactForm() {
   }
 
   return (
-    <Card className="border-outline-200 bg-white shadow-lg">
+    <Card className="border-gray-200 bg-white shadow-lg">
       <CardHeader className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Contact form</CardTitle>
+            <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Contact Form</CardTitle>
             <p className="text-gray-600">Send us a message anytime.</p>
           </div>
           {user && (
@@ -320,7 +322,7 @@ function ContactForm() {
       </CardHeader>
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Reason Selection - Segmented Chips */}
+          {/* Reason Selection */}
           <div>
             <Label className="text-sm font-medium text-gray-900 mb-4 block">Reason for contact</Label>
             <div className="grid grid-cols-3 gap-2">
@@ -450,6 +452,7 @@ function ContactForm() {
                       type="button"
                       onClick={() => removeFile(index)}
                       className="ml-2 text-gray-400 hover:text-red-500 rounded-full p-1 hover:bg-red-50"
+                      aria-label={`Remove ${file.name}`}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -624,14 +627,34 @@ function ContactPageContent() {
       <Header currentPage="contact" />
       
       <main className="min-h-screen bg-surface-50">
-        {/* Hero Section */}
-        <section className="dm-hero">
-          <div className="dm-wrap">
-            <div className="text-center">
-              <h1 className="dm-heading-1 mb-4">
-                Get in touch
-              </h1>
-              <p className="dm-text-secondary text-base leading-6 max-w-2xl mx-auto">
+        {/* Premium Hero Section */}
+        <section className="relative py-12 md:py-16 overflow-hidden">
+          {/* Background Image with Parallax Effect */}
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1757238970/background-6556413_1920_rlwos5.jpg"
+              alt="Contact us background"
+              fill
+              className="object-cover scale-105"
+              priority
+            />
+            {/* Clean Overlay */}
+            <div className="absolute inset-0 bg-black/50"></div>
+          </div>
+          
+          {/* Premium Content with Animations */}
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center space-y-8">
+              
+              {/* Main Heading with Premium Typography */}
+              <div className="space-y-4">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                  Get in Touch
+                </h1>
+              </div>
+              
+              {/* Description */}
+              <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
                 We're here to help. Choose the best way to reach us.
               </p>
             </div>
@@ -642,9 +665,9 @@ function ContactPageContent() {
         <section className="py-8 lg:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Desktop Layout - Fixed 3-Column Grid */}
-            <div className="hidden lg:grid" style={{ gridTemplateColumns: '340px 1fr 360px', gap: '24px' }}>
+            <div className="hidden lg:grid lg:grid-cols-[380px_1fr_400px] lg:gap-8">
               {/* Left Column - Contact Options */}
-              <div className="sticky" style={{ top: '96px', alignSelf: 'start' }}>
+              <div className="sticky top-24 self-start">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact Options</h2>
                 <div className="space-y-6">
                   <ContactOptionCard
@@ -662,7 +685,7 @@ function ContactPageContent() {
                     availability="We reply within 1 business day"
                     buttonText="Email support@drinkmates.com"
                     buttonAction={handleEmailClick}
-                    status="24/7"
+                    status="available"
                   />
                   
                   <ContactOptionCard
@@ -684,12 +707,12 @@ function ContactPageContent() {
               </div>
 
               {/* Center Column - Contact Form */}
-              <div className="sticky" style={{ top: '96px', alignSelf: 'start' }}>
+              <div className="sticky top-24 self-start">
                 <ContactForm />
               </div>
 
               {/* Right Column - FAQ */}
-              <div className="sticky" style={{ top: '96px', alignSelf: 'start' }}>
+              <div className="sticky top-24 self-start">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
                 
                 {/* FAQ Search */}
@@ -753,9 +776,9 @@ function ContactPageContent() {
                     icon={Mail}
                     title="Email"
                     availability="We reply within 1 business day"
-                    buttonText="Email support@drinkmates.com"
+                    buttonText="support@drinkmates.com"
                     buttonAction={handleEmailClick}
-                    status="24/7"
+                    status="available"
                   />
                   
                   <ContactOptionCard
@@ -821,6 +844,125 @@ function ContactPageContent() {
 
               {/* Contact Form */}
               <ContactForm />
+            </div>
+          </div>
+        </section>
+
+        {/* Maps Section */}
+        <section className="py-12 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Visit Our Office</h2>
+              <p className="text-lg text-gray-600">Come and see us in person</p>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Map */}
+              <div className="relative h-96 rounded-2xl overflow-hidden shadow-lg">
+                <Image
+                  src="https://maps.googleapis.com/maps/api/staticmap?center=21.4858,39.1972&zoom=15&size=800x400&maptype=roadmap&markers=color:red%7Clabel:A%7C21.4858,39.1972&key=AIzaSyBFw0Qbyq9zTFTd-tUY6dgsW6x8UfJzJzU"
+                  alt="As Salamah, Jeddah Location Map"
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-black/20"></div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-[#12d6fa] rounded-full flex items-center justify-center">
+                        <MapPin className="h-4 w-4 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">As Salamah, Jeddah</h3>
+                        <p className="text-sm text-gray-600">Saudi Arabia</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      <a
+                        href="https://maps.google.com/?q=As+Salamah,Jeddah,Saudi+Arabia"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1.5 bg-[#12d6fa] text-white rounded-md hover:bg-[#0fb8d9] transition-colors text-sm"
+                      >
+                        <MapPin className="h-3 w-3 mr-1" />
+                        Google Maps
+                      </a>
+                      <a
+                        href="https://maps.apple.com/?q=As+Salamah,Jeddah,Saudi+Arabia"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1.5 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors text-sm"
+                      >
+                        <MapPin className="h-3 w-3 mr-1" />
+                        Apple Maps
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Contact Information */}
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-6 shadow-sm">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Office Information</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-[#12d6fa]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                        <MapPin className="h-4 w-4 text-[#12d6fa]" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Address</p>
+                        <p className="text-gray-600">As Salamah District<br />Jeddah, Saudi Arabia</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-[#12d6fa]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                        <Clock className="h-4 w-4 text-[#12d6fa]" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Business Hours</p>
+                        <p className="text-gray-600">Sunday - Thursday: 9:00 AM - 6:00 PM<br />Friday - Saturday: Closed</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-[#12d6fa]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                        <Phone className="h-4 w-4 text-[#12d6fa]" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Phone</p>
+                        <p className="text-gray-600">+966 11 123 4567</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-2xl p-6 shadow-sm">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Get Directions</h3>
+                  <p className="text-gray-600 mb-4">Use the map to get directions to our office or click the button below to open in your preferred maps app.</p>
+                  <div className="flex flex-wrap gap-3">
+                    <a
+                      href="https://maps.google.com/?q=As+Salamah,Jeddah,Saudi+Arabia"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-4 py-2 bg-[#12d6fa] text-white rounded-lg hover:bg-[#0fb8d9] transition-colors"
+                    >
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Google Maps
+                    </a>
+                    <a
+                      href="https://maps.apple.com/?q=As+Salamah,Jeddah,Saudi+Arabia"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+                    >
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Apple Maps
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

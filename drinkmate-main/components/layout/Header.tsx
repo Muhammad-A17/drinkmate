@@ -469,54 +469,6 @@ export default function Header({ currentPage }: HeaderProps) {
                   </Link>
                 </div>
 
-                {/* Quick Links Section */}
-                <div className="mt-6 pt-6 border-t border-slate-200">
-                  <h3 className={`text-sm font-semibold text-slate-700 mb-3 ${isRTL ? "font-cairo" : "font-montserrat"}`}>
-                    Quick Links
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Link
-                      href="/shop"
-                      className="text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-center"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false)
-                        setShowMobileShopGrid(false)
-                      }}
-                    >
-                      All Products
-                    </Link>
-                    <Link
-                      href="/shop/bundles"
-                      className="text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-center"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false)
-                        setShowMobileShopGrid(false)
-                      }}
-                    >
-                      Bundles
-                    </Link>
-                    <Link
-                      href="/shop/best-sellers"
-                      className="text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-center"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false)
-                        setShowMobileShopGrid(false)
-                      }}
-                    >
-                      Best Sellers
-                    </Link>
-                    <Link
-                      href="/shop/starter-kits"
-                      className="text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-center"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false)
-                        setShowMobileShopGrid(false)
-                      }}
-                    >
-                      Starter Kits
-                    </Link>
-                  </div>
-                </div>
               </div>
             ) : (
               // Regular Mobile Menu
