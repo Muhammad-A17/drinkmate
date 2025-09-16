@@ -27,6 +27,9 @@ export default function Header({ currentPage }: HeaderProps) {
   const [isAdminPage, setIsAdminPage] = useState(false)
   const [showMobileShopGrid, setShowMobileShopGrid] = useState(false)
   const [isNavigatingToAdmin, setIsNavigatingToAdmin] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isTogglingLanguage, setIsTogglingLanguage] = useState(false)
+  const [isTogglingMenu, setIsTogglingMenu] = useState(false)
 
   useEffect(() => {
     setIsAdminPage(pathname?.startsWith("/admin") || false)
@@ -63,20 +66,38 @@ export default function Header({ currentPage }: HeaderProps) {
     }
   }, [])
 
-  const toggleLanguage = () => {
+  const toggleLanguage = async () => {
+    if (isTogglingLanguage) return
+    
+    setIsTogglingLanguage(true)
     setLanguage(language === "EN" ? "AR" : "EN")
+    
+    // Reset after a short delay
+    setTimeout(() => setIsTogglingLanguage(false), 500)
   }
 
-  const toggleMobileMenu = () => {
+  const toggleMobileMenu = async () => {
+    if (isTogglingMenu) return
+    
+    setIsTogglingMenu(true)
     setIsMobileMenuOpen(!isMobileMenuOpen)
     if (isMobileMenuOpen) {
       setShowMobileShopGrid(false)
     }
+    
+    // Reset after a short delay
+    setTimeout(() => setIsTogglingMenu(false), 300)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (isLoggingOut) return
+    
+    setIsLoggingOut(true)
     logout()
     router.push("/")
+    
+    // Reset after a short delay
+    setTimeout(() => setIsLoggingOut(false), 1000)
   }
 
   const handleMobileShopClick = () => {
@@ -88,6 +109,8 @@ export default function Header({ currentPage }: HeaderProps) {
   }
 
   const handleAdminNavigation = async () => {
+    if (isNavigatingToAdmin) return
+    
     setIsNavigatingToAdmin(true)
     setIsUserDropdownOpen(false)
     setIsMobileMenuOpen(false)
@@ -190,8 +213,9 @@ export default function Header({ currentPage }: HeaderProps) {
             {/* Language Selector */}
             <button
               onClick={toggleLanguage}
+              disabled={isTogglingLanguage}
               aria-label={language === "EN" ? t("common.changeToArabic") : t("common.changeToEnglish")}
-              className={`flex items-center ${isRTL ? "space-x-reverse space-x-2" : "space-x-2"} px-3 py-2 rounded-lg hover:bg-slate-50 transition-all duration-200 border border-transparent hover:border-slate-200 hover:shadow-sm`}
+              className={`flex items-center ${isRTL ? "space-x-reverse space-x-2" : "space-x-2"} px-3 py-2 rounded-lg hover:bg-slate-50 transition-all duration-200 border border-transparent hover:border-slate-200 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <Image
                 src={language === "EN" ? "/images/us-flag.png" : "/images/saudi-arabia-flag.png"}
@@ -200,7 +224,9 @@ export default function Header({ currentPage }: HeaderProps) {
                 height={16}
                 className="object-contain w-6 h-4 rounded-sm shadow-sm"
               />
-              <span className="text-sm font-semibold text-slate-700 hidden md:inline">{language}</span>
+              <span className="text-sm font-semibold text-slate-700 hidden md:inline">
+                {isTogglingLanguage ? "..." : language}
+              </span>
             </button>
 
             {/* Cart Icon with Count */}
@@ -275,11 +301,16 @@ export default function Header({ currentPage }: HeaderProps) {
                             setIsUserDropdownOpen(false)
                             handleLogout()
                           }}
-                          className={`block w-full ${isRTL ? "text-right" : "text-left"} px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200`}
+                          disabled={isLoggingOut}
+                          className={`block w-full ${isRTL ? "text-right" : "text-left"} px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                           <div className="flex items-center">
-                            <LogOut className="w-4 h-4 mr-3" />
-                            Sign out
+                            {isLoggingOut ? (
+                              <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                            ) : (
+                              <LogOut className="w-4 h-4 mr-3" />
+                            )}
+                            {isLoggingOut ? "Signing out..." : "Sign out"}
                           </div>
                         </button>
                       </>
@@ -324,10 +355,11 @@ export default function Header({ currentPage }: HeaderProps) {
             {/* Mobile Menu Toggle */}
             <button
               onClick={toggleMobileMenu}
+              disabled={isTogglingMenu}
               aria-label={isMobileMenuOpen ? t("common.closeMenu") : t("common.openMenu")}
               aria-expanded={isMobileMenuOpen ? "true" : "false"}
               aria-controls="mobile-menu"
-              className="md:hidden p-3 rounded-lg hover:bg-slate-50 transition-all duration-200 border border-transparent hover:border-slate-200 hover:shadow-sm"
+              className="md:hidden p-3 rounded-lg hover:bg-slate-50 transition-all duration-200 border border-transparent hover:border-slate-200 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isMobileMenuOpen ? (
                 <X className="w-5 h-5 text-slate-700" />
@@ -571,10 +603,15 @@ export default function Header({ currentPage }: HeaderProps) {
                           handleLogout()
                           setIsMobileMenuOpen(false)
                         }}
-                        className={`flex items-center w-full ${isRTL ? "text-right" : "text-left"} px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200`}
+                        disabled={isLoggingOut}
+                        className={`flex items-center w-full ${isRTL ? "text-right" : "text-left"} px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
-                        <LogOut className="w-4 h-4 mr-3" />
-                        Sign out
+                        {isLoggingOut ? (
+                          <Loader2 className="w-4 h-4 mr-3 animate-spin" />
+                        ) : (
+                          <LogOut className="w-4 h-4 mr-3" />
+                        )}
+                        {isLoggingOut ? "Signing out..." : "Sign out"}
                       </button>
                     </>
                   ) : (
