@@ -1268,6 +1268,110 @@ export const testimonialAPI = {
 
 // Admin API
 export const adminAPI = {
+  // Products
+  getProducts: async (filters?: any) => {
+    const token = getAuthToken();
+    const response = await api.get('/admin/products', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      params: filters
+    });
+    return response.data;
+  },
+
+  getProduct: async (id: string) => {
+    const token = getAuthToken();
+    const response = await api.get(`/admin/products/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  createProduct: async (productData: any) => {
+    const token = getAuthToken();
+    const response = await api.post('/admin/products', productData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  updateProduct: async (id: string, productData: any) => {
+    const token = getAuthToken();
+    const response = await api.put(`/admin/products/${id}`, productData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  deleteProduct: async (id: string) => {
+    const token = getAuthToken();
+    const response = await api.delete(`/admin/products/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  // Bundles
+  getBundles: async (filters?: any) => {
+    const token = getAuthToken();
+    const response = await api.get('/admin/bundles', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      params: filters
+    });
+    return response.data;
+  },
+
+  getBundle: async (id: string) => {
+    const token = getAuthToken();
+    const response = await api.get(`/admin/bundles/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  createBundle: async (bundleData: any) => {
+    const token = getAuthToken();
+    const response = await api.post('/admin/bundles', bundleData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  updateBundle: async (id: string, bundleData: any) => {
+    const token = getAuthToken();
+    const response = await api.put(`/admin/bundles/${id}`, bundleData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  deleteBundle: async (id: string) => {
+    const token = getAuthToken();
+    const response = await api.delete(`/admin/bundles/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
   // Users
   getAllUsers: async () => {
     // Get auth token using the correct key
@@ -1322,39 +1426,6 @@ export const adminAPI = {
     return response.data;
   },
 
-  // Bundle management
-  createBundle: async (bundleData: any) => {
-    const token = getAuthToken();
-    
-    const response = await api.post('/admin/bundles', bundleData, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    return response.data;
-  },
-  
-  updateBundle: async (id: string, bundleData: any) => {
-    const token = getAuthToken();
-    
-    const response = await api.put(`/admin/bundles/${id}`, bundleData, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    return response.data;
-  },
-  
-  deleteBundle: async (id: string) => {
-    const token = getAuthToken();
-    
-    const response = await api.delete(`/admin/bundles/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    return response.data;
-  },
 
   // Review management
   getReviews: async () => {

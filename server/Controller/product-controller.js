@@ -142,9 +142,6 @@ exports.getProduct = async (req, res) => {
         // Populate category
         await product.populate('category', 'name slug');
         
-        // Get related products
-        await product.populate('relatedProducts');
-        
         // Get reviews for this product
         const reviews = await Review.find({ 
             product: product._id,

@@ -124,7 +124,7 @@ interface ShopProduct {
   isNewProduct?: boolean
   isEcoFriendly?: boolean
   averageRating?: number
-  rating?: number
+  rating?: number | { average: number; count: number }
   reviewCount?: number
   reviews?: number
   totalReviews?: number
@@ -996,7 +996,7 @@ export default function ShopProductDetail() {
                             <Star
                               key={star}
                               className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                                star <= (product.averageRating || product.rating || 0)
+                                star <= (product.averageRating || (typeof product.rating === 'object' ? product.rating?.average : product.rating) || 0)
                                   ? "text-yellow-400 fill-current"
                                   : "text-gray-300"
                               }`}
@@ -1004,10 +1004,10 @@ export default function ShopProductDetail() {
                           ))}
                         </div>
                         <span className="text-sm sm:text-base font-medium">
-                          {product.averageRating || product.rating || 0}
+                          {product.averageRating || (typeof product.rating === 'object' ? product.rating?.average : product.rating) || 0}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          ({product.totalReviews || product.reviews || 0} reviews)
+                          ({product.totalReviews || product.reviews || (typeof product.rating === 'object' ? product.rating?.count : 0) || 0} reviews)
                         </span>
                       </div>
                       <Separator orientation="vertical" className="h-4 hidden sm:block" />
@@ -1438,14 +1438,14 @@ export default function ShopProductDetail() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="text-center">
                             <div className="text-4xl font-bold text-[#12d6fa] mb-2">
-                              {product.averageRating || product.rating || 0}
+                              {product.averageRating || (typeof product.rating === 'object' ? product.rating?.average : product.rating) || 0}
                             </div>
                             <div className="flex items-center justify-center mb-2">
                               {[1, 2, 3, 4, 5].map((star) => (
                                 <Star
                                   key={star}
                                   className={`w-5 h-5 ${
-                                    star <= (product.averageRating || product.rating || 0)
+                                    star <= (product.averageRating || (typeof product.rating === 'object' ? product.rating?.average : product.rating) || 0)
                                       ? "text-yellow-400 fill-current"
                                       : "text-gray-300"
                                   }`}
@@ -1875,7 +1875,7 @@ export default function ShopProductDetail() {
                                     <Star
                                       key={star}
                                       className={`w-3 h-3 ${
-                                        star <= (relatedProduct.averageRating || relatedProduct.rating || 0)
+                                        star <= (relatedProduct.averageRating || (typeof relatedProduct.rating === 'object' ? relatedProduct.rating?.average : relatedProduct.rating) || 0)
                                           ? "text-yellow-400 fill-current"
                                           : "text-gray-300"
                                       }`}

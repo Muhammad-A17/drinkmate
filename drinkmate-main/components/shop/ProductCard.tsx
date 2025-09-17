@@ -63,7 +63,7 @@ export default function ProductCard({
     >
       {/* Image */}
       <Link
-        href={`/product/${product.slug}`}
+        href={`/shop/${product.slug}`}
         className="relative block overflow-hidden rounded-t-2xl"
         aria-label={product.title}
       >
@@ -111,7 +111,7 @@ export default function ProductCard({
       <div className="flex flex-1 flex-col gap-3 p-4">
         {/* Title */}
         <Link
-          href={`/product/${product.slug}`}
+          href={`/shop/${product.slug}`}
           className="line-clamp-2 font-montserrat font-semibold text-neutral-900 hover:text-sky-600 transition-colors"
         >
           {product.title}

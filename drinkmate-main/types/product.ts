@@ -13,7 +13,7 @@ export interface Product {
   slug: string
   title: string
   image: string
-  rating?: number            // 0-5
+  rating?: number | { average: number; count: number }  // 0-5 or object with average and count
   reviewCount?: number
   price: number              // base/current price
   compareAtPrice?: number    // optional sale
