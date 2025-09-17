@@ -303,10 +303,13 @@ export default function GlobalSearch({
                         <h4 className="font-medium text-gray-900 truncate">
                           {getCustomerDisplayName(result.conversation.customer)}
                         </h4>
-                        <Badge className={cn("text-xs", 
-                          result.conversation.status === 'new' && "bg-blue-100 text-blue-800",
-                          result.conversation.status === 'waiting_for_agent' && "bg-yellow-100 text-yellow-800",
-                          result.conversation.status === 'closed' && "bg-gray-100 text-gray-800"
+                        <Badge className={cn("text-xs",
+                          result.conversation.status === 'active' && "bg-green-100 text-green-800",
+                          result.conversation.status === 'waiting_agent' && "bg-yellow-100 text-yellow-800",
+                          result.conversation.status === 'waiting_customer' && "bg-orange-100 text-orange-800",
+                          result.conversation.status === 'snoozed' && "bg-purple-100 text-purple-800",
+                          result.conversation.status === 'closed' && "bg-gray-100 text-gray-800",
+                          result.conversation.status === 'converted' && "bg-blue-100 text-blue-800"
                         )}>
                           {result.conversation.status.replace('_', ' ')}
                         </Badge>
@@ -315,7 +318,7 @@ export default function GlobalSearch({
                         {result.matchText}
                       </p>
                       <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                        <span>{formatRelativeTime(result.conversation.lastMessageAt)}</span>
+                        <span>{formatRelativeTime(result.conversation.lastMessage.timestamp)}</span>
                         <span>•</span>
                         <span>{result.matchType}</span>
                       </div>

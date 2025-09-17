@@ -1,0 +1,260 @@
+/* Custom styles for react-chat-widget to match app design */
+
+/* Main widget container */
+.rcw-widget-container {
+  z-index: 1000;
+}
+
+/* Widget launcher button */
+.rcw-launcher {
+  background-color: #04C4DB !important;
+  box-shadow: 0 4px 12px rgba(4, 196, 219, 0.3) !important;
+}
+
+.rcw-launcher:hover {
+  background-color: #03a9c4 !important;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+/* Widget header */
+.rcw-header {
+  background: linear-gradient(135deg, #04C4DB, #12d6fa) !important;
+  color: white !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.rcw-title {
+  font-weight: 600 !important;
+  font-size: 16px !important;
+}
+
+.rcw-subtitle {
+  font-size: 12px !important;
+  opacity: 0.9 !important;
+}
+
+/* Close button */
+.rcw-close-button {
+  color: white !important;
+  font-size: 18px !important;
+}
+
+.rcw-close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 50% !important;
+}
+
+/* Messages container */
+.rcw-messages-container {
+  background-color: #f8fafc !important;
+  border-radius: 0 0 12px 12px !important;
+}
+
+/* User messages */
+.rcw-message > .rcw-response {
+  background-color: #04C4DB !important;
+  color: white !important;
+  border-radius: 18px 18px 4px 18px !important;
+  margin-left: 20% !important;
+  box-shadow: 0 2px 8px rgba(4, 196, 219, 0.2) !important;
+}
+
+/* Admin messages */
+.rcw-message > .rcw-client {
+  background-color: white !important;
+  color: #374151 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 18px 18px 18px 4px !important;
+  margin-right: 20% !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Message text */
+.rcw-message .rcw-message-text {
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+
+/* Message time */
+.rcw-timestamp {
+  font-size: 11px !important;
+  color: #6b7280 !important;
+  margin-top: 4px !important;
+}
+
+/* Input area */
+.rcw-sender {
+  background-color: white !important;
+  border-top: 1px solid #e5e7eb !important;
+  border-radius: 0 0 12px 12px !important;
+}
+
+.rcw-new-message {
+  border: 1px solid #d1d5db !important;
+  border-radius: 20px !important;
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+  resize: none !important;
+}
+
+.rcw-new-message:focus {
+  outline: none !important;
+  border-color: #04C4DB !important;
+  box-shadow: 0 0 0 3px rgba(4, 196, 219, 0.1) !important;
+}
+
+/* Send button */
+.rcw-send {
+  background-color: #04C4DB !important;
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.rcw-send:hover {
+  background-color: #03a9c4 !important;
+  transform: scale(1.05) !important;
+}
+
+.rcw-send:disabled {
+  background-color: #9ca3af !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* Typing indicator */
+.rcw-typing {
+  background-color: #f3f4f6 !important;
+  border-radius: 18px !important;
+  padding: 8px 16px !important;
+  margin-right: 20% !important;
+}
+
+/* Badge */
+.rcw-badge {
+  background-color: #ef4444 !important;
+  color: white !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+  min-width: 18px !important;
+  height: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Quick buttons */
+.rcw-conversation-container .rcw-response {
+  background-color: #f3f4f6 !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 20px !important;
+  padding: 8px 16px !important;
+  margin: 4px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.rcw-conversation-container .rcw-response:hover {
+  background-color: #e5e7eb !important;
+  border-color: #04C4DB !important;
+}
+
+/* Loading spinner */
+.rcw-loading {
+  color: #04C4DB !important;
+}
+
+/* Scrollbar styling */
+.rcw-messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rcw-messages-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.rcw-messages-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.rcw-messages-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .rcw-widget-container {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+  }
+  
+  .rcw-conversation-container {
+    border-radius: 0 !important;
+  }
+  
+  .rcw-header {
+    border-radius: 0 !important;
+  }
+  
+  .rcw-sender {
+    border-radius: 0 !important;
+  }
+}
+
+/* Animation for widget opening */
+.rcw-widget-container.rcw-opened {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Animation for messages */
+.rcw-message {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Custom emoji picker styling */
+.rcw-emoji-picker {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Custom launcher icon */
+.rcw-launcher .rcw-open-launcher {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z'/%3E%3C/svg%3E") !important;
+}
+
+.rcw-launcher .rcw-close-launcher {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E") !important;
+}

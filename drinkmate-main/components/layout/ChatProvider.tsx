@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useChatStatus } from '@/lib/chat-status-context'
-import FloatingChatWidget from '@/components/chat/FloatingChatWidget'
+import ModernChatWidget from '@/components/chat/ModernChatWidget'
 
 export default function ChatProvider() {
   const [isClient, setIsClient] = useState(false)
@@ -38,6 +38,5 @@ export default function ChatProvider() {
 }
 
 function ChatProviderContent() {
-  const { chatStatus } = useChatStatus()
-  return <FloatingChatWidget isOnline={chatStatus.isOnline} />
+  return <ModernChatWidget />
 }

@@ -1,83 +1,90 @@
-export interface Customer {
+// Standardized chat types for all components
+
+export interface Message {
   id: string
-  firstName?: string
-  lastName?: string
-  displayName?: string
-  email?: string
-  phone?: string
-  tags: string[]
-  locale?: string
-  timeZone?: string
-  lastSeenAt?: string
-  crmId?: string
-  avatar?: string
-  isBlocked?: boolean
-  blockReason?: string
-  blockExpiry?: string
+  content: string
+  sender: 'customer' | 'agent'
+  timestamp: string
+  isNote?: boolean
+  attachments?: any[]
+  readAt?: string
+  status?: 'sending' | 'sent' | 'delivered' | 'read' | 'failed'
 }
 
-export interface Agent {
-  id: string
-  name: string
-  email: string
-  avatar?: string
-  role: 'admin' | 'supervisor' | 'agent' | 'viewer'
-  isOnline: boolean
-  maxConcurrentChats: number
-  currentChats: number
+export interface ChatSession {
+  _id: string
+  status: 'active' | 'waiting_customer' | 'waiting_agent' | 'snoozed' | 'closed' | 'converted'
+  customer: {
+    userId: string
+    name: string
+    email: string
+  }
+  assignedTo?: {
+    id: string
+    name: string
+  }
+  messages: Message[]
+  createdAt: string
+  updatedAt: string
+  lastMessageAt: Date
 }
 
 export interface Conversation {
   id: string
-  customerId: string
   customer: Customer
-  channel: 'site' | 'whatsapp' | 'email' | 'phone'
-  status: 'new' | 'waiting_for_agent' | 'waiting_for_customer' | 'on_hold' | 'closed'
+  channel: 'web' | 'whatsapp' | 'email'
+  status: 'active' | 'waiting_customer' | 'waiting_agent' | 'snoozed' | 'closed' | 'converted'
   priority: 'low' | 'medium' | 'high' | 'urgent'
   assigneeId?: string
-  assignee?: Agent
+  assignee?: {
+    id: string
+    name: string
+    avatar?: string
+    email?: string
+    status?: 'online' | 'offline' | 'busy'
+    lastSeen?: string
+    isAdmin?: boolean
+  }
+  lastMessage: {
+    content: string
+    timestamp: string
+    sender: 'customer' | 'agent'
+  }
+  sla: {
+    firstResponse: number
+    resolution: number
+  }
+  tags: string[]
+  rating?: {
+    score: number
+    feedback?: string
+    ratedAt: string
+  }
   createdAt: string
   updatedAt: string
-  lastMessageAt: string
-  tags: string[]
+  messages: Message[]
+  unreadCount?: number
+  snoozeUntil?: string
   firstResponseAt?: string
   resolvedAt?: string
-  closedBy?: string
-  snoozeUntil?: string
-  transcriptUrl?: string
-  unreadCount: number
-  isNote?: boolean
-  category?: string
   orderNumber?: string
-  customerIP?: string
-  ticketId?: string
+  commerce?: {
+    latestOrder?: any
+    subscription?: any
+    co2Cylinders?: any[]
+    addresses?: any[]
+    openTickets?: any[]
+  }
 }
 
-export interface Message {
-  id: string
-  conversationId: string
-  senderType: 'agent' | 'customer' | 'system'
-  senderId: string
-  senderName?: string
-  body: string
-  html?: string
-  attachments: Attachment[]
-  isNote: boolean
-  createdAt: string
-  deliveredAt?: string
-  readAt?: string
-  editedAt?: string
-  mentions?: string[]
-  replyTo?: string
-}
-
-export interface Attachment {
-  id: string
-  name: string
-  url: string
-  type: 'image' | 'file' | 'audio' | 'video'
-  size: number
-  mimeType: string
+export interface ChatStatus {
+  isOnline: boolean
+  isEnabled: boolean
+  workingHours: {
+    start: string
+    end: string
+  }
+  timezone: string
 }
 
 export interface ChatStats {
@@ -85,62 +92,62 @@ export interface ChatStats {
   active: number
   waiting: number
   closed: number
-  resolved: number
   unassigned: number
-  new: number
-  onHold: number
+  slaBreach: number
+  avgResponseTime: number
+  avgResolutionTime: number
+  avgRating: number
+}
+
+export interface Agent {
+  id: string
+  name: string
+  email?: string
+  avatar?: string
+  status?: 'online' | 'offline' | 'busy'
+  lastSeen?: string
+  isAdmin?: boolean
+}
+
+export interface ChatFilters {
+  status?: string[]
+  priority?: string[]
+  channel?: string[]
+  assignee?: string[]
+  dateRange?: {
+    start: string
+    end: string
+  }
+  search?: string
 }
 
 export interface SLA {
   firstResponse: {
-    target: number // minutes
-    actual?: number
+    target: number
+    actual: number
     status: 'on_time' | 'at_risk' | 'breached'
   }
   resolution: {
-    target: number // minutes
-    actual?: number
+    target: number
+    actual: number
     status: 'on_time' | 'at_risk' | 'breached'
   }
 }
 
-export interface CannedResponse {
+export interface Customer {
   id: string
   name: string
-  content: string
-  category: string
-  tags: string[]
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-  createdBy: string
+  firstName?: string
+  lastName?: string
+  displayName?: string
+  email: string
+  phone?: string
+  avatar?: string
+  language: string
+  timezone: string
+  lastSeen: string
+  isBlocked?: boolean
+  blockReason?: string
+  blockExpiry?: string
+  tags?: string[]
 }
-
-export interface ChatFilters {
-  status: string
-  priority: string
-  category: string
-  assignee: string
-  channel: string
-  search: string
-  tags: string[]
-  dateRange: {
-    from?: string
-    to?: string
-  }
-}
-
-export interface AgentKPIs {
-  agentId: string
-  agentName: string
-  avgFirstReply: number // minutes
-  avgHandleTime: number // minutes
-  avgResolutionTime: number // minutes
-  csat: number // 1-5
-  totalChats: number
-  resolvedChats: number
-  activeChats: number
-  responseRate: number // percentage
-  resolutionRate: number // percentage
-}
-

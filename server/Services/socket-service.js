@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../Models/user-model');
 const Chat = require('../Models/chat-model');
-const Message = require('../Models/message-model');
 
 class SocketService {
   constructor(io) {
@@ -156,9 +155,12 @@ class SocketService {
         try {
           const { chatId, content, type = 'text' } = data;
           
+          console.log('🔥 Socket send_message received:', { chatId, content: content?.substring(0, 50) + '...', type, userId: socket.userId });
+          
           // Verify user has access to this chat
           const chat = await Chat.findById(chatId);
           if (!chat) {
+            console.log('🔥 Chat not found for socket message:', chatId);
             socket.emit('error', { message: 'Chat not found' });
             return;
           }
@@ -167,56 +169,50 @@ class SocketService {
           const isAdmin = chat.assignedTo && chat.assignedTo.toString() === socket.userId;
           
           if (!isCustomer && !isAdmin && !socket.user.isAdmin) {
+            console.log('🔥 Access denied for socket message:', { userId: socket.userId, isCustomer, isAdmin, isAdminUser: socket.user.isAdmin });
             socket.emit('error', { message: 'Access denied' });
             return;
           }
 
-          // Create message
-          const message = new Message({
-            chat: chatId,
-            sender: socket.userId,
-            content,
-            type,
-            isFromAdmin: isAdmin || socket.user.isAdmin
+          // Determine sender type based on user role
+          const senderType = (isAdmin || socket.user.isAdmin) ? 'admin' : 'customer';
+          
+          // Add message using chat's addMessage method (consistent with API)
+          await chat.addMessage(senderType, socket.userId, content, type, []);
+          
+          // Get the last message that was just added
+          const lastMessage = chat.messages[chat.messages.length - 1];
+          
+          console.log('🔥 Socket message added successfully:', {
+            messageId: lastMessage._id,
+            content: lastMessage.content?.substring(0, 50) + '...',
+            sender: lastMessage.sender,
+            timestamp: lastMessage.timestamp
           });
-
-          await message.save();
-
-          // Update chat last message time
-          chat.lastMessageAt = new Date();
-          await chat.save();
-
-          // Mark messages as read for sender
-          await Message.markAllAsRead(chatId, socket.userId);
 
           // Emit message to all users in the chat room
           this.io.to(`chat_${chatId}`).emit('new_message', {
             chatId: chatId,
             message: {
-              _id: message._id,
-              content: message.content,
-              senderType: message.isFromAdmin ? 'admin' : 'customer',
-              senderId: socket.user._id,
-              timestamp: message.createdAt,
-              messageType: message.type,
-              isSystem: message.isSystem,
-              isFromAdmin: message.isFromAdmin,
-              createdAt: message.createdAt,
-              formattedTime: message.formattedTime,
-              sender: {
-                _id: socket.user._id,
-                username: socket.user.username || socket.user.name,
-                firstName: socket.user.firstName || socket.user.name,
-                lastName: socket.user.lastName || '',
-                name: socket.user.name || `${socket.user.firstName || ''} ${socket.user.lastName || ''}`.trim(),
-                isAdmin: socket.user.isAdmin
-              }
+              _id: lastMessage._id || new Date().getTime().toString(),
+              content: lastMessage.content,
+              sender: lastMessage.sender,
+              senderId: lastMessage.senderId,
+              timestamp: lastMessage.timestamp,
+              messageType: lastMessage.messageType,
+              isFromAdmin: senderType === 'admin',
+              createdAt: lastMessage.timestamp,
+              formattedTime: new Date(lastMessage.timestamp).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+              })
             }
           });
 
           // Notify admins of new message if from customer
           if (!isAdmin && !socket.user.isAdmin) {
-            this.notifyAdminsNewMessage(chat, message);
+            this.notifyAdminsNewMessage(chat, lastMessage);
           }
 
         } catch (error) {
@@ -263,19 +259,8 @@ class SocketService {
           chat.status = 'in_progress';
           await chat.save();
 
-          // Create system message
-          const systemMessage = new Message({
-            chat: chatId,
-            sender: socket.userId,
-            content: 'Admin has been assigned to your chat.',
-            type: 'system',
-            isSystem: true,
-            metadata: {
-              systemAction: 'admin_assigned'
-            }
-          });
-
-          await systemMessage.save();
+          // Create system message using chat's addMessage method
+          await chat.addMessage('system', socket.userId, 'Admin has been assigned to your chat.', 'system', []);
 
           // Notify all users in chat
           this.io.to(`chat_${chatId}`).emit('chat_assigned', {
@@ -391,13 +376,19 @@ class SocketService {
   // Mark messages as read
   async markMessagesAsRead(chatId, userId) {
     try {
-      await Message.markAllAsRead(chatId, userId);
+      const chat = await Chat.findById(chatId);
+      if (!chat) {
+        console.log('🔥 Chat not found for marking messages as read:', chatId);
+        return;
+      }
+      
+      // Mark messages as read using chat's markAsRead method
+      await chat.markAsRead(userId);
       
       // Update last seen time
-      const chat = await Chat.findById(chatId);
-      if (chat.customer.toString() === userId) {
+      if (chat.customer.userId && chat.customer.userId.toString() === userId) {
         await chat.updateCustomerSeen();
-      } else if (chat.admin && chat.admin.toString() === userId) {
+      } else if (chat.assignedTo && chat.assignedTo.toString() === userId) {
         await chat.updateAdminSeen();
       }
 
@@ -406,6 +397,8 @@ class SocketService {
         chatId,
         userId
       });
+      
+      console.log('🔥 Messages marked as read for user:', userId, 'in chat:', chatId);
     } catch (error) {
       console.error('Error marking messages as read:', error);
     }
