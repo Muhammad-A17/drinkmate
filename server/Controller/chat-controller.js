@@ -157,20 +157,55 @@ const addMessage = async (req, res) => {
     const { chatId } = req.params;
     const { content, messageType = 'text', attachments = [] } = req.body;
     const senderId = req.user.id;
+    const isAdmin = req.user.isAdmin;
+    
+    console.log('🔥 Message received:', {
+      chatId,
+      content: content?.substring(0, 50) + '...',
+      messageType,
+      senderId,
+      isAdmin
+    });
     
     const chat = await Chat.findById(chatId);
     if (!chat) {
+      console.log('🔥 Chat not found:', chatId);
       return res.status(404).json({
         success: false,
         message: 'Chat not found'
       });
     }
     
-    await chat.addMessage('admin', senderId, content, messageType, attachments);
+    // Determine sender type based on user role
+    const senderType = isAdmin ? 'admin' : 'customer';
+    
+    await chat.addMessage(senderType, senderId, content, messageType, attachments);
+    
+    // Get the last message that was just added
+    const lastMessage = chat.messages[chat.messages.length - 1];
+    
+    console.log('🔥 Message added successfully:', {
+      messageId: lastMessage._id,
+      content: lastMessage.content?.substring(0, 50) + '...',
+      sender: lastMessage.sender,
+      timestamp: lastMessage.timestamp
+    });
     
     res.json({
       success: true,
-      message: 'Message sent successfully'
+      message: 'Message sent successfully',
+      data: {
+        message: {
+          _id: lastMessage._id || new Date().getTime().toString(),
+          content: lastMessage.content,
+          sender: lastMessage.sender,
+          senderId: lastMessage.senderId,
+          messageType: lastMessage.messageType,
+          timestamp: lastMessage.timestamp,
+          createdAt: lastMessage.timestamp,
+          isFromAdmin: senderType === 'admin'
+        }
+      }
     });
   } catch (error) {
     console.error('Error adding message:', error);
@@ -498,23 +533,27 @@ const unbanIP = async (req, res) => {
 const deleteChat = async (req, res) => {
   try {
     const { chatId } = req.params;
+    console.log('🔥 Delete chat request:', { chatId, userId: req.user?.id, isAdmin: req.user?.isAdmin });
     
     const chat = await Chat.findById(chatId);
     if (!chat) {
+      console.log('🔥 Chat not found:', chatId);
       return res.status(404).json({
         success: false,
         message: 'Chat not found'
       });
     }
     
+    console.log('🔥 Chat found, proceeding with deletion:', { chatId, status: chat.status });
     await Chat.findByIdAndDelete(chatId);
     
+    console.log('🔥 Chat deleted successfully:', chatId);
     res.json({
       success: true,
       message: 'Chat deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting chat:', error);
+    console.error('🔥 Error deleting chat:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete chat',
@@ -611,6 +650,200 @@ const getChatMessages = async (req, res) => {
   }
 };
 
+// Session timeout controller methods
+const getSessionTimeoutInfo = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const sessionTimeoutService = require('../Services/session-timeout-service');
+    
+    const timeoutInfo = await sessionTimeoutService.getSessionTimeoutInfo(chatId);
+    
+    if (!timeoutInfo) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: timeoutInfo
+    });
+  } catch (error) {
+    console.error('Error getting session timeout info:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get session timeout info',
+      error: error.message
+    });
+  }
+};
+
+const getSessionsNearExpiry = async (req, res) => {
+  try {
+    const sessionTimeoutService = require('../Services/session-timeout-service');
+    const sessions = await sessionTimeoutService.getSessionsNearExpiry();
+    
+    res.json({
+      success: true,
+      data: sessions
+    });
+  } catch (error) {
+    console.error('Error getting sessions near expiry:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get sessions near expiry',
+      error: error.message
+    });
+  }
+};
+
+const closeSession = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const sessionTimeoutService = require('../Services/session-timeout-service');
+    
+    const result = await sessionTimeoutService.closeSession(chatId);
+    
+    res.json({
+      success: true,
+      message: result.message,
+      data: result.chat
+    });
+  } catch (error) {
+    console.error('Error closing session:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to close session',
+      error: error.message
+    });
+  }
+};
+
+const checkExpiredSessions = async (req, res) => {
+  try {
+    const sessionTimeoutService = require('../Services/session-timeout-service');
+    const closedSessions = await sessionTimeoutService.checkAndCloseExpiredSessions();
+    
+    res.json({
+      success: true,
+      message: `Checked and closed ${closedSessions.length} expired sessions`,
+      data: {
+        closedCount: closedSessions.length,
+        sessions: closedSessions
+      }
+    });
+  } catch (error) {
+    console.error('Error checking expired sessions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check expired sessions',
+      error: error.message
+    });
+  }
+};
+
+// Customer rate and close chat
+const customerRateAndClose = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const { score, feedback = '' } = req.body;
+    
+    // Validate score
+    if (!score || score < 1 || score > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rating score must be between 1 and 5'
+      });
+    }
+    
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat not found'
+      });
+    }
+    
+    if (chat.status === 'closed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Chat is already closed'
+      });
+    }
+    
+    // Close and rate the chat
+    await chat.customerCloseAndRate(score, feedback);
+    
+    res.json({
+      success: true,
+      message: 'Chat closed and rated successfully',
+      data: {
+        chatId: chat._id,
+        rating: chat.rating,
+        status: chat.status
+      }
+    });
+  } catch (error) {
+    console.error('Error rating and closing chat:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to rate and close chat',
+      error: error.message
+    });
+  }
+};
+
+// Customer rate existing chat (without closing)
+const customerRateChat = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const { score, feedback = '' } = req.body;
+    
+    // Validate score
+    if (!score || score < 1 || score > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rating score must be between 1 and 5'
+      });
+    }
+    
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat not found'
+      });
+    }
+    
+    if (chat.rating && chat.rating.score) {
+      return res.status(400).json({
+        success: false,
+        message: 'Chat has already been rated'
+      });
+    }
+    
+    // Rate the chat
+    await chat.rateChat(score, feedback);
+    
+    res.json({
+      success: true,
+      message: 'Chat rated successfully',
+      data: {
+        chatId: chat._id,
+        rating: chat.rating
+      }
+    });
+  } catch (error) {
+    console.error('Error rating chat:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to rate chat',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getAllChats,
   getCustomerChats,
@@ -627,5 +860,11 @@ module.exports = {
   unbanIP,
   rateChat,
   deleteChat,
-  getChatMessages
+  getChatMessages,
+  getSessionTimeoutInfo,
+  getSessionsNearExpiry,
+  closeSession,
+  checkExpiredSessions,
+  customerRateAndClose,
+  customerRateChat
 };

@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation"
 import { generateStructuredData } from "@/lib/seo"
 import Balancer from "react-wrap-balancer"
 import { useAutoPlayOnView } from "@/hooks/use-auto-play-on-view"
+import CarouselBanner from "@/components/ui/carousel-banner"
 
 // StepCard component for mobile-optimized cards
 function StepCard({ 
@@ -67,6 +68,38 @@ export default function Home() {
   const router = useRouter()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [activeMachineColor, setActiveMachineColor] = useState("cyan") // Default to cyan
+  const [isClient, setIsClient] = useState(false)
+
+  // Handle hydration
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  // Carousel banner data
+  const carouselItems = [
+    {
+      id: 1,
+      type: "hero" as const, // Special type for the original hero content
+      src: "", // Not used for hero type
+      alt: "Drinkmate Hero Section"
+    },
+    {
+      id: 2,
+      type: "banner" as const,
+      src: "/images/banner/WhatsApp Image 2025-08-27 at 7.09.33 PM (1).webp", 
+      alt: "Drinkmate Soda Makers Collection",
+      mobileSrc: "/images/banner/WhatsApp Image 2025-08-27 at 7.09.32 PM (1).webp",
+      mobileAlt: "Drinkmate Soda Makers Collection Mobile"
+    },
+    {
+      id: 3,
+      type: "banner" as const,
+      src: "/images/banner/flavor banner.webp",
+      alt: "Premium Italian Flavors Collection", 
+      mobileSrc: "/images/banner/flavor mobile.webp",
+      mobileAlt: "Premium Italian Flavors Collection Mobile"
+    }
+  ]
 
   const slides = [
     {
@@ -354,142 +387,158 @@ export default function Home() {
 
   return (
     <>
-      {/* Structured Data for SEO */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeStructuredData) }}
-      />
+      {/* Structured Data for SEO - Only render on client to prevent hydration mismatch */}
+      {isClient && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(homeStructuredData) }}
+        />
+      )}
       
       <PageLayout currentPage="home">
-      {/* Hero Section */}
+      {/* Hero Section - Carousel Banner */}
       <section className="py-6 md:py-16 px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40 relative z-30">
-        <div className="w-full bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-b-3xl relative overflow-hidden min-h-[600px] md:h-[600px] backdrop-blur-sm shadow-2xl shadow-gray-200/50 border border-white/20">
-          {/* Product Images (Absolute Positioning) */}
-          <Image
-            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/drinkmate-machine-hero_ckcqe4.png"
-            alt="Drinkmate OmniFizz Soda Maker"
-            width={242}
-            height={417}
-            quality={85}
-            priority
-            className="absolute object-contain hidden md:block drop-shadow-2xl"
-            style={{ top: "203px", left: "121px" }}
+        <div className="w-full rounded-b-3xl relative overflow-hidden shadow-2xl shadow-gray-200/50">
+          <CarouselBanner 
+            items={carouselItems}
+            autoPlay={true}
+            autoPlayInterval={5000}
+            className="w-full"
+            renderCustomContent={(item, isActive) => {
+              if (item.type === "hero") {
+                return (
+                  <div className="w-full bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-b-3xl relative overflow-hidden min-h-[600px] backdrop-blur-sm shadow-2xl shadow-gray-200/50 border border-white/20">
+                    {/* Product Images (Absolute Positioning) */}
+                    <Image
+                      src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/drinkmate-machine-hero_ckcqe4.png"
+                      alt="Drinkmate OmniFizz Soda Maker"
+                      width={242}
+                      height={417}
+                      quality={85}
+                      priority
+                      className="absolute object-contain hidden md:block drop-shadow-2xl"
+                      style={{ top: "203px", left: "121px" }}
+                    />
+                    <Image
+                      src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/italian-strawberry-lemon_zp1jui.png"
+                      alt="Italian Strawberry Lemon Flavor"
+                      width={99}
+                      height={206}
+                      quality={85}
+                      priority
+                      className="absolute object-contain hidden md:block drop-shadow-xl"
+                      style={{ top: "414px", left: "313px" }}
+                    />
+
+                    {/* Mobile Product Images */}
+                    <div className="block md:hidden w-full" dir="ltr">
+                      <div className="flex flex-row items-end justify-center p-6">
+                        <Image
+                          src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/drinkmate-machine-hero_ckcqe4.png"
+                          alt="Drinkmate OmniFizz Soda Maker"
+                          width={140}
+                          height={220}
+                          quality={85}
+                          priority
+                          className="object-contain drop-shadow-2xl"
+                        />
+                        <Image
+                          src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/italian-strawberry-lemon_zp1jui.png"
+                          alt="Italian Strawberry Lemon Flavor"
+                          width={80}
+                          height={160}
+                          quality={85}
+                          priority
+                          className="object-contain drop-shadow-xl"
+                        />
+                      </div>
+
+                      {/* Mobile Content - After Images */}
+                      <div className="text-center px-6 py-10 bg-white/98 backdrop-blur-md rounded-3xl mx-6 shadow-2xl shadow-gray-200/40 mb-8 hover:shadow-3xl hover:bg-white transition-all duration-500 transform hover:-translate-y-2 animate-fade-in-up border border-white/50">
+                        <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+                          <h1
+                            className={`text-2xl font-bold text-gray-900 leading-tight ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-up tracking-tight`}
+                          >
+                            {t("home.hero.title")}
+                          </h1>
+                          <h2
+                            className={`text-lg text-gray-600 font-semibold ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-up delay-200 tracking-wide`}
+                          >
+                            {t("home.hero.subtitle")}
+                          </h2>
+                          <p
+                            className={`text-gray-600 text-sm leading-relaxed ${isRTL ? "font-noto-arabic text-right" : "font-noto-sans"} px-2 animate-slide-in-up delay-300 font-medium`}
+                          >
+                            {t("home.hero.description")}
+                          </p>
+                          <div
+                            className={`flex ${isRTL ? "flex-row-reverse" : "flex-row"} gap-4 justify-center animate-slide-in-up delay-500`}
+                          >
+                            <button
+                              onClick={() => router.push("/shop")}
+                              className="px-8 py-4 text-gray-700 border-2 border-gray-300 bg-white/90 backdrop-blur-sm hover:bg-white hover:border-gray-400 font-semibold rounded-xl min-w-[130px] transition-all duration-300 transform hover:scale-105 hover:shadow-lg shadow-md text-sm"
+                            >
+                              {t("home.hero.exploreMore")}
+                            </button>
+                            <button
+                              onClick={() => router.push("/shop")}
+                              className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#09b3d1] text-white px-8 py-4 font-semibold shadow-xl border-2 border-[#12d6fa]/20 rounded-xl min-w-[130px] transition-all duration-300 transform hover:scale-105 hover:shadow-2xl backdrop-blur-sm text-sm"
+                            >
+                              {t("home.hero.buyNow")}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Content (positioned to the right on desktop, below images on mobile) */}
+                    <div
+                      className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? "right-4 md:right-[550px] left-4 md:left-auto" : "left-4 md:left-[550px] right-4 md:right-auto"} w-auto md:w-[500px] ${isRTL ? "md:pl-4" : "md:pr-4"} md:block hidden`}
+                    >
+                      <div
+                        className={`space-y-6 md:space-y-8 text-center ${isRTL ? "md:text-right rtl" : "md:text-left ltr"} animate-fade-in-up`}
+                        dir={isRTL ? "rtl" : "ltr"}
+                      >
+                        <h1
+                          className={`text-3xl md:text-5xl lg:text-6xl font-semibold text-gray-900 leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-left tracking-tight`}
+                        >
+                          {t("home.hero.title")}
+                        </h1>
+                        <h2
+                          className={`text-lg md:text-2xl text-gray-600 font-medium ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-left delay-200 tracking-wide`}
+                        >
+                          {t("home.hero.subtitle")}
+                        </h2>
+                        <p
+                          className={`text-gray-600 text-base md:text-lg leading-relaxed ${isRTL ? "font-noto-arabic" : "font-noto-sans"} max-w-md ${isRTL ? "md:ml-auto" : "md:mr-auto"} animate-slide-in-left delay-300 font-medium`}
+                        >
+                          {t("home.hero.description")}
+                        </p>
+                        <div
+                          className={`flex flex-row ${isRTL ? "space-x-reverse space-x-4 flex-row-reverse" : "space-x-4"} justify-center md:${isRTL ? "justify-start" : "justify-start"} gap-4 animate-slide-in-left delay-500`}
+                        >
+                          <Button
+                            onClick={() => router.push("/shop")}
+                            variant="outline"
+                            className="px-8 py-4 text-gray-700 border-2 border-gray-300 bg-white/80 backdrop-blur-sm min-w-[140px] hover:bg-white hover:border-gray-400 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-semibold rounded-xl"
+                          >
+                            {t("home.hero.exploreMore")}
+                          </Button>
+                          <Button
+                            onClick={() => router.push("/shop")}
+                            className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#09b3d1] text-white px-8 py-4 min-w-[140px] shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 font-semibold rounded-xl backdrop-blur-sm border border-white/20"
+                          >
+                            {t("home.hero.buyNow")}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+              return null
+            }}
           />
-          <Image
-            src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/italian-strawberry-lemon_zp1jui.png"
-            alt="Italian Strawberry Lemon Flavor"
-            width={99}
-            height={206}
-            quality={85}
-            priority
-            className="absolute object-contain hidden md:block drop-shadow-xl"
-            style={{ top: "414px", left: "313px" }}
-          />
-
-          {/* Mobile Product Images */}
-          <div className="block md:hidden w-full" dir="ltr">
-          <div className="flex flex-row items-end justify-center p-6">
-  <Image
-    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/drinkmate-machine-hero_ckcqe4.png"
-    alt="Drinkmate OmniFizz Soda Maker"
-    width={140}
-    height={220}
-    quality={85}
-    priority
-    className="object-contain drop-shadow-2xl"
-  />
-  <Image
-    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/italian-strawberry-lemon_zp1jui.png"
-    alt="Italian Strawberry Lemon Flavor"
-    width={80}
-    height={160}
-    quality={85}
-    priority
-    className="object-contain drop-shadow-xl"
-  />
-</div>
-
-
-            {/* Mobile Content - After Images */}
-            <div className="text-center px-6 py-10 bg-white/98 backdrop-blur-md rounded-3xl mx-6 shadow-2xl shadow-gray-200/40 mb-8 hover:shadow-3xl hover:bg-white transition-all duration-500 transform hover:-translate-y-2 animate-fade-in-up border border-white/50">
-              <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
-                <h1
-                  className={`text-2xl font-bold text-gray-900 leading-tight ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-up tracking-tight`}
-                >
-                  {t("home.hero.title")}
-                </h1>
-                <h2
-                  className={`text-lg text-gray-600 font-semibold ${isRTL ? "font-cairo text-right" : "font-montserrat"} animate-slide-in-up delay-200 tracking-wide`}
-                >
-                  {t("home.hero.subtitle")}
-                </h2>
-                <p
-                  className={`text-gray-600 text-sm leading-relaxed ${isRTL ? "font-noto-arabic text-right" : "font-noto-sans"} px-2 animate-slide-in-up delay-300 font-medium`}
-                >
-                  {t("home.hero.description")}
-                </p>
-                <div
-                  className={`flex ${isRTL ? "flex-row-reverse" : "flex-row"} gap-4 justify-center animate-slide-in-up delay-500`}
-                >
-                  <button
-                    onClick={() => router.push("/shop")}
-                    className="px-8 py-4 text-gray-700 border-2 border-gray-300 bg-white/90 backdrop-blur-sm hover:bg-white hover:border-gray-400 font-semibold rounded-xl min-w-[130px] transition-all duration-300 transform hover:scale-105 hover:shadow-lg shadow-md text-sm"
-                  >
-                    {t("home.hero.exploreMore")}
-                  </button>
-                  <button
-                    onClick={() => router.push("/shop")}
-                    className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#09b3d1] text-white px-8 py-4 font-semibold shadow-xl border-2 border-[#12d6fa]/20 rounded-xl min-w-[130px] transition-all duration-300 transform hover:scale-105 hover:shadow-2xl backdrop-blur-sm text-sm"
-                  >
-                    {t("home.hero.buyNow")}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Content (positioned to the right on desktop, below images on mobile) */}
-          <div
-            className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? "right-4 md:right-[550px] left-4 md:left-auto" : "left-4 md:left-[550px] right-4 md:right-auto"} w-auto md:w-[500px] ${isRTL ? "md:pl-4" : "md:pr-4"} md:block hidden`}
-          >
-            <div
-              className={`space-y-6 md:space-y-8 text-center ${isRTL ? "md:text-right rtl" : "md:text-left ltr"} animate-fade-in-up`}
-              dir={isRTL ? "rtl" : "ltr"}
-            >
-              <h1
-                className={`text-3xl md:text-5xl lg:text-6xl font-semibold text-gray-900 leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-left tracking-tight`}
-              >
-                {t("home.hero.title")}
-              </h1>
-              <h2
-                className={`text-lg md:text-2xl text-gray-600 font-medium ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-left delay-200 tracking-wide`}
-              >
-                {t("home.hero.subtitle")}
-              </h2>
-              <p
-                className={`text-gray-600 text-base md:text-lg leading-relaxed ${isRTL ? "font-noto-arabic" : "font-noto-sans"} max-w-md ${isRTL ? "md:ml-auto" : "md:mr-auto"} animate-slide-in-left delay-300 font-medium`}
-              >
-                {t("home.hero.description")}
-              </p>
-              <div
-                className={`flex flex-row ${isRTL ? "space-x-reverse space-x-4 flex-row-reverse" : "space-x-4"} justify-center md:${isRTL ? "justify-start" : "justify-start"} gap-4 animate-slide-in-left delay-500`}
-              >
-                <Button
-                  onClick={() => router.push("/shop")}
-                  variant="outline"
-                  className="px-8 py-4 text-gray-700 border-2 border-gray-300 bg-white/80 backdrop-blur-sm min-w-[140px] hover:bg-white hover:border-gray-400 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-semibold rounded-xl"
-                >
-                  {t("home.hero.exploreMore")}
-                </Button>
-                <Button
-                  onClick={() => router.push("/shop")}
-                  className="bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#09b3d1] text-white px-8 py-4 min-w-[140px] shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 font-semibold rounded-xl backdrop-blur-sm border border-white/20"
-                >
-                  {t("home.hero.buyNow")}
-                </Button>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 

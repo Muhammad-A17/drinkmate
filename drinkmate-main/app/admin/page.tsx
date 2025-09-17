@@ -27,7 +27,9 @@ import {
   MessageSquare,
   FileText,
   Activity,
-  Utensils
+  Utensils,
+  LayoutDashboard,
+  BarChart2
 } from "lucide-react"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import AdminChatDashboard from "@/components/chat/AdminChatDashboard"
@@ -137,6 +139,7 @@ export default function AdminDashboard() {
       setIsDataLoading(true)
       
       // TODO: Replace with real API calls when endpoints are ready
+      // For now, we'll use mock data but the structure is ready for real API calls
       // const [usersRes, ordersRes, productsRes, testimonialsRes, blogRes, contactsRes] = await Promise.all([
       //   fetch('/api/admin/users/count'),
       //   fetch('/api/admin/orders/count'),
@@ -250,9 +253,9 @@ export default function AdminDashboard() {
         orderGrowth: 0,
         userGrowth: 0
       })
-          } finally {
-        setIsDataLoading(false)
-      }
+    } finally {
+      setIsDataLoading(false)
+    }
   }
 
   // Refresh dashboard data
@@ -374,21 +377,21 @@ export default function AdminDashboard() {
 
   const lineChartOptions = {
     ...chartOptions,
-            scales: {
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: 'rgba(0, 0, 0, 0.1)',
-              drawBorder: false
-            },
-            ticks: {
-              callback: (value: any) => `﷼${Number(value).toLocaleString()}`,
-              font: {
-                size: 11,
-                family: 'SaudiRiyalSymbol, Arial, sans-serif'
-              }
-            }
-          },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+          drawBorder: false
+        },
+        ticks: {
+          callback: (value: any) => `﷼${Number(value).toLocaleString()}`,
+          font: {
+            size: 11,
+            family: 'SaudiRiyalSymbol, Arial, sans-serif'
+          }
+        }
+      },
       x: {
         grid: {
           color: 'rgba(0, 0, 0, 0.1)',
@@ -470,503 +473,634 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      {/* Welcome Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome back, {user?.username || 'Admin'}! 👋
-            </h1>
-            <p className="text-gray-600">
-              Here's what's happening with your store today.
-            </p>
+      <div className="space-y-8 p-4 md:p-6 relative z-10">
+        {/* Premium Header */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20"></div>
+          <div className="relative p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
+                    <LayoutDashboard className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                      Welcome back, {user?.username || 'Admin'}! 👋
+                    </h1>
+                    <p className="text-gray-600 text-lg">
+                      Here's what's happening with your store today.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-gray-900">{stats.totalOrders}</div>
+                  <div className="text-sm text-gray-500">Total Orders</div>
+                </div>
+                <div className="w-px h-12 bg-gray-300"></div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-[#12d6fa]">{stats.totalRevenue.toLocaleString()}</div>
+                  <div className="text-sm text-gray-500">Total Revenue</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button
+                  onClick={refreshDashboard}
+                  className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                >
+                  <Activity className="h-5 w-5 mr-2" />
+                  Refresh Data
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => router.push('/admin/analytics')}
+                  className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 px-6 py-3 rounded-xl transition-all duration-300"
+                >
+                  <BarChart2 className="h-5 w-5 mr-2" />
+                  View Analytics
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => setIsChatOpen(true)}
+                  className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 px-6 py-3 rounded-xl transition-all duration-300"
+                >
+                  <MessageSquare className="h-5 w-5 mr-2" />
+                  Live Chat
+                </Button>
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>System Online</span>
+              </div>
+            </div>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={refreshDashboard}
-            className="flex items-center gap-2"
-          >
-            <Activity className="h-4 w-4" />
-            Refresh Data
-          </Button>
         </div>
-      </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Total Users</p>
-                <h3 className="text-2xl font-bold text-gray-800">{stats.totalUsers.toLocaleString()}</h3>
-                <div className="flex items-center mt-2">
-                  <ArrowUpRight className="h-4 w-4 text-green-600 mr-1" />
-                  <span className="text-sm text-green-600">+{stats.userGrowth}%</span>
-                  <span className="text-sm text-gray-500 ml-1">from last month</span>
+        {/* Premium Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold text-gray-900">{stats.totalUsers.toLocaleString()}</div>
+                  <p className="text-sm text-gray-600 mt-1">Total Users</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl">
+                  <Users className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
-              <div className="bg-blue-100 p-3 rounded-full">
-                <Users className="h-8 w-8 text-blue-600" />
+              <div className="mt-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-500">+{stats.userGrowth}% from last month</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Total Orders</p>
-                <h3 className="text-2xl font-bold text-gray-800">{stats.totalOrders.toLocaleString()}</h3>
-                <div className="flex items-center mt-2">
-                  <ArrowUpRight className="h-4 w-4 text-green-600 mr-1" />
-                  <span className="text-sm text-green-600">+{stats.orderGrowth}%</span>
-                  <span className="text-sm text-gray-500 ml-1">from last month</span>
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold text-green-600">{stats.totalOrders.toLocaleString()}</div>
+                  <p className="text-sm text-gray-600 mt-1">Total Orders</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl">
+                  <ShoppingBag className="h-6 w-6 text-green-600" />
                 </div>
               </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <ShoppingBag className="h-8 w-8 text-green-600" />
+              <div className="mt-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-500">+{stats.orderGrowth}% from last month</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                <h3 className="text-2xl font-bold text-gray-800">
-                  <SaudiRiyal amount={stats.totalRevenue} size="xl" />
-                </h3>
-                <div className="flex items-center mt-2">
-                  <ArrowUpRight className="h-4 w-4 text-green-600 mr-1" />
-                  <span className="text-sm text-green-600">+{stats.monthlyGrowth}%</span>
-                  <span className="text-sm text-gray-500 ml-1">from last month</span>
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold text-[#12d6fa]">
+                    <SaudiRiyal amount={stats.totalRevenue} size="xl" />
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">Total Revenue</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 rounded-xl">
+                  <DollarSign className="h-6 w-6 text-yellow-600" />
                 </div>
               </div>
-              <div className="bg-yellow-100 p-3 rounded-full">
-                <DollarSign className="h-8 w-8 text-yellow-600" />
+              <div className="mt-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-500">+{stats.monthlyGrowth}% from last month</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Total Products</p>
-                <h3 className="text-2xl font-bold text-gray-800">{stats.totalProducts}</h3>
-                <div className="flex items-center mt-2">
-                  <span className="text-sm text-gray-500">Across all categories</span>
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold text-purple-600">{stats.totalProducts}</div>
+                  <p className="text-sm text-gray-600 mt-1">Total Products</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-xl">
+                  <Package className="h-6 w-6 text-purple-600" />
                 </div>
               </div>
-              <div className="bg-purple-100 p-3 rounded-full">
-                <Package className="h-8 w-8 text-purple-600" />
+              <div className="mt-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-500">Across all categories</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
 
-      {/* Secondary Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Low Stock Alert</p>
-                <h3 className="text-2xl font-bold text-red-600">{stats.lowStockProducts}</h3>
-                <p className="text-sm text-gray-500">Products need restocking</p>
+        {/* Premium Secondary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold text-red-600">{stats.lowStockProducts}</div>
+                  <p className="text-sm text-gray-600 mt-1">Low Stock Alert</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-xl">
+                  <AlertCircle className="h-6 w-6 text-red-600" />
+                </div>
               </div>
-              <div className="bg-red-100 p-3 rounded-full">
-                <AlertCircle className="h-8 w-8 text-red-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Pending Orders</p>
-                <h3 className="text-2xl font-bold text-orange-600">{stats.pendingOrders}</h3>
-                <p className="text-sm text-gray-500">Awaiting processing</p>
-              </div>
-              <div className="bg-orange-100 p-3 rounded-full">
-                <Clock className="h-8 w-8 text-orange-600" />
+              <div className="mt-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-500">Products need restocking</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Testimonials</p>
-                <h3 className="text-2xl font-bold text-gray-800">{stats.totalTestimonials}</h3>
-                <p className="text-sm text-gray-500">Customer reviews</p>
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold text-orange-600">{stats.pendingOrders}</div>
+                  <p className="text-sm text-gray-600 mt-1">Pending Orders</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-xl">
+                  <Clock className="h-6 w-6 text-orange-600" />
+                </div>
               </div>
-              <div className="bg-indigo-100 p-3 rounded-full">
-                <Star className="h-8 w-8 text-indigo-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Contact Messages</p>
-                <h3 className="text-2xl font-bold text-gray-800">{stats.totalContacts}</h3>
-                <p className="text-sm text-gray-500">New inquiries</p>
-              </div>
-              <div className="bg-teal-100 p-3 rounded-full">
-                <MessageSquare className="h-8 w-8 text-teal-600" />
+              <div className="mt-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-500">Awaiting processing</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold text-indigo-600">{stats.totalTestimonials}</div>
+                  <p className="text-sm text-gray-600 mt-1">Testimonials</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 rounded-xl">
+                  <Star className="h-6 w-6 text-indigo-600" />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-500">Customer reviews</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold text-teal-600">{stats.totalContacts}</div>
+                  <p className="text-sm text-gray-600 mt-1">Contact Messages</p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-teal-500/20 to-teal-600/20 rounded-xl">
+                  <MessageSquare className="h-6 w-6 text-teal-600" />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-gray-500">New inquiries</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
-              Sales Overview (Last 12 Months)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <Line 
-                data={salesData} 
-                options={lineChartOptions} 
-              />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Package className="h-5 w-5 mr-2 text-blue-600" />
-              Product Categories Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <Bar 
-                data={productCategoryData} 
-                options={barChartOptions} 
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <ShoppingBag className="h-5 w-5 mr-2 text-purple-600" />
-              Order Status Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80 flex items-center justify-center">
-              <div className="w-64">
-                <Doughnut 
-                  data={orderStatusData} 
-                  options={doughnutChartOptions} 
+        {/* Premium Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center mb-6">
+                <div className="p-3 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl mr-4">
+                  <TrendingUp className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Sales Overview</h3>
+                  <p className="text-sm text-gray-600">Last 12 Months Performance</p>
+                </div>
+              </div>
+              <div className="h-80">
+                <Line 
+                  data={salesData} 
+                  options={lineChartOptions} 
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Activity className="h-5 w-5 mr-2 text-orange-600" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                { user: "Ahmed", action: "placed an order", time: "5 minutes ago", type: "order" },
-                { user: "Sara", action: "registered a new account", time: "2 hours ago", type: "user" },
-                { user: "Admin", action: "added 5 new products", time: "Yesterday", type: "product" },
-                { user: "Mohammed", action: "left a product review", time: "Yesterday", type: "review" },
-                { user: "Fatima", action: "placed an order", time: "2 days ago", type: "order" }
-              ].map((activity, index) => (
-                <div key={index} className="flex items-center border-b pb-3 last:border-0 last:pb-0">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
-                    {activity.user.charAt(0)}
-                  </div>
-                  <div className="ml-3 flex-1">
-                    <p className="text-sm">
-                      <span className="font-medium">{activity.user}</span> {activity.action}
-                    </p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    {activity.type}
-                  </Badge>
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center mb-6">
+                <div className="p-3 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl mr-4">
+                  <Package className="h-6 w-6 text-blue-600" />
                 </div>
-              ))}
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Product Categories</h3>
+                  <p className="text-sm text-gray-600">Distribution Analysis</p>
+                </div>
+              </div>
+              <div className="h-80">
+                <Bar 
+                  data={productCategoryData} 
+                  options={barChartOptions} 
+                />
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
 
-      {/* Recent Orders and Products */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center">
-                <ShoppingBag className="h-5 w-5 mr-2 text-green-600" />
-                Recent Orders
-              </CardTitle>
-              <Button variant="outline" size="sm" onClick={() => router.push('/admin/orders')}>
-                View All
-              </Button>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center mb-6">
+                <div className="p-3 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-xl mr-4">
+                  <ShoppingBag className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Order Status</h3>
+                  <p className="text-sm text-gray-600">Distribution Analysis</p>
+                </div>
+              </div>
+              <div className="h-80 flex items-center justify-center">
+                <div className="w-64">
+                  <Doughnut 
+                    data={orderStatusData} 
+                    options={doughnutChartOptions} 
+                  />
+                </div>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentOrders.map((order) => (
-                <div key={order._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <ShoppingBag className="h-5 w-5 text-blue-600" />
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center mb-6">
+                <div className="p-3 bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-xl mr-4">
+                  <Activity className="h-6 w-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Recent Activity</h3>
+                  <p className="text-sm text-gray-600">Live System Updates</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                {[
+                  { user: "Ahmed", action: "placed an order", time: "5 minutes ago", type: "order" },
+                  { user: "Sara", action: "registered a new account", time: "2 hours ago", type: "user" },
+                  { user: "Admin", action: "added 5 new products", time: "Yesterday", type: "product" },
+                  { user: "Mohammed", action: "left a product review", time: "Yesterday", type: "review" },
+                  { user: "Fatima", action: "placed an order", time: "2 days ago", type: "order" }
+                ].map((activity, index) => (
+                  <div key={index} className="flex items-center border-b pb-3 last:border-0 last:pb-0">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 font-medium">
+                      {activity.user.charAt(0)}
                     </div>
-                    <div>
-                      <p className="font-medium text-sm">{order.orderNumber}</p>
-                      <p className="text-xs text-gray-500">{order.customerName}</p>
+                    <div className="ml-3 flex-1">
+                      <p className="text-sm">
+                        <span className="font-medium">{activity.user}</span> {activity.action}
+                      </p>
+                      <p className="text-xs text-gray-500">{activity.time}</p>
                     </div>
-                  </div>
-                  <div className="text-right">
-                                         <p className="font-medium text-sm">
-                       <SaudiRiyal amount={order.total} size="sm" />
-                     </p>
-                    <Badge className={`text-xs ${getStatusColor(order.status)}`}>
-                      {order.status}
+                    <Badge variant="outline" className="text-xs">
+                      {activity.type}
                     </Badge>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center">
-                <Package className="h-5 w-5 mr-2 text-purple-600" />
-                Recent Products
-              </CardTitle>
-              <Button variant="outline" size="sm" onClick={() => router.push('/admin/products')}>
-                View All
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentProducts.map((product) => (
-                <div key={product._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                      <Package className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{product.name}</p>
-                      <p className="text-xs text-gray-500 capitalize">{product.category}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                                         <p className="font-medium text-sm">
-                       <SaudiRiyal amount={product.price} size="sm" />
-                     </p>
-                    <div className="flex items-center space-x-2">
-                      <span className={`text-xs ${product.stock < 10 ? 'text-red-600' : 'text-green-600'}`}>
-                        Stock: {product.stock}
-                      </span>
-                      {product.isBestSeller && (
-                        <Star className="h-3 w-3 text-yellow-500" />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Activity className="h-5 w-5 mr-2 text-blue-600" />
-            Quick Actions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col space-y-2 hover:bg-blue-50 hover:border-blue-200 transition-colors"
-              onClick={() => router.push('/admin/products')}
-            >
-              <Plus className="h-6 w-6 text-blue-600" />
-              <span className="font-medium">Add Product</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col space-y-2 hover:bg-green-50 hover:border-green-200 transition-colors"
-              onClick={() => router.push('/admin/users')}
-            >
-              <Users className="h-6 w-6 text-green-600" />
-              <span className="font-medium">Manage Users</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col space-y-2 hover:bg-purple-50 hover:border-purple-200 transition-colors"
-              onClick={() => router.push('/admin/orders')}
-            >
-              <ShoppingBag className="h-6 w-6 text-purple-600" />
-              <span className="font-medium">View Orders</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col space-y-2 hover:bg-orange-50 hover:border-orange-200 transition-colors"
-              onClick={() => router.push('/admin/recipes')}
-            >
-              <Utensils className="h-6 w-6 text-orange-600" />
-              <span className="font-medium">Manage Recipes</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col space-y-2 hover:bg-orange-50 hover:border-orange-200 transition-colors"
-              onClick={() => router.push('/admin/blog')}
-            >
-              <FileText className="h-6 w-6 text-orange-600" />
-              <span className="font-medium">Create Post</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col space-y-2 hover:bg-cyan-50 hover:border-cyan-200 transition-colors"
-              onClick={() => setIsChatOpen(true)}
-            >
-              <MessageSquare className="h-6 w-6 text-cyan-600" />
-              <span className="font-medium">Live Chat</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Notifications & Alerts */}
-      <Card className="shadow-sm mt-6">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <AlertCircle className="h-5 w-5 mr-2 text-red-600" />
-            Important Alerts
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {stats.lowStockProducts > 0 && (
-              <div className="flex items-center p-3 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-red-600 mr-3" />
-                <div className="flex-1">
-                  <p className="font-medium text-red-800">
-                    {stats.lowStockProducts} products have low stock
-                  </p>
-                  <p className="text-sm text-red-600">
-                    Consider restocking these items to avoid stockouts
-                  </p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => router.push('/admin/products')}
-                  className="border-red-200 text-red-700 hover:bg-red-100"
-                >
-                  View Products
-                </Button>
+                ))}
               </div>
-            )}
-            
-            {stats.pendingOrders > 0 && (
-              <div className="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <Clock className="h-5 w-5 text-yellow-600 mr-3" />
-                <div className="flex-1">
-                  <p className="font-medium text-yellow-800">
-                    {stats.pendingOrders} orders pending processing
-                  </p>
-                  <p className="text-sm text-yellow-600">
-                    Process these orders to improve customer satisfaction
-                  </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Premium Recent Orders and Products */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl mr-4">
+                    <ShoppingBag className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Recent Orders</h3>
+                    <p className="text-sm text-gray-600">Latest customer orders</p>
+                  </div>
                 </div>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={() => router.push('/admin/orders')}
-                  className="border-yellow-200 text-yellow-700 hover:bg-yellow-100"
+                  className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 px-4 py-2 rounded-xl transition-all duration-300"
                 >
-                  View Orders
+                  View All
                 </Button>
               </div>
-            )}
-
-            {stats.totalContacts > 0 && (
-              <div className="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <MessageSquare className="h-5 w-5 text-blue-600 mr-3" />
-                <div className="flex-1">
-                  <p className="font-medium text-blue-800">
-                    {stats.totalContacts} new contact messages
-                  </p>
-                  <p className="text-sm text-blue-600">
-                    Respond to customer inquiries promptly
-                  </p>
+              <div className="space-y-4">
+                {recentOrders.map((order) => (
+                  <div key={order._id} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50/80 to-gray-100/60 rounded-xl border border-gray-200/50">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-full flex items-center justify-center">
+                        <ShoppingBag className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{order.orderNumber}</p>
+                        <p className="text-xs text-gray-500">{order.customerName}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-sm">
+                        <SaudiRiyal amount={order.total} size="sm" />
+                      </p>
+                      <Badge className={`text-xs ${getStatusColor(order.status)}`}>
+                        {order.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+            <div className="relative p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-xl mr-4">
+                    <Package className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Recent Products</h3>
+                    <p className="text-sm text-gray-600">Latest product additions</p>
+                  </div>
                 </div>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => router.push('/admin/contact')}
-                  className="border-blue-200 text-blue-700 hover:bg-blue-100"
+                  onClick={() => router.push('/admin/products')}
+                  className="border-2 border-gray-300 hover:border-purple-500 hover:bg-purple-50 px-4 py-2 rounded-xl transition-all duration-300"
                 >
-                  View Messages
+                  View All
                 </Button>
               </div>
-            )}
-
-            {stats.lowStockProducts === 0 && stats.pendingOrders === 0 && stats.totalContacts === 0 && (
-              <div className="flex items-center p-3 bg-green-50 border border-green-200 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-                <div className="flex-1">
-                  <p className="font-medium text-green-800">
-                    All systems are running smoothly!
-                  </p>
-                  <p className="text-sm text-green-600">
-                    No urgent actions required at this time
-                  </p>
-                </div>
+              <div className="space-y-4">
+                {recentProducts.map((product) => (
+                  <div key={product._id} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50/80 to-gray-100/60 rounded-xl border border-gray-200/50">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-full flex items-center justify-center">
+                        <Package className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{product.name}</p>
+                        <p className="text-xs text-gray-500 capitalize">{product.category}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-sm">
+                        <SaudiRiyal amount={product.price} size="sm" />
+                      </p>
+                      <div className="flex items-center space-x-2">
+                        <span className={`text-xs ${product.stock < 10 ? 'text-red-600' : 'text-green-600'}`}>
+                          Stock: {product.stock}
+                        </span>
+                        {product.isBestSeller && (
+                          <Star className="h-3 w-3 text-yellow-500" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Premium Quick Actions */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+          <div className="relative p-6">
+            <div className="flex items-center mb-6">
+              <div className="p-3 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl mr-4">
+                <Activity className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Quick Actions</h3>
+                <p className="text-sm text-gray-600">Access frequently used features</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              <Button 
+                variant="outline" 
+                className="h-24 flex-col space-y-3 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 transform hover:scale-105 rounded-xl border-2"
+                onClick={() => router.push('/admin/products')}
+              >
+                <div className="p-2 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg">
+                  <Plus className="h-6 w-6 text-blue-600" />
+                </div>
+                <span className="font-medium text-sm">Add Product</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-24 flex-col space-y-3 hover:bg-green-50 hover:border-green-300 transition-all duration-300 transform hover:scale-105 rounded-xl border-2"
+                onClick={() => router.push('/admin/users')}
+              >
+                <div className="p-2 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg">
+                  <Users className="h-6 w-6 text-green-600" />
+                </div>
+                <span className="font-medium text-sm">Manage Users</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-24 flex-col space-y-3 hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 transform hover:scale-105 rounded-xl border-2"
+                onClick={() => router.push('/admin/orders')}
+              >
+                <div className="p-2 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg">
+                  <ShoppingBag className="h-6 w-6 text-purple-600" />
+                </div>
+                <span className="font-medium text-sm">View Orders</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-24 flex-col space-y-3 hover:bg-orange-50 hover:border-orange-300 transition-all duration-300 transform hover:scale-105 rounded-xl border-2"
+                onClick={() => router.push('/admin/recipes')}
+              >
+                <div className="p-2 bg-gradient-to-br from-orange-500/20 to-orange-600/20 rounded-lg">
+                  <Utensils className="h-6 w-6 text-orange-600" />
+                </div>
+                <span className="font-medium text-sm">Manage Recipes</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-24 flex-col space-y-3 hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300 transform hover:scale-105 rounded-xl border-2"
+                onClick={() => router.push('/admin/blog')}
+              >
+                <div className="p-2 bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 rounded-lg">
+                  <FileText className="h-6 w-6 text-indigo-600" />
+                </div>
+                <span className="font-medium text-sm">Create Post</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-24 flex-col space-y-3 hover:bg-cyan-50 hover:border-cyan-300 transition-all duration-300 transform hover:scale-105 rounded-xl border-2"
+                onClick={() => setIsChatOpen(true)}
+              >
+                <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 rounded-lg">
+                  <MessageSquare className="h-6 w-6 text-cyan-600" />
+                </div>
+                <span className="font-medium text-sm">Live Chat</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Premium Notifications & Alerts */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30"></div>
+          <div className="relative p-6">
+            <div className="flex items-center mb-6">
+              <div className="p-3 bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-xl mr-4">
+                <AlertCircle className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Important Alerts</h3>
+                <p className="text-sm text-gray-600">System notifications and warnings</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              {stats.lowStockProducts > 0 && (
+                <div className="flex items-center p-4 bg-gradient-to-r from-red-50/80 to-red-100/60 border border-red-200/50 rounded-xl">
+                  <div className="p-2 bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-lg mr-4">
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-red-800">
+                      {stats.lowStockProducts} products have low stock
+                    </p>
+                    <p className="text-sm text-red-600">
+                      Consider restocking these items to avoid stockouts
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => router.push('/admin/products')}
+                    className="border-2 border-red-200 text-red-700 hover:bg-red-100 px-4 py-2 rounded-xl transition-all duration-300"
+                  >
+                    View Products
+                  </Button>
+                </div>
+              )}
+              
+              {stats.pendingOrders > 0 && (
+                <div className="flex items-center p-4 bg-gradient-to-r from-yellow-50/80 to-yellow-100/60 border border-yellow-200/50 rounded-xl">
+                  <div className="p-2 bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 rounded-lg mr-4">
+                    <Clock className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-yellow-800">
+                      {stats.pendingOrders} orders pending processing
+                    </p>
+                    <p className="text-sm text-yellow-600">
+                      Process these orders to improve customer satisfaction
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => router.push('/admin/orders')}
+                    className="border-2 border-yellow-200 text-yellow-700 hover:bg-yellow-100 px-4 py-2 rounded-xl transition-all duration-300"
+                  >
+                    View Orders
+                  </Button>
+                </div>
+              )}
+
+              {stats.totalContacts > 0 && (
+                <div className="flex items-center p-4 bg-gradient-to-r from-blue-50/80 to-blue-100/60 border border-blue-200/50 rounded-xl">
+                  <div className="p-2 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg mr-4">
+                    <MessageSquare className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-blue-800">
+                      {stats.totalContacts} new contact messages
+                    </p>
+                    <p className="text-sm text-blue-600">
+                      Respond to customer inquiries promptly
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => router.push('/admin/contact')}
+                    className="border-2 border-blue-200 text-blue-700 hover:bg-blue-100 px-4 py-2 rounded-xl transition-all duration-300"
+                  >
+                    View Messages
+                  </Button>
+                </div>
+              )}
+
+              {stats.lowStockProducts === 0 && stats.pendingOrders === 0 && stats.totalContacts === 0 && (
+                <div className="flex items-center p-4 bg-gradient-to-r from-green-50/80 to-green-100/60 border border-green-200/50 rounded-xl">
+                  <div className="p-2 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-lg mr-4">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-green-800">
+                      All systems are running smoothly!
+                    </p>
+                    <p className="text-sm text-green-600">
+                      No urgent actions required at this time
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Admin Chat Dashboard */}
       <AdminChatDashboard 

@@ -71,7 +71,7 @@ function ContactSettingsPageContent() {
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                       Contact Page Settings
                     </h1>
-                    <p className="text-gray-600 text-lg mt-2">Configure contact methods, availability, and copy</p>
+                    <p className="text-gray-600 text-lg mt-2">Configure contact methods, form settings, and page copy</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -86,6 +86,16 @@ function ContactSettingsPageContent() {
                 </div>
               </div>
               <div className="flex gap-3 flex-wrap">
+                <Button 
+                  variant="outline"
+                  className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 transition-all duration-300"
+                  asChild
+                >
+                  <a href="/admin/chat-management/settings">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Chat Settings
+                  </a>
+                </Button>
                 <Button 
                   onClick={handleSave}
                   disabled={isSaving}
@@ -105,20 +115,13 @@ function ContactSettingsPageContent() {
           {/* Premium Tabs */}
           <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
             <Tabs defaultValue="methods" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4 bg-gray-100/50 p-1 rounded-xl">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-100/50 p-1 rounded-xl">
                 <TabsTrigger 
                   value="methods" 
                   className="data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 transition-all duration-300"
                 >
                   <MessageSquare className="w-4 h-4 mr-2" />
                   Contact Methods
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="availability"
-                  className="data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 transition-all duration-300"
-                >
-                  <Clock className="w-4 h-4 mr-2" />
-                  Availability
                 </TabsTrigger>
                 <TabsTrigger 
                   value="form"
@@ -261,133 +264,30 @@ function ContactSettingsPageContent() {
                   </div>
                 </div>
 
-                {/* Live Chat Settings */}
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg">
+                {/* Live Chat Settings - Moved to Chat Management */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
                       <MessageSquare className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-gray-900">Live Chat Settings</h3>
-                      <p className="text-gray-600">Configure live chat availability and settings</p>
+                      <h3 className="text-xl font-bold text-gray-900">Live Chat Settings</h3>
+                      <p className="text-gray-600">Chat configuration has been moved to the dedicated Chat Management page</p>
                     </div>
                   </div>
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl">
-                      <div>
-                        <Label htmlFor="chat-enabled" className="text-lg font-semibold text-gray-900">Enable Live Chat</Label>
-                        <p className="text-sm text-gray-600">Allow customers to chat in real-time</p>
-                      </div>
-                      <Switch
-                        id="chat-enabled"
-                        checked={settings.chat.enabled}
-                        onCheckedChange={(checked) => 
-                          updateSettings({ 
-                            chat: { ...settings.chat, enabled: checked } 
-                          })
-                        }
-                        className="data-[state=checked]:bg-purple-600"
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="chat-start" className="text-lg font-semibold text-gray-900">Start Time</Label>
-                        <Input
-                          id="chat-start"
-                          type="time"
-                          value={settings.chat.hours.start}
-                          onChange={(e) => 
-                            updateSettings({ 
-                              chat: { 
-                                ...settings.chat, 
-                                hours: { ...settings.chat.hours, start: e.target.value } 
-                              }
-                            })
-                          }
-                          className="h-12 text-lg border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="chat-end" className="text-lg font-semibold text-gray-900">End Time</Label>
-                        <Input
-                          id="chat-end"
-                          type="time"
-                          value={settings.chat.hours.end}
-                          onChange={(e) => 
-                            updateSettings({ 
-                              chat: { 
-                                ...settings.chat, 
-                                hours: { ...settings.chat.hours, end: e.target.value } 
-                              }
-                            })
-                          }
-                          className="h-12 text-lg border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300"
-                        />
-                      </div>
+                  <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-blue-100">
+                    <p className="text-sm text-gray-700 mb-4">
+                      All live chat settings including working hours, holidays, and availability are now managed in the 
+                      <strong> Chat Management</strong> section for better organization and real-time control.
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-blue-700">
+                      <MessageSquare className="w-4 h-4" />
+                      <span>Go to <strong>Admin → Chat Management → Settings</strong> to configure chat settings</span>
                     </div>
                   </div>
                 </div>
               </TabsContent>
 
-              {/* Availability Settings */}
-              <TabsContent value="availability" className="space-y-6">
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg">
-                      <Clock className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900">Chat Hours & Holidays</h3>
-                      <p className="text-gray-600">Configure availability and holiday schedules</p>
-                    </div>
-                  </div>
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="timezone" className="text-lg font-semibold text-gray-900">Timezone</Label>
-                      <Select
-                        value={settings.chat.hours.timezone}
-                        onValueChange={(value) => 
-                          updateSettings({ 
-                            chat: { 
-                              ...settings.chat, 
-                              hours: { ...settings.chat.hours, timezone: value } 
-                            }
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-12 text-lg border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-300">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Asia/Riyadh">Asia/Riyadh</SelectItem>
-                          <SelectItem value="UTC">UTC</SelectItem>
-                          <SelectItem value="America/New_York">America/New_York</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="holidays" className="text-lg font-semibold text-gray-900">Holiday Dates (one per line)</Label>
-                      <Textarea
-                        id="holidays"
-                        value={settings.chat.holidays.join('\n')}
-                        onChange={(e) => 
-                          updateSettings({ 
-                            chat: { 
-                              ...settings.chat, 
-                              holidays: e.target.value.split('\n').filter(date => date.trim()) 
-                            }
-                          })
-                        }
-                        placeholder="2024-01-01&#10;2024-12-25"
-                        className="border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-300"
-                        rows={4}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
 
               {/* Form Settings */}
               <TabsContent value="form" className="space-y-6">

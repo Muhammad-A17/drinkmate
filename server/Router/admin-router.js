@@ -82,6 +82,20 @@ router.delete('/users/:id', authMiddleware, adminMiddleware, deleteUser);
 // Orders routes
 router.get('/orders', authMiddleware, adminMiddleware, orderController.getAllOrders);
 
+// Product management routes
+router.get('/products', authMiddleware, adminMiddleware, require('../Controller/product-controller').getAllProducts);
+router.get('/products/:id', authMiddleware, adminMiddleware, require('../Controller/product-controller').getProduct);
+router.post('/products', authMiddleware, adminMiddleware, require('../Controller/product-controller').createProduct);
+router.put('/products/:id', authMiddleware, adminMiddleware, require('../Controller/product-controller').updateProduct);
+router.delete('/products/:id', authMiddleware, adminMiddleware, require('../Controller/product-controller').deleteProduct);
+
+// Bundle management routes
+router.get('/bundles', authMiddleware, adminMiddleware, require('../Controller/product-controller').getBundles);
+router.get('/bundles/:id', authMiddleware, adminMiddleware, require('../Controller/product-controller').getBundle);
+router.post('/bundles', authMiddleware, adminMiddleware, require('../Controller/product-controller').createBundle);
+router.put('/bundles/:id', authMiddleware, adminMiddleware, require('../Controller/product-controller').updateBundle);
+router.delete('/bundles/:id', authMiddleware, adminMiddleware, require('../Controller/product-controller').deleteBundle);
+
 // Review management routes
 router.get('/reviews', authMiddleware, adminMiddleware, require('../Controller/product-controller').getAllReviews);
 router.put('/reviews/:id/status', authMiddleware, adminMiddleware, require('../Controller/product-controller').updateReviewStatus);

@@ -345,6 +345,30 @@ chatSchema.methods.rateChat = function(score, feedback = '') {
   return this.save();
 };
 
+// Method for customer to close and rate chat
+chatSchema.methods.customerCloseAndRate = function(score, feedback = '') {
+  this.status = 'closed';
+  this.rating = {
+    score: score,
+    feedback: feedback,
+    ratedAt: new Date()
+  };
+  this.resolution = {
+    resolvedAt: new Date(),
+    resolvedBy: null, // Customer closure
+    resolutionNotes: 'Closed by customer'
+  };
+  this.messages.push({
+    sender: 'system',
+    senderId: null,
+    content: `Chat closed by customer with rating: ${score}/5 stars${feedback ? ` - ${feedback}` : ''}`,
+    messageType: 'system',
+    timestamp: new Date()
+  });
+  this.lastMessageAt = new Date();
+  return this.save();
+};
+
 // Method to track first response
 chatSchema.methods.trackFirstResponse = function() {
   if (!this.sla.firstResponseAt) {
@@ -383,6 +407,82 @@ chatSchema.statics.getChatStats = function() {
       }
     }
   ]);
+};
+
+// Method to check if chat session has expired (4 hours)
+chatSchema.methods.isSessionExpired = function() {
+  const now = new Date();
+  const lastActivity = this.lastMessageAt || this.createdAt;
+  const fourHoursAgo = new Date(now.getTime() - (4 * 60 * 60 * 1000)); // 4 hours in milliseconds
+  
+  return lastActivity < fourHoursAgo;
+};
+
+// Method to close expired session
+chatSchema.methods.closeExpiredSession = function() {
+  if (this.isSessionExpired() && this.status !== 'closed') {
+    this.status = 'closed';
+    this.resolution = {
+      resolvedAt: new Date(),
+      resolvedBy: null, // System closure
+      resolutionNotes: 'Session expired after 4 hours of inactivity'
+    };
+    this.messages.push({
+      sender: 'system',
+      senderId: null,
+      content: 'Chat session expired after 4 hours of inactivity and has been automatically closed',
+      messageType: 'system',
+      timestamp: new Date()
+    });
+    this.lastMessageAt = new Date();
+    return this.save();
+  }
+  return Promise.resolve(this);
+};
+
+// Static method to close all expired sessions
+chatSchema.statics.closeExpiredSessions = async function() {
+  try {
+    const now = new Date();
+    const fourHoursAgo = new Date(now.getTime() - (4 * 60 * 60 * 1000));
+    
+    // Find all active chats that haven't had activity in the last 4 hours
+    const expiredChats = await this.find({
+      status: { $in: ['active', 'waiting'] },
+      lastMessageAt: { $lt: fourHoursAgo }
+    });
+    
+    console.log(`Found ${expiredChats.length} expired chat sessions to close`);
+    
+    // Close each expired session
+    const closePromises = expiredChats.map(chat => chat.closeExpiredSession());
+    const results = await Promise.all(closePromises);
+    
+    console.log(`Successfully closed ${results.length} expired chat sessions`);
+    return results;
+  } catch (error) {
+    console.error('Error closing expired sessions:', error);
+    throw error;
+  }
+};
+
+// Static method to get session timeout info
+chatSchema.statics.getSessionTimeoutInfo = function(chatId) {
+  return this.findById(chatId).then(chat => {
+    if (!chat) return null;
+    
+    const now = new Date();
+    const lastActivity = chat.lastMessageAt || chat.createdAt;
+    const timeUntilExpiry = (4 * 60 * 60 * 1000) - (now.getTime() - lastActivity.getTime());
+    
+    return {
+      chatId: chat._id,
+      lastActivity: lastActivity,
+      timeUntilExpiry: Math.max(0, timeUntilExpiry),
+      isExpired: chat.isSessionExpired(),
+      expiresAt: new Date(lastActivity.getTime() + (4 * 60 * 60 * 1000))
+    };
+  });
 };
 
 module.exports = mongoose.model('Chat', chatSchema);

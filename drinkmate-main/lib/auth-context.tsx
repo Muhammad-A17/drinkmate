@@ -6,9 +6,8 @@ import { authAPI } from './api';
 interface User {
   _id: string;
   username: string;
+  name: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
   phone?: string;
   avatar?: string;
   isAdmin: boolean;
@@ -103,9 +102,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 fallbackUser = {
                   _id: tokenData.id,
                   username: tokenData.username || 'User',
+                  name: tokenData.name || tokenData.username || 'User',
                   email: tokenData.email || '',
-                  firstName: tokenData.firstName || 'User',
-                  lastName: tokenData.lastName || 'Name',
                   isAdmin: tokenData.isAdmin || tokenData.role === 'admin',
                   phone: tokenData.phone || '',
                   avatar: tokenData.avatar || '',
@@ -206,6 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const demoUser = {
           _id: 'demo_user_123',
           username: 'Test User',
+          name: 'Test User',
           email: 'test@example.com',
           isAdmin: false
         };
@@ -272,6 +271,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const demoUser = {
           _id: 'demo_user_' + Date.now(),
           username,
+          name: username,
           email,
           isAdmin: false
         };

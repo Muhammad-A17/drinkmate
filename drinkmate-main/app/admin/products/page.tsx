@@ -47,7 +47,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import ProductForm from "@/components/admin/ProductForm"
-import { shopAPI } from "@/lib/api"
+import { adminAPI } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 
 // Define types for better type safety
@@ -140,7 +140,7 @@ export default function ProductsPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await shopAPI.getCategories()
+      const response = await adminAPI.getCategories()
       if (response.success) {
         setCategories(response.categories || [])
         // Create a mapping of category ID to name
@@ -161,8 +161,8 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     try {
       setIsLoading(true)
-      // Fetching products...
-      const response = await shopAPI.getProducts({ limit: 100 })
+      // Fetching products from admin API...
+      const response = await adminAPI.getProducts({ limit: 100 })
       if (response.success) {
         setProducts(response.products || [])
       } else {
@@ -221,7 +221,7 @@ export default function ProductsPage() {
         dimensions: productData.dimensions
       }
 
-      const response = await shopAPI.createProduct(productPayload)
+      const response = await adminAPI.createProduct(productPayload)
       
       if (response.success) {
         toast({
@@ -280,7 +280,7 @@ export default function ProductsPage() {
       }
 
       console.log('Sending update payload:', productPayload)
-      const response = await shopAPI.updateProduct(editingProduct._id, productPayload)
+      const response = await adminAPI.updateProduct(editingProduct._id, productPayload)
       
       if (response.success) {
         toast({
@@ -310,7 +310,7 @@ export default function ProductsPage() {
     
     try {
       console.log('Deleting product with ID:', id)
-      const response = await shopAPI.deleteProduct(id)
+      const response = await adminAPI.deleteProduct(id)
       
       if (response.success) {
         toast({

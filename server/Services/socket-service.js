@@ -346,6 +346,30 @@ class SocketService {
         }
       });
 
+      // Handle chat_updated event (forward to customer)
+      socket.on('chat_updated', (data) => {
+        try {
+          const { chatId, status, assignedTo } = data;
+          
+          if (!socket.user.isAdmin) {
+            socket.emit('error', { message: 'Admin access required' });
+            return;
+          }
+
+          // Forward the event to all users in the chat room
+          this.io.to(`chat_${chatId}`).emit('chat_updated', {
+            chatId: chatId,
+            status: status,
+            assignedTo: assignedTo
+          });
+
+          console.log(`Chat updated event forwarded for chat ${chatId}:`, { status, assignedTo });
+        } catch (error) {
+          console.error('Error forwarding chat_updated event:', error);
+          socket.emit('error', { message: 'Failed to forward chat update' });
+        }
+      });
+
       // Handle disconnect
       socket.on('disconnect', () => {
         console.log(`User disconnected: ${socket.user.username} (${socket.userId || 'guest'})`);

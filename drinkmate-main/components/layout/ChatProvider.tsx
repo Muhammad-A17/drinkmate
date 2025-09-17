@@ -21,10 +21,11 @@ export default function ChatProvider() {
   }
 
   // Show chat widget on support pages and contact page, but only for authenticated users
-  const isSupportPage = pathname?.startsWith('/account/support') || pathname?.startsWith('/support')
+  const isSupportPage = pathname?.startsWith('/support')
   const isContactPage = pathname === '/contact'
+  const is404Page = pathname === '/404' || pathname === '/not-found'
   
-  if (!isSupportPage && !isContactPage) {
+  if ((!isSupportPage && !isContactPage) || is404Page) {
     return null
   }
 

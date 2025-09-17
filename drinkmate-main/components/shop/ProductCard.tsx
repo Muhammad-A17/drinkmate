@@ -63,7 +63,7 @@ export default function ProductCard({
     >
       {/* Image */}
       <Link
-        href={`/product/${product.slug}`}
+        href={`/shop/${product.slug}`}
         className="relative block overflow-hidden rounded-t-2xl"
         aria-label={product.title}
       >
@@ -111,27 +111,34 @@ export default function ProductCard({
       <div className="flex flex-1 flex-col gap-3 p-4">
         {/* Title */}
         <Link
-          href={`/product/${product.slug}`}
+          href={`/shop/${product.slug}`}
           className="line-clamp-2 font-montserrat font-semibold text-neutral-900 hover:text-sky-600 transition-colors"
         >
           {product.title}
         </Link>
 
         {/* Rating */}
-        {typeof product.rating === "number" && (
+        {product.rating && (
           <div className="flex items-center gap-1 text-amber-500">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <svg
-                key={i}
-                viewBox="0 0 24 24"
-                className={cn("w-4 h-4",
-                  i < (product.rating ?? 0) ? "fill-current" : "fill-amber-200"
-                )}
-                aria-hidden="true"
-              >
-                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-              </svg>
-            ))}
+            {Array.from({ length: 5 }).map((_, i) => {
+              // Get the numeric rating value regardless of the type
+              const ratingValue = typeof product.rating === 'number' 
+                ? product.rating 
+                : product.rating?.average || 0;
+              
+              return (
+                <svg
+                  key={i}
+                  viewBox="0 0 24 24"
+                  className={cn("w-4 h-4",
+                    i < ratingValue ? "fill-current" : "fill-amber-200"
+                  )}
+                  aria-hidden="true"
+                >
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                </svg>
+              );
+            })}
             {product.reviewCount ? (
               <span className="text-xs text-neutral-500 ms-1">
                 ({product.reviewCount})

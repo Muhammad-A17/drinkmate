@@ -6,7 +6,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "@/lib/translation-context"
 import { useState, useRef, useEffect } from "react"
-import { ChevronDown, ArrowRight, Star, Gift, Zap } from "lucide-react"
+import { ChevronDown, ArrowRight, Star, Gift, Zap, ShoppingBag } from "lucide-react"
 
 interface ShopMegaMenuProps {
   isOpen: boolean
@@ -40,7 +40,7 @@ function MenuTile({
   return (
     <Link 
       href={href} 
-      className={`tile group relative block rounded-xl p-3 sm:p-4 bg-white border border-slate-200/60 overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.03] hover:border-[#12d6fa]/30 hover:-translate-y-1 min-h-[100px] sm:min-h-[90px] ${className}`}
+      className={`tile group relative block rounded-2xl p-4 sm:p-5 bg-white border border-slate-200/50 overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-[#12d6fa]/40 hover:-translate-y-2 min-h-[110px] sm:min-h-[120px] ${className}`}
       onMouseEnter={onMouseEnter}
       onClick={onClick}
     >
@@ -49,18 +49,18 @@ function MenuTile({
           {badge}
         </span>
       )}
-      <div className="flex items-center justify-center mb-1 sm:mb-2 h-14 sm:h-16">
+      <div className="flex items-center justify-center mb-2 sm:mb-3 h-16 sm:h-18">
         <Image
           src={img}
           alt={alt}
-          width={56}
-          height={56}
-          className="object-contain group-hover:scale-110 transition-transform duration-300 w-14 h-14 sm:w-16 sm:h-16"
+          width={70}
+          height={70}
+          className="object-contain group-hover:scale-110 transition-transform duration-300 w-16 h-16 sm:w-18 sm:h-18 drop-shadow-sm"
           priority={false}
         />
       </div>
       <div className="text-center">
-        <span className="title block text-sm font-bold text-slate-900 mb-1 group-hover:text-[#12d6fa] transition-colors duration-200">
+        <span className="title block text-sm font-bold text-slate-900 mb-2 group-hover:text-[#12d6fa] transition-colors duration-200">
           {title}
         </span>
         <span className="subcta opacity-0 group-hover:opacity-100 transition-all duration-200 text-xs text-slate-500 font-medium flex items-center justify-center">
@@ -161,29 +161,28 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
             e.preventDefault()
             triggerRef.current?.focus()
           }}
-          className="mega-panel w-[min(1000px,96vw)] bg-white rounded-2xl shadow-2xl border border-slate-200/60 p-4 sm:p-6 z-50 max-h-[65vh] overflow-y-auto backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-200"
+          className="mega-panel w-[min(1000px,96vw)] bg-white rounded-3xl shadow-2xl border border-slate-200/40 p-6 sm:p-8 z-50 max-h-[70vh] overflow-y-auto backdrop-blur-md animate-in fade-in-0 zoom-in-95 duration-300"
           onMouseLeave={handleMouseLeave}
           onMouseEnter={handleMouseEnter}
         >
           {/* Header Section */}
-          <div className="mb-4 sm:mb-6">
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-1 font-montserrat">
+          <div className="mb-6 sm:mb-8 text-center">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2 font-montserrat">
               Shop by Category
             </h2>
-            <p className="text-xs text-slate-600 font-noto-sans">
+            <p className="text-sm text-slate-600 font-noto-sans max-w-md mx-auto">
               Discover our premium collection of soda makers, flavors, and accessories
             </p>
+            <div className="w-16 h-1 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-full mx-auto mt-3"></div>
           </div>
 
           {/* Category Grid - Row Layout */}
-          <div className="mega-grid grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
+          <div className="mega-grid grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <MenuTile
                 href="/shop/sodamakers"
                 title="Soda Makers"
                 img="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559855/Artic-Black-Machine---Front_pxsies.png"
                 alt="Soda Makers"
-                badge="Bestseller"
-                badgeColor="bg-green-600"
                 onMouseEnter={() => handlePrefetch("/shop/sodamakers")}
                 onClick={() => onOpenChange(false)}
               />
@@ -192,8 +191,6 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
                 title="Flavors"
                 img="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892917/italian-strawberry-lemon-syrup_x0cz9h.png"
                 alt="Flavors"
-                badge="Save 15%"
-                badgeColor="bg-orange-600"
                 onMouseEnter={() => handlePrefetch("/shop/flavor")}
                 onClick={() => onOpenChange(false)}
               />
@@ -210,79 +207,24 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
                 title="CO₂ Cylinders"
                 img="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893591/co2-cylinder-single_dcrdnx.png"
                 alt="CO2 Cylinders"
-                badge="Exchange"
-                badgeColor="bg-blue-600"
                 onMouseEnter={() => handlePrefetch("/co2")}
                 onClick={() => onOpenChange(false)}
               />
           </div>
 
-          {/* Quick Links Section */}
-          <div className="mb-4 sm:mb-6">
-            <h3 className="text-sm font-semibold text-slate-700 mb-3 font-montserrat">Quick Links</h3>
-            <nav className="quick-links flex flex-wrap gap-2 sm:gap-3" aria-label="Shop quick links">
-              <Link
-                href="/shop"
-                className="quick text-xs text-slate-600 hover:text-[#12d6fa] hover:bg-[#12d6fa]/5 px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-transparent hover:border-[#12d6fa]/20"
-                onClick={() => onOpenChange(false)}
-                onMouseEnter={() => handlePrefetch("/shop")}
-              >
-                All Soda Makers
-              </Link>
-              <Link
-                href="/shop/bundles"
-                className="quick text-xs text-slate-600 hover:text-[#12d6fa] hover:bg-[#12d6fa]/5 px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-transparent hover:border-[#12d6fa]/20"
-                onClick={() => onOpenChange(false)}
-                onMouseEnter={() => handlePrefetch("/shop/bundles")}
-              >
-                Bundles
-              </Link>
-              <Link
-                href="/shop/co2-cylinders"
-                className="quick text-xs text-slate-600 hover:text-[#12d6fa] hover:bg-[#12d6fa]/5 px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-transparent hover:border-[#12d6fa]/20"
-                onClick={() => onOpenChange(false)}
-                onMouseEnter={() => handlePrefetch("/shop/co2-cylinders")}
-              >
-                Cylinder Exchange
-              </Link>
-              <Link
-                href="/shop/starter-kits"
-                className="quick text-xs text-slate-600 hover:text-[#12d6fa] hover:bg-[#12d6fa]/5 px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-transparent hover:border-[#12d6fa]/20"
-                onClick={() => onOpenChange(false)}
-                onMouseEnter={() => handlePrefetch("/shop/starter-kits")}
-              >
-                Starter Kits
-              </Link>
-              <Link
-                href="/shop/best-sellers"
-                className="quick text-xs text-slate-600 hover:text-[#12d6fa] hover:bg-[#12d6fa]/5 px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-transparent hover:border-[#12d6fa]/20"
-                onClick={() => onOpenChange(false)}
-                onMouseEnter={() => handlePrefetch("/shop/best-sellers")}
-              >
-                Best Sellers
-              </Link>
-            </nav>
-          </div>
 
-          {/* Promo Section */}
-          <div className="promo flex flex-col sm:flex-row items-center justify-between bg-gradient-to-r from-[#12d6fa]/5 to-[#0bc4e8]/5 border border-[#12d6fa]/30 rounded-xl p-4 sm:p-5 gap-3 sm:gap-0">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-full flex items-center justify-center mr-3 shadow-lg">
-                <Gift className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <span className="text-sm font-bold text-slate-900 block font-montserrat">
-                  Free delivery above 150 ﷼
-                </span>
-                <span className="text-xs text-slate-600 font-noto-sans">
-                  On all orders within Saudi Arabia
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center text-xs text-slate-600 bg-white/70 px-3 py-1.5 rounded-full border border-slate-200">
-              <Zap className="w-3 h-3 mr-1 text-[#12d6fa]" />
-              Limited time offer
-            </div>
+          {/* Shop All Link */}
+          <div className="mt-6 pt-6 border-t border-slate-200/60">
+            <Link
+              href="/shop"
+              className="w-full flex items-center justify-center gap-3 text-slate-700 hover:text-slate-900 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:bg-slate-50 border border-slate-200 hover:border-slate-300"
+              onClick={() => onOpenChange(false)}
+              onMouseEnter={() => handlePrefetch("/shop")}
+            >
+              <ShoppingBag className="w-5 h-5" />
+              Shop All Products
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
 
           <Popover.Arrow className="fill-white" />

@@ -249,17 +249,29 @@ export default function Recipes() {
     <PageLayout currentPage="recipes">
       <div dir={isRTL ? "rtl" : "ltr"}>
         {/* Hero Section */}
-        <section className="relative py-8 md:py-16 bg-white animate-fade-in-up overflow-hidden">
+        <section className="relative py-12 md:py-16 overflow-hidden">
+          {/* Background Image */}
           <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-sky-500/20 to-emerald-500/20"></div>
+            <Image
+              src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/water-366586_bd4us9.jpg"
+              alt="Recipes background"
+              fill
+              className="object-cover"
+              priority
+            />
+            {/* Overlay with opacity */}
+            <div className="absolute inset-0 bg-black/40"></div>
+            {/* Gradient overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/50"></div>
           </div>
           
-          <div className="relative z-10 max-w-7xl mx-auto px-4">
-            <div className="text-center space-y-4 md:space-y-6">
-              <h1 className={`text-3xl md:text-5xl font-bold text-gray-900 leading-tight ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'} animate-slide-in-up tracking-tight`}>
+          {/* Content */}
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'} tracking-tight`}>
                 {isRTL ? "الوصفات" : "Recipes"}
               </h1>
-              <p className={`text-base md:text-xl text-gray-600 max-w-3xl mx-auto ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'} animate-slide-in-up delay-200 leading-relaxed`}>
+              <p className={`text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>
                 {isRTL ? "اكتشف وصفات المشروبات اللذيذة مع شراباتنا الممتازة." : "Discover delicious drink recipes with our premium Italian syrups."}
               </p>
             </div>
