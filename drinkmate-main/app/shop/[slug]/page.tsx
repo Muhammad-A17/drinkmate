@@ -11,6 +11,7 @@ import { shopAPI } from "@/lib/api"
 import styles from './styles.module.css'
 import { useCart } from "@/lib/cart-context"
 import { useTranslation } from "@/lib/translation-context"
+import { useWishlist } from "@/hooks/use-wishlist"
 import { Button } from "@/components/ui/button"
 import {
   Plus,
@@ -203,6 +204,7 @@ export default function ShopProductDetail() {
   const params = useParams()
   const { t } = useTranslation()
   const { addItem } = useCart()
+  const { isInWishlist, toggleWishlist } = useWishlist()
   const router = useRouter()
 
   const productSlug = params?.slug as string
@@ -216,7 +218,7 @@ export default function ShopProductDetail() {
   const [isShowingVideo, setIsShowingVideo] = useState(false)
   const [quantity, setQuantity] = useState(1)
   const [isInCart, setIsInCart] = useState(false)
-  const [isInWishlist, setIsInWishlist] = useState(false)
+  const [wishlistLoading, setWishlistLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("description")
   const [isZoomed, setIsZoomed] = useState(false)
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 })
@@ -408,16 +410,23 @@ export default function ShopProductDetail() {
     }, 1000)
   }, [product, quantity, addItem, router, selectedColor, selectedSize])
 
-  const handleAddToWishlist = useCallback(() => {
+  const handleAddToWishlist = useCallback(async () => {
     if (!product) return
 
+    setWishlistLoading(true)
     setWishlistAnimation(true)
-    setIsInWishlist(!isInWishlist)
 
-    setTimeout(() => {
-      setWishlistAnimation(false)
-    }, 500)
-  }, [product, isInWishlist])
+    try {
+      await toggleWishlist(product._id)
+    } catch (error) {
+      console.error('Error toggling wishlist:', error)
+    } finally {
+      setWishlistLoading(false)
+      setTimeout(() => {
+        setWishlistAnimation(false)
+      }, 500)
+    }
+  }, [product, toggleWishlist])
 
   const handleQuantityChange = useCallback(
     (change: number) => {
@@ -771,20 +780,21 @@ export default function ShopProductDetail() {
                 <TooltipTrigger asChild>
                   <button
                     className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-200 group ${
-                      isInWishlist
+                      isInWishlist(product?._id || '')
                         ? "border-[#12d6fa] bg-[#12d6fa] text-white shadow-lg"
                         : "border-gray-300 hover:border-[#12d6fa] hover:bg-[#12d6fa] hover:text-white"
-                    } ${wishlistAnimation ? "animate-pulse" : ""}`}
+                    } ${wishlistAnimation ? "animate-pulse" : ""} ${wishlistLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                     onClick={handleAddToWishlist}
-                    aria-label={isInWishlist ? "Remove from favorites" : "Add to favorites"}
+                    disabled={wishlistLoading}
+                    aria-label={isInWishlist(product?._id || '') ? "Remove from favorites" : "Add to favorites"}
                   >
                     <Heart
-                      className={`w-5 h-5 group-hover:scale-110 transition-transform ${isInWishlist ? "fill-current" : ""}`}
+                      className={`w-5 h-5 group-hover:scale-110 transition-transform ${isInWishlist(product?._id || '') ? "fill-current" : ""}`}
                     />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}</p>
+                  <p>{isInWishlist(product?._id || '') ? "Remove from Wishlist" : "Add to Wishlist"}</p>
                 </TooltipContent>
               </Tooltip>
 
@@ -1186,14 +1196,15 @@ export default function ShopProductDetail() {
                       <Button
                         variant="outline"
                         onClick={handleAddToWishlist}
+                        disabled={wishlistLoading}
                         className={`border-2 transition-all duration-200 ${
-                          isInWishlist
+                          isInWishlist(product?._id || '')
                             ? "text-[#12d6fa] border-[#12d6fa] bg-[#12d6fa]/10"
                             : "hover:border-[#12d6fa] hover:text-[#12d6fa]"
-                        } ${wishlistAnimation ? "animate-pulse" : ""}`}
+                        } ${wishlistAnimation ? "animate-pulse" : ""} ${wishlistLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                         size="lg"
                       >
-                        <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isInWishlist ? "fill-current" : ""}`} />
+                        <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isInWishlist(product?._id || '') ? "fill-current" : ""}`} />
                       </Button>
 
                       <div className="relative">

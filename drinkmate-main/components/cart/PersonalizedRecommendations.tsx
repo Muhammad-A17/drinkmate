@@ -42,7 +42,7 @@ export default function PersonalizedRecommendations({ className = "" }: Personal
   
   const fetchRecommendations = async () => {
     try {
-      setIsLoading(true)
+      setLoading(true)
       setError(null)
       
       if (!isAuthenticated || !token) {
@@ -91,7 +91,7 @@ export default function PersonalizedRecommendations({ className = "" }: Personal
         console.error('Fallback also failed:', fallbackErr)
       }
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
   
@@ -199,13 +199,21 @@ function ProductCard({ product, onAdd }: { product: RecommendationItem; onAdd: (
   return (
     <div className="rounded-soft border border-ink-200 hover:border-brand/60 transition-all duration-300 p-3 h-full flex flex-col group hover:shadow-lg">
       <div className="relative overflow-hidden rounded-md">
-        <Image 
-          src={product.images?.[0] || "/placeholder.svg"} 
-          alt={product.name} 
-          width={320} 
-          height={320} 
-          className="rounded-md object-cover aspect-[4/5] transition-transform duration-300 group-hover:scale-105" 
-        />
+        {(() => {
+          const image = product.images?.[0];
+          const imageUrl = typeof image === 'string' ? image : (image as any)?.url || '';
+          const validImageUrl = imageUrl && imageUrl.trim() !== '' ? imageUrl : "/placeholder.svg";
+          
+          return (
+            <Image 
+              src={validImageUrl} 
+              alt={product.name} 
+              width={320} 
+              height={320} 
+              className="rounded-md object-cover aspect-[4/5] transition-transform duration-300 group-hover:scale-105" 
+            />
+          );
+        })()}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
         
         {/* Discount badge */}

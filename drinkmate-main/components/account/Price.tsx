@@ -11,7 +11,10 @@ interface PriceProps {
 }
 
 export function Price({ value, compareAt, size = 'md', className }: PriceProps) {
-  const sale = compareAt && compareAt > value
+  // Handle undefined or null values
+  const safeValue = value || 0
+  const safeCompareAt = compareAt || 0
+  const sale = safeCompareAt && safeCompareAt > safeValue
   
   const sizeClasses = {
     sm: 'text-sm',
@@ -30,7 +33,7 @@ export function Price({ value, compareAt, size = 'md', className }: PriceProps) 
       <span className="inline-flex items-baseline gap-1">
         <RiyalIcon className={iconSizes[size]} />
         <span className={cn("tabular-nums font-semibold", sizeClasses[size])}>
-          {value.toFixed(2)}
+          {safeValue.toFixed(2)}
         </span>
       </span>
       {sale && (
@@ -39,7 +42,7 @@ export function Price({ value, compareAt, size = 'md', className }: PriceProps) 
           sizeClasses[size]
         )}>
           <RiyalIcon className="w-3 h-3" />
-          {compareAt!.toFixed(2)}
+          {safeCompareAt.toFixed(2)}
         </span>
       )}
     </div>

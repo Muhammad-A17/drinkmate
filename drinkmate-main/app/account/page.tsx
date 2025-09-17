@@ -33,6 +33,7 @@ import {
 } from 'lucide-react'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import WishlistSidebar from '@/components/account/WishlistSidebar'
 
 interface UserProfile {
   id: string
@@ -630,6 +631,9 @@ export default function AccountDashboard() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Wishlist Sidebar */}
+            <WishlistSidebar />
         </div>
 
           {/* Right Column - Orders & Support */}

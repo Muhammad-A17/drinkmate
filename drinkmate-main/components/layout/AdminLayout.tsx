@@ -223,7 +223,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         href: "/admin/chat-management",
         icon: <MessageSquare className="w-5 h-5" />
       },
-    { 
+      {
       name: "Contact Settings", 
       href: "/admin/contact-settings", 
       icon: <Wrench className="w-5 h-5" /> 
@@ -355,259 +355,259 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="relative h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-white/90 to-white/70 backdrop-blur-sm shadow-2xl border-r border-white/20"></div>
           <div className="relative flex flex-col h-full">
-            {/* Sidebar header */}
+          {/* Sidebar header */}
             <div className={`flex items-center ${isSidebarOpen ? "justify-between" : "justify-center"} h-16 px-4 border-b border-white/20`}>
-              <Link href="/admin" className={`flex items-center ${!isSidebarOpen && "justify-center"}`}>
-                {isSidebarOpen ? (
-                  <Image
-                    src="/images/drinkmate-logo.png"
-                    alt="Drinkmate"
-                    width={120}
-                    height={40}
-                    className="h-8 w-auto"
-                    style={{ width: "auto", height: "auto" }}
-                  />
-                ) : (
-                  <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-                    D
-                  </div>
-                )}
-              </Link>
-              <button 
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="hidden lg:block text-gray-500 hover:text-gray-900 p-1 rounded-lg hover:bg-white/50 transition-all duration-200"
-                aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-              >
-                <ChevronDown 
-                  className={`w-5 h-5 transform transition-transform ${!isSidebarOpen ? "rotate-90" : "-rotate-90"}`} 
+            <Link href="/admin" className={`flex items-center ${!isSidebarOpen && "justify-center"}`}>
+              {isSidebarOpen ? (
+                <Image
+                  src="/images/drinkmate-logo.png"
+                  alt="Drinkmate"
+                  width={120}
+                  height={40}
+                  className="h-8 w-auto"
+                  style={{ width: "auto", height: "auto" }}
                 />
-              </button>
-              <button 
-                onClick={() => setIsMobileSidebarOpen(false)}
+              ) : (
+                  <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                  D
+                </div>
+              )}
+            </Link>
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="hidden lg:block text-gray-500 hover:text-gray-900 p-1 rounded-lg hover:bg-white/50 transition-all duration-200"
+              aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            >
+              <ChevronDown 
+                className={`w-5 h-5 transform transition-transform ${!isSidebarOpen ? "rotate-90" : "-rotate-90"}`} 
+              />
+            </button>
+            <button 
+              onClick={() => setIsMobileSidebarOpen(false)}
                 className="lg:hidden text-gray-500 hover:text-gray-900 p-1 rounded-lg hover:bg-white/50 transition-all duration-200"
-                aria-label="Close sidebar"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+              aria-label="Close sidebar"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-            {/* Navigation links */}
-            <nav className="flex-1 overflow-y-auto py-4">
+          {/* Navigation links */}
+          <nav className="flex-1 overflow-y-auto py-4">
               <ul className="space-y-2 px-3">
-                {/* Main Navigation Group */}
-                <li className="mb-4">
+              {/* Main Navigation Group */}
+              <li className="mb-4">
                   <div className={`px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider ${!isSidebarOpen && 'text-center'} bg-gradient-to-r from-white/50 to-white/30 rounded-lg`}>
-                    {isSidebarOpen ? "Main" : "•"}
-                  </div>
-                </li>
-                {navItems.slice(0, 3).map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        className={`flex items-center ${
-                          isSidebarOpen ? "justify-start px-4" : "justify-center"
+                  {isSidebarOpen ? "Main" : "•"}
+                </div>
+              </li>
+              {navItems.slice(0, 3).map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={`flex items-center ${
+                        isSidebarOpen ? "justify-start px-4" : "justify-center"
                         } py-3 rounded-xl transition-all duration-300 ${
-                          isActive
+                        isActive
                             ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
                             : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
-                        }`}
-                      >
-                        <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
-                        {isSidebarOpen && (
-                          <span className="ml-3 text-sm font-medium">{item.name}</span>
-                        )}
-                      </Link>
-                    </li>
-                  )
-                })}
+                      }`}
+                    >
+                      <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                      {isSidebarOpen && (
+                        <span className="ml-3 text-sm font-medium">{item.name}</span>
+                      )}
+                    </Link>
+                  </li>
+                )
+              })}
               
-                {/* Content Management Group */}
-                <li className="mb-4 mt-6">
+              {/* Content Management Group */}
+              <li className="mb-4 mt-6">
                   <div className={`px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider ${!isSidebarOpen && 'text-center'} bg-gradient-to-r from-white/50 to-white/30 rounded-lg`}>
-                    {isSidebarOpen ? "Content" : "•"}
-                  </div>
-                </li>
-                {navItems.slice(3, 9).map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        className={`flex items-center ${
-                          isSidebarOpen ? "justify-start px-4" : "justify-center"
+                  {isSidebarOpen ? "Content" : "•"}
+                </div>
+              </li>
+              {navItems.slice(3, 9).map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={`flex items-center ${
+                        isSidebarOpen ? "justify-start px-4" : "justify-center"
                         } py-3 rounded-xl transition-all duration-300 ${
-                          isActive
+                        isActive
                             ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
                             : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
-                        }`}
-                      >
-                        <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
-                        {isSidebarOpen && (
-                          <span className="ml-3 text-sm font-medium">{item.name}</span>
-                        )}
-                      </Link>
-                    </li>
-                  )
-                })}
-                
-                {/* Orders & Services Group */}
-                <li className="mb-4 mt-6">
-                  <div className={`px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider ${!isSidebarOpen && 'text-center'} bg-gradient-to-r from-white/50 to-white/30 rounded-lg`}>
-                    {isSidebarOpen ? "Orders & Services" : "•"}
-                  </div>
-                </li>
-                {navItems.slice(9, 13).map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        className={`flex items-center ${
-                          isSidebarOpen ? "justify-start px-4" : "justify-center"
-                        } py-3 rounded-xl transition-all duration-300 ${
-                          isActive
-                            ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
-                            : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
-                        }`}
-                      >
-                        <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
-                        {isSidebarOpen && (
-                          <span className="ml-3 text-sm font-medium">{item.name}</span>
-                        )}
-                      </Link>
-                    </li>
-                  )
-                })}
-                
-                {/* System Group */}
-                <li className="mb-4 mt-6">
-                  <div className={`px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider ${!isSidebarOpen && 'text-center'} bg-gradient-to-r from-white/50 to-white/30 rounded-lg`}>
-                    {isSidebarOpen ? "System" : "•"}
-                  </div>
-                </li>
-                {navItems.slice(13, -6).map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        className={`flex items-center ${
-                          isSidebarOpen ? "justify-start px-4" : "justify-center"
-                        } py-3 rounded-xl transition-all duration-300 ${
-                          isActive
-                            ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
-                            : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
-                        }`}
-                      >
-                        <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
-                        {isSidebarOpen && (
-                          <span className="ml-3 text-sm font-medium">{item.name}</span>
-                        )}
-                      </Link>
-                    </li>
-                  )
-                })}
+                      }`}
+                    >
+                      <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                      {isSidebarOpen && (
+                        <span className="ml-3 text-sm font-medium">{item.name}</span>
+                      )}
+                    </Link>
+                  </li>
+                )
+              })}
               
-                {/* Debug Group (only in development) */}
-                {process.env.NODE_ENV === 'development' && (
-                  <>
-                    <li className="mb-4 mt-6">
+              {/* Orders & Services Group */}
+              <li className="mb-4 mt-6">
+                  <div className={`px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider ${!isSidebarOpen && 'text-center'} bg-gradient-to-r from-white/50 to-white/30 rounded-lg`}>
+                  {isSidebarOpen ? "Orders & Services" : "•"}
+                </div>
+              </li>
+              {navItems.slice(9, 13).map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={`flex items-center ${
+                        isSidebarOpen ? "justify-start px-4" : "justify-center"
+                        } py-3 rounded-xl transition-all duration-300 ${
+                        isActive
+                            ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
+                            : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
+                      }`}
+                    >
+                      <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                      {isSidebarOpen && (
+                        <span className="ml-3 text-sm font-medium">{item.name}</span>
+                      )}
+                    </Link>
+                  </li>
+                )
+              })}
+              
+              {/* System Group */}
+              <li className="mb-4 mt-6">
+                  <div className={`px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider ${!isSidebarOpen && 'text-center'} bg-gradient-to-r from-white/50 to-white/30 rounded-lg`}>
+                  {isSidebarOpen ? "System" : "•"}
+                </div>
+              </li>
+              {navItems.slice(13, -6).map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={`flex items-center ${
+                        isSidebarOpen ? "justify-start px-4" : "justify-center"
+                        } py-3 rounded-xl transition-all duration-300 ${
+                        isActive
+                            ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
+                            : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
+                      }`}
+                    >
+                      <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                      {isSidebarOpen && (
+                        <span className="ml-3 text-sm font-medium">{item.name}</span>
+                      )}
+                    </Link>
+                  </li>
+                )
+              })}
+              
+              {/* Debug Group (only in development) */}
+              {process.env.NODE_ENV === 'development' && (
+                <>
+                  <li className="mb-4 mt-6">
                       <div className={`px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider ${!isSidebarOpen && 'text-center'} bg-gradient-to-r from-white/50 to-white/30 rounded-lg`}>
-                        {isSidebarOpen ? "Debug" : "•"}
-                      </div>
-                    </li>
-                    {navItems.slice(-6).map((item) => {
-                      const isActive = pathname === item.href
-                      return (
-                        <li key={item.name}>
-                          <Link
-                            href={item.href}
-                            className={`flex items-center ${
-                              isSidebarOpen ? "justify-start px-4" : "justify-center"
+                      {isSidebarOpen ? "Debug" : "•"}
+                    </div>
+                  </li>
+                  {navItems.slice(-6).map((item) => {
+                    const isActive = pathname === item.href
+                    return (
+                      <li key={item.name}>
+                        <Link
+                          href={item.href}
+                          className={`flex items-center ${
+                            isSidebarOpen ? "justify-start px-4" : "justify-center"
                             } py-3 rounded-xl transition-all duration-300 ${
-                              isActive
+                            isActive
                                 ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
                                 : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
-                            }`}
-                          >
-                            <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
-                            {isSidebarOpen && (
-                              <span className="ml-3 text-sm font-medium">{item.name}</span>
-                            )}
-                          </Link>
-                        </li>
-                      )
-                    })}
-                  </>
-                )}
-              </ul>
-            </nav>
+                          }`}
+                        >
+                          <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                          {isSidebarOpen && (
+                            <span className="ml-3 text-sm font-medium">{item.name}</span>
+                          )}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </>
+              )}
+            </ul>
+          </nav>
 
             {/* User info and logout - Premium styling */}
             <div className={`border-t border-white/20 p-4 ${isSidebarOpen ? "" : "flex justify-center"}`}>
-              {isSidebarOpen ? (
-                <>
+            {isSidebarOpen ? (
+              <>
                   <div className="flex items-center mb-4 p-3 bg-gradient-to-r from-white/50 to-white/30 rounded-xl">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#12d6fa] to-blue-600 flex items-center justify-center text-white font-semibold shadow-lg">
-                      {user?.username?.charAt(0).toUpperCase() || "A"}
-                    </div>
-                    <div className="ml-3 flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{user?.username}</p>
-                      <p className="text-xs text-gray-600">Administrator</p>
-                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Button 
-                      variant="outline" 
-                      className="w-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 rounded-xl"
-                      onClick={handleLogout}
-                      disabled={isRefreshing}
-                    >
-                      <LogOut className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-                      <span>{isRefreshing ? 'Logging out...' : 'Logout'}</span>
-                    </Button>
-                    <Link href="/" target="_blank">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="w-full flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-white/50 transition-all duration-300 rounded-xl"
-                      >
-                        <Globe className="h-4 w-4 mr-2" />
-                        View Site
-                      </Button>
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <div className="space-y-2">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#12d6fa] to-blue-600 flex items-center justify-center text-white font-semibold shadow-lg mx-auto">
                     {user?.username?.charAt(0).toUpperCase() || "A"}
                   </div>
+                  <div className="ml-3 flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{user?.username}</p>
+                      <p className="text-xs text-gray-600">Administrator</p>
+                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <Button 
                     variant="outline" 
-                    size="icon"
+                      className="w-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 rounded-xl"
                     onClick={handleLogout}
                     disabled={isRefreshing}
-                    title="Logout"
-                    className="w-10 h-10 mx-auto border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 rounded-xl transition-all duration-300"
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                    <span>{isRefreshing ? 'Logging out...' : 'Logout'}</span>
                   </Button>
                   <Link href="/" target="_blank">
                     <Button 
                       variant="ghost" 
-                      size="icon"
-                      title="View Site"
-                      className="w-10 h-10 mx-auto text-gray-600 hover:text-gray-900 hover:bg-white/50 rounded-xl transition-all duration-300"
+                      size="sm"
+                        className="w-full flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-white/50 transition-all duration-300 rounded-xl"
                     >
-                      <Globe className="h-4 w-4" />
+                      <Globe className="h-4 w-4 mr-2" />
+                      View Site
                     </Button>
                   </Link>
                 </div>
-              )}
+              </>
+            ) : (
+              <div className="space-y-2">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#12d6fa] to-blue-600 flex items-center justify-center text-white font-semibold shadow-lg mx-auto">
+                  {user?.username?.charAt(0).toUpperCase() || "A"}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={handleLogout}
+                  disabled={isRefreshing}
+                  title="Logout"
+                    className="w-10 h-10 mx-auto border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 rounded-xl transition-all duration-300"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+                <Link href="/" target="_blank">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    title="View Site"
+                      className="w-10 h-10 mx-auto text-gray-600 hover:text-gray-900 hover:bg-white/50 rounded-xl transition-all duration-300"
+                  >
+                    <Globe className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            )}
             </div>
           </div>
         </div>
@@ -622,101 +622,101 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <div className="relative px-5 py-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
-                  <button
-                    onClick={() => setIsMobileSidebarOpen(true)}
+              <button
+                onClick={() => setIsMobileSidebarOpen(true)}
                     className="lg:hidden text-gray-600 hover:text-gray-900 focus:outline-none mt-1"
-                    aria-label="Open sidebar menu"
-                  >
-                    <Menu className="w-6 h-6" />
-                  </button>
+                aria-label="Open sidebar menu"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
                       <LayoutDashboard className="h-6 w-6 text-white" />
                     </div>
-                    <div>
+              <div>
                       <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                         {getPageTitle()}
                       </h1>
-                      {getBreadcrumbs().length > 0 && (
+                {getBreadcrumbs().length > 0 && (
                         <nav className="flex items-center text-sm text-gray-500 mt-1">
-                          <Link href="/admin" className="hover:text-[#12d6fa] transition-colors">
-                            Admin
-                          </Link>
-                          {getBreadcrumbs().map((breadcrumb, index) => (
+                    <Link href="/admin" className="hover:text-[#12d6fa] transition-colors">
+                      Admin
+                    </Link>
+                    {getBreadcrumbs().map((breadcrumb, index) => (
                             <div key={index} className="flex items-center">
                               <span className="mx-2 text-gray-300">/</span>
-                              {breadcrumb.isLast ? (
-                                <span className="text-gray-700 font-medium">
-                                  {breadcrumb.name.charAt(0).toUpperCase() + breadcrumb.name.slice(1)}
-                                </span>
-                              ) : (
-                                <Link 
-                                  href={breadcrumb.href} 
-                                  className="hover:text-[#12d6fa] transition-colors"
-                                >
-                                  {breadcrumb.name.charAt(0).toUpperCase() + breadcrumb.name.slice(1)}
-                                </Link>
-                              )}
-                            </div>
-                          ))}
-                        </nav>
-                      )}
-                    </div>
-                  </div>
+                        {breadcrumb.isLast ? (
+                          <span className="text-gray-700 font-medium">
+                            {breadcrumb.name.charAt(0).toUpperCase() + breadcrumb.name.slice(1)}
+                          </span>
+                        ) : (
+                          <Link 
+                            href={breadcrumb.href} 
+                            className="hover:text-[#12d6fa] transition-colors"
+                          >
+                            {breadcrumb.name.charAt(0).toUpperCase() + breadcrumb.name.slice(1)}
+                          </Link>
+                        )}
+                      </div>
+                    ))}
+                  </nav>
+                )}
+              </div>
+            </div>
                 </div>
                 
                 {/* Right-side actions styled to match premium buttons */}
                 <div className="flex items-center gap-3">
                   <div className="hidden md:flex items-center gap-2">
-                    <Button
-                      onClick={handleRefresh}
-                      disabled={isRefreshing}
+                <Button 
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
                       className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-4 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                       size="sm"
-                    >
+                >
                       <Loader2 className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                      Refresh
-                    </Button>
-                    <Link href="/" target="_blank">
+                  Refresh
+                </Button>
+                <Link href="/" target="_blank">
                       <Button 
                         variant="outline" 
                         size="sm"
                         className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 px-4 py-2 rounded-xl transition-all duration-300"
                       >
                         <Globe className="h-4 w-4 mr-2" />
-                        View Site
-                      </Button>
-                    </Link>
-                  </div>
-                  
-                  {/* Language Switcher */}
+                    View Site
+                  </Button>
+                </Link>
+              </div>
+              
+              {/* Language Switcher */}
                   <div className="hidden sm:flex items-center border border-gray-300 rounded-xl overflow-hidden bg-white/70 backdrop-blur">
-                    <button 
-                      onClick={() => setLanguage("EN")} 
+                  <button 
+                    onClick={() => setLanguage("EN")} 
                       className={`px-3 py-2 flex items-center gap-2 transition-colors ${language === "EN" ? "bg-[#12d6fa] text-white" : "hover:bg-gray-50 text-gray-700"}`}
-                      title="Switch to English"
-                    >
-                      <Flag className="w-4 h-4" />
-                      <span className="font-medium">EN</span>
-                    </button>
-                    <div className="w-px h-6 bg-gray-300"></div>
-                    <button 
-                      onClick={() => setLanguage("AR")} 
+                    title="Switch to English"
+                  >
+                    <Flag className="w-4 h-4" />
+                    <span className="font-medium">EN</span>
+                  </button>
+                  <div className="w-px h-6 bg-gray-300"></div>
+                  <button 
+                    onClick={() => setLanguage("AR")} 
                       className={`px-3 py-2 flex items-center gap-2 transition-colors ${language === "AR" ? "bg-[#12d6fa] text-white" : "hover:bg-gray-50 text-gray-700"}`}
-                      title="Switch to Arabic"
-                    >
-                      <Flag className="w-4 h-4" />
-                      <span className="font-medium">عربي</span>
-                    </button>
-                  </div>
-                  
-                  {/* User Info */}
+                    title="Switch to Arabic"
+                  >
+                    <Flag className="w-4 h-4" />
+                    <span className="font-medium">عربي</span>
+                  </button>
+              </div>
+              
+              {/* User Info */}
                   <div className="hidden md:flex items-center gap-3">
                     <span className="text-sm text-gray-600">
-                      {t("common.welcome")}, {user?.username}
-                    </span>
+                  {t("common.welcome")}, {user?.username}
+                </span>
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#12d6fa] to-blue-600 flex items-center justify-center text-white font-semibold shadow">
-                      {user?.username?.charAt(0).toUpperCase() || "A"}
+                  {user?.username?.charAt(0).toUpperCase() || "A"}
                     </div>
                   </div>
                 </div>
@@ -748,198 +748,198 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="relative h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-white/90 to-white/70 backdrop-blur-sm shadow-2xl border-r border-white/20"></div>
           <div className="relative flex flex-col h-full">
-            {/* Mobile sidebar header */}
+          {/* Mobile sidebar header */}
             <div className="flex items-center justify-between h-16 px-4 border-b border-white/20">
-              <Link href="/admin" className="flex items-center">
-                <Image
-                  src="/images/drinkmate-logo.png"
-                  alt="Drinkmate"
-                  width={120}
-                  height={40}
-                  className="h-8 w-auto"
-                  style={{ width: "auto", height: "auto" }}
-                />
-              </Link>
-              <button 
-                onClick={() => setIsMobileSidebarOpen(false)}
+            <Link href="/admin" className="flex items-center">
+              <Image
+                src="/images/drinkmate-logo.png"
+                alt="Drinkmate"
+                width={120}
+                height={40}
+                className="h-8 w-auto"
+                style={{ width: "auto", height: "auto" }}
+              />
+            </Link>
+            <button 
+              onClick={() => setIsMobileSidebarOpen(false)}
                 className="text-gray-500 hover:text-gray-900 p-2 rounded-lg hover:bg-white/50 transition-all duration-200"
-                aria-label="Close sidebar"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+              aria-label="Close sidebar"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
             {/* Mobile navigation - Premium styling */}
-            <nav className="flex-1 overflow-y-auto py-4">
+          <nav className="flex-1 overflow-y-auto py-4">
               <ul className="space-y-2 px-3">
-                {/* Main Navigation Group */}
-                <li className="mb-4">
+              {/* Main Navigation Group */}
+              <li className="mb-4">
                   <div className="px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gradient-to-r from-white/50 to-white/30 rounded-lg">
-                    Main
-                  </div>
-                </li>
-                {navItems.slice(0, 3).map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        onClick={() => setIsMobileSidebarOpen(false)}
+                  Main
+                </div>
+              </li>
+              {navItems.slice(0, 3).map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsMobileSidebarOpen(false)}
                         className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
-                          isActive
+                        isActive
                             ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
                             : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
-                        }`}
-                      >
-                        <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
-                        <span className="ml-3 text-sm font-medium">{item.name}</span>
-                      </Link>
-                    </li>
-                  )
-                })}
+                      }`}
+                    >
+                      <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                      <span className="ml-3 text-sm font-medium">{item.name}</span>
+                    </Link>
+                  </li>
+                )
+              })}
               
-                {/* Content Management Group */}
-                <li className="mb-4 mt-6">
+              {/* Content Management Group */}
+              <li className="mb-4 mt-6">
                   <div className="px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gradient-to-r from-white/50 to-white/30 rounded-lg">
-                    Content
-                  </div>
-                </li>
-                {navItems.slice(3, 9).map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        onClick={() => setIsMobileSidebarOpen(false)}
+                  Content
+                </div>
+              </li>
+              {navItems.slice(3, 9).map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsMobileSidebarOpen(false)}
                         className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
-                          isActive
+                        isActive
                             ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
                             : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
-                        }`}
-                      >
-                        <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
-                        <span className="ml-3 text-sm font-medium">{item.name}</span>
-                      </Link>
-                    </li>
-                  )
-                })}
-                
-                {/* Orders & Services Group */}
-                <li className="mb-4 mt-6">
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gradient-to-r from-white/50 to-white/30 rounded-lg">
-                    Orders & Services
-                  </div>
-                </li>
-                {navItems.slice(9, 13).map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        onClick={() => setIsMobileSidebarOpen(false)}
-                        className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
-                          isActive
-                            ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
-                            : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
-                        }`}
-                      >
-                        <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
-                        <span className="ml-3 text-sm font-medium">{item.name}</span>
-                      </Link>
-                    </li>
-                  )
-                })}
-                
-                {/* System Group */}
-                <li className="mb-4 mt-6">
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gradient-to-r from-white/50 to-white/30 rounded-lg">
-                    System
-                  </div>
-                </li>
-                {navItems.slice(13, -6).map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        onClick={() => setIsMobileSidebarOpen(false)}
-                        className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
-                          isActive
-                            ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
-                            : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
-                        }`}
-                      >
-                        <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
-                        <span className="ml-3 text-sm font-medium">{item.name}</span>
-                      </Link>
-                    </li>
-                  )
-                })}
+                      }`}
+                    >
+                      <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                      <span className="ml-3 text-sm font-medium">{item.name}</span>
+                    </Link>
+                  </li>
+                )
+              })}
               
-                {/* Debug Group (only in development) */}
-                {process.env.NODE_ENV === 'development' && (
-                  <>
-                    <li className="mb-4 mt-6">
+              {/* Orders & Services Group */}
+              <li className="mb-4 mt-6">
+                  <div className="px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gradient-to-r from-white/50 to-white/30 rounded-lg">
+                  Orders & Services
+                </div>
+              </li>
+              {navItems.slice(9, 13).map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsMobileSidebarOpen(false)}
+                        className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
+                        isActive
+                            ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
+                            : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
+                      }`}
+                    >
+                      <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                      <span className="ml-3 text-sm font-medium">{item.name}</span>
+                    </Link>
+                  </li>
+                )
+              })}
+              
+              {/* System Group */}
+              <li className="mb-4 mt-6">
+                  <div className="px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gradient-to-r from-white/50 to-white/30 rounded-lg">
+                  System
+                </div>
+              </li>
+              {navItems.slice(13, -6).map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsMobileSidebarOpen(false)}
+                        className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
+                        isActive
+                            ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
+                            : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
+                      }`}
+                    >
+                      <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                      <span className="ml-3 text-sm font-medium">{item.name}</span>
+                    </Link>
+                  </li>
+                )
+              })}
+              
+              {/* Debug Group (only in development) */}
+              {process.env.NODE_ENV === 'development' && (
+                <>
+                  <li className="mb-4 mt-6">
                       <div className="px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gradient-to-r from-white/50 to-white/30 rounded-lg">
-                        Debug
-                      </div>
-                    </li>
-                    {navItems.slice(-6).map((item) => {
-                      const isActive = pathname === item.href
-                      return (
-                        <li key={item.name}>
-                          <Link
-                            href={item.href}
-                            onClick={() => setIsMobileSidebarOpen(false)}
+                      Debug
+                    </div>
+                  </li>
+                  {navItems.slice(-6).map((item) => {
+                    const isActive = pathname === item.href
+                    return (
+                      <li key={item.name}>
+                        <Link
+                          href={item.href}
+                          onClick={() => setIsMobileSidebarOpen(false)}
                             className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
-                              isActive
+                            isActive
                                 ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
                                 : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
-                            }`}
-                          >
-                            <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
-                            <span className="ml-3 text-sm font-medium">{item.name}</span>
-                          </Link>
-                        </li>
-                      )
-                    })}
-                  </>
-                )}
-              </ul>
-            </nav>
+                          }`}
+                        >
+                          <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                          <span className="ml-3 text-sm font-medium">{item.name}</span>
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </>
+              )}
+            </ul>
+          </nav>
 
             {/* Mobile user section - Premium styling */}
             <div className="border-t border-white/20 p-4">
               <div className="flex items-center mb-4 p-3 bg-gradient-to-r from-white/50 to-white/30 rounded-xl">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#12d6fa] to-blue-600 flex items-center justify-center text-white font-semibold shadow-lg">
-                  {user?.username?.charAt(0).toUpperCase() || "A"}
-                </div>
-                <div className="ml-3 flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user?.username}</p>
+                {user?.username?.charAt(0).toUpperCase() || "A"}
+              </div>
+              <div className="ml-3 flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">{user?.username}</p>
                   <p className="text-xs text-gray-600">Administrator</p>
                   <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                </div>
               </div>
-              <div className="space-y-2">
-                <Button 
-                  variant="outline" 
+            </div>
+            <div className="space-y-2">
+              <Button 
+                variant="outline" 
                   className="w-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 rounded-xl"
-                  onClick={handleLogout}
-                  disabled={isRefreshing}
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  <span>{isRefreshing ? 'Logging out...' : 'Logout'}</span>
-                </Button>
-                <Link href="/" target="_blank">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
+                onClick={handleLogout}
+                disabled={isRefreshing}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                <span>{isRefreshing ? 'Logging out...' : 'Logout'}</span>
+              </Button>
+              <Link href="/" target="_blank">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
                     className="w-full flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-white/50 transition-all duration-300 rounded-xl"
-                  >
-                    <Globe className="h-4 w-4 mr-2" />
-                    View Site
-                  </Button>
-                </Link>
+                >
+                  <Globe className="h-4 w-4 mr-2" />
+                  View Site
+                </Button>
+              </Link>
               </div>
             </div>
           </div>

@@ -50,8 +50,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
       timeout: 20000,
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
-      maxReconnectionAttempts: 5
+      reconnectionAttempts: 5
     })
     
     console.log('Socket created:', newSocket, 'Type:', typeof newSocket, 'Has on method:', typeof newSocket.on === 'function')
@@ -68,8 +67,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     })
 
     newSocket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error)
-      console.error('Token being used:', token)
+      console.warn('Socket connection error:', error.message || error)
       setIsConnected(false)
     })
 
@@ -79,11 +77,11 @@ export function SocketProvider({ children }: SocketProviderProps) {
     })
 
     newSocket.on('reconnect_error', (error) => {
-      console.error('Socket reconnection error:', error)
+      console.warn('Socket reconnection error:', error.message || error)
     })
 
     newSocket.on('reconnect_failed', () => {
-      console.error('Socket reconnection failed after maximum attempts')
+      console.warn('Socket reconnection failed after maximum attempts')
       setIsConnected(false)
     })
 

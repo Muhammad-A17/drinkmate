@@ -154,6 +154,8 @@ class ChatSettingsService {
         headers: {
           'Content-Type': 'application/json',
         },
+        // Add timeout and retry logic
+        signal: AbortSignal.timeout(5000), // 5 second timeout
       });
 
       if (!response.ok) {
@@ -179,7 +181,10 @@ class ChatSettingsService {
         throw new Error(data.message || 'Failed to fetch chat status');
       }
     } catch (error) {
-      console.error('Error fetching chat status:', error);
+      // Only log if it's not a timeout or network error
+      if (error instanceof Error && error.name !== 'TimeoutError' && error.name !== 'TypeError') {
+        console.warn('Error fetching chat status:', error.message || error);
+      }
       // Return default status if API fails
       return {
         isOnline: false,
