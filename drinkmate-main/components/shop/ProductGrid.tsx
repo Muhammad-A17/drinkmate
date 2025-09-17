@@ -34,15 +34,26 @@ export default function ProductGrid({
   products,
   dir = "ltr",
   className = "",
-  loading = false
-}: ProductGridProps) {
+  loading = false,
+  onAddToWishlist,
+  onAddToComparison,
+  onProductView,
+  wishlist = [],
+  comparisonList = []
+}: ProductGridProps & {
+  onAddToWishlist?: (product: Product) => void
+  onAddToComparison?: (product: Product) => void
+  onProductView?: (product: Product) => void
+  wishlist?: Product[]
+  comparisonList?: Product[]
+}) {
   const { addItem } = useCart()
   const { animationState, triggerAddAnimation, hideNotification } = useCartAnimations()
   // Loading state
   if (loading) {
     return (
       <div className={className}>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <ProductCardSkeleton key={i} />
           ))}
@@ -63,11 +74,25 @@ export default function ProductGrid({
       return product
     }
 
+    // Generate slug if missing
+    const generateSlug = (title: string, id: string): string => {
+      return title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim() + `-${id.slice(-6)}`
+    }
+
+    const productId = product._id || product.id
+    const productTitle = product.name || product.title || 'product'
+    const productSlug = product.slug || generateSlug(productTitle, productId)
+
     // Convert from old format
     return {
-      id: product._id || product.id,
-      slug: product.slug,
-      title: product.name || product.title,
+      id: productId,
+      slug: productSlug,
+      title: productTitle,
       image: product.images?.[0]?.url || product.image || '/placeholder-product.jpg',
       rating: product.rating,
       reviewCount: product.reviewsCount || product.reviewCount,
@@ -111,7 +136,7 @@ export default function ProductGrid({
     <>
       <div
         dir={dir}
-        className={`grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 ${className}`}
+        className={`grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 ${className}`}
       >
         {products.map((product, index) => (
           <ProductCard
@@ -119,6 +144,11 @@ export default function ProductGrid({
             product={convertProduct(product)}
             dir={dir}
             onAddToCart={handleAddToCart}
+            onAddToWishlist={onAddToWishlist}
+            onAddToComparison={onAddToComparison}
+            onProductView={onProductView}
+            isInWishlist={wishlist.some(p => p.id === product.id)}
+            isInComparison={comparisonList.some(p => p.id === product.id)}
           />
         ))}
       </div>

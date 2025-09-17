@@ -5,16 +5,29 @@ import Link from "next/link"
 import { useState, useMemo } from "react"
 import { Price, PriceWithBadge } from "./Price"
 import { ColorSwatches } from "./ColorSwatches"
-import { CardFooter, QuickView } from "./CardFooter"
-import { ProductCardProps, Variant } from "@/types/product"
+import { QuickView } from "./CardFooter"
+import { ProductCardProps, Variant, Product } from "@/types/product"
 import { cn } from "@/lib/utils"
+import { Heart, Eye, ShoppingCart, Star, Zap, Shield } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export default function ProductCard({
   product,
   dir = "ltr",
   onAddToCart,
   className,
-}: ProductCardProps) {
+  onAddToWishlist,
+  onAddToComparison,
+  onProductView,
+  isInWishlist = false,
+  isInComparison = false,
+}: ProductCardProps & {
+  onAddToWishlist?: (product: Product) => void
+  onAddToComparison?: (product: Product) => void
+  onProductView?: (product: Product) => void
+  isInWishlist?: boolean
+  isInComparison?: boolean
+}) {
   const hasVariants = (product.variants?.length ?? 0) > 0
 
   // Default selected variant: first in-stock, otherwise first available
@@ -25,9 +38,13 @@ export default function ProductCard({
   const [selected, setSelected] = useState<Variant | undefined>(firstAvailable)
   const [qty, setQty] = useState(1)
   const [showQuickView, setShowQuickView] = useState(false)
-  const [isWishlisted, setIsWishlisted] = useState(false)
+  const [isWishlisted, setIsWishlisted] = useState(isInWishlist)
+  const [isHovered, setIsHovered] = useState(false)
 
   const activeImage = selected?.image || product.image
+
+  // Debug: Log product data to see if slug exists
+  console.log('Product data:', { id: product.id, slug: product.slug, title: product.title })
 
   const onAdd = () => {
     if (!onAddToCart) return
@@ -55,152 +72,144 @@ export default function ProductCard({
     <div
       dir={dir}
       className={cn(
-        "group rounded-2xl bg-white/90 backdrop-blur border border-black/5 shadow-sm",
-        "transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5",
-        "flex flex-col h-full",
+        "bg-white rounded-3xl overflow-hidden flex flex-col border border-gray-100",
+        "hover:border-gray-200 transform hover:-translate-y-1 transition-all duration-300",
+        "h-full",
         className
       )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      role="article"
+      aria-labelledby={`product-title-${product.id}`}
     >
-      {/* Image */}
-      <Link
-        href={`/shop/${product.slug}`}
-        className="relative block overflow-hidden rounded-t-2xl"
-        aria-label={product.title}
-      >
-        {!!percentOff && (
-          <span className={cn(
-            "absolute z-10 top-3",
-            dir === "rtl" ? "left-3" : "right-3",
-            "rounded-full bg-rose-500 text-white text-xs px-2 py-1 shadow-sm font-medium"
-          )}>
-            {percentOff}% OFF
-          </span>
-        )}
-
-        {/* Badges */}
-        {product.badges && product.badges.length > 0 && (
-          <div className={cn(
-            "absolute z-10 top-3",
-            dir === "rtl" ? "right-3" : "left-3",
-            "flex flex-col gap-1"
-          )}>
-            {product.badges.map((badge, index) => (
-              <span
-                key={index}
-                className="rounded-full bg-sky-500 text-white text-xs px-2 py-1 shadow-sm font-medium"
-              >
-                {badge}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="relative aspect-[4/5] w-full">
+      {/* Image Container - Covering Upper Side */}
+      <Link href={`/shop/${product.slug}`} className="block">
+        <div className="relative h-64 bg-gray-50 flex items-center justify-center overflow-hidden">
           <Image
             src={activeImage}
             alt={product.title}
-            fill
-            sizes="(min-width: 1024px) 25vw, 50vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-            priority={false}
+            width={200}
+            height={200}
+            className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
           />
+          
+          {/* Sale Badge */}
+          {!!percentOff && (
+            <div className="absolute top-3 right-3">
+              <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">
+                {percentOff}% OFF
+              </span>
+            </div>
+          )}
+
+          {/* Product Badges */}
+          {product.badges && product.badges.length > 0 && (
+            <div className="absolute top-3 left-3 flex flex-col gap-2">
+              {product.badges.map((badge, index) => (
+                <span
+                  key={index}
+                  className={cn(
+                    "rounded-full text-white text-xs px-2 py-1 font-semibold",
+                    badge.toLowerCase().includes('new') ? "bg-emerald-500" :
+                    badge.toLowerCase().includes('bestseller') ? "bg-amber-500" :
+                    badge.toLowerCase().includes('limited') ? "bg-purple-500" :
+                    "bg-brand-500"
+                  )}
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </Link>
 
-      {/* Body */}
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        {/* Title */}
-        <Link
-          href={`/shop/${product.slug}`}
-          className="line-clamp-2 font-montserrat font-semibold text-neutral-900 hover:text-sky-600 transition-colors"
-        >
-          {product.title}
+      {/* Content Section */}
+      <div className="p-6 flex flex-col flex-1">
+        <Link href={`/shop/${product.slug}`}>
+          <h3 className="text-xl mb-3 hover:text-brand-600 transition-colors leading-tight cursor-pointer">{product.title}</h3>
         </Link>
 
-        {/* Rating */}
+        {/* Rating & Reviews */}
         {product.rating && (
-          <div className="flex items-center gap-1 text-amber-500">
-            {Array.from({ length: 5 }).map((_, i) => {
-              // Get the numeric rating value regardless of the type
-              const ratingValue = typeof product.rating === 'number' 
-                ? product.rating 
-                : product.rating?.average || 0;
-              
-              return (
-                <svg
-                  key={i}
-                  viewBox="0 0 24 24"
-                  className={cn("w-4 h-4",
-                    i < ratingValue ? "fill-current" : "fill-amber-200"
-                  )}
-                  aria-hidden="true"
-                >
-                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                </svg>
-              );
-            })}
-            {product.reviewCount ? (
-              <span className="text-xs text-neutral-500 ms-1">
-                ({product.reviewCount})
-              </span>
-            ) : null}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 5 }).map((_, i) => {
+                const ratingValue = typeof product.rating === 'number' 
+                  ? product.rating 
+                  : product.rating?.average || 0;
+                
+                return (
+                  <Star
+                    key={i}
+                    className={cn(
+                      "w-3.5 h-3.5",
+                      i < Math.floor(ratingValue)
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-gray-300"
+                    )}
+                  />
+                );
+              })}
+            </div>
+            {product.reviewCount && (
+              <span className="text-sm text-gray-600">({product.reviewCount} Reviews)</span>
+            )}
           </div>
         )}
 
-        {/* Price */}
-        <div className="space-y-1">
-          <Price 
-            value={finalPrice} 
-            compareAt={comparePrice}
-            size="md"
-          />
-          {!hasVariants && product.minPrice && product.maxPrice && product.minPrice !== product.maxPrice && (
-            <span className="text-sm text-neutral-500">
-              From <Price value={product.minPrice} size="sm" />
-            </span>
+        {/* Price and CTA */}
+        <div className="mt-auto">
+          {/* Price with discount */}
+          <div className="flex items-center gap-2 mb-2">
+            {isSale && comparePrice && (
+              <>
+                <span className="text-gray-500 text-sm line-through">
+                  <Price value={comparePrice} size="sm" />
+                </span>
+                <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">
+                  {percentOff}% OFF
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Main price and add to cart */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+            <div className="flex items-center gap-1">
+              <span className="text-xl text-gray-900">
+                <Price value={finalPrice} size="md" />
+              </span>
+            </div>
+            <Button
+              onClick={onAdd}
+              disabled={!isInStock}
+              className="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 text-white rounded-full w-full sm:w-auto justify-center px-4 sm:px-6 py-2 h-10 text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              {!isInStock ? "Out of Stock" : "Add to Cart"}
+            </Button>
+          </div>
+
+          {/* Variant color swatches */}
+          {hasVariants && (
+            <div className="mt-3">
+              <ColorSwatches
+                options={product.variants!.map(v => ({
+                  value: v.id,
+                  label: v.colorName || 'Variant',
+                  swatch: v.colorHex || '#E5E7EB',
+                  inStock: v.inStock
+                }))}
+                selected={selected?.id}
+                onSelect={(variantId) => {
+                  const variant = product.variants!.find(v => v.id === variantId)
+                  if (variant) setSelected(variant)
+                }}
+              />
+            </div>
           )}
         </div>
-
-        {/* Variant color swatches */}
-        {hasVariants && (
-          <ColorSwatches
-            options={product.variants!.map(v => ({
-              value: v.id,
-              label: v.colorName || 'Variant',
-              swatch: v.colorHex || '#E5E7EB',
-              inStock: v.inStock
-            }))}
-            selected={selected?.id}
-            onSelect={(variantId) => {
-              const variant = product.variants!.find(v => v.id === variantId)
-              if (variant) setSelected(variant)
-            }}
-            className="mt-1"
-          />
-        )}
-
-        {/* Stock Status */}
-        <div className={cn(
-          "text-xs font-medium flex items-center gap-1",
-          isInStock ? "text-emerald-600" : "text-rose-600"
-        )}>
-          <div className={cn(
-            "w-2 h-2 rounded-full",
-            isInStock ? "bg-emerald-500" : "bg-rose-500"
-          )} />
-          {isInStock ? "In stock" : "Out of stock"}
-        </div>
-
-        {/* CTA */}
-        <CardFooter
-          onAddToCart={onAdd}
-          onWishlist={() => setIsWishlisted(!isWishlisted)}
-          onNotifyMe={() => console.log('Notify me clicked')}
-          disabled={!isInStock}
-          inStock={isInStock}
-          isWishlisted={isWishlisted}
-          showQuantity={!hasVariants}
-        />
       </div>
 
       {/* Quick View Modal */}

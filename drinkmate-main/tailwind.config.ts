@@ -23,6 +23,7 @@ const config: Config = {
         'bounce-slow': 'bounce 2s infinite',
         'pop-up': 'popUp 0.6s ease-out',
         'scale-up': 'scaleUp 0.4s ease-out',
+        'fade-in': 'fadeIn 0.3s ease-out',
       },
       keyframes: {
         popUp: {
@@ -33,6 +34,10 @@ const config: Config = {
           '0%': { transform: 'scale(1)' },
           '50%': { transform: 'scale(1.1)' },
           '100%': { transform: 'scale(1)' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
       },
       colors: {
@@ -189,6 +194,11 @@ const config: Config = {
         '2/3': '2 / 3',
         '9/16': '9 / 16',
       },
+    maxWidth: {
+      '8xl': '88rem',
+      '9xl': '96rem',
+      '10xl': '100rem',
+    },
     },
   },
   plugins: [

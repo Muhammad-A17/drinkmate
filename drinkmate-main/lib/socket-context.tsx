@@ -50,8 +50,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
       timeout: 20000,
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
-      maxReconnectionAttempts: 5
+      reconnectionAttempts: 5
     })
     
     console.log('Socket created:', newSocket, 'Type:', typeof newSocket, 'Has on method:', typeof newSocket.on === 'function')

@@ -42,7 +42,7 @@ export default function PersonalizedRecommendations({ className = "" }: Personal
   
   const fetchRecommendations = async () => {
     try {
-      setIsLoading(true)
+      setLoading(true)
       setError(null)
       
       if (!isAuthenticated || !token) {
@@ -91,7 +91,7 @@ export default function PersonalizedRecommendations({ className = "" }: Personal
         console.error('Fallback also failed:', fallbackErr)
       }
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
   
