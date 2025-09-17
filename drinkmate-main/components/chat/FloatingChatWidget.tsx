@@ -1077,7 +1077,7 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
                     </button>
                   ) : (
                     <button
-                      onClick={createOrGetChatSession}
+                      onClick={() => createOrGetChatSession()}
                       className="px-3 py-1 bg-[#04C4DB] text-white text-xs rounded hover:bg-[#02B4CA] transition-colors"
                     >
                       Try Again
