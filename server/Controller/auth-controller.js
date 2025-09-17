@@ -116,7 +116,7 @@ const register = async (req, res) => {
             // Generate a simple token
             const token = jwt.sign(
                 { id: userId, isAdmin: false },
-                process.env.JWT_SECRET || 'default_dev_secret',
+                process.env.JWT_SECRET,
                 { expiresIn: '2d' }
             );
             
@@ -198,7 +198,7 @@ const login = async (req, res) => {
                 // Generate a simple token
                 const token = jwt.sign(
                     { id: demoUser._id, isAdmin: demoUser.isAdmin },
-                    process.env.JWT_SECRET || 'default_dev_secret',
+                    process.env.JWT_SECRET,
                     { expiresIn: '2d' }
                 );
 
@@ -236,7 +236,7 @@ const verifyToken = async (req, res) => {
         
         try {
             // Verify the token
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_dev_secret');
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
             
             // If token is for a demo user (starts with 'demo')
             if (decoded.id.toString().startsWith('demo')) {

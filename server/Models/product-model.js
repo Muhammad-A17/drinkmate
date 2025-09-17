@@ -268,6 +268,11 @@ productSchema.index({ price: 1 });
 productSchema.index({ 'rating.average': -1 });
 productSchema.index({ salesCount: -1 });
 
+// Additional indexes for recommendation queries
+productSchema.index({ status: 1, stock: 1, bestSeller: 1 });
+productSchema.index({ status: 1, stock: 1, 'rating.count': -1, 'rating.average': -1 });
+productSchema.index({ status: 1, stock: 1, createdAt: -1 });
+
 // Pre-save middleware
 productSchema.pre('save', function(next) {
   this.updatedAt = Date.now();

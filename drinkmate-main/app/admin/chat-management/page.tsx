@@ -223,7 +223,7 @@ export default function ChatManagementPage() {
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
       console.log('Fetching chats with token:', token ? 'present' : 'missing')
       
-      const response = await fetch('http://localhost:3000/chat', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -300,7 +300,7 @@ export default function ChatManagementPage() {
   const fetchStats = useCallback(async () => {
     try {
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-      const response = await fetch('http://localhost:3000/chat/stats', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -676,7 +676,7 @@ export default function ChatManagementPage() {
   const handleAssignConversation = async (conversationId: string, assigneeId: string) => {
     try {
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-      const response = await fetch(`http://localhost:3000/chat/${conversationId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${conversationId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -703,7 +703,7 @@ export default function ChatManagementPage() {
   const handleUpdateStatus = async (conversationId: string, status: string) => {
     try {
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-      const response = await fetch(`http://localhost:3000/chat/${conversationId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${conversationId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -735,20 +735,8 @@ export default function ChatManagementPage() {
     try {
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
       
-      // Send via socket for real-time updates
-      if (socket && isConnected && typeof socket.emit === 'function') {
-        console.log('Sending message via socket')
-        socket.emit('send_message', {
-          chatId: selectedConversation.id,
-          content: newMessage,
-          type: isInternalNote ? 'system' : 'text'
-        })
-      } else {
-        console.log('Socket not available for sending message:', { socket, isConnected, hasEmit: socket && typeof socket.emit === 'function' })
-      }
-
-      // Also send via API for persistence
-      const response = await fetch(`http://localhost:3000/chat/${selectedConversation.id}/messages`, {
+      // Send via API for persistence
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${selectedConversation.id}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -761,41 +749,8 @@ export default function ChatManagementPage() {
       })
 
       if (response.ok) {
-        // Optimistically update the UI
-        const message: Message = {
-          id: Date.now().toString(),
-          content: newMessage,
-          sender: 'agent',
-          timestamp: new Date().toISOString(),
-          isNote: isInternalNote
-        }
-
-        setSelectedConversation(prev => prev ? {
-          ...prev,
-          messages: [...prev.messages, message],
-          lastMessage: {
-            content: newMessage,
-            timestamp: message.timestamp,
-            sender: 'agent'
-          }
-        } : null)
-
-        // Update conversations list
-        setConversations(prev => prev.map(conv => {
-          if (conv.id === selectedConversation.id) {
-            return {
-              ...conv,
-              messages: [...conv.messages, message],
-              lastMessage: {
-                content: newMessage,
-                timestamp: message.timestamp,
-                sender: 'agent'
-              },
-              updatedAt: new Date().toISOString()
-            }
-          }
-          return conv
-        }))
+        // Message will be added via socket listener
+        console.log('Message sent successfully')
 
         setNewMessage('')
         setIsInternalNote(false)
@@ -824,7 +779,7 @@ export default function ChatManagementPage() {
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
       console.log('Using token:', token ? 'present' : 'missing')
       
-      const response = await fetch(`http://localhost:3000/chat/${conversationId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${conversationId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -947,6 +902,12 @@ export default function ChatManagementPage() {
                   <Link href="/admin/chat-management/settings">
                     <Settings className="w-4 h-4 mr-2" />
                     Settings
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/admin/chat-management/debug">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Debug
                   </Link>
                 </Button>
                 <Button

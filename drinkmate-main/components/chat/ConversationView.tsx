@@ -69,7 +69,7 @@ export default function ConversationView({
     try {
       setLoading(true)
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const response = await fetch(`http://localhost:3000/chat/${conversation.id}/messages`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${conversation.id}/messages`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -90,7 +90,7 @@ export default function ConversationView({
   // Handle message send
   const handleMessageSend = async (content: string, isNote: boolean = false) => {
     try {
-      const response = await fetch(`http://localhost:3000/chat/${conversation.id}/messages`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${conversation.id}/messages`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('token') : null}`,

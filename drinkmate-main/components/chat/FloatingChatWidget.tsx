@@ -235,14 +235,35 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
       }
     }
 
-    socket.on('new_message', handleNewMessage)
-    socket.on('typing_status', handleTyping)
-    socket.on('chat_updated', handleChatUpdate)
+    const handleChatCreated = (data: { chat: ChatSession }) => {
+      // If this is a new chat for the current user, update the session
+      if (data.chat.customer.email === user?.email) {
+        setChatSession(data.chat)
+        setIsOpen(true)
+      }
+    }
+
+    const handleChatClosed = (data: { chatId: string }) => {
+      if (chatSession && data.chatId === chatSession._id) {
+        setChatSession(prev => prev ? {
+          ...prev,
+          status: 'closed'
+        } : null)
+      }
+    }
+
+    socket.on('chat:message:new', handleNewMessage)
+    socket.on('chat:typing:status', handleTyping)
+    socket.on('chat:status:updated', handleChatUpdate)
+    socket.on('chat:created', handleChatCreated)
+    socket.on('chat:closed', handleChatClosed)
 
     return () => {
-      socket.off('new_message', handleNewMessage)
-      socket.off('typing_status', handleTyping)
-      socket.off('chat_updated', handleChatUpdate)
+      socket.off('chat:message:new', handleNewMessage)
+      socket.off('chat:typing:status', handleTyping)
+      socket.off('chat:status:updated', handleChatUpdate)
+      socket.off('chat:created', handleChatCreated)
+      socket.off('chat:closed', handleChatClosed)
     }
   }, [socket, chatSession, isOpen])
 
@@ -264,7 +285,7 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
       }
 
       // Check if user has an existing active chat
-      const response = await fetch('http://localhost:3000/chat/customer', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/customer`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -282,7 +303,7 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
           joinChat(activeChat._id)
         } else {
           // Create new chat session
-          const newChatResponse = await fetch('http://localhost:3000/chat', {
+          const newChatResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -335,7 +356,7 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
       sendMessage(chatSession._id, messageData.content, messageData.messageType)
 
       // Also send via API for persistence
-      await fetch(`http://localhost:3000/chat/${chatSession._id}/message`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${chatSession._id}/message`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,

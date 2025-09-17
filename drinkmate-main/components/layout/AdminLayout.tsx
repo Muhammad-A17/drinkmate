@@ -223,16 +223,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         href: "/admin/chat-management",
         icon: <MessageSquare className="w-5 h-5" />
       },
-      {
-        name: "Chat Settings",
-        href: "/admin/chat-management/settings",
-        icon: <Settings className="w-5 h-5" />
-      },
-      {
-        name: "Debug Chat",
-        href: "/admin/debug-chat",
-        icon: <MessageSquare className="w-5 h-5" />
-      },
     { 
       name: "Contact Settings", 
       href: "/admin/contact-settings", 
@@ -274,11 +264,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         name: "Auth Debug", 
         href: "/admin/auth-debug", 
         icon: <Database className="w-5 h-5" /> 
-      },
-      { 
-        name: "Debug Chat", 
-        href: "/admin/debug-chat", 
-        icon: <MessageSquare className="w-5 h-5" /> 
       },
       { 
         name: "Test", 

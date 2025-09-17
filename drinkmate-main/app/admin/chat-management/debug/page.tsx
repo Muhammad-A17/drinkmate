@@ -75,7 +75,7 @@ export default function DebugChatPage() {
         return
       }
 
-      const response = await fetch('http://localhost:3000/chat', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -107,7 +107,7 @@ export default function DebugChatPage() {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       if (!token) return
 
-      const response = await fetch(`http://localhost:3000/chat/${chatId}/messages`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${chatId}/messages`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -145,7 +145,7 @@ export default function DebugChatPage() {
         return
       }
 
-      const response = await fetch(`http://localhost:3000/chat/${selectedChat._id}/messages`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${selectedChat._id}/messages`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -199,7 +199,7 @@ export default function DebugChatPage() {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
       if (!token) return
 
-      const response = await fetch(`http://localhost:3000/chat/${chatId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${chatId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

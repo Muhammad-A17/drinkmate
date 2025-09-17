@@ -147,18 +147,37 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
       toast.error(data.message)
     }
 
-    socket.on('new_message', handleNewMessage)
-    socket.on('chat_assigned', handleChatAssigned)
-    socket.on('chat_status_updated', handleChatStatusUpdated)
-    socket.on('admin_notification', handleAdminNotification)
-    socket.on('error', handleError)
+    const handleChatListUpdate = (data: { chat: any, action: 'created' | 'updated' | 'deleted' }) => {
+      if (data.action === 'created') {
+        setChats(prev => [data.chat, ...prev])
+        toast.info(`New chat created: ${data.chat.subject || 'Untitled'}`)
+      } else if (data.action === 'updated') {
+        setChats(prev => prev.map(chat => 
+          chat._id === data.chat._id ? { ...chat, ...data.chat } : chat
+        ))
+      } else if (data.action === 'deleted') {
+        setChats(prev => prev.filter(chat => chat._id !== data.chat._id))
+        if (activeChat && activeChat._id === data.chat._id) {
+          setActiveChat(null)
+          setMessages([])
+        }
+      }
+    }
+
+    socket.on('chat:message:new', handleNewMessage)
+    socket.on('chat:assigned', handleChatAssigned)
+    socket.on('chat:status:updated', handleChatStatusUpdated)
+    socket.on('chat:admin:notification', handleAdminNotification)
+    socket.on('chat:error', handleError)
+    socket.on('chat:list:updated', handleChatListUpdate)
 
     return () => {
-      socket.off('new_message', handleNewMessage)
-      socket.off('chat_assigned', handleChatAssigned)
-      socket.off('chat_status_updated', handleChatStatusUpdated)
-      socket.off('admin_notification', handleAdminNotification)
-      socket.off('error', handleError)
+      socket.off('chat:message:new', handleNewMessage)
+      socket.off('chat:assigned', handleChatAssigned)
+      socket.off('chat:status:updated', handleChatStatusUpdated)
+      socket.off('chat:admin:notification', handleAdminNotification)
+      socket.off('chat:error', handleError)
+      socket.off('chat:list:updated', handleChatListUpdate)
     }
   }, [socket, activeChat])
 
@@ -423,7 +442,7 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
     }
   }
 
-  const filteredChats = chats.filter(chat => {
+  const filteredChats = (chats || []).filter(chat => {
     const matchesFilter = filter === 'all' || chat.status === filter
     const matchesSearch = searchTerm === '' || 
       chat.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||

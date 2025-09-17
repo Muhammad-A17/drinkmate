@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     
     // Create chat session via backend API
     try {
-      const chatResponse = await fetch('http://localhost:3000/chat', {
+      const chatResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         const messageContent = `Contact Form Submission:\n\nReason: ${body.reason}\nMessage: ${body.message}${body.attachments?.length ? `\n\nAttachments: ${body.attachments.length} file(s)` : ''}`
         
         // Update the chat with the initial message using a direct database call
-        const updateResponse = await fetch(`http://localhost:3000/chat/${chatData.data._id}`, {
+        const updateResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${chatData.data._id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

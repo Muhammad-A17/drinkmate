@@ -46,7 +46,12 @@ export function SocketProvider({ children }: SocketProviderProps) {
       auth: {
         token: token
       },
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+      maxReconnectionAttempts: 5
     })
     
     console.log('Socket created:', newSocket, 'Type:', typeof newSocket, 'Has on method:', typeof newSocket.on === 'function')
@@ -65,6 +70,20 @@ export function SocketProvider({ children }: SocketProviderProps) {
     newSocket.on('connect_error', (error) => {
       console.error('Socket connection error:', error)
       console.error('Token being used:', token)
+      setIsConnected(false)
+    })
+
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log('Socket reconnected after', attemptNumber, 'attempts')
+      setIsConnected(true)
+    })
+
+    newSocket.on('reconnect_error', (error) => {
+      console.error('Socket reconnection error:', error)
+    })
+
+    newSocket.on('reconnect_failed', () => {
+      console.error('Socket reconnection failed after maximum attempts')
       setIsConnected(false)
     })
 
@@ -92,31 +111,31 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
   const sendMessage = (chatId: string, content: string, type: string = 'text') => {
     if (socket) {
-      socket.emit('send_message', { chatId, content, type })
+      socket.emit('chat:message:send', { chatId, content, type })
     }
   }
 
   const startTyping = (chatId: string) => {
     if (socket) {
-      socket.emit('typing_start', { chatId })
+      socket.emit('chat:typing:start', { chatId })
     }
   }
 
   const stopTyping = (chatId: string) => {
     if (socket) {
-      socket.emit('typing_stop', { chatId })
+      socket.emit('chat:typing:stop', { chatId })
     }
   }
 
   const assignChat = (chatId: string) => {
     if (socket) {
-      socket.emit('assign_chat', { chatId })
+      socket.emit('chat:assign', { chatId })
     }
   }
 
   const updateChatStatus = (chatId: string, status: string, resolutionNotes?: string) => {
     if (socket) {
-      socket.emit('update_chat_status', { chatId, status, resolutionNotes })
+      socket.emit('chat:status:update', { chatId, status, resolutionNotes })
     }
   }
 

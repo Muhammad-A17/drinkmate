@@ -5,7 +5,7 @@ import CartItemRow from './CartItemRow'
 import AnimatedCartItem from './AnimatedCartItem'
 import CartNote from './CartNote'
 import FreeGift from './FreeGift'
-import Recommendations from './Recommendations'
+import PersonalizedRecommendations from './PersonalizedRecommendations'
 import Summary from './Summary'
 import StickyCheckout from './StickyCheckout'
 import { useCart } from '@/hooks/use-cart'
@@ -17,30 +17,6 @@ import { CartSettingsProvider } from '@/lib/cart-settings-context'
 import { Currency } from '@/utils/currency'
 import { motion, AnimatePresence } from 'framer-motion'
 
-// Mock recommendations data - replace with your actual data source
-const mockRecommendations = [
-  {
-    id: 201,
-    name: "Premium CO2 Cylinder",
-    price: 45.00,
-    image: "/images/italian-strawberry-lemon-syrup.png",
-    category: "Accessories"
-  },
-  {
-    id: 202,
-    name: "Flavor Syrup Pack",
-    price: 25.00,
-    image: "/images/italian-strawberry-lemon-syrup.png",
-    category: "Flavors"
-  },
-  {
-    id: 203,
-    name: "Replacement Parts Kit",
-    price: 35.00,
-    image: "/images/italian-strawberry-lemon-syrup.png",
-    category: "Accessories"
-  }
-]
 
 export default function CartPage() {
   const { items, totalPrice, totalItems, loading, error, updateTrigger, addItem, clearCart, updateQuantity, removeItem } = useCart()
@@ -157,7 +133,7 @@ export default function CartPage() {
 
           <FreeGift />
 
-          <Recommendations items={mockRecommendations} />
+          <PersonalizedRecommendations />
         </div>
 
         {/* Right column (summary) */}

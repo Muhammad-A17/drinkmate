@@ -49,6 +49,7 @@ const paymentRouter = require('./Router/payment-router');
 const chatRouter = require('./Router/chat-router');
 const chatSettingsRouter = require('./Router/chat-settings-router');
 const recipeRouter = require('./Router/recipe-router');
+const recommendationRouter = require('./Router/recommendation-router');
 const { Server } = require('socket.io');
 const http = require('http');
 
@@ -178,6 +179,7 @@ app.use('/payments', apiLimiter, paymentRouter);
 app.use('/chat', generalLimiter, chatRouter);
 app.use('/chat-settings', generalLimiter, chatSettingsRouter);
 app.use('/recipes', generalLimiter, recipeRouter);
+app.use('/recommendations', generalLimiter, recommendationRouter);
 
 // API prefix routes for frontend compatibility
 app.use('/api/admin', generalLimiter, adminRouter);
@@ -192,6 +194,7 @@ app.use('/api/refill', generalLimiter, refillRouter);
 app.use('/api/payments', apiLimiter, paymentRouter);
 app.use('/api/chat', generalLimiter, chatRouter);
 app.use('/api/recipes', generalLimiter, recipeRouter);
+app.use('/api/recommendations', generalLimiter, recommendationRouter);
 
 // Agents endpoint (placeholder for frontend compatibility)
 app.get('/agents', generalLimiter, authenticateToken, isAdmin, (req, res) => {

@@ -31,8 +31,8 @@ const validateToken = (token) => {
 const verifyToken = (token) => {
   const jwtSecret = process.env.JWT_SECRET;
   
-  if (!jwtSecret || jwtSecret === 'default_dev_secret') {
-    throw new Error('JWT_SECRET not properly configured');
+  if (!jwtSecret) {
+    throw new Error('JWT_SECRET not configured');
   }
   
   if (jwtSecret.length < 32) {
@@ -81,7 +81,7 @@ const authenticateToken = async (req, res, next) => {
       });
     }
     
-    // If token is for a demo user (development only)
+    // Allow demo users in development mode
     if (decoded.id.toString().startsWith('demo')) {
       req.user = {
         _id: decoded.id,
