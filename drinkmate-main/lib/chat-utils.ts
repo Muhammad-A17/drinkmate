@@ -262,25 +262,28 @@ export function getConversationUrgency(conversation: Conversation): number {
   
   // Status weight
   switch (conversation.status) {
-    case 'new':
+    case 'active':
       score += 300
       break
-    case 'waiting_for_agent':
+    case 'waiting_agent':
       score += 200
       break
-    case 'waiting_for_customer':
+    case 'waiting_customer':
       score += 100
       break
-    case 'on_hold':
+    case 'snoozed':
       score += 50
       break
     case 'closed':
       score += 0
       break
+    case 'converted':
+      score += 10
+      break
   }
   
   // Unread messages weight
-  score += conversation.unreadCount * 10
+  score += (conversation.unreadCount || 0) * 10
   
   // Time weight (newer conversations get higher score)
   const hoursSinceCreated = (Date.now() - new Date(conversation.createdAt).getTime()) / (1000 * 60 * 60)

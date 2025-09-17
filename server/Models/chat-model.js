@@ -65,6 +65,10 @@ const chatSchema = new mongoose.Schema({
   
   // Messages in this chat
   messages: [{
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: () => new mongoose.Types.ObjectId()
+    },
     sender: {
       type: String,
       enum: ['customer', 'admin', 'system'],
@@ -102,6 +106,16 @@ const chatSchema = new mongoose.Schema({
   
   // Chat metadata
   lastMessageAt: {
+    type: Date,
+    default: Date.now
+  },
+  
+  // Last seen timestamps
+  customerLastSeen: {
+    type: Date,
+    default: Date.now
+  },
+  adminLastSeen: {
     type: Date,
     default: Date.now
   },
@@ -241,6 +255,18 @@ chatSchema.methods.markAsRead = function(adminId) {
       msg.isRead = true;
     }
   });
+  return this.save();
+};
+
+// Method to update customer last seen time
+chatSchema.methods.updateCustomerSeen = function() {
+  this.customerLastSeen = new Date();
+  return this.save();
+};
+
+// Method to update admin last seen time
+chatSchema.methods.updateAdminSeen = function() {
+  this.adminLastSeen = new Date();
   return this.save();
 };
 

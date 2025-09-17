@@ -149,6 +149,8 @@ class ChatSettingsService {
   // Get chat status (public endpoint)
   async getChatStatus(): Promise<ChatStatus> {
     try {
+      console.log('🔥 ChatSettingsService: Fetching chat status from:', `${API_BASE_URL}/chat-settings/status`);
+      
       const response = await fetch(`${API_BASE_URL}/chat-settings/status`, {
         method: 'GET',
         headers: {
@@ -157,6 +159,8 @@ class ChatSettingsService {
         // Add timeout and retry logic
         signal: AbortSignal.timeout(5000), // 5 second timeout
       });
+
+      console.log('🔥 ChatSettingsService: Response status:', response.status);
 
       if (!response.ok) {
         if (response.status === 429) {
@@ -169,10 +173,22 @@ class ChatSettingsService {
             timezone: 'Asia/Riyadh'
           };
         }
-        throw new Error(`Failed to fetch chat status: ${response.statusText}`);
+        
+        // Try to get error details
+        let errorMessage = `Failed to fetch chat status: ${response.statusText}`;
+        try {
+          const errorData = await response.text();
+          console.error('🔥 ChatSettingsService: Error response:', errorData);
+          errorMessage = errorData || errorMessage;
+        } catch (e) {
+          console.error('🔥 ChatSettingsService: Could not parse error response');
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      console.log('🔥 ChatSettingsService: Response data:', data);
       
       if (data.success) {
         this.cachedStatus = data.data;
@@ -185,13 +201,17 @@ class ChatSettingsService {
       if (error instanceof Error && error.name !== 'TimeoutError' && error.name !== 'TypeError') {
         console.warn('Error fetching chat status:', error.message || error);
       }
-      // Return default status if API fails
-      return {
+      
+      // Return cached data or default if API fails
+      const fallbackStatus = this.cachedStatus || {
         isOnline: false,
         isEnabled: false,
         workingHours: { start: '09:00', end: '17:00' },
-        timezone: 'Asia/Riyadh',
+        timezone: 'Asia/Riyadh'
       };
+      
+      console.log('🔥 ChatSettingsService: Using fallback status:', fallbackStatus);
+      return fallbackStatus;
     }
   }
 

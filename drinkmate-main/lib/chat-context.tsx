@@ -1,0 +1,664 @@
+'use client'
+
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react'
+import { useAuth } from './auth-context'
+import { useSocket } from './socket-context'
+import { Message, ChatSession, Conversation } from '@/types/chat'
+
+// Chat State Interface
+interface ChatState {
+  // Current active chat
+  currentChat: ChatSession | null
+  
+  // All conversations (for admin)
+  conversations: Conversation[]
+  
+  // UI State
+  isOpen: boolean
+  isMinimized: boolean
+  isLoading: boolean
+  error: string | null
+  
+  // Message State
+  messages: Message[]
+  unreadCount: number
+  
+  // Typing indicators
+  typingUsers: Set<string>
+  
+  // Connection state
+  isConnected: boolean
+  isReconnecting: boolean
+}
+
+// Action Types
+type ChatAction =
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'SET_OPEN'; payload: boolean }
+  | { type: 'SET_MINIMIZED'; payload: boolean }
+  | { type: 'SET_CURRENT_CHAT'; payload: ChatSession | null }
+  | { type: 'SET_CONVERSATIONS'; payload: Conversation[] }
+  | { type: 'ADD_MESSAGE'; payload: Message }
+  | { type: 'UPDATE_MESSAGE'; payload: { id: string; updates: Partial<Message> } }
+  | { type: 'SET_MESSAGES'; payload: Message[] }
+  | { type: 'SET_UNREAD_COUNT'; payload: number }
+  | { type: 'ADD_TYPING_USER'; payload: string }
+  | { type: 'REMOVE_TYPING_USER'; payload: string }
+  | { type: 'SET_CONNECTION_STATE'; payload: { isConnected: boolean; isReconnecting: boolean } }
+  | { type: 'CLEAR_CHAT' }
+
+// Initial State
+const initialState: ChatState = {
+  currentChat: null,
+  conversations: [],
+  isOpen: false,
+  isMinimized: false,
+  isLoading: false,
+  error: null,
+  messages: [],
+  unreadCount: 0,
+  typingUsers: new Set(),
+  isConnected: false,
+  isReconnecting: false
+}
+
+// Reducer
+function chatReducer(state: ChatState, action: ChatAction): ChatState {
+  switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload }
+    
+    case 'SET_ERROR':
+      return { ...state, error: action.payload }
+    
+    case 'SET_OPEN':
+      return { ...state, isOpen: action.payload }
+    
+    case 'SET_MINIMIZED':
+      return { ...state, isMinimized: action.payload }
+    
+    case 'SET_CURRENT_CHAT':
+      return { 
+        ...state, 
+        currentChat: action.payload,
+        messages: action.payload?.messages || []
+      }
+    
+    case 'SET_CONVERSATIONS':
+      return { ...state, conversations: action.payload }
+    
+    case 'ADD_MESSAGE':
+      return {
+        ...state,
+        messages: [...state.messages, action.payload]
+      }
+    
+    case 'UPDATE_MESSAGE':
+      return {
+        ...state,
+        messages: state.messages.map(msg =>
+          msg.id === action.payload.id
+            ? { ...msg, ...action.payload.updates }
+            : msg
+        )
+      }
+    
+    case 'SET_MESSAGES':
+      return { ...state, messages: action.payload }
+    
+    case 'SET_UNREAD_COUNT':
+      return { ...state, unreadCount: action.payload }
+    
+    case 'ADD_TYPING_USER':
+      return {
+        ...state,
+        typingUsers: new Set([...state.typingUsers, action.payload])
+      }
+    
+    case 'REMOVE_TYPING_USER':
+      const newTypingUsers = new Set(state.typingUsers)
+      newTypingUsers.delete(action.payload)
+      return { ...state, typingUsers: newTypingUsers }
+    
+    case 'SET_CONNECTION_STATE':
+      return {
+        ...state,
+        isConnected: action.payload.isConnected,
+        isReconnecting: action.payload.isReconnecting
+      }
+    
+    case 'CLEAR_CHAT':
+      return {
+        ...state,
+        currentChat: null,
+        messages: [],
+        unreadCount: 0,
+        typingUsers: new Set()
+      }
+    
+    default:
+      return state
+  }
+}
+
+// Context
+interface ChatContextType {
+  state: ChatState
+  dispatch: React.Dispatch<ChatAction>
+  
+  // Actions
+  openChat: () => void
+  closeChat: () => void
+  toggleMinimize: () => void
+  sendMessage: (content: string, type?: string) => Promise<void>
+  loadChat: (chatId: string) => Promise<void>
+  createNewChat: () => Promise<void>
+  markAsRead: () => void
+  startTyping: () => void
+  stopTyping: () => void
+  updateMessageStatus: (messageId: string, status: string) => Promise<void>
+  
+  // Getters
+  getUnreadCount: () => number
+  isTyping: (userId: string) => boolean
+}
+
+const ChatContext = createContext<ChatContextType | undefined>(undefined)
+
+// Provider Component
+export function ChatProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(chatReducer, initialState)
+  const { user, isAuthenticated } = useAuth()
+  const { socket, isConnected, sendMessage: socketSendMessage, joinChat, leaveChat } = useSocket()
+
+  // Helper function to get auth token
+  const getAuthToken = useCallback(() => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+  }, [])
+
+  // Load chat data from API
+  const loadChatData = useCallback(async (chatId: string): Promise<ChatSession | null> => {
+    try {
+      const token = getAuthToken()
+      if (!token) {
+        console.error('🔥 ChatProvider: No auth token available')
+        throw new Error('No auth token')
+      }
+
+      console.log('🔥 ChatProvider: Loading chat data for chatId:', chatId)
+
+      // First, get the customer's chats to find the specific chat
+      const customerChatsResponse = await fetch('http://localhost:3000/chat/customer', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!customerChatsResponse.ok) {
+        console.error('🔥 ChatProvider: Failed to fetch customer chats, status:', customerChatsResponse.status, customerChatsResponse.statusText)
+        throw new Error(`Failed to fetch customer chats: ${customerChatsResponse.status} ${customerChatsResponse.statusText}`)
+      }
+
+      const customerChatsData = await customerChatsResponse.json()
+      console.log('🔥 ChatProvider: Customer chats data received:', customerChatsData)
+      
+      if (!customerChatsData.success || !customerChatsData.data?.chats) {
+        console.error('🔥 ChatProvider: Invalid customer chats data structure:', customerChatsData)
+        throw new Error('Invalid customer chats data structure')
+      }
+      
+      // Find the specific chat by ID
+      const chat = customerChatsData.data.chats.find((c: any) => c._id === chatId)
+      if (!chat) {
+        console.error('🔥 ChatProvider: Chat not found in customer chats:', chatId)
+        throw new Error('Chat not found')
+      }
+      
+      console.log('🔥 ChatProvider: Found chat:', chat)
+
+      // Fetch messages using customer endpoint
+      let messages: Message[] = []
+      try {
+        const messagesResponse = await fetch(`http://localhost:3000/chat/${chatId}/customer-messages`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (messagesResponse.ok) {
+          const messagesData = await messagesResponse.json()
+          console.log('🔥 ChatProvider: Customer messages data received:', messagesData)
+          
+          if (messagesData.success && messagesData.data?.chat?.messages) {
+            messages = messagesData.data.chat.messages.map((msg: any): Message => ({
+              id: msg._id || msg.id || `msg_${Date.now()}`,
+              content: msg.content || '',
+              sender: msg.sender === 'admin' || msg.sender === 'agent' ? 'agent' : 'customer',
+              timestamp: msg.createdAt || msg.timestamp || new Date().toISOString(),
+              isNote: msg.isNote || false,
+              attachments: msg.attachments || [],
+              readAt: msg.readAt,
+              status: msg.status || 'sent'
+            }))
+          } else if (messagesData.data?.messages) {
+            // Fallback for different API response structure
+            messages = messagesData.data.messages.map((msg: any): Message => ({
+              id: msg._id || msg.id || `msg_${Date.now()}`,
+              content: msg.content || '',
+              sender: msg.sender === 'admin' || msg.sender === 'agent' ? 'agent' : 'customer',
+              timestamp: msg.createdAt || msg.timestamp || new Date().toISOString(),
+              isNote: msg.isNote || false,
+              attachments: msg.attachments || [],
+              readAt: msg.readAt,
+              status: msg.status || 'sent'
+            }))
+          }
+        } else {
+          console.warn('🔥 ChatProvider: Failed to fetch customer messages, status:', messagesResponse.status)
+        }
+      } catch (error) {
+        console.warn('🔥 ChatProvider: Error fetching customer messages:', error)
+        // Continue without messages if fetch fails
+      }
+
+      const chatSession: ChatSession = {
+        _id: chat._id || chatId,
+        status: chat.status || 'active',
+        customer: chat.customer || { id: 'unknown', name: 'Unknown Customer', email: 'unknown@example.com' },
+        assignedTo: chat.assignedTo,
+        createdAt: chat.createdAt || new Date().toISOString(),
+        updatedAt: chat.updatedAt || new Date().toISOString(),
+        lastMessageAt: new Date(chat.lastMessageAt || chat.updatedAt || chat.createdAt || new Date()),
+        messages
+      }
+      
+      console.log('🔥 ChatProvider: Chat session created:', chatSession)
+      return chatSession
+    } catch (error) {
+      console.error('🔥 ChatProvider: Error loading chat data:', error)
+      dispatch({ type: 'SET_ERROR', payload: `Failed to load chat: ${error instanceof Error ? error.message : 'Unknown error'}` })
+      return null
+    }
+  }, [getAuthToken])
+
+  // Check for existing active chat
+  const checkForExistingChat = useCallback(async (): Promise<string | null> => {
+    if (!user || !isAuthenticated) {
+      console.log('🔥 ChatProvider: No user or not authenticated')
+      return null
+    }
+
+    try {
+      const token = getAuthToken()
+      if (!token) {
+        console.log('🔥 ChatProvider: No auth token for checking existing chat')
+        return null
+      }
+
+      console.log('🔥 ChatProvider: Checking for existing chat for user:', user._id)
+
+      const response = await fetch('http://localhost:3000/chat/customer', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('🔥 ChatProvider: Customer chats response:', data)
+        
+        if (data.success && data.data?.chats) {
+          const activeChat = data.data.chats.find((chat: any) => 
+            chat.status === 'active' && 
+            chat.customer.userId === user._id && 
+            !chat.isDeleted
+          )
+          console.log('🔥 ChatProvider: Found active chat:', activeChat?._id)
+          return activeChat?._id || null
+        }
+      } else {
+        console.warn('🔥 ChatProvider: Failed to fetch customer chats, status:', response.status)
+      }
+    } catch (error) {
+      console.error('🔥 ChatProvider: Error checking for existing chat:', error)
+    }
+
+    return null
+  }, [user, isAuthenticated, getAuthToken])
+
+  // Actions
+  const openChat = useCallback(() => {
+    dispatch({ type: 'SET_OPEN', payload: true })
+    dispatch({ type: 'SET_MINIMIZED', payload: false })
+    localStorage.setItem('chat-widget-open', 'true')
+  }, [])
+
+  const closeChat = useCallback(() => {
+    dispatch({ type: 'SET_OPEN', payload: false })
+    dispatch({ type: 'SET_MINIMIZED', payload: false })
+    localStorage.setItem('chat-widget-open', 'false')
+    
+    if (state.currentChat) {
+      leaveChat(state.currentChat._id)
+    }
+  }, [state.currentChat, leaveChat])
+
+  const toggleMinimize = useCallback(() => {
+    dispatch({ type: 'SET_MINIMIZED', payload: !state.isMinimized })
+  }, [state.isMinimized])
+
+  const sendMessage = useCallback(async (content: string, type: string = 'text') => {
+    if (!content.trim() || !state.currentChat) return
+
+    const messageId = `temp_${Date.now()}`
+    const newMessage: Message = {
+      id: messageId,
+      content: content.trim(),
+      sender: 'customer',
+      timestamp: new Date().toISOString(),
+      isNote: false,
+      attachments: [],
+      status: 'sending'
+    }
+
+    // Add message optimistically
+    dispatch({ type: 'ADD_MESSAGE', payload: newMessage })
+
+    try {
+      if (socket && isConnected) {
+        await socketSendMessage(state.currentChat._id, content.trim(), type)
+        dispatch({ type: 'UPDATE_MESSAGE', payload: { id: messageId, updates: { status: 'sent' } } })
+      } else {
+        // API fallback
+        const token = getAuthToken()
+        const response = await fetch(`http://localhost:3000/chat/${state.currentChat._id}/message`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            content: content.trim(),
+            messageType: type
+          })
+        })
+
+        if (response.ok) {
+          const responseData = await response.json()
+          dispatch({ 
+            type: 'UPDATE_MESSAGE', 
+            payload: { 
+              id: messageId, 
+              updates: { 
+                id: responseData.data.message._id,
+                status: 'sent' 
+              } 
+            } 
+          })
+          
+          // Auto-update to delivered after a short delay
+          setTimeout(() => {
+            updateMessageStatus(responseData.data.message._id, 'delivered')
+          }, 1000)
+        } else {
+          throw new Error('Failed to send message')
+        }
+      }
+    } catch (error) {
+      console.error('Error sending message:', error)
+      dispatch({ type: 'UPDATE_MESSAGE', payload: { id: messageId, updates: { status: 'failed' } } })
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to send message' })
+    }
+  }, [state.currentChat, socket, isConnected, socketSendMessage, getAuthToken])
+
+  const loadChat = useCallback(async (chatId: string) => {
+    console.log('🔥 ChatProvider: Loading chat with ID:', chatId)
+    dispatch({ type: 'SET_LOADING', payload: true })
+    dispatch({ type: 'SET_ERROR', payload: null })
+    
+    try {
+      const chatData = await loadChatData(chatId)
+      if (chatData) {
+        console.log('🔥 ChatProvider: Chat data loaded successfully:', chatData)
+        dispatch({ type: 'SET_CURRENT_CHAT', payload: chatData })
+        joinChat(chatId)
+      } else {
+        console.error('🔥 ChatProvider: No chat data returned for chatId:', chatId)
+        dispatch({ type: 'SET_ERROR', payload: 'No chat data found' })
+      }
+    } catch (error) {
+      console.error('🔥 ChatProvider: Error loading chat:', error)
+      dispatch({ type: 'SET_ERROR', payload: `Failed to load chat: ${error instanceof Error ? error.message : 'Unknown error'}` })
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false })
+    }
+  }, [loadChatData, joinChat])
+
+  const createNewChat = useCallback(async () => {
+    if (!user) return
+
+    dispatch({ type: 'SET_LOADING', payload: true })
+    
+    try {
+      const token = getAuthToken()
+      const response = await fetch('http://localhost:3000/chat', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          customer: {
+            userId: user._id,
+            name: user.name || user.username,
+            email: user.email
+          }
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const newChat: ChatSession = {
+          _id: data.data._id,
+          status: data.data.status,
+          customer: data.data.customer,
+          assignedTo: data.data.assignedTo,
+          createdAt: data.data.createdAt,
+          updatedAt: data.data.updatedAt,
+          lastMessageAt: new Date(),
+          messages: []
+        }
+        
+        dispatch({ type: 'SET_CURRENT_CHAT', payload: newChat })
+        joinChat(data.data._id)
+      } else {
+        throw new Error('Failed to create chat')
+      }
+    } catch (error) {
+      console.error('Error creating chat:', error)
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to create chat' })
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false })
+    }
+  }, [user, getAuthToken, joinChat])
+
+  const markAsRead = useCallback(() => {
+    if (state.currentChat) {
+      // Mark messages as read via API
+      const token = getAuthToken()
+      if (token) {
+        fetch(`http://localhost:3000/chat/${state.currentChat._id}/read`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }).catch(console.error)
+      }
+      
+      dispatch({ type: 'SET_UNREAD_COUNT', payload: 0 })
+    }
+  }, [state.currentChat, getAuthToken])
+
+  const startTyping = useCallback(() => {
+    if (socket && state.currentChat) {
+      socket.emit('typing_start', { chatId: state.currentChat._id })
+    }
+  }, [socket, state.currentChat])
+
+  const stopTyping = useCallback(() => {
+    if (socket && state.currentChat) {
+      socket.emit('typing_stop', { chatId: state.currentChat._id })
+    }
+  }, [socket, state.currentChat])
+
+  // Getters
+  const getUnreadCount = useCallback(() => {
+    return state.unreadCount
+  }, [state.unreadCount])
+
+  const isTyping = useCallback((userId: string) => {
+    return state.typingUsers.has(userId)
+  }, [state.typingUsers])
+
+  // Update message status
+  const updateMessageStatus = useCallback(async (messageId: string, status: string) => {
+    if (!state.currentChat) return
+
+    try {
+      const token = getAuthToken()
+      if (!token) return
+
+      const response = await fetch(`http://localhost:3000/chat/${state.currentChat._id}/messages/${messageId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status })
+      })
+
+      if (response.ok) {
+        dispatch({ type: 'UPDATE_MESSAGE', payload: { id: messageId, updates: { status: status as 'sending' | 'sent' | 'delivered' | 'read' | 'failed' } } })
+      }
+    } catch (error) {
+      console.error('Error updating message status:', error)
+    }
+  }, [state.currentChat, getAuthToken])
+
+  // Socket event listeners
+  useEffect(() => {
+    if (!socket) return
+
+    const handleNewMessage = (data: { chatId: string; message: any }) => {
+      if (state.currentChat && data.chatId === state.currentChat._id) {
+        const message: Message = {
+          id: data.message._id || data.message.id,
+          content: data.message.content,
+          sender: data.message.sender === 'admin' || data.message.sender === 'agent' ? 'agent' : 'customer',
+          timestamp: data.message.createdAt || data.message.timestamp,
+          isNote: data.message.isNote || false,
+          attachments: data.message.attachments || [],
+          readAt: data.message.readAt,
+          status: 'delivered'
+        }
+        
+        dispatch({ type: 'ADD_MESSAGE', payload: message })
+        
+        // Update unread count if message is from agent
+        if (message.sender === 'agent') {
+          dispatch({ type: 'SET_UNREAD_COUNT', payload: state.unreadCount + 1 })
+          
+          // Auto-mark agent messages as read after a short delay
+          setTimeout(() => {
+            updateMessageStatus(message.id, 'read')
+          }, 2000)
+        }
+      }
+    }
+
+    const handleTypingStart = (data: { chatId: string; userId: string }) => {
+      if (state.currentChat && data.chatId === state.currentChat._id) {
+        dispatch({ type: 'ADD_TYPING_USER', payload: data.userId })
+      }
+    }
+
+    const handleTypingStop = (data: { chatId: string; userId: string }) => {
+      if (state.currentChat && data.chatId === state.currentChat._id) {
+        dispatch({ type: 'REMOVE_TYPING_USER', payload: data.userId })
+      }
+    }
+
+    socket.on('new_message', handleNewMessage)
+    socket.on('typing_start', handleTypingStart)
+    socket.on('typing_stop', handleTypingStop)
+
+    return () => {
+      socket.off('new_message', handleNewMessage)
+      socket.off('typing_start', handleTypingStart)
+      socket.off('typing_stop', handleTypingStop)
+    }
+  }, [socket, state.currentChat, state.unreadCount])
+
+  // Check for existing chat on mount
+  useEffect(() => {
+    if (user && isAuthenticated && !state.currentChat) {
+      checkForExistingChat().then(chatId => {
+        if (chatId) {
+          loadChat(chatId)
+          
+          // Auto-open if was open before refresh
+          const wasOpen = localStorage.getItem('chat-widget-open') === 'true'
+          if (wasOpen) {
+            openChat()
+          }
+        }
+      })
+    }
+  }, [user, isAuthenticated, state.currentChat, checkForExistingChat, loadChat, openChat])
+
+  // Update connection state
+  useEffect(() => {
+    dispatch({ 
+      type: 'SET_CONNECTION_STATE', 
+      payload: { isConnected, isReconnecting: false } 
+    })
+  }, [isConnected])
+
+  const value: ChatContextType = {
+    state,
+    dispatch,
+    openChat,
+    closeChat,
+    toggleMinimize,
+    sendMessage,
+    loadChat,
+    createNewChat,
+    markAsRead,
+    startTyping,
+    stopTyping,
+    updateMessageStatus,
+    getUnreadCount,
+    isTyping
+  }
+
+  return (
+    <ChatContext.Provider value={value}>
+      {children}
+    </ChatContext.Provider>
+  )
+}
+
+// Hook to use chat context
+export function useChat() {
+  const context = useContext(ChatContext)
+  if (context === undefined) {
+    throw new Error('useChat must be used within a ChatProvider')
+  }
+  return context
+}

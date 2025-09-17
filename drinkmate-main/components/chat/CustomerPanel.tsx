@@ -94,7 +94,7 @@ export default function CustomerPanel({
       ])
       setLoadingOrders(false)
     }, 1000)
-  }, [conversation.customerId])
+  }, [conversation.customer.id])
 
   const handleAddTag = (tag: string) => {
     if (tag.trim() && !conversation.tags.includes(tag.trim())) {
@@ -188,7 +188,7 @@ export default function CustomerPanel({
             <div className="flex items-center gap-2 text-sm">
               <Clock className="w-4 h-4 text-gray-400" />
               <span className="text-gray-600">
-                Last seen {formatRelativeTime(conversation.customer.lastSeenAt || conversation.lastMessageAt)}
+                Last seen {formatRelativeTime(conversation.customer.lastSeen || conversation.lastMessage.timestamp)}
               </span>
             </div>
           </div>

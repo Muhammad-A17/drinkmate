@@ -1,12 +1,14 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react'
 import { io, Socket } from 'socket.io-client'
 import { useAuth } from './auth-context'
 
 interface SocketContextType {
   socket: Socket | null
   isConnected: boolean
+  connectSocket: () => Promise<void>
+  disconnectSocket: () => void
   joinChat: (chatId: string) => void
   leaveChat: (chatId: string) => void
   sendMessage: (chatId: string, content: string, type?: string) => void
@@ -26,10 +28,11 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const { user, token } = useAuth()
+  const socketRef = useRef<Socket | null>(null)
+  const isConnectingRef = useRef<boolean>(false)
 
-  useEffect(() => {
-    console.log('Socket context effect running:', { user, token, hasUser: !!user, hasToken: !!token })
-    
+  // Function to connect socket manually
+  const connectSocket = useCallback(async () => {
     if (!user || !token) {
       console.log('No user or token, disconnecting socket')
       if (socket) {
@@ -42,6 +45,24 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
     // Initialize socket connection
     console.log('Initializing socket connection with token:', token ? 'present' : 'missing')
+    if (isConnectingRef.current) {
+      console.log('🔥 Socket connection already in progress, skipping')
+      return
+    }
+
+    // Skip health check to avoid rate limiting issues
+    console.log('🔥 Proceeding with socket connection (health check disabled to avoid rate limiting)')
+
+    console.log('🔥 Starting socket connection...')
+    isConnectingRef.current = true
+
+    // Clean up any existing socket connection first
+    if (socketRef.current) {
+      console.log('🔥 Cleaning up existing socket connection')
+      socketRef.current.disconnect()
+      socketRef.current = null
+    }
+
     const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000', {
       auth: {
         token: token
@@ -69,6 +90,21 @@ export function SocketProvider({ children }: SocketProviderProps) {
     newSocket.on('connect_error', (error) => {
       console.warn('Socket connection error:', error.message || error)
       setIsConnected(false)
+      isConnectingRef.current = false
+      
+      // Retry connection after a delay, but limit retries
+      const retryCount = (newSocket as any).retryCount || 0
+      if (retryCount < 3) {
+        (newSocket as any).retryCount = retryCount + 1
+        setTimeout(() => {
+          if (!isConnected && !isConnectingRef.current) {
+            console.log(`🔥 Retrying socket connection (attempt ${retryCount + 1}/3)...`)
+            connectSocket()
+          }
+        }, 5000 * (retryCount + 1)) // Exponential backoff
+      } else {
+        console.log('🔥 Max retry attempts reached, giving up on socket connection')
+      }
     })
 
     newSocket.on('reconnect', (attemptNumber) => {
@@ -87,13 +123,31 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
     console.log('Setting socket in state:', newSocket)
     setSocket(newSocket)
+    socketRef.current = newSocket
+  }, [token, user, isConnected]) // Add isConnected to dependencies to prevent infinite loops
 
-    // Cleanup on unmount
-    return () => {
-      console.log('Cleaning up socket connection')
-      newSocket.disconnect()
+  // Function to disconnect socket
+  const disconnectSocket = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.disconnect()
+      setSocket(null)
+      setIsConnected(false)
+      socketRef.current = null
     }
-  }, [user, token])
+    isConnectingRef.current = false
+  }, [])
+
+  // Auto-disconnect when user logs out
+  useEffect(() => {
+    if (!user || !token) {
+      disconnectSocket()
+    }
+  }, [user, token, disconnectSocket])
+
+  // Call connectSocket when user or token changes
+  useEffect(() => {
+    connectSocket()
+  }, [connectSocket])
 
   const joinChat = (chatId: string) => {
     if (socket) {
@@ -140,6 +194,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const value: SocketContextType = {
     socket,
     isConnected,
+    connectSocket,
+    disconnectSocket,
     joinChat,
     leaveChat,
     sendMessage,

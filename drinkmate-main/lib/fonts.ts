@@ -1,3 +1,28 @@
+// Temporary font fallbacks due to Google Fonts being blocked
+// import { Cairo, Montserrat, Noto_Sans, Noto_Sans_Arabic } from 'next/font/google'
+
+// Fallback font configuration
+export const cairo = {
+  variable: '--font-cairo',
+  className: 'font-sans',
+}
+
+export const montserrat = {
+  variable: '--font-montserrat', 
+  className: 'font-sans',
+}
+
+export const notoSans = {
+  variable: '--font-noto-sans',
+  className: 'font-sans',
+}
+
+export const notoArabic = {
+  variable: '--font-noto-arabic',
+  className: 'font-sans',
+}
+
+/* Original implementation (restore when Google Fonts access is available):
 import { Cairo, Montserrat, Noto_Sans, Noto_Sans_Arabic } from 'next/font/google'
 
 export const cairo = Cairo({
@@ -27,3 +52,4 @@ export const notoArabic = Noto_Sans_Arabic({
   variable: '--font-noto-arabic',
   weight: ['400', '600'],
 })
+*/

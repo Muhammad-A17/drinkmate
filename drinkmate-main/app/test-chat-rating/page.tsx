@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import CustomerChatInterface from '@/components/chat/CustomerChatInterface'
+import SimpleChatWidget from '@/components/chat/SimpleChatWidget'
 import CustomerChatRating from '@/components/chat/CustomerChatRating'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -40,12 +40,17 @@ export default function TestChatRatingPage() {
   if (showChat) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <CustomerChatInterface
-          chatId={chatId}
-          customerName="Test Customer"
-          customerEmail="test@example.com"
-          onChatClosed={handleChatClosed}
-        />
+        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <h3 className="text-lg font-semibold mb-4">Test Chat</h3>
+          <SimpleChatWidget />
+          <Button 
+            onClick={handleChatClosed}
+            variant="outline" 
+            className="mt-4 w-full"
+          >
+            Close Chat
+          </Button>
+        </div>
       </div>
     )
   }

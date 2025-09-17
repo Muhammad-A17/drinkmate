@@ -111,7 +111,7 @@ export default function ExportModal({
 
   const getExportPreview = () => {
     const filteredMessages = messages.filter(msg => {
-      const msgDate = new Date(msg.createdAt).toISOString().split('T')[0]
+      const msgDate = new Date(msg.timestamp).toISOString().split('T')[0]
       return msgDate >= dateRange.from && msgDate <= dateRange.to
     })
 

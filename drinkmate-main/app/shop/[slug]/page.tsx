@@ -208,6 +208,10 @@ export default function ShopProductDetail() {
   const router = useRouter()
 
   const productSlug = params?.slug as string
+  
+  // Debug: Log the slug parameter
+  console.log('Product detail page - received slug:', productSlug)
+  
   const [product, setProduct] = useState<ShopProduct | null>(null)
   const [loading, setLoading] = useState(true)
   const [relatedProducts, setRelatedProducts] = useState<ShopProduct[]>([])

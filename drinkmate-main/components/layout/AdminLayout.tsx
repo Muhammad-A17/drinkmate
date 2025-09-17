@@ -30,7 +30,8 @@ import {
   Wrench,
   Database,
   Bug,
-  TestTube
+  TestTube,
+  GitPullRequest
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -224,6 +225,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         icon: <MessageSquare className="w-5 h-5" />
       },
       {
+        name: language === 'AR' ? 'حالة طلبات السحب' : 'PR Status',
+        href: "/admin/pr-status",
+        icon: <GitPullRequest className="w-5 h-5" />
+      },
+    { 
       name: "Contact Settings", 
       href: "/admin/contact-settings", 
       icon: <Wrench className="w-5 h-5" /> 

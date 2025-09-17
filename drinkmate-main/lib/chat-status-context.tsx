@@ -25,11 +25,23 @@ export function ChatStatusProvider({ children }: { children: ReactNode }) {
   const loadChatStatus = async () => {
     try {
       setError(null)
+      console.log('🔥 ChatStatusContext: Loading chat status...')
       const status = await chatSettingsService.getChatStatus()
+      console.log('🔥 ChatStatusContext: Chat status loaded:', status)
       setChatStatus(status)
     } catch (err) {
-      console.error('Failed to load chat status:', err)
+      console.error('🔥 ChatStatusContext: Failed to load chat status:', err)
       setError(err instanceof Error ? err.message : 'Failed to load chat status')
+      
+      // Set fallback status
+      const fallbackStatus = {
+        isOnline: false,
+        isEnabled: false,
+        workingHours: { start: '09:00', end: '17:00' },
+        timezone: 'Asia/Riyadh'
+      }
+      console.log('🔥 ChatStatusContext: Using fallback status:', fallbackStatus)
+      setChatStatus(fallbackStatus)
     }
   }
 

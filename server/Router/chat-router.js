@@ -30,14 +30,20 @@ router.get('/stats', authenticateToken, isAdmin, chatController.getChatStats);
 // Admin route alias for stats
 router.get('/admin/stats', authenticateToken, isAdmin, chatController.getChatStats);
 
+// Get public queue status (no auth required)
+router.get('/queue-status', chatController.getQueueStatus);
+
 // Get specific chat (admin only)
 router.get('/:id', authenticateToken, isAdmin, chatController.getChatById);
 
 // Create new chat session (public for contact form)
 router.post('/', chatController.createChat);
 
-// Get messages for a specific chat
+// Get messages for a specific chat (admin only)
 router.get('/:chatId/messages', authenticateToken, isAdmin, chatController.getChatMessages);
+
+// Get messages for a specific chat (customer - requires authentication)
+router.get('/:chatId/customer-messages', authenticateToken, chatController.getCustomerChatMessages);
 
 // Assign chat to admin
 router.put('/:chatId/assign', authenticateToken, isAdmin, chatController.assignChat);
@@ -87,5 +93,8 @@ router.post('/:chatId/rate', chatController.rateChat);
 
 // Delete chat (admin only)
 router.delete('/:chatId', authenticateToken, isAdmin, chatController.deleteChat);
+
+// Update message status
+router.put('/:chatId/messages/:messageId/status', authenticateToken, chatController.updateMessageStatus);
 
 module.exports = router;

@@ -13,10 +13,16 @@ import {
   X, 
   ChevronDown, 
   ChevronUp,
-  Search,
   Star,
   Truck,
-  Sparkles
+  Sparkles,
+  Tag,
+  DollarSign,
+  Award,
+  Clock,
+  Zap,
+  Shield,
+  RefreshCw
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -178,69 +184,66 @@ export default function ShopFilters({
   }
 
   const content = (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Filters</h3>
+      <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-brand-100 rounded-lg">
+            <Filter className="w-5 h-5 text-brand-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+        </div>
         {activeFilterCount > 0 && (
           <Button
             variant="ghost"
             size="sm"
             onClick={onClearFilters}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-3 py-2 rounded-lg"
           >
-            Clear all ({activeFilterCount})
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Clear all
           </Button>
         )}
       </div>
 
-      {/* Search */}
-      <div className="space-y-2">
-        <Label htmlFor="filter-search">Search</Label>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            id="filter-search"
-            placeholder="Search products..."
-            value={filters.searchQuery}
-            onChange={(e) => handleFilterChange('searchQuery', e.target.value)}
-            className="pl-10"
-            dir={isRTL ? 'rtl' : 'ltr'}
-          />
-        </div>
-      </div>
-
       {/* Category Filter */}
       <FilterSection
-        title="Category"
+        title="Categories"
         sectionKey="category"
-        icon={<Filter className="w-4 h-4" />}
+        icon={<Tag className="w-4 h-4 text-brand-600" />}
       >
         <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="category-all"
-              checked={filters.category === 'all'}
-              onCheckedChange={() => handleCategoryChange('all')}
-            />
-            <Label htmlFor="category-all" className="text-sm">
-              All Categories ({productCount})
-            </Label>
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="category-all"
+                checked={filters.category === 'all'}
+                onCheckedChange={() => handleCategoryChange('all')}
+                className="data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
+              />
+              <Label htmlFor="category-all" className="text-sm font-medium cursor-pointer">
+                All Categories
+              </Label>
+            </div>
+            <Badge variant="secondary" className="bg-brand-100 text-brand-700 px-2 py-1">
+              {productCount}
+            </Badge>
           </div>
           {categories.map((category) => (
-            <div key={category._id} className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+            <div key={category._id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
+              <div className="flex items-center space-x-3">
                 <Checkbox
                   id={`category-${category.slug}`}
                   checked={filters.category === category.slug}
                   onCheckedChange={() => handleCategoryChange(category.slug)}
+                  className="data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
                 />
-                <Label htmlFor={`category-${category.slug}`} className="text-sm">
+                <Label htmlFor={`category-${category.slug}`} className="text-sm font-medium cursor-pointer">
                   {category.name}
                 </Label>
               </div>
               {category.count !== undefined && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="bg-gray-100 text-gray-600 px-2 py-1">
                   {category.count}
                 </Badge>
               )}
@@ -253,10 +256,10 @@ export default function ShopFilters({
       <FilterSection
         title="Price Range"
         sectionKey="price"
-        icon={<span className="text-sm">SAR</span>}
+        icon={<DollarSign className="w-4 h-4 text-brand-600" />}
       >
         <div className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Slider
               value={localPriceRange}
               onValueChange={handlePriceRangeChange}
@@ -266,26 +269,34 @@ export default function ShopFilters({
               step={50}
               className="w-full"
             />
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>SAR {localPriceRange[0]}</span>
-              <span>SAR {localPriceRange[1]}</span>
+            <div className="flex justify-between text-sm font-medium text-gray-600">
+              <span>SAR {localPriceRange[0].toLocaleString()}</span>
+              <span>SAR {localPriceRange[1].toLocaleString()}</span>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              placeholder="Min"
-              value={localPriceRange[0]}
-              onChange={(e) => setLocalPriceRange([Number(e.target.value), localPriceRange[1]])}
-              className="text-sm"
-            />
-            <Input
-              type="number"
-              placeholder="Max"
-              value={localPriceRange[1]}
-              onChange={(e) => setLocalPriceRange([localPriceRange[0], Number(e.target.value)])}
-              className="text-sm"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="price-min" className="text-xs text-gray-500 mb-1 block">Min Price</Label>
+              <Input
+                id="price-min"
+                type="number"
+                placeholder="0"
+                value={localPriceRange[0]}
+                onChange={(e) => setLocalPriceRange([Number(e.target.value), localPriceRange[1]])}
+                className="h-9 text-sm border border-gray-200 rounded-lg focus:border-brand-500"
+              />
+            </div>
+            <div>
+              <Label htmlFor="price-max" className="text-xs text-gray-500 mb-1 block">Max Price</Label>
+              <Input
+                id="price-max"
+                type="number"
+                placeholder="10000"
+                value={localPriceRange[1]}
+                onChange={(e) => setLocalPriceRange([localPriceRange[0], Number(e.target.value)])}
+                className="h-9 text-sm border border-gray-200 rounded-lg focus:border-brand-500"
+              />
+            </div>
           </div>
         </div>
       </FilterSection>
@@ -293,21 +304,24 @@ export default function ShopFilters({
       {/* Brand Filter */}
       {brands.length > 0 && (
         <FilterSection
-          title="Brand"
+          title="Brands"
           sectionKey="brand"
-          icon={<Sparkles className="w-4 h-4" />}
+          icon={<Award className="w-4 h-4 text-brand-600" />}
         >
           <div className="space-y-2">
             {brands.map((brand) => (
-              <div key={brand} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`brand-${brand}`}
-                  checked={filters.brand.includes(brand)}
-                  onCheckedChange={() => handleBrandChange(brand)}
-                />
-                <Label htmlFor={`brand-${brand}`} className="text-sm">
-                  {brand}
-                </Label>
+              <div key={brand} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`brand-${brand}`}
+                    checked={filters.brand.includes(brand)}
+                    onCheckedChange={() => handleBrandChange(brand)}
+                    className="data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
+                  />
+                  <Label htmlFor={`brand-${brand}`} className="text-sm font-medium cursor-pointer">
+                    {brand}
+                  </Label>
+                </div>
               </div>
             ))}
           </div>
@@ -316,24 +330,35 @@ export default function ShopFilters({
 
       {/* Rating Filter */}
       <FilterSection
-        title="Rating"
+        title="Customer Rating"
         sectionKey="rating"
-        icon={<Star className="w-4 h-4" />}
+        icon={<Star className="w-4 h-4 text-brand-600" />}
       >
         <div className="space-y-2">
           {ratingOptions.map((option) => (
-            <div key={option.value} className="flex items-center space-x-2">
-              <Checkbox
-                id={`rating-${option.value}`}
-                checked={filters.rating === option.value}
-                onCheckedChange={() => handleRatingChange(option.value)}
-              />
-              <Label htmlFor={`rating-${option.value}`} className="text-sm flex items-center gap-2">
-                <div className="flex text-yellow-400">
-                  {option.icon}
-                </div>
-                {option.label}
-              </Label>
+            <div key={option.value} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id={`rating-${option.value}`}
+                  checked={filters.rating === option.value}
+                  onCheckedChange={() => handleRatingChange(option.value)}
+                  className="data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
+                />
+                <Label htmlFor={`rating-${option.value}`} className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                  <div className="flex text-amber-400">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={cn(
+                          "w-4 h-4",
+                          i < option.value ? "fill-current" : "text-gray-300"
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <span>{option.label}</span>
+                </Label>
+              </div>
             </div>
           ))}
         </div>
@@ -343,18 +368,22 @@ export default function ShopFilters({
       <FilterSection
         title="Availability"
         sectionKey="availability"
-        icon={<Truck className="w-4 h-4" />}
+        icon={<Shield className="w-4 h-4 text-brand-600" />}
       >
         <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="in-stock"
-              checked={filters.inStock}
-              onCheckedChange={(checked) => handleBooleanFilterChange('inStock', checked as boolean)}
-            />
-            <Label htmlFor="in-stock" className="text-sm">
-              In Stock Only
-            </Label>
+          <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="in-stock"
+                checked={filters.inStock}
+                onCheckedChange={(checked) => handleBooleanFilterChange('inStock', checked as boolean)}
+                className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+              />
+              <Label htmlFor="in-stock" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                In Stock Only
+              </Label>
+            </div>
           </div>
         </div>
       </FilterSection>
@@ -363,38 +392,50 @@ export default function ShopFilters({
       <FilterSection
         title="Special Offers"
         sectionKey="offers"
-        icon={<Sparkles className="w-4 h-4" />}
+        icon={<Zap className="w-4 h-4 text-brand-600" />}
       >
         <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="new-products"
-              checked={filters.isNewProduct}
-              onCheckedChange={(checked) => handleBooleanFilterChange('isNewProduct', checked as boolean)}
-            />
-            <Label htmlFor="new-products" className="text-sm">
-              New Products
-            </Label>
+          <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="new-products"
+                checked={filters.isNewProduct}
+                onCheckedChange={(checked) => handleBooleanFilterChange('isNewProduct', checked as boolean)}
+                className="data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+              />
+              <Label htmlFor="new-products" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                <Clock className="w-4 h-4 text-green-500" />
+                New Products
+              </Label>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="best-sellers"
-              checked={filters.isBestSeller}
-              onCheckedChange={(checked) => handleBooleanFilterChange('isBestSeller', checked as boolean)}
-            />
-            <Label htmlFor="best-sellers" className="text-sm">
-              Best Sellers
-            </Label>
+          <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="best-sellers"
+                checked={filters.isBestSeller}
+                onCheckedChange={(checked) => handleBooleanFilterChange('isBestSeller', checked as boolean)}
+                className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+              />
+              <Label htmlFor="best-sellers" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                <Award className="w-4 h-4 text-amber-500" />
+                Best Sellers
+              </Label>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="on-sale"
-              checked={filters.isOnSale}
-              onCheckedChange={(checked) => handleBooleanFilterChange('isOnSale', checked as boolean)}
-            />
-            <Label htmlFor="on-sale" className="text-sm">
-              On Sale
-            </Label>
+          <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="on-sale"
+                checked={filters.isOnSale}
+                onCheckedChange={(checked) => handleBooleanFilterChange('isOnSale', checked as boolean)}
+                className="data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+              />
+              <Label htmlFor="on-sale" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                <Tag className="w-4 h-4 text-red-500" />
+                On Sale
+              </Label>
+            </div>
           </div>
         </div>
       </FilterSection>
@@ -404,32 +445,50 @@ export default function ShopFilters({
   if (isMobile) {
     return (
       <div className={cn(
-        "fixed inset-0 z-50 bg-black/50 transition-opacity",
+        "fixed inset-0 z-50 bg-black/50 transition-opacity duration-300",
         isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
       )}>
         <div className={cn(
-          "fixed right-0 top-0 h-full w-80 bg-white shadow-xl transform transition-transform",
+          "fixed right-0 top-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}>
-          <div className="p-4 h-full overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Filters</h2>
+          <div className="h-full flex flex-col">
+            {/* Mobile Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-brand-100 rounded-lg">
+                  <Filter className="w-5 h-5 text-brand-600" />
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-lg"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </Button>
             </div>
-            {content}
-            <div className="mt-6 pt-4 border-t">
-              <Button
-                onClick={onClose}
-                className="w-full bg-[#12d6fa] hover:bg-[#0fb8d9]"
-              >
-                Show {productCount} Results
-              </Button>
+            
+            {/* Mobile Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {content}
+            </div>
+            
+            {/* Mobile Footer */}
+            <div className="p-6 border-t border-gray-200">
+              <div className="space-y-3">
+                <div className="text-center text-sm text-gray-600">
+                  <span className="font-semibold text-gray-900">{productCount}</span> products found
+                </div>
+                <Button
+                  onClick={onClose}
+                  className="w-full h-12 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-lg"
+                >
+                  Show Results
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -439,7 +498,11 @@ export default function ShopFilters({
 
   return (
     <div className="w-80 flex-shrink-0">
-      {content}
+      <div className="sticky top-24">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          {content}
+        </div>
+      </div>
     </div>
   )
 }

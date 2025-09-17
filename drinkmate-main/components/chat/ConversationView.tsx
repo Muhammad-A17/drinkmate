@@ -99,7 +99,7 @@ export default function ConversationView({
         body: JSON.stringify({
           content,
           isNote,
-          senderType: 'agent'
+          sender: 'agent'
         })
       })
 
@@ -107,13 +107,10 @@ export default function ConversationView({
         // Add message to local state
         const newMessage: Message = {
           id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          conversationId: conversation.id,
-          senderType: 'agent',
-          senderId: 'current-user',
-          senderName: 'You',
-          body: content,
-          isNote,
-          createdAt: new Date().toISOString(),
+          content: content,
+          sender: 'agent',
+          timestamp: new Date().toISOString(),
+          isNote: isNote,
           attachments: []
         }
         setMessages(prev => [...prev, newMessage])
@@ -146,7 +143,7 @@ export default function ConversationView({
   const handleSnooze = (snoozeData: any) => {
     onConversationUpdate(conversation.id, { 
       snoozeUntil: snoozeData.until,
-      status: 'on_hold'
+      status: 'snoozed'
     })
   }
 
@@ -381,10 +378,10 @@ export default function ConversationView({
                 key={message.id}
                 className={cn(
                   "flex gap-3",
-                  message.senderType === 'agent' ? "justify-end" : "justify-start"
+                  message.sender === 'agent' ? "justify-end" : "justify-start"
                 )}
               >
-                {message.senderType !== 'agent' && (
+                {message.sender !== 'agent' && (
                   <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm font-medium">
                     {getCustomerInitials(conversation.customer)}
                   </div>
@@ -392,7 +389,7 @@ export default function ConversationView({
                 
                 <div className={cn(
                   "max-w-xs lg:max-w-md px-4 py-2 rounded-lg",
-                  message.senderType === 'agent' 
+                  message.sender === 'agent' 
                     ? "bg-blue-500 text-white" 
                     : "bg-gray-100 text-gray-900",
                   message.isNote && "bg-yellow-50 border border-yellow-200"
@@ -403,18 +400,18 @@ export default function ConversationView({
                       <span className="text-xs font-medium text-yellow-700">Internal Note</span>
                     </div>
                   )}
-                  <p className="text-sm">{message.body}</p>
+                  <p className="text-sm">{message.content}</p>
                   <p className={cn(
                     "text-xs mt-1",
-                    message.senderType === 'agent' ? "text-blue-100" : "text-gray-500"
+                    message.sender === 'agent' ? "text-blue-100" : "text-gray-500"
                   )}>
-                    {formatRelativeTime(message.createdAt)}
+                    {formatRelativeTime(message.timestamp)}
                   </p>
                 </div>
 
-                {message.senderType === 'agent' && (
+                {message.sender === 'agent' && (
                   <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                    {getAgentInitials(conversation.assignee || { id: 'current', name: 'You', email: '', role: 'agent', isOnline: true, maxConcurrentChats: 0, currentChats: 0 })}
+                    {getAgentInitials(conversation.assignee || { id: 'current', name: 'You', email: 'you@example.com', isAdmin: true })}
                   </div>
                 )}
               </div>
