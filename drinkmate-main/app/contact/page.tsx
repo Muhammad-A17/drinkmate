@@ -162,7 +162,7 @@ function ContactForm() {
   const { user } = useAuth()
   const { isRTL } = useTranslation()
   const [formData, setFormData] = useState({
-    name: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : '',
+    name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
     reason: '',
@@ -305,19 +305,9 @@ function ContactForm() {
   return (
     <Card className="border-gray-200 bg-white shadow-lg">
       <CardHeader className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Contact Form</CardTitle>
-            <p className="text-gray-600">Send us a message anytime.</p>
-          </div>
-          {user && (
-            <a 
-              href="/account/support" 
-              className="text-sm text-[#12d6fa] hover:text-[#0fb8d9] font-medium"
-            >
-              View my tickets
-            </a>
-          )}
+        <div>
+          <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Contact Form</CardTitle>
+          <p className="text-gray-600">Send us a message anytime.</p>
         </div>
       </CardHeader>
       <CardContent className="p-6">
@@ -510,7 +500,7 @@ function ContactPageContent() {
   const { settings, getText } = useContactSettings()
   const { user, isAuthenticated } = useAuth()
   const { isRTL } = useTranslation()
-  const { chatStatus } = useChatStatus()
+  const { chatStatus, isLoading: isChatStatusLoading } = useChatStatus()
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null)
 
@@ -664,55 +654,74 @@ function ContactPageContent() {
         {/* Main Content */}
         <section className="py-8 lg:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Desktop Layout - Fixed 3-Column Grid */}
-            <div className="hidden lg:grid lg:grid-cols-[380px_1fr_400px] lg:gap-8">
-              {/* Left Column - Contact Options */}
-              <div className="sticky top-24 self-start">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact Options</h2>
-                <div className="space-y-6">
-                  <ContactOptionCard
-                    icon={MessageCircle}
-                    title="WhatsApp"
-                    availability="Typical replies 9–5"
-                    buttonText="Chat on WhatsApp"
-                    buttonAction={handleWhatsAppClick}
-                    status="24/7"
-                  />
-                  
-                  <ContactOptionCard
-                    icon={Mail}
-                    title="Email"
-                    availability="We reply within 1 business day"
-                    buttonText="Email support@drinkmates.com"
-                    buttonAction={handleEmailClick}
-                    status="available"
-                  />
-                  
-                  <ContactOptionCard
-                    icon={MessageCircle}
-                    title="Live Chat"
-                    availability={
-                      !isAuthenticated 
-                        ? "Login required to start chat" 
-                        : isChatOnline() 
-                          ? "Avg. reply ~2 min" 
-                          : `Opens ${chatStatus.workingHours.start}`
-                    }
-                    buttonText={!isAuthenticated ? "Login to chat" : "Start live chat"}
-                    buttonAction={handleChatClick}
-                    status={!isAuthenticated ? "login-required" : isChatOnline() ? "available" : "offline"}
-                    disabled={!isAuthenticated || !isChatOnline()}
-                  />
+            {/* Desktop Layout - 2-Column Grid with FAQ below */}
+            <div className="hidden lg:block">
+              {/* Top Row - Contact Options and Contact Form */}
+              <div className="grid lg:grid-cols-[380px_1fr] lg:gap-8 mb-12">
+                {/* Left Column - Contact Options */}
+                <div className="sticky top-24 self-start">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact Options</h2>
+                  <div className="space-y-6">
+                    <ContactOptionCard
+                      icon={MessageCircle}
+                      title="WhatsApp"
+                      availability="Typical replies 9–5"
+                      buttonText="Chat on WhatsApp"
+                      buttonAction={handleWhatsAppClick}
+                      status="24/7"
+                    />
+                    
+                    <ContactOptionCard
+                      icon={Mail}
+                      title="Email"
+                      availability="We reply within 1 business day"
+                      buttonText="Email support@drinkmates.com"
+                      buttonAction={handleEmailClick}
+                      status="available"
+                    />
+                    
+                    <ContactOptionCard
+                      icon={MessageCircle}
+                      title="Live Chat"
+                      availability={
+                        isChatStatusLoading
+                          ? "Checking availability..."
+                          : !isAuthenticated 
+                            ? "Login required to start chat" 
+                            : isChatOnline() 
+                              ? "Avg. reply ~2 min" 
+                              : `Opens ${chatStatus.workingHours.start}`
+                      }
+                      buttonText={
+                        isChatStatusLoading 
+                          ? "Loading..."
+                          : !isAuthenticated 
+                            ? "Login to chat" 
+                            : "Start live chat"
+                      }
+                      buttonAction={handleChatClick}
+                      status={
+                        isChatStatusLoading
+                          ? "offline"
+                          : !isAuthenticated 
+                            ? "login-required" 
+                            : isChatOnline() 
+                              ? "available" 
+                              : "offline"
+                      }
+                      disabled={isChatStatusLoading || !isAuthenticated || !isChatOnline()}
+                    />
+                  </div>
+                </div>
+
+                {/* Right Column - Contact Form (takes remaining space) */}
+                <div className="sticky top-24 self-start">
+                  <ContactForm />
                 </div>
               </div>
 
-              {/* Center Column - Contact Form */}
-              <div className="sticky top-24 self-start">
-                <ContactForm />
-              </div>
-
-              {/* Right Column - FAQ */}
-              <div className="sticky top-24 self-start">
+              {/* Bottom Row - FAQ Section (full width) */}
+              <div className="max-w-4xl mx-auto">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
                 
                 {/* FAQ Search */}
@@ -785,16 +794,32 @@ function ContactPageContent() {
                     icon={MessageCircle}
                     title="Live Chat"
                     availability={
-                      !isAuthenticated 
-                        ? "Login required to start chat" 
-                        : isChatOnline() 
-                          ? "Live now • Avg. reply ~2 min" 
-                          : `Chat offline • Opens ${chatStatus.workingHours.start}`
+                      isChatStatusLoading
+                        ? "Checking availability..."
+                        : !isAuthenticated 
+                          ? "Login required to start chat" 
+                          : isChatOnline() 
+                            ? "Live now • Avg. reply ~2 min" 
+                            : `Chat offline • Opens ${chatStatus.workingHours.start}`
                     }
-                    buttonText={!isAuthenticated ? "Login to chat" : "Start live chat"}
+                    buttonText={
+                      isChatStatusLoading 
+                        ? "Loading..."
+                        : !isAuthenticated 
+                          ? "Login to chat" 
+                          : "Start live chat"
+                    }
                     buttonAction={handleChatClick}
-                    status={!isAuthenticated ? "login-required" : isChatOnline() ? "available" : "offline"}
-                    disabled={!isAuthenticated || !isChatOnline()}
+                    status={
+                      isChatStatusLoading
+                        ? "offline"
+                        : !isAuthenticated 
+                          ? "login-required" 
+                          : isChatOnline() 
+                            ? "available" 
+                            : "offline"
+                    }
+                    disabled={isChatStatusLoading || !isAuthenticated || !isChatOnline()}
                   />
                 </div>
               </div>
@@ -859,12 +884,13 @@ function ContactPageContent() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Map */}
               <div className="relative h-96 rounded-2xl overflow-hidden shadow-lg">
-                <Image
-                  src="https://maps.googleapis.com/maps/api/staticmap?center=21.4858,39.1972&zoom=15&size=800x400&maptype=roadmap&markers=color:red%7Clabel:A%7C21.4858,39.1972&key=AIzaSyBFw0Qbyq9zTFTd-tUY6dgsW6x8UfJzJzU"
-                  alt="As Salamah, Jeddah Location Map"
-                  fill
-                  className="object-cover"
-                />
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                  <div className="text-center text-gray-600">
+                    <MapPin className="h-12 w-12 mx-auto mb-2" />
+                    <p className="text-lg font-medium">As Salamah, Jeddah</p>
+                    <p className="text-sm">Saudi Arabia</p>
+                  </div>
+                </div>
                 <div className="absolute inset-0 bg-black/20"></div>
                 <div className="absolute bottom-4 left-4 right-4">
                   <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4">

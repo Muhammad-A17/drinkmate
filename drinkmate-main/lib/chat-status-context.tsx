@@ -19,7 +19,7 @@ export function ChatStatusProvider({ children }: { children: ReactNode }) {
     workingHours: { start: '09:00', end: '17:00' },
     timezone: 'Asia/Riyadh'
   })
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const loadChatStatus = async () => {
@@ -41,10 +41,16 @@ export function ChatStatusProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Load initial status
-    loadChatStatus()
+    const initializeStatus = async () => {
+      setIsLoading(true)
+      await loadChatStatus()
+      setIsLoading(false)
+    }
     
-    // Set up polling - increased to 2 minutes to reduce rate limiting
-    const interval = setInterval(loadChatStatus, 120000) // Poll every 2 minutes
+    initializeStatus()
+    
+    // Set up polling - reduced frequency to prevent rate limiting
+    const interval = setInterval(loadChatStatus, 30000) // Poll every 30 seconds
     
     return () => clearInterval(interval)
   }, [])

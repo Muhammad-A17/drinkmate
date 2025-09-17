@@ -458,15 +458,6 @@ export default function AdminDashboard() {
     }
   }
 
-  // Handle case where context is not available during build
-  if (typeof window === 'undefined') {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Loading dashboard...</div>
-      </div>
-    )
-  }
-
   if (isLoading) {
     return (
       <AdminLayout>

@@ -120,6 +120,11 @@ interface Conversation {
     resolution: number // seconds remaining
   }
   tags: string[]
+  rating?: {
+    score: number
+    feedback?: string
+    ratedAt: string
+  }
   createdAt: string
   updatedAt: string
   messages: Message[]
@@ -161,12 +166,13 @@ interface ChatStats {
   slaBreach: number
   avgResponseTime: number
   avgResolutionTime: number
+  avgRating: number
 }
 
 export default function ChatManagementPage() {
   const { user, isAuthenticated } = useAuth()
   const { isRTL } = useTranslation()
-  const { socket: contextSocket, isConnected: contextConnected } = useSocket()
+  const { socket: contextSocket, isConnected: contextConnected, connectSocket, disconnectSocket } = useSocket()
   
   // Fallback socket connection
   const [fallbackSocket, setFallbackSocket] = useState<any>(null)
@@ -175,6 +181,21 @@ export default function ChatManagementPage() {
   // Use context socket if available, otherwise use fallback
   const socket = contextSocket || fallbackSocket
   const isConnected = contextConnected || fallbackConnected
+
+  // Auto-connect socket for admin users
+  useEffect(() => {
+    if (user && isAuthenticated && user.isAdmin) {
+      console.log('Admin user detected, connecting socket...')
+      connectSocket()
+    }
+    
+    return () => {
+      if (user && user.isAdmin) {
+        console.log('Admin user logging out, disconnecting socket...')
+        disconnectSocket()
+      }
+    }
+  }, [user, isAuthenticated]) // Removed connectSocket and disconnectSocket from dependencies
   
   // State
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -188,9 +209,11 @@ export default function ChatManagementPage() {
     unassigned: 0,
     slaBreach: 0,
     avgResponseTime: 0,
-    avgResolutionTime: 0
+    avgResolutionTime: 0,
+    avgRating: 0
   })
   const [deletingConversation, setDeletingConversation] = useState<string | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [sendingMessage, setSendingMessage] = useState(false)
   
   // Queue tabs
@@ -202,6 +225,42 @@ export default function ChatManagementPage() {
   const [isDoNotDisturb, setIsDoNotDisturb] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedConversations, setSelectedConversations] = useState<string[]>([])
+  const [newChatNotifications, setNewChatNotifications] = useState(0)
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date())
+  
+  // Function to update last update time
+  const updateLastUpdateTime = useCallback(() => {
+    setLastUpdateTime(new Date())
+  }, [])
+  
+  // Function to update stats in real-time
+  const updateStats = useCallback(() => {
+    setConversations(prevConversations => {
+      const newStats = {
+        total: prevConversations.length,
+        active: prevConversations.filter(conv => conv.status === 'active').length,
+        waiting: prevConversations.filter(conv => conv.status === 'waiting_customer' || conv.status === 'waiting_agent').length,
+        closed: prevConversations.filter(conv => conv.status === 'closed').length,
+        unassigned: prevConversations.filter(conv => !conv.assigneeId).length,
+        slaBreach: prevConversations.filter(conv => conv.sla.firstResponse <= 0 || conv.sla.resolution <= 0).length,
+        avgResponseTime: 120, // This could be calculated from actual data
+        avgResolutionTime: 300, // This could be calculated from actual data
+        avgRating: prevConversations.filter(conv => conv.rating).length > 0 
+          ? prevConversations
+              .filter(conv => conv.rating)
+              .reduce((sum, conv) => sum + (conv.rating?.score || 0), 0) / 
+              prevConversations.filter(conv => conv.rating).length
+          : 0
+      }
+      setStats(newStats)
+      return prevConversations
+    })
+  }, [])
+  
+  // Function to clear new chat notifications
+  const clearNotifications = useCallback(() => {
+    setNewChatNotifications(0)
+  }, [])
   
   // Conversation state
   const [newMessage, setNewMessage] = useState('')
@@ -215,13 +274,20 @@ export default function ChatManagementPage() {
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false)
   const [isPriorityDialogOpen, setIsPriorityDialogOpen] = useState(false)
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false)
+  
+  // Session timeout state
+  const [sessionsNearExpiry, setSessionsNearExpiry] = useState<any[]>([])
+  const [sessionTimeoutInfo, setSessionTimeoutInfo] = useState<any>(null)
 
   // Fetch real chat data
   const fetchChats = useCallback(async () => {
     try {
-      setLoading(true)
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-      console.log('Fetching chats with token:', token ? 'present' : 'missing')
+      
+      if (!token) {
+        setLoading(false)
+        return
+      }
       
       const response = await fetch('http://localhost:3000/chat', {
         headers: {
@@ -229,21 +295,22 @@ export default function ChatManagementPage() {
         }
       })
       
-      console.log('Chat fetch response status:', response.status)
-      console.log('Chat fetch response headers:', Object.fromEntries(response.headers.entries()))
-      
       if (response.ok) {
         const data = await response.json()
-        console.log('Chat fetch response data:', data)
         const chatData = data.data.chats || []
-        console.log('Chat data array:', chatData)
         
         // Transform chat data to conversation format
         const transformedChats: Conversation[] = chatData.map((chat: any) => ({
           id: chat._id,
           customer: {
             id: chat.customer.userId?._id || chat.customer._id || 'anonymous',
-            name: chat.customer.name || (chat.customer.userId ? `${chat.customer.userId.firstName || ''} ${chat.customer.userId.lastName || ''}`.trim() : '') || 'Unknown Customer',
+            name: chat.customer.name || (chat.customer.userId ? 
+              (chat.customer.userId.name || 
+               (chat.customer.userId.firstName && chat.customer.userId.lastName ? 
+                `${chat.customer.userId.firstName} ${chat.customer.userId.lastName}` : 
+                chat.customer.userId.firstName || 
+                chat.customer.userId.username || 
+                'Unknown Customer')) : '') || 'Unknown Customer',
             email: chat.customer.email || 'no-email@example.com',
             phone: chat.customer.phone,
             language: 'en', // Default, could be enhanced
@@ -256,7 +323,12 @@ export default function ChatManagementPage() {
           assigneeId: chat.assignedTo?._id,
           assignee: chat.assignedTo ? {
             id: chat.assignedTo._id,
-            name: `${chat.assignedTo.firstName} ${chat.assignedTo.lastName}`,
+            name: chat.assignedTo.name || 
+              (chat.assignedTo.firstName && chat.assignedTo.lastName ? 
+                `${chat.assignedTo.firstName} ${chat.assignedTo.lastName}` : 
+                chat.assignedTo.firstName || 
+                chat.assignedTo.username || 
+                'Support'),
             avatar: chat.assignedTo.avatar
           } : undefined,
           lastMessage: {
@@ -273,6 +345,11 @@ export default function ChatManagementPage() {
             resolution: calculateResolutionSLA(chat.createdAt, chat.status)
           },
           tags: [chat.category || 'general'],
+          rating: chat.rating ? {
+            score: chat.rating.score,
+            feedback: chat.rating.feedback,
+            ratedAt: chat.rating.ratedAt
+          } : undefined,
           createdAt: chat.createdAt,
           updatedAt: chat.updatedAt || chat.lastMessageAt,
           messages: (chat.messages || []).map((msg: any) => ({
@@ -287,10 +364,17 @@ export default function ChatManagementPage() {
           }
         }))
         
+        // Always update conversations to ensure real-time display
         setConversations(transformedChats)
+      } else {
+        if (response.status === 401) {
+          setLoading(false)
+          return
+        }
       }
     } catch (error) {
       console.error('Error fetching chats:', error)
+      // Only show toast on first load, not for polling
       toast.error('Failed to fetch chats')
     } finally {
       setLoading(false)
@@ -316,7 +400,8 @@ export default function ChatManagementPage() {
           unassigned: data.data.unassigned || 0,
           slaBreach: 0, // Calculate based on SLA rules
           avgResponseTime: 120, // Could be calculated from real data
-          avgResolutionTime: 1800
+          avgResolutionTime: 1800,
+          avgRating: data.data.avgRating || 0
         })
       }
     } catch (error) {
@@ -469,6 +554,8 @@ export default function ChatManagementPage() {
       // Finally by last message time
       return new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime()
     })
+    
+    return filtered
   }, [conversations, activeQueueTab, searchTerm, user?._id])
 
   // Initialize with real data
@@ -509,12 +596,12 @@ export default function ChatManagementPage() {
   }, [contextSocket, user, fallbackSocket])
 
   useEffect(() => {
-    console.log('Admin chat management page mounted, fetching data...')
-    console.log('User:', user)
-    console.log('Is authenticated:', isAuthenticated)
-    console.log('Is admin:', user?.isAdmin)
-    fetchChats()
-    fetchStats()
+    if (user && isAuthenticated) {
+      fetchChats()
+      fetchStats()
+    } else {
+      setLoading(false) // Stop loading if not authenticated
+    }
   }, [fetchChats, fetchStats, user, isAuthenticated])
 
   // Set up polling for real-time updates (reduced frequency since we have sockets)
@@ -522,72 +609,113 @@ export default function ChatManagementPage() {
     const interval = setInterval(() => {
       fetchChats()
       fetchStats()
-    }, 60000) // Poll every 60 seconds
+      // fetchSessionsNearExpiry will be added after the function is declared
+    }, 10000) // Poll every 10 seconds for backup updates
 
     return () => clearInterval(interval)
   }, [fetchChats, fetchStats])
 
+  // Poll for sessions near expiry will be added after function declaration
+
   // Socket event listeners for real-time updates
   useEffect(() => {
-    console.log('Socket effect running:', { socket, isConnected, socketType: typeof socket })
-    
     if (!socket || !isConnected) {
-      console.log('Socket not available or not connected, skipping event listeners')
       return
     }
 
     const handleNewMessage = (data: { chatId: string; message: any }) => {
-      console.log('New message received:', data)
+      // Skip if this is a message from the current admin (already handled optimistically)
+      if (data.message.senderId === user?._id) {
+        return
+      }
+      
+      // Determine if this is an admin/agent message based on sender type
+      const isAgentMessage = data.message.sender === 'admin' || data.message.sender === 'agent'
+      
+      const newMessage: Message = {
+        id: data.message._id || data.message.timestamp,
+        content: data.message.content,
+        sender: isAgentMessage ? 'agent' : 'customer',
+        timestamp: data.message.timestamp,
+        isNote: data.message.messageType === 'system'
+      }
       
       // Update the conversations list
-      setConversations(prev => prev.map(conv => {
-        if (conv.id === data.chatId) {
-          const newMessage = {
-            id: data.message._id || data.message.timestamp,
-            content: data.message.content,
-            sender: data.message.sender === 'admin' ? 'agent' : data.message.sender,
-            timestamp: data.message.timestamp,
-            isNote: data.message.messageType === 'system'
+      setConversations(prev => {
+        const updated = prev.map(conv => {
+          if (conv.id === data.chatId) {
+            // Check if message already exists to prevent duplicates
+            const messageExists = conv.messages.some(msg => msg.id === newMessage.id)
+            if (messageExists) return conv
+            
+            const updatedConv = {
+              ...conv,
+              messages: [...conv.messages, newMessage],
+              lastMessage: {
+                content: data.message.content,
+                timestamp: data.message.timestamp,
+                sender: (isAgentMessage ? 'agent' : 'customer') as 'agent' | 'customer'
+              },
+              updatedAt: new Date().toISOString()
+            }
+            
+            // Auto-assign to current admin if it's an agent message and not assigned
+            if (isAgentMessage && !conv.assigneeId && user?._id) {
+              updatedConv.assigneeId = user._id
+              updatedConv.assignee = {
+                id: user._id,
+                name: user.name || 'Support',
+                avatar: user.avatar
+              }
+            }
+            
+            return updatedConv
           }
-          
-          return {
-            ...conv,
-            messages: [...conv.messages, newMessage],
-            lastMessage: {
-              content: data.message.content,
-              timestamp: data.message.timestamp,
-              sender: data.message.sender === 'admin' ? 'agent' : data.message.sender
-            },
-            updatedAt: new Date().toISOString()
-          }
-        }
-        return conv
-      }))
+          return conv
+        })
+        
+        // Only update if there were actual changes
+        const hasChanges = updated.some((conv, index) => conv !== prev[index])
+        return hasChanges ? updated : prev
+      })
 
       // Update selected conversation if it's the same chat
       if (selectedConversation && selectedConversation.id === data.chatId) {
-        const newMessage = {
-          id: data.message._id || data.message.timestamp,
-          content: data.message.content,
-          sender: data.message.sender === 'admin' ? 'agent' : data.message.sender,
-          timestamp: data.message.timestamp,
-          isNote: data.message.messageType === 'system'
-        }
-        
-        setSelectedConversation(prev => prev ? {
-          ...prev,
-          messages: [...prev.messages, newMessage],
-          lastMessage: {
-            content: data.message.content,
-            timestamp: data.message.timestamp,
-            sender: data.message.sender === 'admin' ? 'agent' : data.message.sender
+        // Check if message already exists to prevent duplicates
+        const messageExists = selectedConversation.messages.some(msg => msg.id === newMessage.id)
+        if (!messageExists) {
+          const updatedConv = {
+            ...selectedConversation,
+            messages: [...selectedConversation.messages, newMessage],
+            lastMessage: {
+              content: data.message.content,
+              timestamp: data.message.timestamp,
+              sender: (isAgentMessage ? 'agent' : 'customer') as 'agent' | 'customer'
+            }
           }
-        } : null)
+          
+          // Auto-assign to current admin if it's an agent message and not assigned
+          if (isAgentMessage && !selectedConversation.assigneeId && user?._id) {
+            updatedConv.assigneeId = user._id
+            updatedConv.assignee = {
+              id: user._id,
+              name: user.name || 'Support',
+              avatar: user.avatar
+            }
+          }
+          
+          setSelectedConversation(updatedConv)
+        }
       }
+      
+      // Update stats and last update time only when there are actual changes
+      updateLastUpdateTime()
+      updateStats()
     }
 
     const handleChatUpdate = (data: { chatId: string; status?: string; assignedTo?: any }) => {
-      console.log('Chat update received:', data)
+      updateLastUpdateTime() // Update last update time
+      updateStats() // Update stats in real-time
       
       // Update the conversations list
       setConversations(prev => prev.map(conv => {
@@ -598,7 +726,12 @@ export default function ChatManagementPage() {
             assigneeId: data.assignedTo?._id || conv.assigneeId,
             assignee: data.assignedTo ? {
               id: data.assignedTo._id,
-              name: `${data.assignedTo.firstName} ${data.assignedTo.lastName}`,
+              name: data.assignedTo.name || 
+                (data.assignedTo.firstName && data.assignedTo.lastName ? 
+                  `${data.assignedTo.firstName} ${data.assignedTo.lastName}` : 
+                  data.assignedTo.firstName || 
+                  data.assignedTo.username || 
+                  'Support'),
               avatar: data.assignedTo.avatar
             } : conv.assignee
           }
@@ -614,7 +747,7 @@ export default function ChatManagementPage() {
           assigneeId: data.assignedTo?._id || prev.assigneeId,
           assignee: data.assignedTo ? {
             id: data.assignedTo._id,
-            name: `${data.assignedTo.firstName} ${data.assignedTo.lastName}`,
+            name: data.assignedTo.name || 'Support',
             avatar: data.assignedTo.avatar
           } : prev.assignee
         } : null)
@@ -622,13 +755,90 @@ export default function ChatManagementPage() {
     }
 
     const handleChatCreated = (data: { chat: any }) => {
-      console.log('New chat created:', data)
-      // Refresh the conversations list to include the new chat
-      fetchChats()
+      updateLastUpdateTime() // Update last update time
+      updateStats() // Update stats in real-time
+      
+      // Transform the new chat data to conversation format
+      const newConversation: Conversation = {
+        id: data.chat._id,
+        customer: {
+          id: data.chat.customer.userId?._id || data.chat.customer._id || 'anonymous',
+          name: data.chat.customer.name || (data.chat.customer.userId ? 
+            (data.chat.customer.userId.name || 
+             (data.chat.customer.userId.firstName && data.chat.customer.userId.lastName ? 
+              `${data.chat.customer.userId.firstName} ${data.chat.customer.userId.lastName}` : 
+              data.chat.customer.userId.firstName || 
+              data.chat.customer.userId.username || 
+              'Unknown Customer')) : '') || 'Unknown Customer',
+          email: data.chat.customer.email || 'no-email@example.com',
+          phone: data.chat.customer.phone,
+          language: 'en',
+          timezone: 'Asia/Riyadh',
+          lastSeen: formatRelativeTime(data.chat.lastMessageAt)
+        },
+        channel: 'web',
+        status: mapChatStatus(data.chat.status),
+        priority: data.chat.priority || 'medium',
+        assigneeId: data.chat.assignedTo?._id,
+        assignee: data.chat.assignedTo ? {
+          id: data.chat.assignedTo._id,
+          name: data.chat.assignedTo.name || 
+            (data.chat.assignedTo.firstName && data.chat.assignedTo.lastName ? 
+              `${data.chat.assignedTo.firstName} ${data.chat.assignedTo.lastName}` : 
+              data.chat.assignedTo.firstName || 
+              data.chat.assignedTo.username || 
+              'Support'),
+          avatar: data.chat.assignedTo.avatar
+        } : undefined,
+        lastMessage: {
+          content: data.chat.messages && data.chat.messages.length > 0 
+            ? data.chat.messages[data.chat.messages.length - 1].content 
+            : 'No messages yet',
+          timestamp: data.chat.lastMessageAt,
+          sender: data.chat.messages && data.chat.messages.length > 0 
+            ? data.chat.messages[data.chat.messages.length - 1].sender 
+            : 'customer'
+        },
+        sla: {
+          firstResponse: calculateSLA(data.chat.createdAt, data.chat.status),
+          resolution: calculateResolutionSLA(data.chat.createdAt, data.chat.status)
+        },
+        tags: [data.chat.category || 'general'],
+        rating: data.chat.rating ? {
+          score: data.chat.rating.score,
+          feedback: data.chat.rating.feedback,
+          ratedAt: data.chat.rating.ratedAt
+        } : undefined,
+        createdAt: data.chat.createdAt,
+        updatedAt: data.chat.updatedAt || data.chat.lastMessageAt,
+        messages: (data.chat.messages || []).map((msg: any) => ({
+          id: msg._id || msg.timestamp,
+          content: msg.content,
+          sender: msg.sender === 'admin' ? 'agent' : msg.sender,
+          timestamp: msg.timestamp,
+          isNote: msg.messageType === 'system'
+        })),
+        commerce: {
+          latestOrder: data.chat.orderNumber ? { id: data.chat.orderNumber, status: 'unknown' } : undefined
+        }
+      }
+      
+      // Add the new conversation to the list
+      setConversations(prev => [newConversation, ...prev])
+      
+      // Increment new chat notifications
+      setNewChatNotifications(prev => prev + 1)
+      
+      // Update stats
+      fetchStats()
+      
+      // Show notification
+      toast.success(`New chat from ${newConversation.customer.name}`)
     }
 
     const handleChatDeleted = (data: { chatId: string }) => {
-      console.log('Chat deleted:', data)
+      updateLastUpdateTime() // Update last update time
+      updateStats() // Update stats in real-time
       // Remove the chat from the conversations list
       setConversations(prev => prev.filter(conv => conv.id !== data.chatId))
       
@@ -636,23 +846,25 @@ export default function ChatManagementPage() {
       if (selectedConversation && selectedConversation.id === data.chatId) {
         setSelectedConversation(null)
       }
+      
+      // Update stats
+      fetchStats()
+      
+      // Show success notification
+      toast.success('Chat deleted successfully')
     }
 
     // Register socket event listeners
     if (socket && typeof socket.on === 'function') {
-      console.log('Registering socket event listeners')
       socket.on('new_message', handleNewMessage)
       socket.on('chat_updated', handleChatUpdate)
       socket.on('chat_created', handleChatCreated)
       socket.on('chat_deleted', handleChatDeleted)
-    } else {
-      console.error('Socket is not properly initialized or does not have on method:', socket)
     }
 
     // Cleanup
     return () => {
       if (socket && typeof socket.off === 'function') {
-        console.log('Cleaning up socket event listeners')
         socket.off('new_message', handleNewMessage)
         socket.off('chat_updated', handleChatUpdate)
         socket.off('chat_created', handleChatCreated)
@@ -665,9 +877,14 @@ export default function ChatManagementPage() {
   const handleConversationSelect = (conversation: Conversation) => {
     setSelectedConversation(conversation)
     
+    // Clear notifications when user interacts
+    setNewChatNotifications(0)
+    
+    // Fetch session timeout info for selected conversation
+    fetchSessionTimeoutInfo(conversation.id)
+    
     // Join the chat room for real-time updates
     if (socket && typeof socket.emit === 'function') {
-      console.log('Admin joining chat room:', conversation.id)
       socket.emit('join_chat', conversation.id)
     }
   }
@@ -726,6 +943,147 @@ export default function ChatManagementPage() {
     }
   }
 
+  // Handle template selection
+  const handleTemplateSelect = (template: string) => {
+    setNewMessage(template)
+    setShowCannedReplies(false)
+  }
+
+  // Handle channel switch
+  const handleChannelSwitch = async (newChannel: string) => {
+    if (!selectedConversation) return
+    
+    try {
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      const response = await fetch(`http://localhost:3000/chat/${selectedConversation.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ channel: newChannel })
+      })
+
+      if (response.ok) {
+        await fetchChats()
+        setShowChannelSwitch(false)
+        toast.success('Channel switched successfully')
+      } else {
+        toast.error('Failed to switch channel')
+      }
+    } catch (error) {
+      console.error('Error switching channel:', error)
+      toast.error('Failed to switch channel')
+    }
+  }
+
+  // Handle ticket conversion
+  const handleTicketConversion = async () => {
+    if (!selectedConversation) return
+    
+    try {
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      const response = await fetch(`http://localhost:3000/chat/${selectedConversation.id}/convert-to-ticket`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        await fetchChats()
+        setShowTicketConversion(false)
+        toast.success('Conversation converted to ticket successfully')
+      } else {
+        toast.error('Failed to convert to ticket')
+      }
+    } catch (error) {
+      console.error('Error converting to ticket:', error)
+      toast.error('Failed to convert to ticket')
+    }
+  }
+
+  // Fetch sessions near expiry
+  const fetchSessionsNearExpiry = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      const response = await fetch('http://localhost:3000/chat/session-timeout/near-expiry', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('🔥 Sessions near expiry data:', data.data)
+        setSessionsNearExpiry(data.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching sessions near expiry:', error)
+    }
+  }, [])
+
+  // Fetch session timeout info for selected conversation
+  const fetchSessionTimeoutInfo = useCallback(async (chatId: string) => {
+    try {
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      const response = await fetch(`http://localhost:3000/chat/session-timeout/info/${chatId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setSessionTimeoutInfo(data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching session timeout info:', error)
+    }
+  }, [])
+
+  // Check and close expired sessions
+  const checkExpiredSessions = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      const response = await fetch('http://localhost:3000/chat/session-timeout/check-expired', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.data.closedCount > 0) {
+          toast.success(`${data.data.closedCount} expired sessions closed`)
+          await fetchChats()
+        }
+      }
+    } catch (error) {
+      console.error('Error checking expired sessions:', error)
+    }
+  }, [fetchChats])
+
+  // Poll for sessions near expiry (after function is declared)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchSessionsNearExpiry()
+    }, 60000) // Poll every 60 seconds for session timeout info
+
+    return () => clearInterval(interval)
+  }, [fetchSessionsNearExpiry])
+
+  // Update last update time every 30 seconds for visual feedback
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateLastUpdateTime()
+    }, 30000) // Update every 30 seconds
+
+    return () => clearInterval(interval)
+  }, [updateLastUpdateTime])
+
   // Handle message send
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation || sendingMessage) return
@@ -737,14 +1095,23 @@ export default function ChatManagementPage() {
       
       // Send via socket for real-time updates
       if (socket && isConnected && typeof socket.emit === 'function') {
-        console.log('Sending message via socket')
         socket.emit('send_message', {
           chatId: selectedConversation.id,
           content: newMessage,
           type: isInternalNote ? 'system' : 'text'
         })
-      } else {
-        console.log('Socket not available for sending message:', { socket, isConnected, hasEmit: socket && typeof socket.emit === 'function' })
+        
+        // Emit chat_updated event to notify customer that agent has responded
+        if (!isInternalNote && user) {
+          socket.emit('chat_updated', {
+            chatId: selectedConversation.id,
+            status: 'active',
+            assignedTo: {
+              id: user._id,
+              name: user.name
+            }
+          })
+        }
       }
 
       // Also send via API for persistence
@@ -770,29 +1137,61 @@ export default function ChatManagementPage() {
           isNote: isInternalNote
         }
 
-        setSelectedConversation(prev => prev ? {
-          ...prev,
-          messages: [...prev.messages, message],
-          lastMessage: {
-            content: newMessage,
-            timestamp: message.timestamp,
-            sender: 'agent'
+        setSelectedConversation(prev => {
+          if (!prev) return null
+          
+          const updatedConv = {
+            ...prev,
+            messages: [...prev.messages, message],
+            lastMessage: {
+              content: newMessage,
+              timestamp: message.timestamp,
+              sender: 'agent' as 'agent' | 'customer'
+            },
+            // Update status to active when admin responds
+            status: prev.status === 'waiting_customer' || prev.status === 'waiting_agent' ? 'active' : prev.status
           }
-        } : null)
+          
+          // Auto-assign to current admin if not already assigned
+          if (!prev.assigneeId && user?._id) {
+            updatedConv.assigneeId = user._id
+            updatedConv.assignee = {
+              id: user._id,
+              name: user.name || 'Support',
+              avatar: user.avatar
+            }
+          }
+          
+          return updatedConv
+        })
 
         // Update conversations list
         setConversations(prev => prev.map(conv => {
           if (conv.id === selectedConversation.id) {
-            return {
+            const updatedConv = {
               ...conv,
               messages: [...conv.messages, message],
               lastMessage: {
                 content: newMessage,
                 timestamp: message.timestamp,
-                sender: 'agent'
+                sender: 'agent' as 'agent' | 'customer'
               },
+              // Update status to active when admin responds
+              status: conv.status === 'waiting_customer' || conv.status === 'waiting_agent' ? 'active' : conv.status,
               updatedAt: new Date().toISOString()
             }
+            
+            // Auto-assign to current admin if not already assigned
+            if (!conv.assigneeId && user?._id) {
+              updatedConv.assigneeId = user._id
+              updatedConv.assignee = {
+                id: user._id,
+                name: user.name || 'Support',
+                avatar: user.avatar
+              }
+            }
+            
+            return updatedConv
           }
           return conv
         }))
@@ -817,57 +1216,108 @@ export default function ChatManagementPage() {
       return
     }
 
+    console.log('🔥 Starting deletion process for conversation:', conversationId)
     setDeletingConversation(conversationId)
+    
+    // Don't immediately remove from UI - keep it visible with loading state
+    // The conversation will be marked as deleting and blurred
+    
+    // Set a timeout to prevent infinite deleting state (30 seconds)
+    const deletionTimeout = setTimeout(() => {
+      console.log('🔥 Deletion timeout reached, clearing deleting state')
+      setDeletingConversation(null)
+      toast.error('Deletion timed out. Please try again.')
+    }, 30000)
     
     try {
       console.log('Attempting to delete conversation:', conversationId)
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
       console.log('Using token:', token ? 'present' : 'missing')
       
+      // Decode token to check admin status
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]))
+          console.log('Token payload:', { id: payload.id, isAdmin: payload.isAdmin, exp: payload.exp })
+        } catch (e) {
+          console.error('Error decoding token:', e)
+        }
+      }
+      
       const response = await fetch(`http://localhost:3000/chat/${conversationId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       })
 
       console.log('Delete response status:', response.status)
+      console.log('Delete response statusText:', response.statusText)
       console.log('Delete response headers:', Object.fromEntries(response.headers.entries()))
+      console.log('Delete response URL:', response.url)
+      console.log('Delete response ok:', response.ok)
       
       if (response.ok) {
-        // Check if response has content
-        const contentType = response.headers.get('content-type')
-        console.log('Response content type:', contentType)
+        console.log('🔥 Deletion successful, now removing from UI')
         
-        if (contentType && contentType.includes('application/json')) {
-          try {
-            const responseData = await response.json()
-            console.log('Delete response data:', responseData)
-          } catch (parseError) {
-            console.error('Error parsing delete response:', parseError)
-          }
+        // Only remove from UI after successful server confirmation
+        setConversations(prev => prev.filter(conv => conv.id !== conversationId))
+        if (selectedConversation && selectedConversation.id === conversationId) {
+          setSelectedConversation(null)
         }
         
-        // Update UI regardless of response content
-        await fetchChats()
-        setSelectedConversation(null)
+        // Emit socket event for real-time updates
+        if (socket && typeof socket.emit === 'function') {
+          console.log('🔥 Emitting chat_deleted event for real-time update')
+          socket.emit('chat_deleted', { chatId: conversationId })
+        }
+        
+        // Update stats in background (don't await)
+        fetchStats()
+        
+        // Success - no need to read response body
+        console.log('Delete operation completed successfully')
+        
         toast.success('Conversation deleted successfully')
       } else {
+        console.log('🔥 Deletion failed, keeping conversation visible')
+        
+        // Handle error response more gracefully
+        let errorMessage = `Failed to delete conversation (${response.status} ${response.statusText})`
+        
         try {
-          const errorData = await response.json()
-          console.error('Delete error response:', errorData)
-          toast.error(errorData.message || 'Failed to delete conversation')
+          // Try to get error details from response
+          const contentType = response.headers.get('content-type')
+          console.log('Error response content type:', contentType)
+          
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json()
+            console.error('Delete error response:', errorData)
+            if (errorData && Object.keys(errorData).length > 0) {
+              errorMessage = errorData.message || errorData.error || errorMessage
+            }
+          } else {
+            // Try to get text response
+            const errorText = await response.text()
+            console.error('Raw error response:', errorText)
+            if (errorText && errorText.trim()) {
+              errorMessage = errorText
+            }
+          }
         } catch (parseError) {
           console.error('Error parsing delete error response:', parseError)
-          const errorText = await response.text()
-          console.error('Raw error response:', errorText)
-          toast.error(`Failed to delete conversation (${response.status})`)
+          // Use default error message
         }
+        
+        toast.error(errorMessage)
       }
     } catch (error) {
-      console.error('Error deleting conversation:', error)
+      console.error('🔥 Error deleting conversation:', error)
       toast.error('Failed to delete conversation')
     } finally {
+      console.log('🔥 Deletion process completed, clearing deleting state')
+      clearTimeout(deletionTimeout)
       setDeletingConversation(null)
     }
   }
@@ -929,25 +1379,82 @@ export default function ChatManagementPage() {
                 <h1 className="text-2xl font-bold text-gray-900">Chat Console</h1>
                 <p className="text-sm text-gray-600">Real-time customer support management</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
                   <span className="text-xs text-gray-500">
                     {isConnected ? 'Real-time connected' : 'Connecting...'}
                   </span>
+                  {isConnected && (
+                    <div className="flex items-center gap-1 text-xs text-green-600">
+                      <div className="w-1 h-1 bg-green-500 rounded-full animate-ping"></div>
+                      Live updates
+                    </div>
+                  )}
+                  {newChatNotifications > 0 && (
+                    <div className="flex items-center gap-1 text-xs text-blue-600">
+                      <Bell className="w-3 h-3" />
+                      {newChatNotifications} new
+                    </div>
+                  )}
+                  <div className="text-xs text-gray-400">
+                    Last update: {lastUpdateTime.toLocaleTimeString('en-US', { 
+                      hour12: true, 
+                      hour: '2-digit', 
+                      minute: '2-digit', 
+                      second: '2-digit' 
+                    })}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => {
-                  fetchChats()
-                  fetchStats()
-                }}>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Refresh
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  disabled={isRefreshing || loading}
+                  onClick={async () => {
+                    console.log('🔥 Manual refresh clicked')
+                    try {
+                      setIsRefreshing(true)
+                      await fetchChats()
+                      await fetchStats()
+                      setNewChatNotifications(0)
+                      setLastUpdateTime(new Date())
+                      console.log('🔥 Manual refresh completed successfully')
+                      toast.success('Chat data refreshed')
+                    } catch (error) {
+                      console.error('🔥 Manual refresh failed:', error)
+                      toast.error('Failed to refresh chat data')
+                    } finally {
+                      setIsRefreshing(false)
+                    }
+                  }}
+                >
+                  {isRefreshing ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                  )}
+                  {isRefreshing ? 'Refreshing...' : 'Refresh'}
                 </Button>
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/admin/chat-management/settings">
                     <Settings className="w-4 h-4 mr-2" />
                     Settings
                   </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/admin/debug-chat">
+                    <Activity className="w-4 h-4 mr-2" />
+                    Debug
+                  </Link>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={checkExpiredSessions}
+                  className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Check Expired
                 </Button>
                 <Button
                   variant={isDoNotDisturb ? "destructive" : "outline"}
@@ -988,6 +1495,15 @@ export default function ChatManagementPage() {
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">{stats.avgResponseTime}s</div>
                 <div className="text-xs text-gray-600">Avg Response</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-600">
+                  {conversations.filter(c => c.rating).length > 0 
+                    ? (conversations.filter(c => c.rating).reduce((sum, c) => sum + c.rating!.score, 0) / conversations.filter(c => c.rating).length).toFixed(1)
+                    : 'N/A'
+                  }
+                </div>
+                <div className="text-xs text-gray-600">Avg Rating</div>
               </div>
             </div>
           </div>
@@ -1034,17 +1550,29 @@ export default function ChatManagementPage() {
                 const isUrgent = conversation.sla.firstResponse <= 30
                 const isWarning = conversation.sla.firstResponse <= 90 && conversation.sla.firstResponse > 30
                 
+                const isDeleting = deletingConversation === conversation.id
+                
                 return (
                   <div
                     key={conversation.id}
                     className={cn(
-                      "p-4 border-b cursor-pointer hover:bg-gray-50 transition-colors",
+                      "p-4 border-b cursor-pointer hover:bg-gray-50 transition-all duration-300 relative",
                       isSelected && "bg-blue-50 border-blue-200",
                       isUrgent && "bg-red-50 border-red-200",
-                      isWarning && "bg-amber-50 border-amber-200"
+                      isWarning && "bg-amber-50 border-amber-200",
+                      isDeleting && "opacity-50 blur-sm pointer-events-none"
                     )}
-                    onClick={() => handleConversationSelect(conversation)}
+                    onClick={() => !isDeleting && handleConversationSelect(conversation)}
                   >
+                    {isDeleting && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-red-50/90 z-10 rounded">
+                        <div className="flex flex-col items-center gap-2 text-red-600">
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <span className="text-sm font-medium">Deleting conversation...</span>
+                          <span className="text-xs text-red-500">Please wait for confirmation</span>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className={cn("p-1 rounded", getChannelColor(conversation.channel))}>
@@ -1075,6 +1603,24 @@ export default function ChatManagementPage() {
                               <User className="h-2 w-2 text-blue-600" />
                             </div>
                             <span>{conversation.assignee.name}</span>
+                          </div>
+                        )}
+                        {sessionsNearExpiry.some(s => s.id === conversation.id) && (() => {
+                          const session = sessionsNearExpiry.find(s => s.id === conversation.id)
+                          const timeLeft = session ? Math.floor(session.timeUntilExpiry / (1000 * 60)) : 0
+                          return (
+                            <div className="flex items-center gap-1 text-xs text-orange-600">
+                              <Clock className="h-3 w-3" />
+                              <span>Near expiry {timeLeft}m</span>
+                            </div>
+                          )
+                        })()}
+                        {conversation.rating && (
+                          <div className="flex items-center gap-1 text-xs">
+                            <Star className={`h-3 w-3 ${conversation.rating.score >= 4 ? 'text-yellow-500 fill-current' : conversation.rating.score >= 3 ? 'text-yellow-400' : 'text-red-400'}`} />
+                            <span className={conversation.rating.score >= 4 ? 'text-green-600' : conversation.rating.score >= 3 ? 'text-yellow-600' : 'text-red-600'}>
+                              {conversation.rating.score}/5
+                            </span>
                           </div>
                         )}
                         <span className={cn("font-mono", getSLAColor(conversation.sla.firstResponse))}>
@@ -1233,9 +1779,23 @@ export default function ChatManagementPage() {
           </div>
 
           {/* Right Pane - Context */}
-          <div className="w-80 border-l bg-white flex flex-col">
+          <div className="w-80 border-l bg-white flex flex-col overflow-hidden">
             {selectedConversation ? (
-              <>
+              <div className={cn(
+                "flex-1 overflow-y-auto transition-all duration-300 relative",
+                deletingConversation === selectedConversation.id && "opacity-50 blur-sm"
+              )}>
+                {deletingConversation === selectedConversation.id && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-red-50/90 z-10">
+                    <div className="flex flex-col items-center gap-3 text-red-600 p-6 bg-white rounded-lg shadow-lg">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <div className="text-center">
+                        <span className="text-lg font-medium block">Deleting conversation...</span>
+                        <span className="text-sm text-red-500">Please wait for server confirmation</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Customer Profile */}
                 <div className="flex-shrink-0 p-4 border-b">
                   <h3 className="font-semibold mb-3">Customer Profile</h3>
@@ -1260,6 +1820,25 @@ export default function ChatManagementPage() {
                       <div className="text-sm font-medium text-gray-700">Last Seen</div>
                       <div className="text-sm text-gray-900">{selectedConversation.customer.lastSeen}</div>
                     </div>
+                  </div>
+                </div>
+
+                {/* Assignment Info */}
+                <div className="flex-shrink-0 p-4 border-b">
+                  <h3 className="font-semibold mb-3">Assignment</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-sm font-medium text-gray-700">Assigned to</div>
+                      <div className="text-sm text-gray-900">
+                        {selectedConversation.assignee ? selectedConversation.assignee.name : 'Unassigned'}
+                      </div>
+                    </div>
+                    {selectedConversation.assignee && (
+                      <div>
+                        <div className="text-sm font-medium text-gray-700">Agent ID</div>
+                        <div className="text-sm text-gray-900">{selectedConversation.assignee.id}</div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1290,6 +1869,75 @@ export default function ChatManagementPage() {
                           <div className="text-sm text-gray-900">
                             {selectedConversation.commerce.co2Cylinders.length} active
                           </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Rating Info */}
+                {selectedConversation.rating && (
+                  <div className="flex-shrink-0 p-4 border-b">
+                    <h3 className="font-semibold mb-3">Customer Rating</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700">Rating:</span>
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-4 h-4 ${
+                                star <= selectedConversation.rating!.score
+                                  ? 'text-yellow-400 fill-current'
+                                  : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                          <span className="ml-2 text-sm font-medium">
+                            {selectedConversation.rating.score}/5
+                          </span>
+                        </div>
+                      </div>
+                      {selectedConversation.rating.feedback && (
+                        <div>
+                          <span className="text-sm font-medium text-gray-700">Feedback:</span>
+                          <p className="text-sm text-gray-600 mt-1 bg-gray-50 p-2 rounded">
+                            "{selectedConversation.rating.feedback}"
+                          </p>
+                        </div>
+                      )}
+                      <div className="text-xs text-gray-500">
+                        Rated on {new Date(selectedConversation.rating.ratedAt).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Session Timeout Info */}
+                {sessionTimeoutInfo && (
+                  <div className="flex-shrink-0 p-4 border-b">
+                    <h3 className="font-semibold mb-3">Session Info</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Status:</span>
+                        <Badge className={sessionTimeoutInfo.isExpired ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}>
+                          {sessionTimeoutInfo.isExpired ? "Expired" : "Active"}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Last Activity:</span>
+                        <span className="text-gray-900">{new Date(sessionTimeoutInfo.lastActivity).toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Expires:</span>
+                        <span className="text-gray-900">{new Date(sessionTimeoutInfo.expiresAt).toLocaleString()}</span>
+                      </div>
+                      {!sessionTimeoutInfo.isExpired && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Time Left:</span>
+                          <span className="text-gray-900">
+                            {Math.floor(sessionTimeoutInfo.timeUntilExpiry / (1000 * 60))} minutes
+                          </span>
                         </div>
                       )}
                     </div>
@@ -1369,7 +2017,7 @@ export default function ChatManagementPage() {
                       </Button>
                   </div>
                 </div>
-              </>
+              </div>
             ) : (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center space-y-4">
@@ -1384,6 +2032,98 @@ export default function ChatManagementPage() {
           </div>
         </div>
       </div>
+
+      {/* Templates Dialog */}
+      <Dialog open={showCannedReplies} onOpenChange={setShowCannedReplies}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Quick Replies</DialogTitle>
+            <DialogDescription>Select a template to use as your message</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {[
+              { id: 'greeting', text: 'Hello! How can I help you today?' },
+              { id: 'thanks', text: 'Thank you for contacting us!' },
+              { id: 'wait', text: 'Please hold on while I check that for you.' },
+              { id: 'resolved', text: 'Is there anything else I can help you with?' },
+              { id: 'goodbye', text: 'Have a great day!' }
+            ].map((template) => (
+              <Button
+                key={template.id}
+                variant="outline"
+                className="w-full justify-start text-left h-auto p-3"
+                onClick={() => handleTemplateSelect(template.text)}
+              >
+                <div className="text-sm">{template.text}</div>
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Channel Switch Dialog */}
+      <Dialog open={showChannelSwitch} onOpenChange={setShowChannelSwitch}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Switch Channel</DialogTitle>
+            <DialogDescription>Change the communication channel for this conversation</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {[
+              { id: 'web', label: 'Web Chat', icon: '💬' },
+              { id: 'email', label: 'Email', icon: '📧' },
+              { id: 'phone', label: 'Phone', icon: '📞' },
+              { id: 'whatsapp', label: 'WhatsApp', icon: '📱' }
+            ].map((channel) => (
+              <Button
+                key={channel.id}
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => handleChannelSwitch(channel.id)}
+              >
+                <span className="mr-2">{channel.icon}</span>
+                {channel.label}
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Ticket Conversion Dialog */}
+      <Dialog open={showTicketConversion} onOpenChange={setShowTicketConversion}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Convert to Ticket</DialogTitle>
+            <DialogDescription>This will convert the chat conversation to a support ticket</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center gap-2 text-yellow-800">
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm font-medium">Warning</span>
+              </div>
+              <p className="text-sm text-yellow-700 mt-1">
+                Converting to a ticket will close this chat conversation. The customer will need to check their email for updates.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowTicketConversion(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleTicketConversion}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                Convert to Ticket
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   )
 }

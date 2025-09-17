@@ -1,12 +1,14 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react'
 import { io, Socket } from 'socket.io-client'
 import { useAuth } from './auth-context'
 
 interface SocketContextType {
   socket: Socket | null
   isConnected: boolean
+  connectSocket: () => void
+  disconnectSocket: () => void
   joinChat: (chatId: string) => void
   leaveChat: (chatId: string) => void
   sendMessage: (chatId: string, content: string, type?: string) => void
@@ -26,57 +28,118 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const { user, token } = useAuth()
+  const socketRef = useRef<Socket | null>(null)
+  const isConnectingRef = useRef<boolean>(false)
 
-  useEffect(() => {
-    console.log('Socket context effect running:', { user, token, hasUser: !!user, hasToken: !!token })
-    
+  // Function to connect socket manually
+  const connectSocket = useCallback(() => {
     if (!user || !token) {
-      console.log('No user or token, disconnecting socket')
-      if (socket) {
-        socket.disconnect()
-        setSocket(null)
-        setIsConnected(false)
-      }
+      console.log('🔥 Cannot connect socket: missing user or token')
       return
     }
 
-    // Initialize socket connection
-    console.log('Initializing socket connection with token:', token ? 'present' : 'missing')
+    if (socketRef.current && isConnected) {
+      console.log('🔥 Socket already connected, skipping')
+      return
+    }
+
+    if (isConnectingRef.current) {
+      console.log('🔥 Socket connection already in progress, skipping')
+      return
+    }
+
+    console.log('🔥 Starting socket connection...')
+    isConnectingRef.current = true
+
+    // Clean up any existing socket connection first
+    if (socketRef.current) {
+      console.log('🔥 Cleaning up existing socket connection')
+      socketRef.current.disconnect()
+      socketRef.current = null
+    }
+
     const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000', {
       auth: {
         token: token
       },
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      forceNew: true,
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
+      upgrade: true,
+      rememberUpgrade: false,
+      autoConnect: true
     })
-    
-    console.log('Socket created:', newSocket, 'Type:', typeof newSocket, 'Has on method:', typeof newSocket.on === 'function')
 
     // Connection event handlers
     newSocket.on('connect', () => {
-      console.log('Socket connected:', newSocket.id)
+      console.log('🔥 Socket connected successfully')
       setIsConnected(true)
+      isConnectingRef.current = false
     })
 
-    newSocket.on('disconnect', () => {
-      console.log('Socket disconnected')
+    newSocket.on('disconnect', (reason) => {
+      console.log('🔥 Socket disconnected:', reason)
       setIsConnected(false)
+      isConnectingRef.current = false
     })
 
     newSocket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error)
-      console.error('Token being used:', token)
+      console.error('🔥 Socket connection error:', error)
+      console.error('🔥 Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      })
+      setIsConnected(false)
+      isConnectingRef.current = false
+    })
+
+    newSocket.on('reconnect', (attemptNumber) => {
+      console.log('🔥 Socket reconnected after', attemptNumber, 'attempts')
+      setIsConnected(true)
+    })
+
+    newSocket.on('reconnect_error', (error) => {
+      console.error('🔥 Socket reconnection error:', error)
+    })
+
+    newSocket.on('reconnect_failed', () => {
+      console.error('🔥 Socket reconnection failed after all attempts')
       setIsConnected(false)
     })
 
-    console.log('Setting socket in state:', newSocket)
     setSocket(newSocket)
+    socketRef.current = newSocket
+  }, [token, user])
 
-    // Cleanup on unmount
-    return () => {
-      console.log('Cleaning up socket connection')
-      newSocket.disconnect()
+  // Function to disconnect socket
+  const disconnectSocket = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.disconnect()
+      setSocket(null)
+      setIsConnected(false)
+      socketRef.current = null
     }
-  }, [user, token])
+    isConnectingRef.current = false
+  }, [])
+
+  // Auto-disconnect when user logs out
+  useEffect(() => {
+    if (!user || !token) {
+      disconnectSocket()
+    }
+  }, [user, token, disconnectSocket])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      disconnectSocket()
+    }
+  }, [disconnectSocket])
 
   const joinChat = (chatId: string) => {
     if (socket) {
@@ -91,8 +154,12 @@ export function SocketProvider({ children }: SocketProviderProps) {
   }
 
   const sendMessage = (chatId: string, content: string, type: string = 'text') => {
+    console.log('🔥 sendMessage called:', { chatId, content: content.substring(0, 50) + '...', type, socket: !!socket })
     if (socket) {
+      console.log('🔥 Emitting send_message via socket')
       socket.emit('send_message', { chatId, content, type })
+    } else {
+      console.log('🔥 No socket available for sending message')
     }
   }
 
@@ -123,6 +190,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const value: SocketContextType = {
     socket,
     isConnected,
+    connectSocket,
+    disconnectSocket,
     joinChat,
     leaveChat,
     sendMessage,

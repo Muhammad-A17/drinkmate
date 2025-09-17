@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
@@ -68,15 +68,12 @@ export default function Home() {
   const router = useRouter()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [activeMachineColor, setActiveMachineColor] = useState("cyan") // Default to cyan
+  const [isClient, setIsClient] = useState(false)
 
-  // Handle case where context is not available during build
-  if (typeof window === 'undefined') {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Loading...</div>
-      </div>
-    )
-  }
+  // Handle hydration
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Carousel banner data
   const carouselItems = [
@@ -390,11 +387,13 @@ export default function Home() {
 
   return (
     <>
-      {/* Structured Data for SEO */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeStructuredData) }}
-      />
+      {/* Structured Data for SEO - Only render on client to prevent hydration mismatch */}
+      {isClient && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(homeStructuredData) }}
+        />
+      )}
       
       <PageLayout currentPage="home">
       {/* Hero Section - Carousel Banner */}

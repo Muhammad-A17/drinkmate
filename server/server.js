@@ -432,21 +432,34 @@ setTimeout(() => {
   // Initialize Socket.io
   const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || "http://localhost:3001",
+      origin: [
+        process.env.FRONTEND_URL || "http://localhost:3001",
+        "http://localhost:3002",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:3002"
+      ],
       methods: ["GET", "POST"],
-      credentials: true
-    }
+      credentials: true,
+      allowedHeaders: ["Authorization", "Content-Type"]
+    },
+    allowEIO3: true,
+    transports: ['websocket', 'polling']
   });
 
   // Initialize Socket service
   const SocketService = require('./Services/socket-service');
   new SocketService(io);
 
+  // Initialize Session Timeout service
+  const sessionTimeoutService = require('./Services/session-timeout-service');
+  sessionTimeoutService.start();
+
   server.listen(PORT, () => {
     console.log(`🚀 Server is running on http://localhost:${PORT}`);
     console.log(`📊 Health check: http://localhost:${PORT}/health`);
     console.log(`📋 API Status: http://localhost:${PORT}/api-status`);
     console.log(`💬 Socket.io server is running`);
+    console.log(`⏰ Session timeout service is running (4-hour timeout)`);
   });
   
   server.on('error', (error) => {

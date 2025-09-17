@@ -50,12 +50,6 @@ const navItems = [
     label: { en: 'Wishlist', ar: 'قائمة الأمنيات' }
   },
   {
-    key: 'support',
-    href: '/account/support',
-    icon: MessageCircle,
-    label: { en: 'Support', ar: 'الدعم' }
-  },
-  {
     key: 'security',
     href: '/account/security',
     icon: Shield,
@@ -163,11 +157,11 @@ export default function AccountNav() {
         <div className="text-center">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <span className="text-blue-600 font-bold text-lg">
-              {user?.firstName?.charAt(0) || user?.username?.charAt(0) || 'U'}
+              {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
             </span>
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">
-            {user?.firstName || user?.username || 'User'}
+            {user?.name || user?.username || 'User'}
           </h3>
           <p className="text-sm text-gray-500">
             {user?.email}

@@ -143,7 +143,7 @@ export default function LiveChatModal({ isOpen, onClose }: LiveChatModalProps) {
             },
             body: JSON.stringify({
               customer: {
-                name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username || 'Unknown Customer',
+                name: user?.name || user?.username || 'Unknown Customer',
                 email: user?.email,
                 userId: user?._id
               },

@@ -9,6 +9,13 @@ export interface Order {
   status: OrderStatus
   total: number
   itemsCount: number
+  items?: Array<{
+    name: string
+    quantity: number
+    price: number
+  }>
+  trackingNumber?: string | null
+  estimatedDelivery?: string | null
   lineItems?: OrderLineItem[]
   shipments?: Shipment[]
   invoices?: Invoice[]

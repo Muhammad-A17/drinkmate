@@ -48,6 +48,16 @@ router.put('/:chatId/close', authenticateToken, isAdmin, chatController.closeCha
 // Add message to chat (admin only)
 router.post('/:chatId/messages', authenticateToken, isAdmin, chatController.addMessage);
 
+// Session timeout endpoints
+router.get('/session-timeout/info/:chatId', authenticateToken, isAdmin, chatController.getSessionTimeoutInfo);
+router.get('/session-timeout/near-expiry', authenticateToken, isAdmin, chatController.getSessionsNearExpiry);
+router.post('/session-timeout/close/:chatId', authenticateToken, isAdmin, chatController.closeSession);
+router.post('/session-timeout/check-expired', authenticateToken, isAdmin, chatController.checkExpiredSessions);
+
+// Customer rating endpoints (public - no auth required for customer rating)
+router.post('/:chatId/customer-rate-and-close', chatController.customerRateAndClose);
+router.post('/:chatId/customer-rate', chatController.customerRateChat);
+
 // Add message to chat (customer - requires authentication)
 router.post('/:chatId/message', authenticateToken, chatController.addMessage);
 
