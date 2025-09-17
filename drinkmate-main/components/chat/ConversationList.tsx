@@ -105,11 +105,11 @@ export default function ConversationList({
   }
 
   const hasActiveFilters = useMemo(() => {
-    return filters.status !== 'all' || 
-           filters.priority !== 'all' || 
-           filters.assignee !== 'all' || 
-           filters.channel !== 'all' || 
-           filters.search !== ''
+    return (filters.status && filters.status.length > 0 && !filters.status.includes('all')) || 
+           (filters.priority && filters.priority.length > 0 && !filters.priority.includes('all')) || 
+           (filters.assignee && filters.assignee.length > 0 && !filters.assignee.includes('all')) || 
+           (filters.channel && filters.channel.length > 0 && !filters.channel.includes('all')) || 
+           (filters.search && filters.search !== '')
   }, [filters])
 
   if (loading) {
@@ -192,7 +192,7 @@ export default function ConversationList({
           <div className="space-y-3 pt-4 border-t">
             <div className="grid grid-cols-2 gap-2">
               <Select
-                value={filters.status}
+                value={filters.status?.[0] || 'all'}
                 onValueChange={(value) => onFilterChange('status', value)}
               >
                 <SelectTrigger>
@@ -209,7 +209,7 @@ export default function ConversationList({
               </Select>
 
               <Select
-                value={filters.priority}
+                value={filters.priority?.[0] || 'all'}
                 onValueChange={(value) => onFilterChange('priority', value)}
               >
                 <SelectTrigger>
@@ -227,7 +227,7 @@ export default function ConversationList({
 
             <div className="grid grid-cols-2 gap-2">
               <Select
-                value={filters.assignee}
+                value={filters.assignee?.[0] || 'all'}
                 onValueChange={(value) => onFilterChange('assignee', value)}
               >
                 <SelectTrigger>
@@ -245,7 +245,7 @@ export default function ConversationList({
               </Select>
 
               <Select
-                value={filters.channel}
+                value={filters.channel?.[0] || 'all'}
                 onValueChange={(value) => onFilterChange('channel', value)}
               >
                 <SelectTrigger>
@@ -314,7 +314,7 @@ export default function ConversationList({
                     )}>
                       {getCustomerInitials(conversation.customer)}
                     </div>
-                    {conversation.unreadCount > 0 && (
+                    {conversation.unreadCount && conversation.unreadCount > 0 && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                         {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
                       </div>
@@ -328,7 +328,7 @@ export default function ConversationList({
                       </h4>
                       <div className="flex items-center gap-1">
                         <span className={cn("text-gray-500", densityClasses.subtitle)}>
-                          {formatRelativeTime(conversation.lastMessageAt)}
+                          {formatRelativeTime(conversation.lastMessage.timestamp)}
                         </span>
                         <span className="text-lg">
                           {getChannelIcon(conversation.channel)}
@@ -347,11 +347,13 @@ export default function ConversationList({
 
                     {/* Last Message Preview */}
                     <p className={cn("text-gray-600 truncate", densityClasses.subtitle)}>
-                      {conversation.status === 'new' ? 'New conversation' : 
-                       conversation.status === 'waiting_for_agent' ? 'Waiting for agent' :
-                       conversation.status === 'waiting_for_customer' ? 'Waiting for customer' :
-                       conversation.status === 'on_hold' ? 'On hold' :
-                       conversation.status === 'closed' ? 'Closed' : 'Active'}
+                      {conversation.status === 'active' ? 'Active conversation' :
+                       conversation.status === 'waiting_agent' ? 'Waiting for agent' :
+                       conversation.status === 'waiting_customer' ? 'Waiting for customer' :
+                       conversation.status === 'snoozed' ? 'Snoozed' :
+                       conversation.status === 'closed' ? 'Closed' :
+                       conversation.status === 'converted' ? 'Converted' :
+                       conversation.lastMessage.content}
                     </p>
 
                     {/* Assignee */}

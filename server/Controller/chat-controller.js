@@ -395,6 +395,56 @@ const getChatStats = async (req, res) => {
   }
 };
 
+// Get public queue status (no auth required)
+const getQueueStatus = async (req, res) => {
+  try {
+    const active = await Chat.countDocuments({ status: 'active' });
+    const waiting = await Chat.countDocuments({ status: 'waiting' });
+    const totalActiveChats = active + waiting;
+    
+    // Calculate estimated response time based on queue
+    let estimatedResponseTime = '2-3 minutes'; // Default
+    let currentLoad = 'low';
+    
+    if (totalActiveChats === 0) {
+      estimatedResponseTime = 'Less than 1 minute';
+      currentLoad = 'low';
+    } else if (totalActiveChats <= 3) {
+      estimatedResponseTime = '2-3 minutes';
+      currentLoad = 'low';
+    } else if (totalActiveChats <= 6) {
+      estimatedResponseTime = '5-10 minutes';
+      currentLoad = 'medium';
+    } else if (totalActiveChats <= 10) {
+      estimatedResponseTime = '10-15 minutes';
+      currentLoad = 'high';
+    } else {
+      estimatedResponseTime = '15+ minutes';
+      currentLoad = 'critical';
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        totalActiveChats,
+        active,
+        waiting,
+        estimatedResponseTime,
+        currentLoad,
+        isOnline: true, // Assume online during business hours
+        averageResponseTime: 5 // 5 minutes average
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching queue status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch queue status',
+      error: error.message
+    });
+  }
+};
+
 // Convert chat to ticket
 const convertToTicket = async (req, res) => {
   try {
@@ -844,6 +894,113 @@ const customerRateChat = async (req, res) => {
   }
 };
 
+// Get messages for a specific chat (customer)
+const getCustomerChatMessages = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user.id;
+    
+    const chat = await Chat.findById(chatId)
+      .populate('assignedTo', 'firstName lastName email')
+      .populate('customer.userId', 'firstName lastName email');
+    
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat not found'
+      });
+    }
+    
+    // Verify that the chat belongs to the authenticated user
+    if (chat.customer.userId.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. This chat does not belong to you.'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        chat: {
+          _id: chat._id,
+          status: chat.status,
+          priority: chat.priority,
+          assignedTo: chat.assignedTo,
+          customer: chat.customer,
+          messages: chat.messages || [],
+          createdAt: chat.createdAt,
+          updatedAt: chat.updatedAt,
+          lastMessageAt: chat.lastMessageAt
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching customer chat messages:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch chat messages',
+      error: error.message
+    });
+  }
+};
+
+// Update message status
+const updateMessageStatus = async (req, res) => {
+  try {
+    const { chatId, messageId } = req.params;
+    const { status } = req.body;
+    
+    const validStatuses = ['sending', 'sent', 'delivered', 'read', 'failed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid message status'
+      });
+    }
+    
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat not found'
+      });
+    }
+    
+    const message = chat.messages.id(messageId);
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: 'Message not found'
+      });
+    }
+    
+    message.status = status;
+    if (status === 'read') {
+      message.readAt = new Date();
+    }
+    
+    await chat.save();
+    
+    res.json({
+      success: true,
+      message: 'Message status updated successfully',
+      data: {
+        messageId: message._id,
+        status: message.status,
+        readAt: message.readAt
+      }
+    });
+  } catch (error) {
+    console.error('Error updating message status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update message status',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getAllChats,
   getCustomerChats,
@@ -855,16 +1012,19 @@ module.exports = {
   updateChatStatus,
   markAsRead,
   getChatStats,
+  getQueueStatus,
   convertToTicket,
   banIP,
   unbanIP,
   rateChat,
   deleteChat,
   getChatMessages,
+  getCustomerChatMessages,
   getSessionTimeoutInfo,
   getSessionsNearExpiry,
   closeSession,
   checkExpiredSessions,
   customerRateAndClose,
-  customerRateChat
+  customerRateChat,
+  updateMessageStatus
 };

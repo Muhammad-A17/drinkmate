@@ -32,7 +32,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const isConnectingRef = useRef<boolean>(false)
 
   // Function to connect socket manually
-  const connectSocket = useCallback(() => {
+  const connectSocket = useCallback(async () => {
     if (!user || !token) {
       console.log('🔥 Cannot connect socket: missing user or token')
       return
@@ -47,6 +47,9 @@ export function SocketProvider({ children }: SocketProviderProps) {
       console.log('🔥 Socket connection already in progress, skipping')
       return
     }
+
+    // Skip health check to avoid rate limiting issues
+    console.log('🔥 Proceeding with socket connection (health check disabled to avoid rate limiting)')
 
     console.log('🔥 Starting socket connection...')
     isConnectingRef.current = true
@@ -96,6 +99,20 @@ export function SocketProvider({ children }: SocketProviderProps) {
       })
       setIsConnected(false)
       isConnectingRef.current = false
+      
+      // Retry connection after a delay, but limit retries
+      const retryCount = (newSocket as any).retryCount || 0
+      if (retryCount < 3) {
+        (newSocket as any).retryCount = retryCount + 1
+        setTimeout(() => {
+          if (!isConnected && !isConnectingRef.current) {
+            console.log(`🔥 Retrying socket connection (attempt ${retryCount + 1}/3)...`)
+            connectSocket()
+          }
+        }, 5000 * (retryCount + 1)) // Exponential backoff
+      } else {
+        console.log('🔥 Max retry attempts reached, giving up on socket connection')
+      }
     })
 
     newSocket.on('reconnect', (attemptNumber) => {
@@ -114,7 +131,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
     setSocket(newSocket)
     socketRef.current = newSocket
-  }, [token, user])
+  }, [token, user, isConnected]) // Add isConnected to dependencies to prevent infinite loops
 
   // Function to disconnect socket
   const disconnectSocket = useCallback(() => {
