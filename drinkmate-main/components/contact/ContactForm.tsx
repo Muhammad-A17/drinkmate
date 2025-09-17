@@ -77,7 +77,7 @@ const topics = [
 export default function ContactForm({ user, isAuthenticated, selectedTopic, onTopicChange, isRTL }: ContactFormProps) {
   const [formData, setFormData] = useState<FormData>({
     topic: '',
-    name: user?.firstName ? `${user.firstName} ${user.lastName}` : '',
+    name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
     message: '',

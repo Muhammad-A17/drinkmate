@@ -75,10 +75,22 @@ class ChatSettingsService {
         },
       });
 
-      console.log('Chat settings response status:', response.status);
-      console.log('Chat settings response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
+        if (response.status === 429) {
+          // Rate limit exceeded - return cached data or default
+          console.warn('Rate limit exceeded for chat settings, using cached data');
+          return this.cache || {
+            isEnabled: false,
+            workingHours: { start: '09:00', end: '17:00' },
+            timezone: 'Asia/Riyadh',
+            autoAssign: true,
+            maxConcurrentChats: 5,
+            offlineMessage: 'Our chat support is currently offline. Please use our contact form or email us.',
+            whatsappNumber: '+966501234567',
+            emailAddress: 'support@drinkmates.com'
+          };
+        }
         throw new Error(`Failed to fetch chat settings: ${response.statusText}`);
       }
 

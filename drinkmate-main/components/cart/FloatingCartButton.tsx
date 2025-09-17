@@ -20,20 +20,26 @@ export default function FloatingCartButton({ className = '' }: FloatingCartButto
   const [lastItemCount, setLastItemCount] = useState(0)
   const [isPopupOpen, setIsPopupOpen] = useState(false)
 
-  // Check if we're on a page that shows chat widget
-  const isSupportPage = pathname?.startsWith('/account/support') || pathname?.startsWith('/support')
+  // Check if we're on a page that shows chat widget or admin pages
   const isContactPage = pathname === '/contact'
-  const showChatWidget = isSupportPage || isContactPage
+  const isAdminPage = pathname?.startsWith('/admin')
+  const showChatWidget = isContactPage
 
   useEffect(() => {
+    // Hide cart widget on contact page (where chat widget is shown) and admin pages
+    if (isContactPage || isAdminPage) {
+      setIsVisible(false)
+      return
+    }
+
     if (totalItems > 0) {
       setIsVisible(true) // Show when cart has items
       setLastItemCount(totalItems)
     } else {
-      // Hide when cart is empty, but only if chat widget is not shown
+      // Hide when cart is empty
       setIsVisible(false)
     }
-  }, [totalItems, lastItemCount, showChatWidget])
+  }, [totalItems, lastItemCount, isContactPage])
 
   if (!isVisible) return null
 

@@ -19,8 +19,7 @@ interface Message {
   sender: {
     _id: string
     username: string
-    firstName: string
-    lastName: string
+    name: string
     isAdmin: boolean
   }
   type?: string
@@ -40,14 +39,12 @@ interface Chat {
   customer: {
     _id: string
     username: string
-    firstName: string
-    lastName: string
+    name: string
   }
   admin?: {
     _id: string
     username: string
-    firstName: string
-    lastName: string
+    name: string
   }
   lastMessageAt: string
   createdAt: string
@@ -91,9 +88,24 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
   useEffect(() => {
     if (!socket) return
 
-    const handleNewMessage = (data: { message: Message }) => {
+    const handleNewMessage = (data: { message: any }) => {
       if (activeChat && data.message.chat === activeChat._id) {
-        setMessages(prev => [...prev, data.message])
+        // More robust sender detection for socket messages
+        const isFromAdmin = data.message.sender === 'admin' || 
+                           data.message.sender === 'agent' || 
+                           (data.message.senderId && data.message.senderId.isAdmin) ||
+                           (data.message.sender && typeof data.message.sender === 'object' && data.message.sender.isAdmin)
+        
+        const processedMessage = {
+          ...data.message,
+          isFromAdmin,
+          formattedTime: new Date(data.message.createdAt || data.message.timestamp).toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          })
+        }
+        setMessages(prev => [...prev, processedMessage])
       }
     }
 
@@ -217,7 +229,25 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
       const data = await chatAPI.getChatMessages(chatId)
       
       if (data.success) {
-        setMessages(data.messages)
+        // Process messages to determine sender type
+        const processedMessages = data.messages.map((msg: any) => {
+          // More robust sender detection
+          const isFromAdmin = msg.sender === 'admin' || 
+                             msg.sender === 'agent' || 
+                             (msg.senderId && msg.senderId.isAdmin) ||
+                             (msg.sender && typeof msg.sender === 'object' && msg.sender.isAdmin)
+          
+          return {
+            ...msg,
+            isFromAdmin,
+            formattedTime: new Date(msg.createdAt || msg.timestamp).toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            })
+          }
+        })
+        setMessages(processedMessages)
         // Join the chat room for real-time updates
         if (isConnected) {
           joinChat(chatId)
@@ -281,8 +311,7 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
         sender: {
           _id: user?._id || '',
           username: user?.username || '',
-          firstName: user?.firstName || '',
-          lastName: user?.lastName || '',
+          name: user?.name || '',
           isAdmin: false
         },
         type: 'text',
@@ -428,7 +457,7 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
                   </div>
                   {chat.admin && (
                     <div className="text-xs text-green-600 mt-1">
-                      Assigned to: {chat.admin.firstName} {chat.admin.lastName}
+                      Assigned to: {chat.admin.name}
                     </div>
                   )}
                 </div>
@@ -529,7 +558,7 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
                         </Badge>
                         {activeChat.admin && (
                           <span className="text-xs text-green-600">
-                            Admin: {activeChat.admin.firstName} {activeChat.admin.lastName}
+                            Admin: {activeChat.admin.name}
                           </span>
                         )}
                       </div>
@@ -543,7 +572,11 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
                   className="flex-1 overflow-y-auto space-y-3 mb-4"
                 >
                   {messages.map((message) => {
-                    const isFromCurrentUser = user && message.sender._id === user._id;
+                    // More robust user detection
+                    const isFromCurrentUser = user && (
+                      (message.sender && typeof message.sender === 'object' && message.sender._id === user._id) ||
+                      !message.isFromAdmin // If not from admin, assume it's from customer
+                    );
                     const isFromAdmin = message.isFromAdmin;
                     
                     return (
@@ -564,7 +597,8 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
                         >
                           {!message.isSystem && (
                             <div className="text-xs opacity-75 mb-1">
-                              {isFromCurrentUser ? 'You' : isFromAdmin ? 'Admin' : `${message.sender.firstName} ${message.sender.lastName}`}
+                              {isFromCurrentUser ? 'You' : isFromAdmin ? 'Admin' : 
+                                (message.sender && typeof message.sender === 'object' ? message.sender.name : 'Unknown')}
                             </div>
                           )}
                           <div className="text-sm">{message.content}</div>
@@ -627,7 +661,7 @@ export default function CustomerChatWidget({ isOpen, onClose }: CustomerChatWidg
         onClose={() => setShowRatingModal(false)}
         onRate={handleRateChat}
         chatId={activeChat?._id || ''}
-        customerName={user?.firstName || user?.username || 'Customer'}
+        customerName={user?.name || user?.username || 'Customer'}
       />
     </div>
   )

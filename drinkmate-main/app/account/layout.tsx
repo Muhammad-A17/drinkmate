@@ -51,21 +51,7 @@ export default function AccountLayout({ children }: AccountLayoutProps) {
     <>
       <Header currentPage="account" />
       <main className="min-h-screen bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Sidebar Navigation */}
-            <aside className="lg:col-span-3 xl:col-span-2">
-              <div className="lg:sticky lg:top-24">
-                <AccountNav />
-              </div>
-            </aside>
-            
-            {/* Main Content */}
-            <div className="lg:col-span-9 xl:col-span-10">
-              {children}
-            </div>
-          </div>
-        </div>
+        {children}
       </main>
       <Footer />
     </>
