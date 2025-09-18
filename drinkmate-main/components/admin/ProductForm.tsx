@@ -59,7 +59,7 @@ export default function ProductForm({
     originalPrice: product?.originalPrice || "",
     stock: product?.stock || "",
     shortDescription: product?.shortDescription || "",
-    fullDescription: product?.fullDescription || "",
+    fullDescription: product?.description || product?.fullDescription || "",
     sku: product?.sku || "",
     images: product?.images ? (Array.isArray(product.images) ? 
       product.images.map((img: any) => {
@@ -132,7 +132,7 @@ export default function ProductForm({
         originalPrice: product.originalPrice || "",
         stock: product.stock || "",
         shortDescription: product.shortDescription || "",
-        fullDescription: product.fullDescription || "",
+        fullDescription: product.description || product.fullDescription || "",
         sku: product.sku || "",
         images: imageUrls,
         colors: product.colors || [],

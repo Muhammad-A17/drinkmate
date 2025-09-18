@@ -199,6 +199,7 @@ export default function ProductsPage() {
         name: productData.name,
         slug: productData.name.toLowerCase().replace(/\s+/g, '-'),
         description: productData.fullDescription || productData.shortDescription || productData.name, // Backend expects 'description'
+        shortDescription: productData.shortDescription, // Add short description
         price: parseFloat(productData.price),
         originalPrice: productData.originalPrice ? parseFloat(productData.originalPrice) : undefined,
         stock: parseInt(productData.stock),
@@ -209,27 +210,61 @@ export default function ProductsPage() {
           alt: productData.name,
           isPrimary: index === 0
         })),
-        colors: productData.colors.map((color: string) => ({
-          name: color,
-          hexCode: '#000000' // Default color
+        variants: productData.colors.map((color: string) => ({
+          name: 'Color',
+          value: color,
+          priceAdjustment: 0,
+          stock: parseInt(productData.stock) || 0
         })),
-        isBestSeller: productData.isBestSeller,
-        isNewArrival: productData.isNewProduct,
-        isFeatured: productData.isFeatured,
+        bestSeller: productData.isBestSeller, // Fix: use 'bestSeller' not 'isBestSeller'
+        newArrival: productData.isNewProduct, // Fix: use 'newArrival' not 'isNewArrival'
+        featured: productData.isFeatured, // Fix: use 'featured' not 'isFeatured'
         sku: productData.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        weight: productData.weight ? parseFloat(productData.weight) : undefined,
-        dimensions: productData.dimensions
+        weight: productData.weight ? {
+          value: parseFloat(productData.weight),
+          unit: 'g'
+        } : undefined,
+        dimensions: productData.dimensions ? {
+          length: parseFloat(productData.dimensions.split('x')[0]?.trim()) || 0,
+          width: parseFloat(productData.dimensions.split('x')[1]?.trim()) || 0,
+          height: parseFloat(productData.dimensions.split('x')[2]?.trim()) || 0,
+          unit: 'cm'
+        } : undefined,
+        status: 'active', // Set default status
+        trackInventory: true, // Enable inventory tracking
+        lowStockThreshold: 10, // Set default low stock threshold
+        currency: 'SAR', // Set default currency
+        salesCount: 0, // Initialize sales count
+        viewCount: 0, // Initialize view count
+        rating: {
+          average: 0,
+          count: 0
+        }
       }
 
       const response = await adminAPI.createProduct(productPayload)
       
       if (response.success) {
+        // Add the new product to the local state immediately
+        const newProduct = {
+          ...response.product,
+          _id: response.product._id || response.product.id,
+          category: productData.category,
+          subcategory: productData.subcategory,
+          bestSeller: productData.isBestSeller,
+          newArrival: productData.isNewProduct,
+          featured: productData.isFeatured,
+          weight: productPayload.weight,
+          dimensions: productPayload.dimensions,
+          colors: productData.colors.map((color: string) => ({ name: color, hexCode: '#000000' }))
+        }
+        setProducts(prevProducts => [newProduct, ...prevProducts])
+        
         toast({
           title: "Success",
           description: "Product created successfully"
         })
         setIsAddProductOpen(false)
-        fetchProducts() // Refresh the product list
       } else {
         throw new Error(response.message || 'Failed to create product')
       }
@@ -271,24 +306,48 @@ export default function ProductsPage() {
           name: color,
           hexCode: '#000000'
         })),
-        isBestSeller: productData.isBestSeller,
-        isNewArrival: productData.isNewProduct,
-        isFeatured: productData.isFeatured,
+        bestSeller: productData.isBestSeller,
+        newArrival: productData.isNewProduct,
+        featured: productData.isFeatured,
         sku: productData.sku,
-        weight: productData.weight ? parseFloat(productData.weight) : undefined,
-        dimensions: productData.dimensions
+        weight: productData.weight ? {
+          value: parseFloat(productData.weight),
+          unit: 'g'
+        } : undefined,
+        dimensions: productData.dimensions ? {
+          length: parseFloat(productData.dimensions.split('x')[0]?.trim()) || 0,
+          width: parseFloat(productData.dimensions.split('x')[1]?.trim()) || 0,
+          height: parseFloat(productData.dimensions.split('x')[2]?.trim()) || 0,
+          unit: 'cm'
+        } : undefined
       }
 
       console.log('Sending update payload:', productPayload)
       const response = await adminAPI.updateProduct(editingProduct._id, productPayload)
       
       if (response.success) {
+        // Update the product in the local state immediately
+        const updatedProduct = {
+          ...response.product,
+          _id: response.product._id || response.product.id,
+          category: productData.category,
+          subcategory: productData.subcategory,
+          bestSeller: productData.isBestSeller,
+          newArrival: productData.isNewProduct,
+          featured: productData.isFeatured,
+          weight: productPayload.weight,
+          dimensions: productPayload.dimensions,
+          colors: productData.colors.map((color: string) => ({ name: color, hexCode: '#000000' }))
+        }
+        setProducts(prevProducts => 
+          prevProducts.map(p => p._id === editingProduct._id ? updatedProduct : p)
+        )
+        
         toast({
           title: "Success",
           description: "Product updated successfully"
         })
         setEditingProduct(null)
-        fetchProducts() // Refresh the product list
       } else {
         throw new Error(response.message || 'Failed to update product')
       }
@@ -313,11 +372,13 @@ export default function ProductsPage() {
       const response = await adminAPI.deleteProduct(id)
       
       if (response.success) {
+        // Remove the product from the local state immediately
+        setProducts(prevProducts => prevProducts.filter(p => p._id !== id))
+        
         toast({
           title: "Success",
           description: "Product deleted successfully"
         })
-        fetchProducts() // Refresh the product list
       } else {
         throw new Error(response.message || 'Failed to delete product')
       }
@@ -882,27 +943,41 @@ export default function ProductsPage() {
                   SKU: <span className="font-medium">{selectedProduct.sku || 'N/A'}</span>
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
-                  Weight: <span className="font-medium">{selectedProduct.weight || 'N/A'}</span>
-                </p>
-                <p className="text-sm text-gray-600 mt-2">
-                  Dimensions: <span className="font-medium">{selectedProduct.dimensions || 'N/A'}</span>
-                </p>
-                <p className="text-sm text-gray-600 mt-2">
-                  Colors: <span className="font-medium">
-                    {selectedProduct.colors && selectedProduct.colors.length > 0 
-                      ? selectedProduct.colors.map((c: {name: string, code: string}) => c.name).join(', ')
+                  Weight: <span className="font-medium">
+                    {selectedProduct.weight 
+                      ? typeof selectedProduct.weight === 'object' && selectedProduct.weight !== null
+                        ? `${(selectedProduct.weight as any).value || 0} ${(selectedProduct.weight as any).unit || 'g'}`
+                        : selectedProduct.weight
                       : 'N/A'
                     }
                   </span>
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
-                  Best Seller: <span className="font-medium">{selectedProduct.isBestSeller ? 'Yes' : 'No'}</span>
+                  Dimensions: <span className="font-medium">
+                    {selectedProduct.dimensions 
+                      ? typeof selectedProduct.dimensions === 'object' && selectedProduct.dimensions !== null
+                        ? `${(selectedProduct.dimensions as any).length || 0} × ${(selectedProduct.dimensions as any).width || 0} × ${(selectedProduct.dimensions as any).height || 0} ${(selectedProduct.dimensions as any).unit || 'cm'}`
+                        : selectedProduct.dimensions
+                      : 'N/A'
+                    }
+                  </span>
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
-                  New Arrival: <span className="font-medium">{selectedProduct.isNewArrival ? 'Yes' : 'No'}</span>
+                  Colors: <span className="font-medium">
+                    {selectedProduct.colors && selectedProduct.colors.length > 0 
+                      ? selectedProduct.colors.map((c: any) => c.name || c.color || c).join(', ')
+                      : 'N/A'
+                    }
+                  </span>
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
-                  Featured: <span className="font-medium">{selectedProduct.isFeatured ? 'Yes' : 'No'}</span>
+                  Best Seller: <span className="font-medium">{(selectedProduct as any).bestSeller || selectedProduct.isBestSeller ? 'Yes' : 'No'}</span>
+                </p>
+                <p className="text-sm text-gray-600 mt-2">
+                  New Arrival: <span className="font-medium">{(selectedProduct as any).newArrival || (selectedProduct as any).isNewProduct ? 'Yes' : 'No'}</span>
+                </p>
+                <p className="text-sm text-gray-600 mt-2">
+                  Featured: <span className="font-medium">{(selectedProduct as any).featured || selectedProduct.isFeatured ? 'Yes' : 'No'}</span>
                 </p>
               </div>
             </div>

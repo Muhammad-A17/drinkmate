@@ -24,8 +24,11 @@ export interface BaseProduct {
   minStock?: number
   status?: string
   isBestSeller?: boolean
+  bestSeller?: boolean
   isFeatured?: boolean
+  featured?: boolean
   isNewProduct?: boolean
+  newArrival?: boolean
   isEcoFriendly?: boolean
   sku?: string
   createdAt?: string
@@ -36,12 +39,20 @@ export interface BaseProduct {
     height: number
     depth: number
     weight: number
+    length?: number
+    unit?: string
   }
+  weight?: {
+    value: number
+    unit: string
+  } | string | number
   colors?: Array<{
     name: string
-    hexCode: string
-    inStock: boolean
-  }>
+    hexCode?: string
+    hex?: string
+    code?: string
+    inStock?: boolean
+  } | string>
   features?: string[]
   specifications?: Record<string, string>
   videos?: string[]
