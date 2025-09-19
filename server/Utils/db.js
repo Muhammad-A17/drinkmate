@@ -10,11 +10,13 @@ const printableUri = uri.includes('@') ?
     uri;
 console.log('🔍 MongoDB URI:', printableUri); 
 
-// Set a shorter connection timeout (5 seconds)
+// Set longer connection timeout for better reliability
 const connectOptions = {
-    connectTimeoutMS: 5000,
-    socketTimeoutMS: 5000,
-    serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 30000,
+    socketTimeoutMS: 30000,
+    serverSelectionTimeoutMS: 30000,
+    maxPoolSize: 10,
+    heartbeatFrequencyMS: 10000,
 };
 
 let isConnected = false;

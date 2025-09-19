@@ -3,6 +3,116 @@ const Category = require('../Models/category-model');
 const Bundle = require('../Models/bundle-model');
 const Review = require('../Models/review-model');
 
+// Get all products for admin with all fields
+exports.getAdminProducts = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        
+        // Build filter object based on query parameters
+        const filter = {};
+        
+        // Category filter
+        if (req.query.category) {
+            const category = await Category.findOne({ slug: req.query.category });
+            if (category) {
+                // Support products where category is stored as ObjectId, stringified id, slug, or name
+                filter.$or = [
+                    { category: category._id },
+                    { category: category._id.toString() },
+                    { category: category.slug },
+                    { category: category.name }
+                ];
+            }
+        }
+        
+        // Price range filter
+        if (req.query.minPrice || req.query.maxPrice) {
+            filter.price = {};
+            if (req.query.minPrice) filter.price.$gte = parseFloat(req.query.minPrice);
+            if (req.query.maxPrice) filter.price.$lte = parseFloat(req.query.maxPrice);
+        }
+        
+        // Color filter
+        if (req.query.color) {
+            filter['colors.name'] = req.query.color;
+        }
+        
+        // Featured products filter
+        if (req.query.featured === 'true') {
+            filter.featured = true;
+        }
+        
+        // Best sellers filter
+        if (req.query.bestSeller === 'true') {
+            filter.bestSeller = true;
+        }
+        
+        // New arrivals filter
+        if (req.query.newArrival === 'true') {
+            filter.newArrival = true;
+        }
+        
+        // Search query
+        if (req.query.search) {
+            filter.$text = { $search: req.query.search };
+        }
+        
+        // Determine sort order
+        let sort = {};
+        switch(req.query.sort) {
+            case 'price_asc':
+                sort = { price: 1 };
+                break;
+            case 'price_desc':
+                sort = { price: -1 };
+                break;
+            case 'newest':
+                sort = { createdAt: -1 };
+                break;
+            case 'rating':
+                sort = { averageRating: -1 };
+                break;
+            case 'popularity':
+                sort = { reviewCount: -1 };
+                break;
+            default:
+                sort = { createdAt: -1 };
+        }
+        
+        // Execute query with pagination - return ALL fields for admin
+        const products = await Product.find(filter)
+            .populate('category', 'name slug')
+            .sort(sort)
+            .skip(skip)
+            .limit(limit)
+            .lean();
+            
+        // Get total count for pagination
+        const totalProducts = await Product.countDocuments(filter);
+        
+        // Calculate total pages
+        const totalPages = Math.ceil(totalProducts / limit);
+        
+        res.status(200).json({
+            success: true,
+            count: products.length,
+            totalProducts,
+            totalPages,
+            currentPage: page,
+            products
+        });
+    } catch (error) {
+        console.error('Error in getAdminProducts:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+}
+
 // Get all products with pagination, filtering and sorting
 exports.getAllProducts = async (req, res) => {
     try {
@@ -186,9 +296,84 @@ exports.createProduct = async (req, res) => {
             });
         }
         
+        // Map frontend data to schema format
+        const productData = {
+            name: req.body.name,
+            nameAr: req.body.nameAr,
+            description: req.body.description || req.body.shortDescription,
+            descriptionAr: req.body.descriptionAr,
+            shortDescription: req.body.shortDescription,
+            fullDescription: req.body.fullDescription,
+            sku: req.body.sku || undefined,
+            category: req.body.category,
+            subcategory: req.body.subcategory,
+            price: parseFloat(req.body.price) || 0,
+            originalPrice: req.body.originalPrice ? parseFloat(req.body.originalPrice) : undefined,
+            currency: req.body.currency || 'SAR',
+            stock: req.body.stock !== undefined ? parseInt(req.body.stock) : undefined,
+            lowStockThreshold: req.body.lowStockThreshold ? parseInt(req.body.lowStockThreshold) : 10,
+            trackInventory: req.body.trackInventory !== false,
+            
+            // Map images from array of strings to array of objects
+            images: Array.isArray(req.body.images) ? req.body.images.map((img, index) => {
+                if (typeof img === 'string') {
+                    return {
+                        url: img,
+                        alt: req.body.name || 'Product image',
+                        isPrimary: index === 0
+                    };
+                }
+                return img; // Already an object
+            }) : [],
+            
+            // Map colors from array of strings to array of objects
+            colors: Array.isArray(req.body.colors) ? req.body.colors.map(color => {
+                if (typeof color === 'string') {
+                    return {
+                        name: color,
+                        inStock: true
+                    };
+                }
+                return color; // Already an object
+            }) : [],
+            
+            // Map weight and dimensions
+            weight: req.body.weight ? {
+                value: parseFloat(req.body.weight.value || req.body.weight),
+                unit: req.body.weight.unit || 'g'
+            } : undefined,
+            
+            dimensions: req.body.dimensions ? {
+                length: parseFloat(req.body.dimensions.length || req.body.dimensions),
+                width: parseFloat(req.body.dimensions.width || 0),
+                height: parseFloat(req.body.dimensions.height || 0),
+                unit: req.body.dimensions.unit || 'cm'
+            } : undefined,
+            
+            // Map status flags
+            featured: req.body.isFeatured || req.body.featured || false,
+            newArrival: req.body.isNewProduct || req.body.isNewArrival || req.body.newArrival || false,
+            bestSeller: req.body.isBestSeller || req.body.bestSeller || false,
+            
+            // Other fields
+            status: req.body.status || 'active',
+            metaTitle: req.body.metaTitle,
+            metaDescription: req.body.metaDescription,
+            tags: req.body.tags || []
+        };
+        
+        console.log('Mapped product data:', JSON.stringify(productData, null, 2));
+        
         // Create new product
-        const product = new Product(req.body);
-        await product.save();
+        const product = new Product(productData);
+        
+        try {
+            await product.save();
+            console.log('Product created successfully:', product._id);
+        } catch (saveError) {
+            console.error('Save error:', saveError);
+            throw saveError;
+        }
         
         res.status(201).json({
             success: true,
@@ -210,6 +395,9 @@ exports.updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
         
+        console.log('Updating product with ID:', id);
+        console.log('Update request body:', JSON.stringify(req.body, null, 2));
+        
         // Check if product exists
         let product = await Product.findById(id);
         
@@ -220,21 +408,48 @@ exports.updateProduct = async (req, res) => {
             });
         }
         
-        // Auto-generate SKU if missing/empty on update
-        if (!req.body.sku || (typeof req.body.sku === 'string' && req.body.sku.trim() === '')) {
-            const base = (req.body.name || product.name || 'prod')
-                .toLowerCase()
-                .replace(/[^a-z0-9]/g, '')
-                .slice(0, 4);
-            req.body.sku = `${base}-${Date.now().toString().slice(-6)}`;
+        // Map frontend data to schema format
+        const updateData = {};
+        
+        // Basic fields
+        if (req.body.name !== undefined) updateData.name = req.body.name;
+        if (req.body.nameAr !== undefined) updateData.nameAr = req.body.nameAr;
+        if (req.body.description !== undefined) updateData.description = req.body.description;
+        if (req.body.descriptionAr !== undefined) updateData.descriptionAr = req.body.descriptionAr;
+        if (req.body.shortDescription !== undefined) updateData.shortDescription = req.body.shortDescription;
+        if (req.body.fullDescription !== undefined) updateData.fullDescription = req.body.fullDescription;
+        if (req.body.category !== undefined) updateData.category = req.body.category;
+        if (req.body.subcategory !== undefined) updateData.subcategory = req.body.subcategory;
+        
+        // Pricing
+        if (req.body.price !== undefined) updateData.price = parseFloat(req.body.price) || 0;
+        if (req.body.originalPrice !== undefined) updateData.originalPrice = req.body.originalPrice ? parseFloat(req.body.originalPrice) : undefined;
+        if (req.body.currency !== undefined) updateData.currency = req.body.currency;
+        
+        // Inventory
+        if (req.body.stock !== undefined) updateData.stock = req.body.stock !== undefined ? parseInt(req.body.stock) : undefined;
+        if (req.body.lowStockThreshold !== undefined) updateData.lowStockThreshold = parseInt(req.body.lowStockThreshold) || 10;
+        if (req.body.trackInventory !== undefined) updateData.trackInventory = req.body.trackInventory;
+        
+        // SKU handling
+        if (req.body.sku !== undefined) {
+            if (!req.body.sku || (typeof req.body.sku === 'string' && req.body.sku.trim() === '')) {
+                const base = (req.body.name || product.name || 'prod')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g, '')
+                    .slice(0, 4);
+                updateData.sku = `${base}-${Date.now().toString().slice(-6)}`;
+            } else {
+                updateData.sku = req.body.sku;
+            }
         }
-
-        // If name or SKU is being updated, check for duplicates
-        if (req.body.name !== product.name || req.body.sku !== product.sku) {
+        
+        // Check for duplicate name or SKU
+        if (updateData.name || updateData.sku) {
             const existingProduct = await Product.findOne({
                 $or: [
-                    { name: req.body.name, _id: { $ne: id } },
-                    { sku: req.body.sku, _id: { $ne: id } }
+                    { name: updateData.name || product.name, _id: { $ne: id } },
+                    { sku: updateData.sku || product.sku, _id: { $ne: id } }
                 ]
             });
             
@@ -246,11 +461,76 @@ exports.updateProduct = async (req, res) => {
             }
         }
         
+        // Map images from array of strings to array of objects
+        if (req.body.images !== undefined) {
+            updateData.images = Array.isArray(req.body.images) ? req.body.images.map((img, index) => {
+                if (typeof img === 'string') {
+                    return {
+                        url: img,
+                        alt: req.body.name || product.name || 'Product image',
+                        isPrimary: index === 0
+                    };
+                }
+                return img; // Already an object
+            }) : [];
+        }
+        
+        // Map colors from array of strings to array of objects
+        if (req.body.colors !== undefined) {
+            updateData.colors = Array.isArray(req.body.colors) ? req.body.colors.map(color => {
+                if (typeof color === 'string') {
+                    return {
+                        name: color,
+                        inStock: true
+                    };
+                }
+                return color; // Already an object
+            }) : [];
+        }
+        
+        // Map weight and dimensions
+        if (req.body.weight !== undefined) {
+            updateData.weight = req.body.weight ? {
+                value: parseFloat(req.body.weight.value || req.body.weight),
+                unit: req.body.weight.unit || 'g'
+            } : undefined;
+        }
+        
+        if (req.body.dimensions !== undefined) {
+            updateData.dimensions = req.body.dimensions ? {
+                length: parseFloat(req.body.dimensions.length || req.body.dimensions),
+                width: parseFloat(req.body.dimensions.width || 0),
+                height: parseFloat(req.body.dimensions.height || 0),
+                unit: req.body.dimensions.unit || 'cm'
+            } : undefined;
+        }
+        
+        // Map status flags
+        if (req.body.isFeatured !== undefined) updateData.featured = req.body.isFeatured;
+        if (req.body.isNewProduct !== undefined) updateData.newArrival = req.body.isNewProduct;
+        if (req.body.isBestSeller !== undefined) updateData.bestSeller = req.body.isBestSeller;
+        
+        // Other fields
+        if (req.body.status !== undefined) updateData.status = req.body.status;
+        if (req.body.metaTitle !== undefined) updateData.metaTitle = req.body.metaTitle;
+        if (req.body.metaDescription !== undefined) updateData.metaDescription = req.body.metaDescription;
+        if (req.body.tags !== undefined) updateData.tags = req.body.tags;
+        
+        console.log('Mapped update data:', JSON.stringify(updateData, null, 2));
+        
         // Update product
-        product = await Product.findByIdAndUpdate(id, req.body, {
-            new: true,
-            runValidators: true
-        });
+        try {
+            product = await Product.findByIdAndUpdate(id, updateData, {
+                new: true,
+                runValidators: true
+            });
+            
+            console.log('Product updated successfully:', product._id);
+            
+        } catch (updateError) {
+            console.error('Update error:', updateError);
+            throw updateError;
+        }
         
         res.status(200).json({
             success: true,

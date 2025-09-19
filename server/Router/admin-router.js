@@ -83,7 +83,7 @@ router.delete('/users/:id', authMiddleware, adminMiddleware, deleteUser);
 router.get('/orders', authMiddleware, adminMiddleware, orderController.getAllOrders);
 
 // Product management routes
-router.get('/products', authMiddleware, adminMiddleware, require('../Controller/product-controller').getAllProducts);
+router.get('/products', authMiddleware, adminMiddleware, require('../Controller/product-controller').getAdminProducts);
 router.get('/products/:id', authMiddleware, adminMiddleware, require('../Controller/product-controller').getProduct);
 router.post('/products', authMiddleware, adminMiddleware, require('../Controller/product-controller').createProduct);
 router.put('/products/:id', authMiddleware, adminMiddleware, require('../Controller/product-controller').updateProduct);

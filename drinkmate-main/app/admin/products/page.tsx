@@ -86,7 +86,7 @@ interface ProductFormData {
   isNewProduct: boolean
   isFeatured: boolean
   weight: string
-  dimensions: string
+  dimensions: string | { length: number; width: number; height: number; unit: string }
 }
 
 export default function ProductsPage() {
@@ -192,6 +192,10 @@ export default function ProductsPage() {
   // Create new product
   const handleCreateProduct = async (productData: ProductFormData) => {
     try {
+      console.log('Frontend: Creating product with data:', productData)
+      console.log('Frontend: ProductFormData shortDescription:', productData.shortDescription)
+      console.log('Frontend: ProductFormData fullDescription:', productData.fullDescription)
+      console.log('Frontend: ProductFormData colors:', productData.colors)
       setIsSubmitting(true)
       
       // Prepare the product data for the API
@@ -200,6 +204,7 @@ export default function ProductsPage() {
         slug: productData.name.toLowerCase().replace(/\s+/g, '-'),
         description: productData.fullDescription || productData.shortDescription || productData.name, // Backend expects 'description'
         shortDescription: productData.shortDescription, // Add short description
+        fullDescription: productData.fullDescription, // Add full description
         price: parseFloat(productData.price),
         originalPrice: productData.originalPrice ? parseFloat(productData.originalPrice) : undefined,
         stock: parseInt(productData.stock),
@@ -210,26 +215,41 @@ export default function ProductsPage() {
           alt: productData.name,
           isPrimary: index === 0
         })),
-        variants: productData.colors.map((color: string) => ({
-          name: 'Color',
-          value: color,
-          priceAdjustment: 0,
-          stock: parseInt(productData.stock) || 0
+        colors: productData.colors.map((color: string) => ({
+          name: color,
+          hexCode: '#000000',
+          inStock: true
         })),
-        bestSeller: productData.isBestSeller, // Fix: use 'bestSeller' not 'isBestSeller'
-        newArrival: productData.isNewProduct, // Fix: use 'newArrival' not 'isNewArrival'
-        featured: productData.isFeatured, // Fix: use 'featured' not 'isFeatured'
+        bestSeller: productData.isBestSeller,
+        newArrival: productData.isNewProduct,
+        featured: productData.isFeatured,
         sku: productData.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         weight: productData.weight ? {
           value: parseFloat(productData.weight),
           unit: 'g'
         } : undefined,
-        dimensions: productData.dimensions ? {
-          length: parseFloat(productData.dimensions.split('x')[0]?.trim()) || 0,
-          width: parseFloat(productData.dimensions.split('x')[1]?.trim()) || 0,
-          height: parseFloat(productData.dimensions.split('x')[2]?.trim()) || 0,
-          unit: 'cm'
-        } : undefined,
+        dimensions: productData.dimensions ? (() => {
+          if (typeof productData.dimensions === 'string') {
+            const parts = productData.dimensions.split(' x ');
+            if (parts.length === 3) {
+              return {
+                length: parseFloat(parts[0]) || 0,
+                width: parseFloat(parts[1]) || 0,
+                height: parseFloat(parts[2]) || 0,
+                unit: 'cm'
+              };
+            }
+          } else if (typeof productData.dimensions === 'object' && productData.dimensions !== null) {
+            const dims = productData.dimensions as any;
+            return {
+              length: dims.length || 0,
+              width: dims.width || 0,
+              height: dims.height || 0,
+              unit: dims.unit || 'cm'
+            };
+          }
+          return undefined;
+        })() : undefined,
         status: 'active', // Set default status
         trackInventory: true, // Enable inventory tracking
         lowStockThreshold: 10, // Set default low stock threshold
@@ -251,9 +271,9 @@ export default function ProductsPage() {
           _id: response.product._id || response.product.id,
           category: productData.category,
           subcategory: productData.subcategory,
-          bestSeller: productData.isBestSeller,
-          newArrival: productData.isNewProduct,
-          featured: productData.isFeatured,
+          isBestSeller: productData.isBestSeller,
+          isNewArrival: productData.isNewProduct,
+          isFeatured: productData.isFeatured,
           weight: productPayload.weight,
           dimensions: productPayload.dimensions,
           colors: productData.colors.map((color: string) => ({ name: color, hexCode: '#000000' }))
@@ -292,6 +312,8 @@ export default function ProductsPage() {
         name: productData.name,
         slug: productData.name.toLowerCase().replace(/\s+/g, '-'),
         description: productData.fullDescription || productData.shortDescription || productData.name, // Backend expects 'description'
+        shortDescription: productData.shortDescription, // Add short description
+        fullDescription: productData.fullDescription, // Add full description
         price: parseFloat(productData.price),
         originalPrice: productData.originalPrice ? parseFloat(productData.originalPrice) : undefined,
         stock: parseInt(productData.stock),
@@ -304,7 +326,8 @@ export default function ProductsPage() {
         })),
         colors: productData.colors.map((color: string) => ({
           name: color,
-          hexCode: '#000000'
+          hexCode: '#000000',
+          inStock: true
         })),
         bestSeller: productData.isBestSeller,
         newArrival: productData.isNewProduct,
@@ -314,12 +337,28 @@ export default function ProductsPage() {
           value: parseFloat(productData.weight),
           unit: 'g'
         } : undefined,
-        dimensions: productData.dimensions ? {
-          length: parseFloat(productData.dimensions.split('x')[0]?.trim()) || 0,
-          width: parseFloat(productData.dimensions.split('x')[1]?.trim()) || 0,
-          height: parseFloat(productData.dimensions.split('x')[2]?.trim()) || 0,
-          unit: 'cm'
-        } : undefined
+        dimensions: productData.dimensions ? (() => {
+          if (typeof productData.dimensions === 'string') {
+            const parts = productData.dimensions.split(' x ');
+            if (parts.length === 3) {
+              return {
+                length: parseFloat(parts[0]) || 0,
+                width: parseFloat(parts[1]) || 0,
+                height: parseFloat(parts[2]) || 0,
+                unit: 'cm'
+              };
+            }
+          } else if (typeof productData.dimensions === 'object' && productData.dimensions !== null) {
+            const dims = productData.dimensions as any;
+            return {
+              length: dims.length || 0,
+              width: dims.width || 0,
+              height: dims.height || 0,
+              unit: dims.unit || 'cm'
+            };
+          }
+          return undefined;
+        })() : undefined
       }
 
       console.log('Sending update payload:', productPayload)
@@ -332,9 +371,9 @@ export default function ProductsPage() {
           _id: response.product._id || response.product.id,
           category: productData.category,
           subcategory: productData.subcategory,
-          bestSeller: productData.isBestSeller,
-          newArrival: productData.isNewProduct,
-          featured: productData.isFeatured,
+          isBestSeller: productData.isBestSeller,
+          isNewArrival: productData.isNewProduct,
+          isFeatured: productData.isFeatured,
           weight: productPayload.weight,
           dimensions: productPayload.dimensions,
           colors: productData.colors.map((color: string) => ({ name: color, hexCode: '#000000' }))
@@ -706,16 +745,16 @@ export default function ProductsPage() {
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex flex-wrap gap-1 justify-center">
-                            {product.isBestSeller && (
+                            {(product as any).bestSeller || product.isBestSeller ? (
                               <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-200">
                                 Best Seller
                               </Badge>
-                            )}
-                            {product.isNewArrival && (
+                            ) : null}
+                            {(product as any).newArrival || product.isNewArrival ? (
                               <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200">
                                 New
                               </Badge>
-                            )}
+                            ) : null}
                             {product.stock < 10 && (
                               <Badge variant="secondary" className="bg-red-100 text-red-800 hover:bg-red-200">
                                 Low Stock
@@ -974,7 +1013,7 @@ export default function ProductsPage() {
                   Best Seller: <span className="font-medium">{(selectedProduct as any).bestSeller || selectedProduct.isBestSeller ? 'Yes' : 'No'}</span>
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
-                  New Arrival: <span className="font-medium">{(selectedProduct as any).newArrival || (selectedProduct as any).isNewProduct ? 'Yes' : 'No'}</span>
+                  New Arrival: <span className="font-medium">{(selectedProduct as any).newArrival || (selectedProduct as any).isNewArrival ? 'Yes' : 'No'}</span>
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
                   Featured: <span className="font-medium">{(selectedProduct as any).featured || selectedProduct.isFeatured ? 'Yes' : 'No'}</span>

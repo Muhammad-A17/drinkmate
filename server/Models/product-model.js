@@ -17,21 +17,32 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    maxlength: 1000
+    maxlength: 2000
   },
   descriptionAr: {
     type: String,
     trim: true,
+    maxlength: 2000
+  },
+  shortDescription: {
+    type: String,
+    trim: true,
     maxlength: 1000
+  },
+  fullDescription: {
+    type: String,
+    trim: true,
+    maxlength: 2000
   },
   
   // Product Details
   sku: {
     type: String,
-    required: true,
+    required: false,
     unique: true,
     trim: true,
-    uppercase: true
+    uppercase: true,
+    sparse: true
   },
   category: {
     type: mongoose.Schema.Types.Mixed,
@@ -62,7 +73,7 @@ const productSchema = new mongoose.Schema({
   // Inventory
   stock: {
     type: Number,
-    required: true,
+    required: false,
     min: 0,
     default: 0
   },
@@ -111,6 +122,21 @@ const productSchema = new mongoose.Schema({
     stock: {
       type: Number,
       default: 0
+    }
+  }],
+  
+  // Product Colors
+  colors: [{
+    name: {
+      type: String,
+      required: true
+    },
+    hexCode: String,
+    hex: String,
+    code: String,
+    inStock: {
+      type: Boolean,
+      default: true
     }
   }],
   

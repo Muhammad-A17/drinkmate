@@ -1414,11 +1414,11 @@ export const adminAPI = {
     return response.data;
   },
   
-  deleteImage: async (filename: string) => {
+  deleteImage: async (publicId: string) => {
     // Get auth token using the correct key
     const token = getAuthToken();
     
-    const response = await api.delete(`/admin/delete-image/${filename}`, {
+    const response = await api.delete(`/admin/delete-image/${publicId}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

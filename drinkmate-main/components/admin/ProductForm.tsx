@@ -61,21 +61,12 @@ export default function ProductForm({
     shortDescription: product?.shortDescription || "",
     fullDescription: product?.description || product?.fullDescription || "",
     sku: product?.sku || "",
-    images: product?.images ? (Array.isArray(product.images) ? 
-      product.images.map((img: any) => {
-        if (typeof img === 'string') return img
-        if (img && typeof img === 'object') {
-          return img.url || img._id || ''
-        }
-        return ''
-      }).filter((url: string) => url && url.trim() !== '') : 
-      []) : [],
-    colors: product?.colors || [],
+    colors: product?.colors ? product.colors.map((color: any) => typeof color === 'string' ? color : color.name) : [],
     isBestSeller: product?.isBestSeller || false,
     isNewProduct: product?.isNewProduct || false,
     isFeatured: product?.isFeatured || false,
-    weight: product?.weight || "",
-    dimensions: product?.dimensions || "",
+    weight: product?.weight ? (typeof product.weight === 'string' ? product.weight : product.weight.value?.toString() || "") : "",
+    dimensions: product?.dimensions ? (typeof product.dimensions === 'string' ? product.dimensions : `${product.dimensions.length || 0} x ${product.dimensions.width || 0} x ${product.dimensions.height || 0}`) : "",
     // Bundle specific fields
     products: product?.products || [],
     bundleDiscount: product?.bundleDiscount || "",
@@ -134,13 +125,12 @@ export default function ProductForm({
         shortDescription: product.shortDescription || "",
         fullDescription: product.description || product.fullDescription || "",
         sku: product.sku || "",
-        images: imageUrls,
-        colors: product.colors || [],
-        isBestSeller: product.isBestSeller || false,
-        isNewProduct: product.isNewProduct || false,
-        isFeatured: product.isFeatured || false,
-        weight: product.weight || "",
-        dimensions: product.dimensions || "",
+        colors: product.colors ? product.colors.map((color: any) => typeof color === 'string' ? color : color.name) : [],
+        isBestSeller: product.bestSeller || product.isBestSeller || false,
+        isNewProduct: product.newArrival || product.isNewProduct || false,
+        isFeatured: product.featured || product.isFeatured || false,
+        weight: product.weight ? (typeof product.weight === 'string' ? product.weight : product.weight.value?.toString() || "") : "",
+        dimensions: product.dimensions ? (typeof product.dimensions === 'string' ? product.dimensions : `${product.dimensions.length || 0} x ${product.dimensions.width || 0} x ${product.dimensions.height || 0}`) : "",
         products: product.products || [],
         bundleDiscount: product.bundleDiscount || "",
       })
@@ -255,34 +245,29 @@ export default function ProductForm({
       finalFormData.sku = `${nameSlug}-${timestamp}`
     }
     
-    // Synchronize images from uploadedImages to formData.images
-    finalFormData.images = [...uploadedImages]
-    
-    // Clean up images array - remove any undefined, null, or empty values
-    if (finalFormData.images && Array.isArray(finalFormData.images)) {
-      finalFormData.images = finalFormData.images.filter((img: any) => {
+    // Create final data object with images
+    const finalData = {
+      ...finalFormData,
+      images: uploadedImages.filter((img: any) => {
         if (typeof img === 'string') return img && img.trim() !== ''
         if (img && typeof img === 'object') return img.url && img.url.trim() !== ''
         return false
       })
-    } else {
-      finalFormData.images = []
     }
     
             console.log('Original form data:', formData)
         console.log('Final form data with SKU:', finalFormData)
         console.log('Uploaded images:', uploadedImages)
-        console.log('Form data images before sync:', formData.images)
-        console.log('Images array after sync:', finalFormData.images)
-        console.log('Images array type:', typeof finalFormData.images)
-        console.log('Images array length:', finalFormData.images?.length)
-        if (finalFormData.images && finalFormData.images.length > 0) {
-          finalFormData.images.forEach((img: any, index: number) => {
+        console.log('Final data with images:', finalData)
+        console.log('Images array type:', typeof finalData.images)
+        console.log('Images array length:', finalData.images?.length)
+        if (finalData.images && finalData.images.length > 0) {
+          finalData.images.forEach((img: any, index: number) => {
             console.log(`Image ${index}:`, { value: img, type: typeof img, isString: typeof img === 'string', isObject: typeof img === 'object' })
           })
         }
         
-        onSubmit(finalFormData)
+        onSubmit(finalData)
   }
 
   return (
@@ -558,10 +543,9 @@ export default function ProductForm({
               <CardContent>
                 <CloudinaryImageUpload
                   onImagesChange={(images) => {
-                    setFormData(prev => ({ ...prev, images }))
                     setUploadedImages(images)
                   }}
-                  currentImages={formData.images}
+                  currentImages={uploadedImages}
                   maxImages={5}
                   disabled={isSubmitting}
                 />
