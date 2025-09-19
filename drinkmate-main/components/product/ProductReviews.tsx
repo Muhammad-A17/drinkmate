@@ -185,7 +185,6 @@ export default function ProductReviews({ productId, reviews = [] }: ProductRevie
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                       <div 
                         className="bg-yellow-400 h-2.5 rounded-full transition-all duration-300"
-                        // eslint-disable-next-line react/style-prop-object
                         style={{ width: `${percentage}%` }}
                       />
                     </div>

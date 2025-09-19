@@ -20,8 +20,6 @@ export default function FreeGift() {
   const [selectedGiftId, setSelectedGiftId] = useState<string | number | null>(null)
   
   const freeGiftEligible = totalPrice >= settings.freeGift.threshold && totalPrice < settings.freeShipping.threshold
-  
-  if (!settings.freeGift.enabled || !freeGiftEligible) return null
 
   // Get free gift products from admin settings
   const getFreeGiftProducts = (): FreeGiftProduct[] => {
@@ -78,6 +76,8 @@ export default function FreeGift() {
       setSelectedGiftId(null)
     }
   }, [items])
+
+  if (!settings.freeGift.enabled || !freeGiftEligible) return null
 
   const handleGiftSelection = (gift: FreeGiftProduct) => {
     // If this gift is already selected, remove it

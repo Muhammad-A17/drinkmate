@@ -1,6 +1,7 @@
 'use client'
 
 import { Lock } from 'lucide-react'
+import Link from 'next/link'
 import { useCart } from '@/hooks/use-cart'
 import { useCartSettings } from '@/lib/cart-settings-context'
 
@@ -47,7 +48,7 @@ export default function CartHeader() {
 
       <div className="mt-4 flex gap-3">
         <button className="text-danger hover:underline text-sm">{getText('general.clearCartEn')}</button>
-        <a href="/shop" className="text-brand hover:underline text-sm">{getText('general.continueShoppingEn')}</a>
+        <Link href="/shop" className="text-brand hover:underline text-sm">{getText('general.continueShoppingEn')}</Link>
       </div>
     </header>
   )

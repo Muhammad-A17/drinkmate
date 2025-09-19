@@ -43,10 +43,6 @@ export default function ProductRecommendations({
   wishlist,
   comparisonList
 }: ProductRecommendationsProps) {
-  if (!isOpen) {
-    return null
-  }
-
   // Generate recommendations based on recently viewed products
   const recommendations = useMemo(() => {
     if (recentlyViewed.length === 0) {
@@ -75,6 +71,10 @@ export default function ProductRecommendations({
 
     return similarProducts.slice(0, 8)
   }, [products, recentlyViewed])
+
+  if (!isOpen) {
+    return null
+  }
 
   const getRatingStars = (product: Product) => {
     const rating = typeof product.rating === 'number' 
