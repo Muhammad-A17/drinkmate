@@ -12,14 +12,14 @@ export default function FontProvider() {
     html.setAttribute('lang', language === 'AR' ? 'ar' : 'en')
     html.setAttribute('dir', isRTL ? 'rtl' : 'ltr')
     
-    // Update CSS custom properties for font switching
+    // Update CSS custom properties for font switching with proper fallbacks
     const root = document.documentElement
     if (language === 'AR') {
-      root.style.setProperty('--font-primary', 'var(--font-cairo)')
-      root.style.setProperty('--font-secondary', 'var(--font-noto-arabic)')
+      root.style.setProperty('--font-primary', 'var(--font-cairo), "Cairo", system-ui, sans-serif')
+      root.style.setProperty('--font-secondary', 'var(--font-noto-arabic), "Noto Sans Arabic", system-ui, sans-serif')
     } else {
-      root.style.setProperty('--font-primary', 'var(--font-montserrat)')
-      root.style.setProperty('--font-secondary', 'var(--font-noto-sans)')
+      root.style.setProperty('--font-primary', 'var(--font-montserrat), "Montserrat", system-ui, sans-serif')
+      root.style.setProperty('--font-secondary', 'var(--font-noto-sans), "Noto Sans", system-ui, sans-serif')
     }
   }, [language, isRTL])
 

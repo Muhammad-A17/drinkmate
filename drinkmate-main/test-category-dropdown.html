@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Dropdown Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        select { padding: 8px; margin: 10px 0; width: 300px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        button { padding: 8px 16px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Category Dropdown Test</h1>
+    
+    <div class="test-section">
+        <h2>Basic HTML Select Test</h2>
+        <select id="basicSelect" onchange="testBasicSelect()">
+            <option value="">Select a category</option>
+            <option value="sodamakers">Soda Makers</option>
+            <option value="flavor">Flavors</option>
+            <option value="accessories">Accessories</option>
+            <option value="co2-cylinders">CO2 Cylinders</option>
+        </select>
+        <div id="basicResult" class="debug">Selected: None</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>JavaScript Test</h2>
+        <button onclick="testCategoryChange('sodamakers')">Set to Soda Makers</button>
+        <button onclick="testCategoryChange('accessories')">Set to Accessories</button>
+        <button onclick="testCategoryChange('')">Clear Selection</button>
+        <div id="jsResult" class="debug">Selected: None</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Form Data Test</h2>
+        <div id="formData" class="debug">Form Data: {}</div>
+        <button onclick="updateFormData()">Update Form Data</button>
+    </div>
+
+    <script>
+        let formData = {
+            category: ""
+        };
+        
+        function testBasicSelect() {
+            const select = document.getElementById('basicSelect');
+            const result = document.getElementById('basicResult');
+            result.textContent = `Selected: ${select.value || 'None'}`;
+        }
+        
+        function testCategoryChange(categoryId) {
+            console.log('Category changed to:', categoryId);
+            formData.category = categoryId;
+            updateFormData();
+            
+            const result = document.getElementById('jsResult');
+            result.textContent = `Selected: ${categoryId || 'None'}`;
+        }
+        
+        function updateFormData() {
+            const result = document.getElementById('formData');
+            result.textContent = `Form Data: ${JSON.stringify(formData)}`;
+        }
+        
+        // Test the handleCategoryChange function
+        function handleCategoryChange(categoryId) {
+            console.log('Category changed to:', categoryId);
+            formData.category = categoryId;
+            updateFormData();
+        }
+        
+        // Initialize
+        updateFormData();
+    </script>
+</body>
+</html>

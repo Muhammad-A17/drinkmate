@@ -68,6 +68,27 @@ api.interceptors.response.use(
   }
 );
 
+// Cache invalidation helper
+export const invalidateCache = (pattern?: string) => {
+  if (pattern) {
+    // Invalidate cache entries matching pattern
+    for (const key of apiCache.keys()) {
+      if (key.includes(pattern)) {
+        apiCache.delete(key);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Cache invalidated for pattern: ${pattern}, key: ${key}`);
+        }
+      }
+    }
+  } else {
+    // Clear all cache
+    apiCache.clear();
+    if (process.env.NODE_ENV === 'development') {
+      console.log('All cache cleared');
+    }
+  }
+};
+
 // Helper function to implement retry mechanism with caching
 export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = 3, delay = 1000): Promise<any> => {
   // Check cache first if cacheKey is provided
@@ -525,11 +546,18 @@ export const shopAPI = {
   },
   
   // Bundles
-  getBundles: async (params = {}) => {
+  getBundles: async (params = {}, forceRefresh = false) => {
     const cacheKey = `bundles-${JSON.stringify(params)}`;
     
+    // Clear cache if force refresh is requested
+    if (forceRefresh) {
+      invalidateCache('bundles');
+    }
+    
     return retryRequest(async () => {
-      const response = await api.get('/shop/bundles', { params });
+      const response = await api.get('/shop/bundles', { 
+        params: forceRefresh ? { ...params, _t: Date.now() } : params 
+      });
       return response.data;
     }, cacheKey);
   },
@@ -544,7 +572,7 @@ export const shopAPI = {
   },
 
   // Flexible bundle fetch (ID then slug fallback if backend supports slug route)
-  getBundleFlexible: async (idOrSlug: string) => {
+  getBundleFlexible: async (idOrSlug: string, bypassCache = false) => {
     const cacheKey = `bundle-flexible-${idOrSlug}`;
     
     return retryRequest(async () => {
@@ -585,7 +613,7 @@ export const shopAPI = {
           throw slugErr;
         }
       }
-    });
+    }, bypassCache ? undefined : cacheKey);
   },
 
   // CO2 Cylinders
@@ -1349,6 +1377,8 @@ export const adminAPI = {
         'Authorization': `Bearer ${token}`,
       },
     });
+    // Invalidate bundle cache after creation
+    invalidateCache('bundles');
     return response.data;
   },
 
@@ -1359,6 +1389,9 @@ export const adminAPI = {
         'Authorization': `Bearer ${token}`,
       },
     });
+    // Invalidate bundle cache after update
+    invalidateCache('bundles');
+    invalidateCache(`bundle-${id}`);
     return response.data;
   },
 
@@ -1369,6 +1402,9 @@ export const adminAPI = {
         'Authorization': `Bearer ${token}`,
       },
     });
+    // Invalidate bundle cache after deletion
+    invalidateCache('bundles');
+    invalidateCache(`bundle-${id}`);
     return response.data;
   },
 

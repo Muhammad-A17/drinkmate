@@ -10,6 +10,7 @@ import { ProductCardProps, Variant, Product } from "@/types/product"
 import { cn } from "@/lib/utils"
 import { Heart, Eye, ShoppingCart, Star, Zap, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import YouTubeThumbnail from "@/components/ui/YouTubeThumbnail"
 
 export default function ProductCard({
   product,
@@ -40,11 +41,48 @@ export default function ProductCard({
   const [showQuickView, setShowQuickView] = useState(false)
   const [isWishlisted, setIsWishlisted] = useState(isInWishlist)
   const [isHovered, setIsHovered] = useState(false)
+  const [imageLoadError, setImageLoadError] = useState(false)
 
-  const activeImage = selected?.image || product.image
+  // Get the best available image
+  const getBestImage = () => {
+    // First try selected variant image
+    if (selected?.image) return selected.image
+    
+    // Then try product.image (singular - from API mapping)
+    if (product.image) return product.image
+    
+    // Then try product.images array (plural - from API)
+    if ((product as any).images && Array.isArray((product as any).images)) {
+      const images = (product as any).images
+      // Find primary image first
+      const primaryImage = images.find((img: any) => img.isPrimary)
+      if (primaryImage && primaryImage.url) return primaryImage.url
+      
+      // Fall back to first image
+      if (images[0] && images[0].url) return images[0].url
+      
+      // Handle case where images array contains strings
+      if (typeof images[0] === 'string') return images[0]
+    }
+    
+    return "/placeholder.svg"
+  }
+  
+  const activeImage = getBestImage()
 
-  // Debug: Log product data to see if slug exists
-  console.log('Product data:', { id: product.id, slug: product.slug, title: product.title })
+  // Debug: Log product data to see if slug exists (commented out for production)
+  // console.log('ProductCard Debug:', { 
+  //   id: product.id, 
+  //   slug: product.slug, 
+  //   title: product.title, 
+  //   productImage: product.image,
+  //   activeImage: activeImage,
+  //   selected: selected,
+  //   hasVariants: hasVariants,
+  //   variants: product.variants,
+  //   hasImage: !!activeImage,
+  //   imageType: typeof activeImage
+  // })
 
   const onAdd = () => {
     if (!onAddToCart) return
@@ -84,14 +122,65 @@ export default function ProductCard({
     >
       {/* Image Container - Covering Upper Side */}
       <Link href={`/shop/${product.slug}`} className="block">
-        <div className="relative h-64 bg-gray-50 flex items-center justify-center overflow-hidden">
-          <Image
-            src={activeImage}
-            alt={product.title}
-            width={200}
-            height={200}
-            className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-          />
+        <div className="relative h-80 bg-gray-50 overflow-hidden mb-6">
+          {(() => {
+            // Use the improved image selection logic
+            const imageUrl = activeImage;
+            const isValidUrl = imageUrl && imageUrl !== "/placeholder.svg" && imageUrl.trim() !== "" && !imageUrl.includes("undefined");
+            
+            // console.log('ProductCard image selection:', {
+            //   activeImage,
+            //   productImage: product.image,
+            //   productImages: (product as any).images,
+            //   selectedImageUrl: imageUrl,
+            //   isValidUrl
+            // });
+            
+            // If we have a valid URL and no previous error, use YouTubeThumbnail, otherwise show placeholder
+            if (isValidUrl && !imageLoadError) {
+              return (
+                <YouTubeThumbnail
+                  url={imageUrl}
+                  alt={product.title}
+                  fill
+                  className="object-cover transition-transform duration-300 hover:scale-105"
+                  showPlayButton={true}
+                  onError={(e) => {
+                    const errorInfo = {
+                      activeImage,
+                      productImage: product.image,
+                      productImages: (product as any).images,
+                      selected: selected,
+                      productId: product.id,
+                      productTitle: product.title,
+                      errorEvent: e,
+                      errorType: typeof e,
+                      errorTarget: e?.target,
+                      errorCurrentTarget: e?.currentTarget
+                    };
+                    console.error('ProductCard Image failed to load:', errorInfo);
+                    setImageLoadError(true);
+                  }}
+                  onLoad={() => {
+                    // console.log('ProductCard Image loaded successfully:', imageUrl)
+                    setImageLoadError(false);
+                  }}
+                  priority={false}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              );
+            } else {
+              // Show placeholder directly
+              return (
+                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                  <div className="text-center text-gray-500">
+                    <div className="text-4xl mb-2">📷</div>
+                    <div className="text-sm">No image available</div>
+                  </div>
+                </div>
+              );
+            }
+          })()}
           
           {/* Sale Badge */}
           {!!percentOff && (

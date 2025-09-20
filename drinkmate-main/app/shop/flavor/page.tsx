@@ -15,6 +15,7 @@ import { Star, Loader2, ShoppingCart, ChevronDown, Filter, X, Search } from "luc
 import { shopAPI } from "@/lib/api"
 import { logger } from "@/lib/logger"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
+import ProductCard from "@/components/shop/ProductCard"
 
 // Define product types
 interface Product {
@@ -92,28 +93,19 @@ export default function FlavorPage() {
     try {
       setIsLoading(true)
 
-      // Fetch bundles - try without category filter first
-      logger.debug("Fetching all bundles to check what's available...")
-      const allBundlesResponse = await shopAPI.getBundles({
-        limit: 20,
-      })
-      logger.debug("All bundles response:", allBundlesResponse)
-      logger.debug("All bundles found:", allBundlesResponse.bundles?.length || 0)
-      
-      // Now fetch with flavors category
+      // Fetch bundles for flavors category only
       logger.debug("Fetching bundles for flavors category...")
       const bundlesResponse = await shopAPI.getBundles({
         category: "flavors",
-        featured: true,
         limit: 4,
       })
       logger.debug("Flavors bundles response:", bundlesResponse)
       logger.debug("Flavors bundles array:", bundlesResponse.bundles)
       logger.debug("Number of flavors bundles found:", bundlesResponse.bundles?.length || 0)
 
-      // Format bundles data - use all bundles temporarily to test
-      const bundlesToUse = bundlesResponse.bundles?.length > 0 ? bundlesResponse.bundles : allBundlesResponse.bundles || []
-      logger.debug("Using bundles:", bundlesToUse.length, "bundles")
+      // Format bundles data - only use flavors bundles
+      const bundlesToUse = bundlesResponse.bundles || []
+      logger.debug("Using flavors bundles:", bundlesToUse.length, "bundles")
       
       const formattedBundles = bundlesToUse.map((bundle: any) => {
         logger.debug("Processing bundle:", bundle.name, "Full bundle object:", bundle)
@@ -403,66 +395,51 @@ export default function FlavorPage() {
     return <div className="flex">{stars}</div>
   }
 
-  // Function to render product cards
+  // Function to render product cards using enhanced ProductCard component
   function renderProductCard(product: Product) {
-    const isInCartStatus = isInCart(product._id)
-    const discountPercentage = product.originalPrice
-      ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-      : 0
+    const handleAddToCart = (item: any) => {
+      addItem(item)
+    }
+
+    const handleAddToWishlist = (productId: string) => {
+      // Add wishlist functionality if needed
+    }
+
+    const handleQuickView = (product: any) => {
+      // Add quick view functionality if needed
+    }
 
     return (
-      <div
-        key={product.id}
-        className="bg-white rounded-3xl p-6 flex flex-col border border-gray-100 hover:border-gray-200 transform hover:-translate-y-1 transition-all duration-300"
-      >
-        <Link href={`/shop/flavor/${(product as any).slug || product._id}`} className="block">
-          <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
-            <Image
-              src={product.image || "/placeholder.svg"}
-              alt={product.name}
-              width={180}
-              height={180}
-              className="object-contain h-44 transition-transform duration-300 hover:scale-105"
-            />
-          </div>
-          <h3 className="text-xl mb-3 hover:text-[#12d6fa] transition-colors leading-tight">{product.name}</h3>
-        </Link>
-
-        <div className="flex items-center gap-3 mb-4">
-          {renderStars(product.rating)}
-          <span className="text-sm text-gray-600">({product.reviews} Reviews)</span>
-        </div>
-
-        <div className="mt-auto">
-          <div className="flex items-center gap-2 mb-2">
-            {product.originalPrice && (
-              <>
-                <span className="text-gray-500 text-sm line-through">
-                  <SaudiRiyal amount={product.originalPrice} size="sm" />
-                </span>
-                <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">
-                  {discountPercentage}% OFF
-                </span>
-              </>
-            )}
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-            <div className="flex items-center gap-1">
-              <span className="text-xl text-gray-900">
-                <SaudiRiyal amount={product.price} size="md" />
-              </span>
-            </div>
-            <Button
-              onClick={() => handleAddToCart(product)}
-              disabled={isInCartStatus}
-              className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full w-full sm:w-auto justify-center px-4 sm:px-6 py-2 h-10 text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              {isInCartStatus ? "Added" : "Add to Cart"}
-            </Button>
-          </div>
-        </div>
-      </div>
+      <ProductCard
+        key={product._id}
+        product={{
+          id: product._id,
+          slug: (product as any).slug || product._id,
+          title: product.name,
+          image: product.image,
+          price: product.price,
+          compareAtPrice: product.originalPrice,
+          rating: product.rating || 0,
+          reviewCount: product.reviews || 0,
+          description: product.description,
+          category: product.category,
+          inStock: true,
+          badges: (product as any).badge ? [(product as any).badge] : undefined,
+          // Pass the images array as well for better image handling
+          images: product.images
+        }}
+        onAddToCart={({ productId, qty }) => {
+          handleAddToCart({
+            _id: productId,
+            name: product.name,
+            price: product.price,
+            quantity: qty,
+            image: product.image,
+            category: product.category,
+          })
+        }}
+        className="h-full"
+      />
     )
   }
 
@@ -532,13 +509,12 @@ export default function FlavorPage() {
                       className="bg-white rounded-3xl transition-all duration-300 p-6 flex flex-col border border-gray-100 hover:border-gray-200 relative transform hover:-translate-y-1"
                     >
                       <Link href={`/shop/flavor/bundles/${bundle.slug}`} className="block">
-                        <div className="relative h-52 bg-white rounded-3xl mb-6 flex items-center justify-center overflow-hidden">
+                        <div className="relative h-80 bg-gray-50 overflow-hidden mb-6">
                           <Image
                             src={bundle.image || "/placeholder.svg"}
                             alt={bundle.name}
-                            width={180}
-                            height={180}
-                            className="object-contain h-44 transition-transform duration-300 hover:scale-105"
+                            fill
+                            className="object-cover transition-transform duration-300 hover:scale-105"
                             onError={(e) => {
                               const target = e.currentTarget;
                               if (target) {

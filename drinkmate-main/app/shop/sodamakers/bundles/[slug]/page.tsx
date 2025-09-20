@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
 import { Star, Loader2, Check, Heart, Share2, Plus, Minus, Truck, Shield, Zap, Award, Users, Package, Settings, Filter, X, ChevronLeft, ChevronRight, Maximize2, Bell, Clock, CheckCircle, AlertCircle, Info, Sparkles, TrendingUp, MessageCircle, Play, Eye, ArrowLeft, ThumbsUp, ChevronDown, ChevronUp, Copy, Facebook, Twitter, ShoppingCart, Leaf, Recycle } from "lucide-react"
-import { shopAPI } from "@/lib/api"
+import { shopAPI, invalidateCache } from "@/lib/api"
 import { YouTubeVideo, isYouTubeUrl, getYouTubeVideoId } from "@/components/ui/youtube-video"
+import YouTubeThumbnail from "@/components/ui/YouTubeThumbnail"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -237,6 +238,10 @@ export default function BundleDetailPage() {
   const { t } = useTranslation()
   const { addItem, isInCart } = useCart()
   const router = useRouter()
+  
+  console.log('=== BUNDLE PAGE RENDER ===')
+  console.log('Bundle slug:', params?.slug)
+  console.log('Component mounted at:', new Date().toISOString())
 
   const bundleSlug = params?.slug as string
   const [bundle, setBundle] = useState<Bundle | null>(null)
@@ -356,13 +361,39 @@ export default function BundleDetailPage() {
   const fetchBundle = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await shopAPI.getBundleFlexible(bundleSlug)
+      console.log('=== FETCH BUNDLE START ===')
+      console.log('Fetching bundle with slug:', bundleSlug)
+      console.log('Current time:', new Date().toISOString())
+      
+      // Clear cache to ensure we get fresh data
+      console.log('Clearing cache for bundle:', bundleSlug)
+      invalidateCache(`bundle-flexible-${bundleSlug}`)
+      invalidateCache(`bundle-flexible-68c1527bb1df185393fb3b6f`)
+      console.log('Cache cleared, making fresh API call')
+      
+      // Force refresh to get latest data - try both slug and known ID
+      console.log('Making API call with timestamp:', Date.now())
+      let response = await shopAPI.getBundleFlexible(bundleSlug, true) // bypassCache = true
+      console.log('First response:', response)
+      
+      // If slug doesn't work, try with the known bundle ID
+      if (!response.success || !response.bundle) {
+        console.log('Slug failed, trying with ID: 68c1527bb1df185393fb3b6f')
+        response = await shopAPI.getBundleFlexible('68c1527bb1df185393fb3b6f', true) // bypassCache = true
+        console.log('ID response:', response)
+      }
       
       if (response.success && response.bundle) {
-        // Use API data if available and complete
-        const bundleData = response.bundle.items && response.bundle.items.length > 0 
-          ? response.bundle 
-          : { ...response.bundle, ...mockBundle, _id: response.bundle._id || mockBundle._id }
+        // Debug: Log the full response to see what we're getting
+        console.log('Full API Response:', response)
+        console.log('Bundle data:', response.bundle)
+        console.log('YouTube Links from API:', response.bundle.youtubeLinks)
+        
+        // Use API data directly - don't merge with mock data
+        const bundleData = response.bundle
+        console.log('Using API data directly:', bundleData)
+        console.log('Badge color from API:', bundleData.badge?.color)
+        console.log('Price from API:', bundleData.price)
         
         setBundle(bundleData)
         
@@ -380,12 +411,17 @@ export default function BundleDetailPage() {
         fetchRelatedProducts(mockBundle._id)
       }
     } catch (error) {
+      console.error("=== FETCH BUNDLE ERROR ===")
       console.error("Error fetching sodamaker bundle:", error)
+      console.error("Error details:", error instanceof Error ? error.message : String(error))
+      console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace')
       // Use mock data as fallback on error
       setBundle(mockBundle)
       setSelectedImage(0)
       fetchRelatedProducts(mockBundle._id)
     } finally {
+      console.log('=== FETCH BUNDLE FINALLY ===')
+      console.log('Setting loading to false')
       setLoading(false)
     }
   }, [bundleSlug, fetchRelatedProducts])
@@ -621,28 +657,47 @@ export default function BundleDetailPage() {
     const videos = bundle.videos || []
     const youtubeLinks = bundle.youtubeLinks || []
     
+    console.log('Soda Maker Bundle Debug:', {
+      bundle: bundle,
+      images: images,
+      videos: videos,
+      youtubeLinks: youtubeLinks,
+      selectedImage: selectedImage
+    })
+    
     const mediaItems = [
       ...images.map((img, index) => ({
         type: 'image' as const,
-        url: img,
+        url: img && img.trim() ? img : null, // Ensure URL is valid
         index
-      })),
+      })).filter(item => item.url), // Filter out invalid URLs
       ...videos.map((video, index) => ({
         type: 'video' as const,
-        url: video,
+        url: video && video.trim() ? video : null,
         index: images.length + index
-      })),
+      })).filter(item => item.url),
       ...youtubeLinks.map((link, index) => ({
         type: 'youtube' as const,
-        url: link,
+        url: link && link.trim() ? link : null,
         index: images.length + videos.length + index
-      }))
+      })).filter(item => item.url)
     ]
     
+    console.log('MediaArray constructed:', {
+      mediaItems,
+      selectedImage,
+      currentItem: mediaItems[selectedImage],
+      totalItems: mediaItems.length
+    })
+    
     return mediaItems
-  }, [bundle])
+  }, [bundle, selectedImage])
 
-  const currentMedia = mediaArray[selectedImage]
+  const currentMedia = mediaArray[selectedImage] || (bundle?.images && bundle.images.length > 0 ? {
+    type: 'image' as const,
+    url: bundle.images[0],
+    index: 0
+  } : null)
 
   // Filter and sort reviews
   const filteredReviews = useMemo(() => {
@@ -956,10 +1011,10 @@ export default function BundleDetailPage() {
                   >
                     {isShowingVideo ? (
                       <div className="w-full h-full">
-                        {mediaArray[selectedImage] && (isYouTubeUrl(mediaArray[selectedImage].url) || mediaArray[selectedImage].type === 'youtube') ? (
+                        {mediaArray[selectedImage] && mediaArray[selectedImage].url && (isYouTubeUrl(mediaArray[selectedImage].url) || mediaArray[selectedImage].type === 'youtube') ? (
                           <YouTubeVideo
-                            videoUrl={mediaArray[selectedImage].url}
-                            title={`${bundle.name} - Bundle Video`}
+                            videoUrl={mediaArray[selectedImage].url!}
+                            title={`${bundle?.name || 'Bundle'} - Bundle Video`}
                             className="w-full h-full"
                             showThumbnail={false}
                             autoplay={true}
@@ -971,26 +1026,78 @@ export default function BundleDetailPage() {
                             controls
                             poster="/placeholder.svg"
                           >
-                            <source src={mediaArray[selectedImage]?.url} type="video/mp4" />
-                            <source src={mediaArray[selectedImage]?.url} type="video/webm" />
-                            <source src={mediaArray[selectedImage]?.url} type="video/ogg" />
+                            <source src={mediaArray[selectedImage]?.url || ''} type="video/mp4" />
+                            <source src={mediaArray[selectedImage]?.url || ''} type="video/webm" />
+                            <source src={mediaArray[selectedImage]?.url || ''} type="video/ogg" />
                             Your browser does not support the video tag.
                           </video>
                         )}
                       </div>
                     ) : (
-                      <Image
-                        src={mediaArray[selectedImage]?.url || (bundle.images && bundle.images.length > 0 ? bundle.images[0] : "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png")}
-                        alt={bundle.name}
-                        fill
-                        className={`${styles.productImageZoom} ${isZoomed ? styles.zoomedImage : styles.defaultImage} ${isZoomed ? styles.customTransformOrigin : ''}`}
-                        ref={(el) => {
-                          if (el && isZoomed) {
-                            el.style.setProperty('--transform-origin-x', `${zoomPosition.x}%`);
-                            el.style.setProperty('--transform-origin-y', `${zoomPosition.y}%`);
-                          }
-                        }}
-                      />
+                      <div className="relative w-full h-full bg-gray-200 flex items-center justify-center">
+                        {/* Debug: Try regular img tag first */}
+                        <img
+                          src={(() => {
+                            // First try to get URL from mediaArray
+                            const mediaUrl = mediaArray[selectedImage]?.url;
+                            if (mediaUrl && mediaUrl.trim() !== '') {
+                              console.log('Using mediaArray URL:', mediaUrl);
+                              return mediaUrl;
+                            }
+                            
+                            // Fallback to bundle images array
+                            if (bundle?.images && bundle.images.length > 0 && bundle.images[0] && bundle.images[0].trim() !== '') {
+                              console.log('Using bundle.images[0]:', bundle.images[0]);
+                              return bundle.images[0];
+                            }
+                            
+                            // Final fallback to default image
+                            console.log('Using fallback image');
+                            return "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png";
+                          })()}
+                          alt={bundle.name}
+                          className={`w-full h-full object-cover ${styles.productImageZoom} ${isZoomed ? styles.zoomedImage : styles.defaultImage} ${isZoomed ? styles.customTransformOrigin : ''}`}
+                          style={{ backgroundColor: '#f0f0f0' }} // Add background color to see if image area is visible
+                          onError={(e) => {
+                            console.error('Main image failed to load:', {
+                              url: mediaArray[selectedImage]?.url,
+                              selectedImage,
+                              mediaArray: mediaArray[selectedImage],
+                              bundleImages: bundle.images,
+                              fallback: bundle.images?.[0],
+                              error: e
+                            })
+                            // Try to load fallback
+                            e.currentTarget.src = "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png";
+                          }}
+                          onLoad={() => {
+                            console.log('Main image loaded successfully:', {
+                              url: mediaArray[selectedImage]?.url,
+                              selectedImage,
+                              mediaArray: mediaArray[selectedImage]
+                            })
+                          }}
+                        />
+                        {/* Fallback text if image fails */}
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+                          {(!mediaArray[selectedImage]?.url || mediaArray[selectedImage]?.url?.trim() === '') && (!bundle?.images?.[0] || bundle.images[0].trim() === '') && "No image available"}
+                        </div>
+                        {/* Debug overlay */}
+                        {process.env.NODE_ENV === 'development' && (
+                          <div className="absolute top-2 left-2 bg-black/50 text-white text-xs p-1 rounded z-10">
+                            Debug: {mediaArray[selectedImage]?.url ? 'Has URL' : 'No URL'} | Index: {selectedImage} | Total: {mediaArray.length}
+                            <br />
+                            Bundle Images: {bundle?.images?.length || 0}
+                            <br />
+                            Current URL: {(() => {
+                              const mediaUrl = mediaArray[selectedImage]?.url;
+                              if (mediaUrl && mediaUrl.trim() !== '') return mediaUrl;
+                              if (bundle?.images && bundle.images.length > 0 && bundle.images[0] && bundle.images[0].trim() !== '') return bundle.images[0];
+                              return "fallback";
+                            })()}
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     {/* Enhanced Badges */}
@@ -1069,7 +1176,7 @@ export default function BundleDetailPage() {
                       >
                         {media.type === 'video' || media.type === 'youtube' ? (
                           <>
-                            {(isYouTubeUrl(media.url) || media.type === 'youtube') ? (
+                            {(media.url && (isYouTubeUrl(media.url) || media.type === 'youtube')) ? (
                               <img
                                 src={`${process.env.NEXT_PUBLIC_YOUTUBE_THUMBNAIL_BASE || 'https://img.youtube.com/vi'}/${getYouTubeVideoId(media.url)}/mqdefault.jpg`}
                                 alt="Video thumbnail"
@@ -1080,9 +1187,9 @@ export default function BundleDetailPage() {
                                 className="w-full h-full object-cover"
                                 muted
                               >
-                                <source src={media.url} type="video/mp4" />
-                                <source src={media.url} type="video/webm" />
-                                <source src={media.url} type="video/ogg" />
+                                <source src={media.url || ''} type="video/mp4" />
+                                <source src={media.url || ''} type="video/webm" />
+                                <source src={media.url || ''} type="video/ogg" />
                               </video>
                             )}
                             <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
@@ -1090,12 +1197,13 @@ export default function BundleDetailPage() {
                             </div>
                           </>
                         ) : (
-                          <Image
-                            src={media.url || "/placeholder.svg"}
-                            alt={`${bundle.name} ${index + 1}`}
+                          <YouTubeThumbnail
+                            url={media.url || "/placeholder.svg"}
+                            alt={`${bundle?.name || 'Bundle'} ${index + 1}`}
                             width={80}
                             height={80}
                             className="w-full h-full object-cover"
+                            showPlayButton={true}
                           />
                         )}
                       </button>
@@ -1109,11 +1217,17 @@ export default function BundleDetailPage() {
                   {/* Bundle Header */}
                   <div>
                     <div className="flex items-center flex-wrap gap-2 mb-2">
-                      <Badge variant="outline" className="text-[#12d6fa] border-[#12d6fa] text-sm sm:text-base">
+                      <Badge variant="outline" className="text-sm sm:text-base" style={{ 
+                        color: bundle.badge?.color || '#12d6fa', 
+                        borderColor: bundle.badge?.color || '#12d6fa' 
+                      }}>
                         {bundle.category || "Soda Maker Bundle"}
                       </Badge>
                       {bundle.badge && bundle.badge.text && (
-                        <Badge variant="secondary" className="capitalize text-sm sm:text-base">
+                        <Badge variant="secondary" className="capitalize text-sm sm:text-base" style={{ 
+                          backgroundColor: bundle.badge?.color || '#12d6fa',
+                          color: 'white'
+                        }}>
                           {bundle.badge.text}
                         </Badge>
                       )}
@@ -1153,7 +1267,7 @@ export default function BundleDetailPage() {
 
                     {/* Enhanced Pricing */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
-                      <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#12d6fa]">
+                      <span className="text-2xl sm:text-3xl lg:text-4xl font-bold" style={{ color: bundle.badge?.color || '#12d6fa' }}>
                         <SaudiRiyal amount={bundle.price} size="lg" />
                       </span>
                       {bundle.originalPrice && bundle.originalPrice > bundle.price && (
@@ -1218,7 +1332,7 @@ export default function BundleDetailPage() {
                     <div className="text-base text-muted-foreground">
                       <div>
                         Total:{" "}
-                        <span className="font-semibold text-lg sm:text-xl text-[#12d6fa]">
+                        <span className="font-semibold text-lg sm:text-xl" style={{ color: bundle.badge?.color || '#12d6fa' }}>
                           <SaudiRiyal amount={bundle.price * quantity} size="md" />
                         </span>
                       </div>
@@ -1424,7 +1538,7 @@ export default function BundleDetailPage() {
 
         {/* Enhanced Product Details Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-12">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto sm:h-12 gap-1 sm:gap-0">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 h-auto sm:h-12 gap-1 sm:gap-0">
             <TabsTrigger
               value="description"
               className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
@@ -1455,8 +1569,8 @@ export default function BundleDetailPage() {
               className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
             >
               <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">Videos</span>
-              <span className="sm:hidden">Video</span>
+              <span className="hidden sm:inline">Videos ({(bundle.videos?.length || 0) + (bundle.youtubeLinks?.length || 0)})</span>
+              <span className="sm:hidden text-xs ml-1">({(bundle.videos?.length || 0) + (bundle.youtubeLinks?.length || 0)})</span>
             </TabsTrigger>
             <TabsTrigger
               value="qa"
@@ -1891,41 +2005,105 @@ export default function BundleDetailPage() {
           </TabsContent>
 
           <TabsContent value="videos" className="mt-8">
-            <div className="space-y-8">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Product Videos</h2>
-                <p className="text-lg text-gray-600">Watch how to use your soda maker bundle</p>
+            <div className="space-y-6">
+              {/* Debug info */}
+              <div className="text-xs text-gray-500 p-2 bg-gray-100 rounded">
+                Debug: videos={bundle.videos?.length || 0}, youtubeLinks={bundle.youtubeLinks?.length || 0}
+                {bundle.youtubeLinks && (
+                  <div>YouTube URLs: {JSON.stringify(bundle.youtubeLinks)}</div>
+                )}
+                <div>Badge Color: {bundle.badge?.color || 'Not set'}</div>
+                <div>Price: {bundle.price}</div>
+                <div>Original Price: {bundle.originalPrice}</div>
+                <div>Bundle ID: {bundle._id}</div>
+                <button 
+                  onClick={() => {
+                    console.log('Manual refresh triggered')
+                    invalidateCache(`bundle-flexible-${bundleSlug}`)
+                    invalidateCache(`bundle-flexible-68c1527bb1df185393fb3b6f`)
+                    fetchBundle()
+                  }}
+                  className="ml-2 px-2 py-1 bg-blue-500 text-white rounded text-xs"
+                >
+                  Refresh Data
+                </button>
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {(bundle.videos && bundle.videos.length > 0) || (bundle.youtubeLinks && bundle.youtubeLinks.length > 0) ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+                  {/* All Videos (including YouTube) */}
+                  {[...(bundle.videos || []), ...(bundle.youtubeLinks || [])].map((video, index) => (
+                    <Card key={`video-${index}`}>
+                      <CardContent className="p-0 h-full flex flex-col" onClick={() => {
+                        const combinedIndex = mediaArray.findIndex(media => media.url === video);
+                        if (combinedIndex !== -1) {
+                          setSelectedImage(combinedIndex);
+                          setIsShowingVideo(true);
+                        }
+                      }}>
+                        {isYouTubeUrl(video) ? (
+                          <div className="flex-1 relative">
+                            <YouTubeVideo
+                              videoUrl={video}
+                              title={`${bundle.name} - Video ${index + 1}`}
+                              className="w-full h-full"
+                              showThumbnail={true}
+                            />
+                            <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-medium">
+                              YouTube
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex-1 relative">
+                            <video
+                              className="w-full h-64 object-cover rounded-t-lg"
+                              controls
+                              poster="/placeholder.svg"
+                            >
+                              <source src={video} type="video/mp4" />
+                              <source src={video} type="video/webm" />
+                              <source src={video} type="video/ogg" />
+                              Your browser does not support the video tag.
+                            </video>
+                          </div>
+                        )}
+                        <div className="p-3 sm:p-4 lg:p-6 bg-white border-t border-gray-100">
+                          <h3 className="font-semibold text-xs sm:text-sm lg:text-base mb-1 sm:mb-2 lg:mb-3 text-gray-800 line-clamp-1">
+                            {isYouTubeUrl(video) 
+                              ? `Video ${index + 1}`
+                              : video.split('/').pop()?.replace(/\.[^/.]+$/, '') || `Video ${index + 1}`
+                            }
+                          </h3>
+                          <p className="text-xs sm:text-sm lg:text-base text-gray-600 mb-2 sm:mb-3 lg:mb-4 leading-relaxed line-clamp-2">
+                            Product demonstration and usage guide
+                          </p>
+                          {isYouTubeUrl(video) && (
+                            <a 
+                              href={video} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 sm:gap-2 lg:gap-3 bg-red-600 text-white text-xs sm:text-sm lg:text-base px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 rounded-md font-medium w-full sm:w-auto justify-center"
+                            >
+                              <svg className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                              </svg>
+                              <span className="hidden sm:inline">Watch on YouTube</span>
+                              <span className="sm:hidden">YouTube</span>
+                            </a>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
                 <Card>
-                  <CardContent className="p-6">
-                    <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                      <div className="text-center">
-                        <Play className="w-16 h-16 text-[#12d6fa] mx-auto mb-4" />
-                        <p className="text-gray-600">Setup Guide</p>
-                        <p className="text-sm text-gray-500">Coming Soon</p>
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">How to Set Up Your Soda Maker Bundle</h3>
-                    <p className="text-gray-600">Learn how to properly set up and use your complete soda maker bundle for the best results.</p>
+                  <CardContent className="p-8 text-center">
+                    <Play className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No videos available</h3>
+                    <p className="text-gray-500">Videos for this product will be available soon.</p>
                   </CardContent>
                 </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                      <div className="text-center">
-                        <Play className="w-16 h-16 text-[#12d6fa] mx-auto mb-4" />
-                        <p className="text-gray-600">Maintenance Tips</p>
-                        <p className="text-sm text-gray-500">Coming Soon</p>
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">Soda Maker Maintenance</h3>
-                    <p className="text-gray-600">Keep your soda maker in perfect condition with proper maintenance and cleaning techniques.</p>
-                  </CardContent>
-                </Card>
-              </div>
+              )}
             </div>
           </TabsContent>
 
@@ -2028,7 +2206,7 @@ export default function BundleDetailPage() {
             <div className="relative">
               {isShowingVideo ? (
                 <div className="w-full h-[60vh] sm:h-[80vh]">
-                  {mediaArray[selectedImage] && (isYouTubeUrl(mediaArray[selectedImage].url) || mediaArray[selectedImage].type === 'youtube') ? (
+                  {mediaArray[selectedImage] && mediaArray[selectedImage].url && (isYouTubeUrl(mediaArray[selectedImage].url) || mediaArray[selectedImage].type === 'youtube') ? (
                     <YouTubeVideo
                       videoUrl={mediaArray[selectedImage].url}
                       title={`${bundle.name} - Bundle Video`}
@@ -2044,16 +2222,28 @@ export default function BundleDetailPage() {
                       autoPlay
                       poster="/placeholder.svg"
                     >
-                      <source src={mediaArray[selectedImage]?.url} type="video/mp4" />
-                      <source src={mediaArray[selectedImage]?.url} type="video/webm" />
-                      <source src={mediaArray[selectedImage]?.url} type="video/ogg" />
+                      <source src={mediaArray[selectedImage]?.url || ''} type="video/mp4" />
+                      <source src={mediaArray[selectedImage]?.url || ''} type="video/webm" />
+                      <source src={mediaArray[selectedImage]?.url || ''} type="video/ogg" />
                       Your browser does not support the video tag.
                     </video>
                   )}
                 </div>
               ) : (
                 <img
-                  src={mediaArray[selectedImage]?.url || (bundle.images && bundle.images.length > 0 ? bundle.images[0] : "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png")}
+                  src={(() => {
+                    // First try to get URL from mediaArray
+                    const mediaUrl = mediaArray[selectedImage]?.url;
+                    if (mediaUrl && mediaUrl.trim() !== '') return mediaUrl;
+                    
+                    // Fallback to bundle images array
+                    if (bundle?.images && bundle.images.length > 0 && bundle.images[0] && bundle.images[0].trim() !== '') {
+                      return bundle.images[0];
+                    }
+                    
+                    // Final fallback to default image
+                    return "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png";
+                  })()}
                   alt={bundle.name}
                   className="w-full h-auto max-h-[80vh] object-contain"
                 />
@@ -2114,7 +2304,7 @@ export default function BundleDetailPage() {
                     >
                       {media.type === 'video' || media.type === 'youtube' ? (
                         <>
-                          {(isYouTubeUrl(media.url) || media.type === 'youtube') ? (
+                          {(media.url && (isYouTubeUrl(media.url) || media.type === 'youtube')) ? (
                             <img
                               src={`${process.env.NEXT_PUBLIC_YOUTUBE_THUMBNAIL_BASE || 'https://img.youtube.com/vi'}/${getYouTubeVideoId(media.url)}/mqdefault.jpg`}
                               alt="Video thumbnail"
@@ -2125,9 +2315,9 @@ export default function BundleDetailPage() {
                               className="w-full h-full object-cover rounded"
                               muted
                             >
-                              <source src={media.url} type="video/mp4" />
-                              <source src={media.url} type="video/webm" />
-                              <source src={media.url} type="video/ogg" />
+                              <source src={media.url || ''} type="video/mp4" />
+                              <source src={media.url || ''} type="video/webm" />
+                              <source src={media.url || ''} type="video/ogg" />
                             </video>
                           )}
                           <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded">

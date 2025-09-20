@@ -949,10 +949,10 @@ export default function AccessoriesBundleDetail() {
                   >
                     {isShowingVideo ? (
                       <div className="w-full h-full">
-                        {combinedMedia[selectedImage] && (isYouTubeUrl(combinedMedia[selectedImage].src) || combinedMedia[selectedImage].type === 'youtube') ? (
+                        {combinedMedia[selectedImage] && combinedMedia[selectedImage].src && (isYouTubeUrl(combinedMedia[selectedImage].src) || combinedMedia[selectedImage].type === 'youtube') ? (
                           <YouTubeVideo
                             videoUrl={combinedMedia[selectedImage].src}
-                            title={combinedMedia[selectedImage].title || `${product.name} - Bundle Video`}
+                            title={combinedMedia[selectedImage].title || `${product?.name || 'Product'} - Bundle Video`}
                             className="w-full h-full"
                             showThumbnail={false}
                             autoplay={true}
@@ -976,9 +976,9 @@ export default function AccessoriesBundleDetail() {
                               setIsLoadingVideo(false)
                             }}
                           >
-                            <source src={combinedMedia[selectedImage]?.src} type="video/mp4" />
-                            <source src={combinedMedia[selectedImage]?.src} type="video/webm" />
-                            <source src={combinedMedia[selectedImage]?.src} type="video/ogg" />
+                            <source src={combinedMedia[selectedImage]?.src || ''} type="video/mp4" />
+                            <source src={combinedMedia[selectedImage]?.src || ''} type="video/webm" />
+                            <source src={combinedMedia[selectedImage]?.src || ''} type="video/ogg" />
                             <div className="flex items-center justify-center h-full bg-gray-100 text-gray-500">
                               <div className="text-center">
                                 <Play className="w-12 h-12 mx-auto mb-2 text-gray-400" />
@@ -990,22 +990,71 @@ export default function AccessoriesBundleDetail() {
                         )}
                       </div>
                     ) : (
-                      <img
-                        src={product.images?.[selectedImage] || "/placeholder.svg"}
-                        alt={product.name}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        onError={(e) => {
-                          console.error('Image load error:', e)
-                          e.currentTarget.src = '/placeholder.svg'
-                          setImageError('Failed to load image')
-                          setIsLoadingImage(false)
-                        }}
-                        onLoad={() => {
-                          setImageError(null)
-                          setIsLoadingImage(false)
-                        }}
-                        onLoadStart={() => setIsLoadingImage(true)}
-                      />
+                      <div className="relative w-full h-full bg-gray-200 flex items-center justify-center">
+                        <img
+                          src={(() => {
+                            // First try to get URL from combinedMedia
+                            const mediaUrl = combinedMedia[selectedImage]?.src;
+                            if (mediaUrl && mediaUrl.trim() !== '') {
+                              console.log('Using combinedMedia URL:', mediaUrl);
+                              return mediaUrl;
+                            }
+                            
+                            // Fallback to product images array
+                            if (product?.images && product.images[selectedImage] && product.images[selectedImage].trim() !== '') {
+                              console.log('Using product.images URL:', product.images[selectedImage]);
+                              return product.images[selectedImage];
+                            }
+                            
+                            // Final fallback to default image
+                            console.log('Using fallback image');
+                            return "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png";
+                          })()}
+                          alt={product?.name || 'Product'}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          style={{ backgroundColor: '#f0f0f0' }}
+                          onError={(e) => {
+                            console.error('Main image failed to load:', {
+                              selectedImage,
+                              combinedMedia: combinedMedia[selectedImage],
+                              productImages: product.images,
+                              error: e
+                            })
+                            // Try to load fallback
+                            e.currentTarget.src = "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png";
+                            setImageError('Failed to load image')
+                            setIsLoadingImage(false)
+                          }}
+                          onLoad={() => {
+                            console.log('Main image loaded successfully:', {
+                              selectedImage,
+                              combinedMedia: combinedMedia[selectedImage]
+                            })
+                            setImageError(null)
+                            setIsLoadingImage(false)
+                          }}
+                          onLoadStart={() => setIsLoadingImage(true)}
+                        />
+                        {/* Fallback text if image fails */}
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+                          {(!combinedMedia[selectedImage]?.src || combinedMedia[selectedImage]?.src?.trim() === '') && (!product?.images?.[selectedImage] || product.images[selectedImage].trim() === '') && "No image available"}
+                        </div>
+                        {/* Debug overlay */}
+                        {process.env.NODE_ENV === 'development' && (
+                          <div className="absolute top-2 left-2 bg-black/50 text-white text-xs p-1 rounded z-10">
+                            Debug: {combinedMedia[selectedImage]?.src ? 'Has URL' : 'No URL'} | Index: {selectedImage} | Total: {combinedMedia.length}
+                            <br />
+                            Product Images: {product?.images?.length || 0}
+                            <br />
+                            Current URL: {(() => {
+                              const mediaUrl = combinedMedia[selectedImage]?.src;
+                              if (mediaUrl && mediaUrl.trim() !== '') return mediaUrl;
+                              if (product?.images && product.images[selectedImage] && product.images[selectedImage].trim() !== '') return product.images[selectedImage];
+                              return "fallback";
+                            })()}
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     {/* Enhanced Badges */}
@@ -1107,7 +1156,7 @@ export default function AccessoriesBundleDetail() {
                         >
                           {media.type === 'video' || media.type === 'youtube' ? (
                             <>
-                              {(isYouTubeUrl(media.src) || media.type === 'youtube') ? (
+                              {(media.src && (isYouTubeUrl(media.src) || media.type === 'youtube')) ? (
                                 <img
                                   src={`https://img.youtube.com/vi/${getYouTubeVideoId(media.src)}/mqdefault.jpg`}
                                   alt={media.title || "Video thumbnail"}
@@ -2165,10 +2214,10 @@ export default function AccessoriesBundleDetail() {
               <div className="relative">
                 {isShowingVideo ? (
                   <div className="w-full h-[60vh] sm:h-[80vh]">
-                    {combinedMedia[selectedImage] && (isYouTubeUrl(combinedMedia[selectedImage].src) || combinedMedia[selectedImage].type === 'youtube') ? (
+                    {combinedMedia[selectedImage] && combinedMedia[selectedImage].src && (isYouTubeUrl(combinedMedia[selectedImage].src) || combinedMedia[selectedImage].type === 'youtube') ? (
                       <YouTubeVideo
                         videoUrl={combinedMedia[selectedImage].src}
-                        title={`${product.name} - Bundle Video`}
+                        title={`${product?.name || 'Product'} - Bundle Video`}
                         className="w-full h-full"
                         showThumbnail={false}
                         autoplay={true}
@@ -2181,17 +2230,29 @@ export default function AccessoriesBundleDetail() {
                         autoPlay
                         poster="/placeholder.svg"
                       >
-                        <source src={combinedMedia[selectedImage]?.src} type="video/mp4" />
-                        <source src={combinedMedia[selectedImage]?.src} type="video/webm" />
-                        <source src={combinedMedia[selectedImage]?.src} type="video/ogg" />
+                        <source src={combinedMedia[selectedImage]?.src || ''} type="video/mp4" />
+                        <source src={combinedMedia[selectedImage]?.src || ''} type="video/webm" />
+                        <source src={combinedMedia[selectedImage]?.src || ''} type="video/ogg" />
                         Your browser does not support the video tag.
                       </video>
                     )}
                   </div>
                 ) : (
                   <img
-                    src={product.images?.[selectedImage] || "/placeholder.svg"}
-                    alt={product.name}
+                    src={(() => {
+                      // First try to get URL from combinedMedia
+                      const mediaUrl = combinedMedia[selectedImage]?.src;
+                      if (mediaUrl && mediaUrl.trim() !== '') return mediaUrl;
+                      
+                      // Fallback to product images array
+                      if (product?.images && product.images[selectedImage] && product.images[selectedImage].trim() !== '') {
+                        return product.images[selectedImage];
+                      }
+                      
+                      // Final fallback to default image
+                      return "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png";
+                    })()}
+                    alt={product?.name || 'Product'}
                     className="w-full h-auto max-h-[80vh] object-contain"
                   />
                 )}
@@ -2242,7 +2303,7 @@ export default function AccessoriesBundleDetail() {
                     >
                       {media.type === 'video' || media.type === 'youtube' ? (
                         <>
-                          {(isYouTubeUrl(media.src) || media.type === 'youtube') ? (
+                          {(media.src && (isYouTubeUrl(media.src) || media.type === 'youtube')) ? (
                             <img
                               src={`https://img.youtube.com/vi/${getYouTubeVideoId(media.src)}/mqdefault.jpg`}
                               alt="Video thumbnail"
@@ -2253,9 +2314,9 @@ export default function AccessoriesBundleDetail() {
                               className="w-full h-full object-cover"
                               muted
                             >
-                              <source src={media.src} type="video/mp4" />
-                              <source src={media.src} type="video/webm" />
-                              <source src={media.src} type="video/ogg" />
+                              <source src={media.src || ''} type="video/mp4" />
+                              <source src={media.src || ''} type="video/webm" />
+                              <source src={media.src || ''} type="video/ogg" />
                             </video>
                           )}
                           <div className="absolute inset-0 bg-black/20 flex items-center justify-center">

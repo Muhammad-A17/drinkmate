@@ -93,13 +93,13 @@ export default function ProductCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 rounded-t-2xl">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 rounded-t-2xl">
         <Link href={`/shop/${product.slug}`}>
           <Image
             src={product.images?.[0] || product.image || '/placeholder.svg'}
             alt={product.name}
             fill
-            className={`object-cover transition-all duration-700 group-hover:scale-110 ${
+            className={`object-cover object-top transition-all duration-700 group-hover:scale-110 ${
               imageLoaded ? 'opacity-100' : 'opacity-0'
             }`}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

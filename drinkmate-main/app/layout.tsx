@@ -132,6 +132,17 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
+        {/* Preload critical fonts for better performance */}
+        <link 
+          rel="preload" 
+          href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Cairo:wght@400;500;600;700&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap" 
+          as="style" 
+        />
+        <link 
+          rel="stylesheet" 
+          href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Cairo:wght@400;500;600;700&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap" 
+        />
+        
         {/* Security-related meta tags */}
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="referrer" content="strict-origin-when-cross-origin" />

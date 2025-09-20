@@ -691,9 +691,22 @@ exports.getBundles = async (req, res) => {
         if (req.query.category) {
             const category = await Category.findOne({ slug: req.query.category });
             if (category) {
-                // Bundle category is stored as string, so match by slug or name
+                // Bundle category is stored as string, so match by slug, name, or singular form
+                const categoryMatches = [category.slug, category.name, category._id.toString()];
+                
+                // Handle singular/plural forms and common mismatches
+                if (req.query.category === 'flavors') {
+                    categoryMatches.push('flavor');
+                } else if (req.query.category === 'flavor') {
+                    categoryMatches.push('flavors');
+                } else if (req.query.category === 'sodamakers') {
+                    categoryMatches.push('soda-makers', 'sodamaker');
+                } else if (req.query.category === 'accessories') {
+                    categoryMatches.push('accessory');
+                }
+                
                 filter.category = {
-                    $in: [category.slug, category.name, category._id.toString()]
+                    $in: categoryMatches
                 };
             }
         }

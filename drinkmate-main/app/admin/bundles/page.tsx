@@ -52,7 +52,7 @@ import {
   RefreshCw,
   Search
 } from "lucide-react"
-import { shopAPI } from "@/lib/api"
+import { shopAPI, invalidateCache } from "@/lib/api"
 import { toast } from "sonner"
 import { adminAPI } from "@/lib/api"
 import AdminActionBar, { AdminActions } from "@/components/admin/AdminActionBar"
@@ -238,27 +238,46 @@ export default function BundlesPage() {
 
   const fetchCategories = async () => {
     try {
+      console.log('Fetching categories...');
       const response = await adminAPI.getCategories()
+      console.log('Categories response:', response);
       
       if (response.success) {
-        setCategories(response.categories || [])
-        
-        // Categories loaded successfully
+        const categoriesData = response.categories || [];
+        setCategories(categoriesData)
+        console.log('Categories loaded:', categoriesData.length);
+        console.log('Categories data:', categoriesData);
       } else {
         console.error('Failed to fetch categories:', response)
-        toast.error('Failed to fetch categories')
+        // Fallback to hardcoded categories if API fails
+        const fallbackCategories = [
+          { _id: 'sodamakers', name: 'Soda Makers', slug: 'sodamakers', description: 'Soda maker products', isActive: true, subcategories: [] },
+          { _id: 'flavor', name: 'Flavors', slug: 'flavor', description: 'Flavor products', isActive: true, subcategories: [] },
+          { _id: 'accessories', name: 'Accessories', slug: 'accessories', description: 'Accessory products', isActive: true, subcategories: [] },
+          { _id: 'co2-cylinders', name: 'CO2 Cylinders', slug: 'co2-cylinders', description: 'CO2 cylinder products', isActive: true, subcategories: [] }
+        ];
+        setCategories(fallbackCategories)
+        console.log('Using fallback categories:', fallbackCategories);
       }
     } catch (error) {
       console.error('Error fetching categories:', error)
-      toast.error('Failed to fetch categories')
+      // Fallback to hardcoded categories if API fails
+      const fallbackCategories = [
+        { _id: 'sodamakers', name: 'Soda Makers', slug: 'sodamakers', description: 'Soda maker products', isActive: true, subcategories: [] },
+        { _id: 'flavor', name: 'Flavors', slug: 'flavor', description: 'Flavor products', isActive: true, subcategories: [] },
+        { _id: 'accessories', name: 'Accessories', slug: 'accessories', description: 'Accessory products', isActive: true, subcategories: [] },
+        { _id: 'co2-cylinders', name: 'CO2 Cylinders', slug: 'co2-cylinders', description: 'CO2 cylinder products', isActive: true, subcategories: [] }
+      ];
+      setCategories(fallbackCategories)
+      console.log('Using fallback categories due to error:', fallbackCategories);
     }
   }
 
 
-  const fetchBundles = async () => {
+  const fetchBundles = async (forceRefresh = false) => {
     try {
       setLoading(true)
-      const response = await shopAPI.getBundles()
+      const response = await shopAPI.getBundles({}, forceRefresh)
       
       if (response.success) {
         setBundles(response.bundles || [])
@@ -344,14 +363,46 @@ export default function BundlesPage() {
       return
     }
     
-    if (!formData.bundleDiscount || parseFloat(formData.bundleDiscount) < 0) {
-      toast.error("Valid discount percentage is required")
-      return
-    }
-    
     if (!formData.stock || parseInt(formData.stock) <= 0) {
       toast.error("Valid stock quantity is required")
       return
+    }
+
+    // Calculate discount automatically if original price is provided
+    let calculatedDiscount = 0;
+    const price = parseFloat(formData.price);
+    const originalPrice = formData.originalPrice ? parseFloat(formData.originalPrice) : 0;
+    
+    if (originalPrice > price && originalPrice > 0) {
+      calculatedDiscount = Math.round(((originalPrice - price) / originalPrice) * 100);
+    }
+
+    // Validate specifications JSON
+    let parsedSpecifications = {};
+    if (formData.specifications.trim()) {
+      try {
+        parsedSpecifications = JSON.parse(formData.specifications);
+      } catch (error) {
+        toast.error("Invalid JSON format in specifications. Please check your JSON syntax.");
+        return;
+      }
+    }
+
+    // Process features (convert string to array)
+    const featuresArray = formData.features
+      .split('\n')
+      .map(feature => feature.trim())
+      .filter(feature => feature.length > 0);
+
+    // Validate YouTube links
+    const validYoutubeLinks = youtubeLinks.filter(link => {
+      const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
+      return youtubeRegex.test(link);
+    });
+
+    if (youtubeLinks.length > 0 && validYoutubeLinks.length !== youtubeLinks.length) {
+      toast.error("Some YouTube links are invalid. Please check the format.");
+      return;
     }
 
     setIsSubmitting(true)
@@ -359,11 +410,15 @@ export default function BundlesPage() {
     try {
       const bundleData = {
         ...formData,
-        price: parseFloat(formData.price),
-        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-        bundleDiscount: parseFloat(formData.bundleDiscount),
+        price: price,
+        originalPrice: originalPrice > 0 ? originalPrice : undefined,
+        bundleDiscount: calculatedDiscount, // Use calculated discount
         subcategory: "default", // Temporary fix until backend is deployed
-        stock: parseInt(formData.stock)
+        stock: parseInt(formData.stock),
+        // Process specifications and features properly - convert to strings for database
+        specifications: JSON.stringify(parsedSpecifications),
+        features: featuresArray.join('\n'),
+        youtubeLinks: validYoutubeLinks
       }
 
       if (editingBundle) {
@@ -384,7 +439,7 @@ export default function BundlesPage() {
 
       setIsDialogOpen(false)
       resetForm()
-      fetchBundles()
+      fetchBundles(true) // Force refresh to get updated data
     } catch (error: any) {
       console.error("Error saving bundle:", error)
       toast.error(error.message || "Failed to save bundle")
@@ -393,52 +448,99 @@ export default function BundlesPage() {
     }
   }
 
-  const handleView = (bundle: Bundle) => {
+  const handleView = async (bundle: Bundle) => {
     try {
-      setViewingBundle(bundle)
+      // Clear cache for this specific bundle to ensure fresh data
+      invalidateCache(`bundle-${bundle._id}`)
+      
+      // Fetch fresh bundle data
+      const response = await shopAPI.getBundle(bundle._id)
+      if (response.success) {
+        setViewingBundle(response.bundle || bundle)
+      } else {
+        setViewingBundle(bundle)
+      }
       setIsViewDialogOpen(true)
     } catch (error) {
       console.error('Error in handleView:', error)
-      toast.error('Failed to open bundle view')
+      // Fallback to cached data if fresh fetch fails
+      setViewingBundle(bundle)
+      setIsViewDialogOpen(true)
+      toast.error('Failed to fetch fresh bundle data, showing cached version')
     }
   }
 
-  const handleEdit = (bundle: Bundle) => {
+  // Calculate discount percentage
+  const calculateDiscount = (price: string, originalPrice: string) => {
+    const priceNum = parseFloat(price) || 0;
+    const originalPriceNum = parseFloat(originalPrice) || 0;
+    
+    if (originalPriceNum > priceNum && originalPriceNum > 0) {
+      return Math.round(((originalPriceNum - priceNum) / originalPriceNum) * 100);
+    }
+    return 0;
+  };
+
+  const handleEdit = async (bundle: Bundle) => {
     try {
-      setEditingBundle(bundle)
+      // Clear cache for this specific bundle to ensure fresh data
+      invalidateCache(`bundle-${bundle._id}`)
+      
+      // Fetch fresh bundle data
+      let freshBundle = bundle
+      try {
+        const response = await shopAPI.getBundle(bundle._id)
+        if (response.success && response.bundle) {
+          freshBundle = response.bundle
+        }
+      } catch (error) {
+        console.warn('Failed to fetch fresh bundle data, using cached version:', error)
+      }
+      
+      setEditingBundle(freshBundle)
+      
+      // Process features from array to string for form display
+      const featuresString = Array.isArray(freshBundle.features) 
+        ? freshBundle.features.join('\n')
+        : freshBundle.features || "";
+      
+      // Process specifications from object to JSON string for form display
+      const specificationsString = typeof freshBundle.specifications === 'object' 
+        ? JSON.stringify(freshBundle.specifications, null, 2)
+        : freshBundle.specifications || "";
       
       const newFormData = {
-        name: bundle.name || "",
-        description: bundle.description || "",
-        price: bundle.price?.toString() || "0",
-        originalPrice: bundle.originalPrice?.toString() || "",
-        bundleDiscount: bundle.bundleDiscount?.toString() || "0",
-        category: bundle.category || "",
-        subcategory: bundle.subcategory || "",
-        images: bundle.images || [],
-        videos: bundle.videos || [],
-        youtubeLinks: bundle.youtubeLinks || [],
-        badge: bundle.badge || { text: "", color: "#12d6fa" },
-        sku: bundle.sku || "",
-        isActive: bundle.isActive || false,
-        isFeatured: bundle.isFeatured || false,
-        isNewArrival: bundle.isNewArrival || false,
-        isBestSeller: bundle.isBestSeller || false,
-        isLimited: bundle.isLimited || false,
-        stock: bundle.stock?.toString() || "0",
+        name: freshBundle.name || "",
+        description: freshBundle.description || "",
+        price: freshBundle.price?.toString() || "0",
+        originalPrice: freshBundle.originalPrice?.toString() || "",
+        bundleDiscount: freshBundle.bundleDiscount?.toString() || "0",
+        category: freshBundle.category || "",
+        subcategory: freshBundle.subcategory || "",
+        images: freshBundle.images || [],
+        videos: freshBundle.videos || [],
+        youtubeLinks: freshBundle.youtubeLinks || [],
+        badge: freshBundle.badge || { text: "", color: "#12d6fa" },
+        sku: freshBundle.sku || "",
+        isActive: freshBundle.isActive || false,
+        isFeatured: freshBundle.isFeatured || false,
+        isNewArrival: freshBundle.isNewArrival || false,
+        isBestSeller: freshBundle.isBestSeller || false,
+        isLimited: freshBundle.isLimited || false,
+        stock: freshBundle.stock?.toString() || "0",
         // Specifications and features
-        specifications: bundle.specifications || "",
-        features: bundle.features || "",
-        warranty: bundle.warranty || "",
-        dimensions: bundle.dimensions || "",
-        weight: bundle.weight || "",
+        specifications: specificationsString,
+        features: featuresString,
+        warranty: freshBundle.warranty || "",
+        dimensions: freshBundle.dimensions || "",
+        weight: freshBundle.weight || "",
         // FAQ and Q&A
-        faq: bundle.faq || []
+        faq: freshBundle.faq || []
       }
       
       setFormData(newFormData)
-      setUploadedVideos(bundle.videos || [])
-      setYoutubeLinks(bundle.youtubeLinks || [])
+      setUploadedVideos(freshBundle.videos || [])
+      setYoutubeLinks(freshBundle.youtubeLinks || [])
       setIsDialogOpen(true)
     } catch (error) {
       console.error('Error in handleEdit:', error)
@@ -456,7 +558,7 @@ export default function BundlesPage() {
       
       if (response.success) {
         toast.success("Bundle deleted successfully")
-        await fetchBundles()
+        await fetchBundles(true) // Force refresh to get updated data
       } else {
         throw new Error(response.message || "Failed to delete bundle")
       }
@@ -514,6 +616,26 @@ export default function BundlesPage() {
     return category ? category.name : categoryId
   }
 
+  const getCategoryDisplayName = (categoryId: string) => {
+    if (!categoryId) return "Select shop category";
+    
+    // Check if it's a predefined category
+    const predefinedCategories = {
+      'sodamakers': 'Soda Makers',
+      'flavor': 'Flavors', 
+      'accessories': 'Accessories',
+      'co2-cylinders': 'CO2 Cylinders'
+    };
+    
+    if (predefinedCategories[categoryId as keyof typeof predefinedCategories]) {
+      return predefinedCategories[categoryId as keyof typeof predefinedCategories];
+    }
+    
+    // Check if it's a custom category
+    const customCategory = categories.find(cat => cat._id === categoryId);
+    return customCategory ? customCategory.name : categoryId;
+  }
+
   const getShopPageInfo = (category: string) => {
     switch (category) {
       case 'sodamakers':
@@ -549,6 +671,17 @@ export default function BundlesPage() {
           subcategoryPrefix: 'Bundles & Promotions of CO2'
         };
       default:
+        // Check if it's a custom category
+        const customCategory = categories.find(cat => cat._id === category);
+        if (customCategory) {
+          return { 
+            icon: '📦', 
+            url: `/shop/custom/${customCategory.slug}/bundles`, 
+            name: `${customCategory.name} Bundles`, 
+            color: 'text-gray-600',
+            subcategoryPrefix: `Bundles & Promotions of ${customCategory.name}`
+          };
+        }
         return { 
           icon: '📦', 
           url: 'Custom Category', 
@@ -560,10 +693,16 @@ export default function BundlesPage() {
   }
 
   const handleCategoryChange = (categoryId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      category: categoryId
-    }))
+    console.log('handleCategoryChange called with:', categoryId);
+    console.log('Current formData.category before change:', formData.category);
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        category: categoryId
+      };
+      console.log('New formData after change:', newData);
+      return newData;
+    });
   }
 
   // Video upload functions
@@ -1026,7 +1165,7 @@ export default function BundlesPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => fetchBundles()}
+                    onClick={() => fetchBundles(true)}
                     className="text-xs px-4 py-2 rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
                   >
                     <div className="flex items-center gap-1">
@@ -1071,7 +1210,7 @@ export default function BundlesPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <Button 
-                    onClick={() => fetchBundles()}
+                    onClick={() => fetchBundles(true)}
                     variant="outline"
                     size="sm"
                     className="text-xs px-4 py-2 bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-lg transition-all duration-300"
@@ -1327,51 +1466,85 @@ export default function BundlesPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="category">Shop Category (Controls which page bundle appears on)</Label>
-                  <Select 
-                    value={formData.category} 
-                    onValueChange={handleCategoryChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select shop category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sodamakers">
-                        <div className="flex flex-col">
-                          <span className="font-medium">Soda Makers</span>
-                          <span className="text-xs text-gray-500">Appears on /shop/sodamakers/bundles</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="flavor">
-                        <div className="flex flex-col">
-                          <span className="font-medium">Flavors</span>
-                          <span className="text-xs text-gray-500">Appears on /shop/flavor/bundles</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="accessories">
-                        <div className="flex flex-col">
-                          <span className="font-medium">Accessories</span>
-                          <span className="text-xs text-gray-500">Appears on /shop/accessories/bundles</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="co2-cylinders">
-                        <div className="flex flex-col">
-                          <span className="font-medium">CO2 Cylinders</span>
-                          <span className="text-xs text-gray-500">Appears on /shop/co2-cylinders</span>
-                        </div>
-                      </SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category._id} value={category._id}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{category.name}</span>
-                            <span className="text-xs text-gray-500">Custom category</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    <Select 
+                      value={formData.category || ""} 
+                      onValueChange={(value) => {
+                        console.log('Select onValueChange called with:', value);
+                        handleCategoryChange(value);
+                      }}
+                      disabled={false}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select shop category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sodamakers">Soda Makers</SelectItem>
+                        <SelectItem value="flavor">Flavors</SelectItem>
+                        <SelectItem value="accessories">Accessories</SelectItem>
+                        <SelectItem value="co2-cylinders">CO2 Cylinders</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category._id} value={category._id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    {/* Debug info */}
+                    <div className="text-xs text-gray-500 p-2 bg-gray-100 rounded">
+                      <div>Current value: "{formData.category}"</div>
+                      <div>Categories count: {categories.length}</div>
+                      <div>Display name: "{getCategoryDisplayName(formData.category)}"</div>
+                    </div>
+                  </div>
                   <p className="text-xs text-gray-500">
                     Choose which shop section this bundle will appear in. This controls the URL and page where customers can find your bundle.
                   </p>
+                  <div className="flex gap-2 mt-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleCategoryChange('sodamakers')}
+                    >
+                      Test Soda Makers
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleCategoryChange('flavor')}
+                    >
+                      Test Flavors
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleCategoryChange('accessories')}
+                    >
+                      Test Accessories
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleCategoryChange('')}
+                    >
+                      Clear Selection
+                    </Button>
+                    {categories.length > 0 && (
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleCategoryChange(categories[0]._id)}
+                      >
+                        Test First Category
+                      </Button>
+                    )}
+                  </div>
                   
                   {/* Category Preview */}
                   {formData.category && (
@@ -1383,9 +1556,27 @@ export default function BundlesPage() {
                       <div className="text-sm text-blue-800">
                         {(() => {
                           const pageInfo = getShopPageInfo(formData.category);
+                          const categoryName = (() => {
+                            // Check if it's a predefined category
+                            const predefinedCategories = {
+                              'sodamakers': 'Soda Makers',
+                              'flavor': 'Flavors', 
+                              'accessories': 'Accessories',
+                              'co2-cylinders': 'CO2 Cylinders'
+                            };
+                            
+                            if (predefinedCategories[formData.category as keyof typeof predefinedCategories]) {
+                              return predefinedCategories[formData.category as keyof typeof predefinedCategories];
+                            }
+                            
+                            // Check if it's a custom category
+                            const customCategory = categories.find(cat => cat._id === formData.category);
+                            return customCategory ? customCategory.name : formData.category;
+                          })();
+                          
                           return (
                             <span>
-                              {pageInfo.icon} <strong>{pageInfo.url}</strong> - {pageInfo.name} page
+                              {pageInfo.icon} <strong>{pageInfo.url}</strong> - {categoryName} page
                             </span>
                           );
                         })()}
@@ -1498,10 +1689,13 @@ export default function BundlesPage() {
                     id="bundleDiscount"
                     type="number"
                     step="0.01"
-                    value={formData.bundleDiscount}
-                    onChange={(e) => setFormData({ ...formData, bundleDiscount: e.target.value })}
-                    required
+                    value={calculateDiscount(formData.price, formData.originalPrice)}
+                    readOnly
+                    className="bg-gray-50"
                   />
+                  <p className="text-xs text-gray-500">
+                    Automatically calculated from price and original price
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="stock">Stock</Label>
@@ -1748,12 +1942,29 @@ export default function BundlesPage() {
                       id="specifications"
                       value={formData.specifications}
                       onChange={(e) => setFormData({ ...formData, specifications: e.target.value })}
-                      placeholder='{"Material": "Stainless Steel", "Capacity": "1L", "Power": "220V"}'
+                      placeholder='{"Material": "Stainless Steel", "Capacity": "1L", "Power": "220V", "Weight": "2.5kg"}'
                       rows={4}
+                      className="font-mono text-sm"
                     />
-                    <p className="text-xs text-gray-500">
-                      Enter specifications as JSON object. Each key-value pair will be displayed in the specifications tab.
-                    </p>
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs text-gray-500">
+                        Enter specifications as JSON object. Each key-value pair will be displayed in the specifications tab.
+                      </p>
+                      <div className="text-xs">
+                        {formData.specifications.trim() ? (
+                          (() => {
+                            try {
+                              JSON.parse(formData.specifications);
+                              return <span className="text-green-600">✓ Valid JSON</span>;
+                            } catch {
+                              return <span className="text-red-600">✗ Invalid JSON</span>;
+                            }
+                          })()
+                        ) : (
+                          <span className="text-gray-400">Empty</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="space-y-2">
@@ -1762,12 +1973,18 @@ export default function BundlesPage() {
                       id="features"
                       value={formData.features}
                       onChange={(e) => setFormData({ ...formData, features: e.target.value })}
-                      placeholder="Easy to use&#10;BPA-free materials&#10;Compact design"
+                      placeholder="Easy to use&#10;BPA-free materials&#10;Compact design&#10;Energy efficient&#10;Easy maintenance"
                       rows={4}
+                      className="font-mono text-sm"
                     />
-                    <p className="text-xs text-gray-500">
-                      Enter each feature on a new line. They will be displayed as bullet points.
-                    </p>
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs text-gray-500">
+                        Enter each feature on a new line. They will be displayed as bullet points.
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {formData.features.split('\n').filter(f => f.trim()).length} features
+                      </p>
+                    </div>
                   </div>
                 </div>
 

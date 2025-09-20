@@ -13,6 +13,7 @@ export interface Product {
   slug: string
   title: string
   image: string
+  images?: Array<{ url: string; alt?: string; isPrimary?: boolean; order?: number }>  // Array of image objects from API
   rating?: number | { average: number; count: number }  // 0-5 or object with average and count
   reviewCount?: number
   price: number              // base/current price

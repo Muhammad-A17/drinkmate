@@ -5,6 +5,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Local font fallbacks for better performance and reliability */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: local('Montserrat'), local('Montserrat-Regular');
+}
+
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: local('Cairo'), local('Cairo-Regular');
+}
+
+@font-face {
+  font-family: 'Noto Sans';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: local('Noto Sans'), local('Noto-Sans-Regular');
+}
+
+@font-face {
+  font-family: 'Noto Sans Arabic';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: local('Noto Sans Arabic'), local('Noto-Sans-Arabic-Regular');
+}
+
 /* Custom Animations */
 @keyframes fadeInUp {
   from {
@@ -78,16 +111,16 @@
   --font-sans: var(--geist-sans);
   --font-mono: var(--geist-mono);
   
-  /* Semantic font variables - English defaults */
-  --font-primary: var(--font-montserrat);
-  --font-secondary: var(--font-noto-sans);
+  /* Semantic font variables - English defaults with proper fallbacks */
+  --font-primary: var(--font-montserrat), 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-secondary: var(--font-noto-sans), 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 
 /* Arabic/RTL overrides */
 :root[lang^="ar"], :root[dir="rtl"] {
-  --font-primary: var(--font-cairo);
-  --font-secondary: var(--font-noto-arabic);
+  --font-primary: var(--font-cairo), 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-secondary: var(--font-noto-arabic), 'Noto Sans Arabic', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Base font system */

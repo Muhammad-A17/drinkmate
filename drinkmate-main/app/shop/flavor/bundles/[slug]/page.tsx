@@ -7,9 +7,11 @@ import { useRouter, useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { Suspense } from "react"
-import { shopAPI } from "@/lib/api"
+import { shopAPI, invalidateCache } from "@/lib/api"
 import { useCart } from "@/lib/cart-context"
 import { useTranslation } from "@/lib/translation-context"
+import { YouTubeVideo, isYouTubeUrl, getYouTubeVideoId } from "@/components/ui/youtube-video"
+import YouTubeThumbnail from "@/components/ui/YouTubeThumbnail"
 import { Button } from "@/components/ui/button"
 import {
   Plus,
@@ -298,8 +300,11 @@ export default function BundleDetailPage() {
       try {
         setLoading(true)
 
+        // Clear cache to ensure we get fresh data
+        invalidateCache(`bundle-flexible-${productSlug}`)
+
         // Get bundle product details using shopAPI
-        const response = await shopAPI.getBundleFlexible(productSlug);
+        const response = await shopAPI.getBundleFlexible(productSlug, true); // bypassCache = true
 
         // Handle API response format
         if (response.success && response.bundle) {
@@ -820,26 +825,92 @@ export default function BundleDetailPage() {
                   >
                     {isShowingVideo ? (
                       <div className="w-full h-full">
-                        <video
-                          className="w-full h-full object-cover"
-                          controls
-                          poster="/placeholder.svg"
-                        >
-                          <source src={combinedMedia[selectedImage]?.src} type="video/mp4" />
-                          <source src={combinedMedia[selectedImage]?.src} type="video/webm" />
-                          <source src={combinedMedia[selectedImage]?.src} type="video/ogg" />
-                          Your browser does not support the video tag.
-                        </video>
+                        {combinedMedia[selectedImage] && isYouTubeUrl(combinedMedia[selectedImage].src) ? (
+                          <YouTubeVideo
+                            videoUrl={combinedMedia[selectedImage].src}
+                            title={`${product.name} - Product Video`}
+                            className="w-full h-full"
+                            showThumbnail={false}
+                            autoplay={true}
+                          />
+                        ) : (
+                          <video
+                            className="w-full h-full object-cover"
+                            controls
+                            poster="/placeholder.svg"
+                          >
+                            <source src={combinedMedia[selectedImage]?.src || ''} type="video/mp4" />
+                            <source src={combinedMedia[selectedImage]?.src || ''} type="video/webm" />
+                            <source src={combinedMedia[selectedImage]?.src || ''} type="video/ogg" />
+                            Your browser does not support the video tag.
+                          </video>
+                        )}
                       </div>
                     ) : (
-                      <img
-                        src={(() => {
-                          const img = product.images?.[selectedImage]
-                          return typeof img === 'string' ? img : img?.url || "/placeholder.svg"
-                        })()}
-                        alt={product.name}
-                        className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                      />
+                      <div className="relative w-full h-full">
+                        <img
+                          src={(() => {
+                            // First try to get URL from combinedMedia
+                            const mediaUrl = combinedMedia[selectedImage]?.src;
+                            if (mediaUrl && mediaUrl.trim() !== '') {
+                              console.log('Using combinedMedia URL:', mediaUrl);
+                              return mediaUrl;
+                            }
+                            
+                            // Fallback to product images array
+                            const img = product.images?.[selectedImage];
+                            const imgUrl = typeof img === 'string' ? img : img?.url;
+                            if (imgUrl && imgUrl.trim() !== '') {
+                              console.log('Using product.images URL:', imgUrl);
+                              return imgUrl;
+                            }
+                            
+                            // Final fallback to default image
+                            console.log('Using fallback image');
+                            return "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png";
+                          })()}
+                          alt={product.name}
+                          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                          style={{ backgroundColor: '#f0f0f0' }}
+                          onError={(e) => {
+                            console.error('Main image failed to load:', {
+                              selectedImage,
+                              combinedMedia: combinedMedia[selectedImage],
+                              productImages: product.images,
+                              error: e
+                            })
+                            // Try to load fallback
+                            e.currentTarget.src = "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png";
+                          }}
+                          onLoad={() => {
+                            console.log('Main image loaded successfully:', {
+                              selectedImage,
+                              combinedMedia: combinedMedia[selectedImage]
+                            })
+                          }}
+                        />
+                        {/* Fallback text if image fails */}
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+                          {(!combinedMedia[selectedImage]?.src || combinedMedia[selectedImage]?.src?.trim() === '') && (!product?.images?.[selectedImage] || (typeof product.images[selectedImage] === 'string' ? product.images[selectedImage].trim() === '' : product.images[selectedImage]?.url?.trim() === '')) && "No image available"}
+                        </div>
+                        {/* Debug overlay */}
+                        {process.env.NODE_ENV === 'development' && (
+                          <div className="absolute top-2 left-2 bg-black/50 text-white text-xs p-1 rounded z-10">
+                            Debug: {combinedMedia[selectedImage]?.src ? 'Has URL' : 'No URL'} | Index: {selectedImage} | Total: {combinedMedia.length}
+                            <br />
+                            Product Images: {product?.images?.length || 0}
+                            <br />
+                            Current URL: {(() => {
+                              const mediaUrl = combinedMedia[selectedImage]?.src;
+                              if (mediaUrl && mediaUrl.trim() !== '') return mediaUrl;
+                              const img = product?.images?.[selectedImage];
+                              const imgUrl = typeof img === 'string' ? img : img?.url;
+                              if (imgUrl && imgUrl.trim() !== '') return imgUrl;
+                              return "fallback";
+                            })()}
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     {/* Enhanced Badges */}
@@ -928,14 +999,11 @@ export default function BundleDetailPage() {
                       >
                         {media.type === 'video' ? (
                           <>
-                            <video
+                            <img
+                              src={media.src || "/placeholder.svg"}
+                              alt="Video thumbnail"
                               className="w-full h-full object-cover"
-                              muted
-                            >
-                              <source src={media.src} type="video/mp4" />
-                              <source src={media.src} type="video/webm" />
-                              <source src={media.src} type="video/ogg" />
-                            </video>
+                            />
                             <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                               <Play className="w-4 h-4 text-white" />
                             </div>
@@ -943,7 +1011,7 @@ export default function BundleDetailPage() {
                         ) : (
                           <img
                             src={media.src || "/placeholder.svg"}
-                            alt={`${product.name} ${index + 1}`}
+                            alt={`${product?.name || 'Product'} ${index + 1}`}
                             className="w-full h-full object-cover"
                           />
                         )}
@@ -1054,24 +1122,30 @@ export default function BundleDetailPage() {
                         <CardContent className="p-3 sm:p-4">
                           <h3 className="font-semibold mb-3 flex items-center text-sm sm:text-base">
                             <Package className="w-4 h-4 mr-2 text-[#12d6fa] flex-shrink-0" />
-                            Bundle Contents ({product.items.length} items)
+                            Bundle Contents ({Array.isArray(product.items) ? product.items.length : 0} items)
                           </h3>
                           <div className="space-y-2 max-h-32 overflow-y-auto">
-                            {product.items.map((item, index) => (
-                              <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-                                <img
-                                  src={item.image || "/placeholder.svg"}
-                                  alt={item.name}
-                                  className="w-8 h-8 object-cover rounded"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{item.name}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    <SaudiRiyal amount={item.price} size="sm" />
-                                  </p>
+                            {Array.isArray(product.items) && product.items.length > 0 ? (
+                              product.items.map((item, index) => (
+                                <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
+                                  <img
+                                    src={item.image || "/placeholder.svg"}
+                                    alt={item.name}
+                                    className="w-8 h-8 object-cover rounded"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">{item.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      <SaudiRiyal amount={item.price} size="sm" />
+                                    </p>
+                                  </div>
                                 </div>
+                              ))
+                            ) : (
+                              <div className="text-center py-4 text-gray-500 text-sm">
+                                No items available
                               </div>
-                            ))}
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -1228,9 +1302,9 @@ export default function BundleDetailPage() {
                     className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
                   >
                     <Video className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-                    <span className="hidden sm:inline">Videos ({product.videos?.length || 0})</span>
+                    <span className="hidden sm:inline">Videos ({(product.videos?.length || 0) + (product.youtubeLinks?.length || 0)})</span>
                     <span className="sm:hidden">Videos</span>
-                    <span className="sm:hidden text-xs ml-1">({product.videos?.length || 0})</span>
+                    <span className="sm:hidden text-xs ml-1">({(product.videos?.length || 0) + (product.youtubeLinks?.length || 0)})</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="qa"
@@ -1256,17 +1330,19 @@ export default function BundleDetailPage() {
                           Key Features
                         </h3>
                         <ul className="space-y-3">
-                          {product.features?.map((feature, index) => (
-                            <li key={index} className="flex items-start">
-                              <Check className="w-4 h-4 text-[#12d6fa] mr-3 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <span className="text-gray-700 font-medium">{typeof feature === 'string' ? feature : feature.title}</span>
-                                {typeof feature === 'object' && feature.description && (
-                                  <p className="text-sm text-gray-500 mt-1">{feature.description}</p>
-                                )}
-                              </div>
-                            </li>
-                          )) || (
+                          {Array.isArray(product.features) && product.features.length > 0 ? (
+                            product.features.map((feature, index) => (
+                              <li key={index} className="flex items-start">
+                                <Check className="w-4 h-4 text-[#12d6fa] mr-3 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <span className="text-gray-700 font-medium">{typeof feature === 'string' ? feature : feature.title}</span>
+                                  {typeof feature === 'object' && feature.description && (
+                                    <p className="text-sm text-gray-500 mt-1">{feature.description}</p>
+                                  )}
+                                </div>
+                              </li>
+                            ))
+                          ) : (
                             <li className="flex items-start">
                               <Check className="w-4 h-4 text-[#12d6fa] mr-3 mt-0.5 flex-shrink-0" />
                               <span className="text-gray-700">Premium quality ingredients</span>
@@ -1281,12 +1357,14 @@ export default function BundleDetailPage() {
                           Safety & Quality
                         </h3>
                         <ul className="space-y-3">
-                          {product.safetyFeatures?.map((feature, index) => (
-                            <li key={index} className="flex items-start">
-                              <Shield className="w-4 h-4 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
-                              <span className="text-gray-700">{feature}</span>
-                            </li>
-                          )) || (
+                          {Array.isArray(product.safetyFeatures) && product.safetyFeatures.length > 0 ? (
+                            product.safetyFeatures.map((feature, index) => (
+                              <li key={index} className="flex items-start">
+                                <Shield className="w-4 h-4 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-700">{feature}</span>
+                              </li>
+                            ))
+                          ) : (
                             <>
                               <li className="flex items-start">
                                 <Shield className="w-4 h-4 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
@@ -1310,21 +1388,27 @@ export default function BundleDetailPage() {
                           What's Included in This Bundle
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {product.items.map((item, index) => (
-                            <div key={index} className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg">
-                              <img
-                                src={item.image || "/placeholder.svg"}
-                                alt={item.name}
-                                className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
-                              />
-                              <div>
-                                <h4 className="font-medium text-gray-900 mb-1">{item.name}</h4>
-                                <p className="text-sm text-gray-600">
-                                  <SaudiRiyal amount={item.price} size="sm" />
-                                </p>
+                          {Array.isArray(product.items) && product.items.length > 0 ? (
+                            product.items.map((item, index) => (
+                              <div key={index} className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg">
+                                <img
+                                  src={item.image || "/placeholder.svg"}
+                                  alt={item.name}
+                                  className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+                                />
+                                <div>
+                                  <h4 className="font-medium text-gray-900 mb-1">{item.name}</h4>
+                                  <p className="text-sm text-gray-600">
+                                    <SaudiRiyal amount={item.price} size="sm" />
+                                  </p>
+                                </div>
                               </div>
+                            ))
+                          ) : (
+                            <div className="text-center py-4 text-gray-500">
+                              No items available
                             </div>
-                          ))}
+                          )}
                         </div>
                       </div>
                     )}
@@ -1385,11 +1469,13 @@ export default function BundleDetailPage() {
                         <div className="py-2 border-b border-gray-100 last:border-b-0">
                           <span className="font-medium text-gray-700 block mb-2">Certifications</span>
                           <div className="flex flex-wrap gap-2">
-                            {product.certifications?.map((cert) => (
-                              <Badge key={cert} variant="secondary" className="text-xs">
-                                {cert}
-                              </Badge>
-                            )) || (
+                            {Array.isArray(product.certifications) && product.certifications.length > 0 ? (
+                              product.certifications.map((cert) => (
+                                <Badge key={cert} variant="secondary" className="text-xs">
+                                  {cert}
+                                </Badge>
+                              ))
+                            ) : (
                               <Badge variant="secondary" className="text-xs">Halal Certified</Badge>
                             )}
                           </div>
@@ -1397,11 +1483,13 @@ export default function BundleDetailPage() {
                         <div className="py-2 border-b border-gray-100 last:border-b-0">
                           <span className="font-medium text-gray-700 block mb-2">Compatibility</span>
                           <div className="flex flex-wrap gap-2">
-                            {product.compatibility?.map((comp) => (
-                              <Badge key={comp} variant="outline" className="text-xs">
-                                {comp}
-                              </Badge>
-                            )) || (
+                            {Array.isArray(product.compatibility) && product.compatibility.length > 0 ? (
+                              product.compatibility.map((comp) => (
+                                <Badge key={comp} variant="outline" className="text-xs">
+                                  {comp}
+                                </Badge>
+                              ))
+                            ) : (
                               <Badge variant="outline" className="text-xs">Universal</Badge>
                             )}
                           </div>
@@ -1644,26 +1732,67 @@ export default function BundleDetailPage() {
 
                 <TabsContent value="videos" className="mt-8">
                   <div className="space-y-6">
-                    {product.videos && product.videos.length > 0 ? (
+                    {(product.videos && product.videos.length > 0) || (product.youtubeLinks && product.youtubeLinks.length > 0) ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-                        {product.videos.map((video, index) => (
-                          <Card key={index}>
-                            <CardContent className="p-0">
-                              <video
-                                className="w-full h-64 object-cover rounded-t-lg"
-                                controls
-                                poster="/placeholder.svg"
-                              >
-                                <source src={video} type="video/mp4" />
-                                <source src={video} type="video/webm" />
-                                <source src={video} type="video/ogg" />
-                                Your browser does not support the video tag.
-                              </video>
-                              <div className="p-4">
-                                <h3 className="font-medium">Product Video {index + 1}</h3>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  Learn more about {product.name}
+                        {/* All Videos (including YouTube) */}
+                        {[...(product.videos || []), ...(product.youtubeLinks || [])].map((video, index) => (
+                          <Card key={`video-${index}`}>
+                            <CardContent className="p-0 h-full flex flex-col" onClick={() => {
+                              const combinedIndex = combinedMedia.findIndex(media => media.src === video);
+                              if (combinedIndex !== -1) {
+                                handleImageSelect(combinedIndex)
+                              }
+                            }}>
+                              {isYouTubeUrl(video) ? (
+                                <div className="flex-1 relative">
+                                  <YouTubeVideo
+                                    videoUrl={video}
+                                    title={`${product.name} - Video ${index + 1}`}
+                                    className="w-full h-full"
+                                    showThumbnail={true}
+                                  />
+                                  <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-medium">
+                                    YouTube
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex-1 relative">
+                                  <video
+                                    className="w-full h-64 object-cover rounded-t-lg"
+                                    controls
+                                    poster="/placeholder.svg"
+                                  >
+                                    <source src={video} type="video/mp4" />
+                                    <source src={video} type="video/webm" />
+                                    <source src={video} type="video/ogg" />
+                                    Your browser does not support the video tag.
+                                  </video>
+                                </div>
+                              )}
+                              <div className="p-3 sm:p-4 lg:p-6 bg-white border-t border-gray-100">
+                                <h3 className="font-semibold text-xs sm:text-sm lg:text-base mb-1 sm:mb-2 lg:mb-3 text-gray-800 line-clamp-1">
+                                  {isYouTubeUrl(video) 
+                                    ? `Video ${index + 1}`
+                                    : video.split('/').pop()?.replace(/\.[^/.]+$/, '') || `Video ${index + 1}`
+                                  }
+                                </h3>
+                                <p className="text-xs sm:text-sm lg:text-base text-gray-600 mb-2 sm:mb-3 lg:mb-4 leading-relaxed line-clamp-2">
+                                  Product demonstration and usage guide
                                 </p>
+                                {isYouTubeUrl(video) && (
+                                  <a 
+                                    href={video} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 sm:gap-2 lg:gap-3 bg-red-600 text-white text-xs sm:text-sm lg:text-base px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-3 rounded-md font-medium w-full sm:w-auto justify-center"
+                                  >
+                                    <svg className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                    </svg>
+                                    <span className="hidden sm:inline">Watch on YouTube</span>
+                                    <span className="sm:hidden">YouTube</span>
+                                  </a>
+                                )}
                               </div>
                             </CardContent>
                           </Card>
@@ -1905,25 +2034,44 @@ export default function BundleDetailPage() {
               <div className="relative">
                 {isShowingVideo ? (
                   <div className="w-full h-[60vh] sm:h-[80vh]">
-                    <video
-                      className="w-full h-full object-contain"
-                      controls
-                      autoPlay
-                      poster="/placeholder.svg"
-                    >
-                      <source src={combinedMedia[selectedImage]?.src} type="video/mp4" />
-                      <source src={combinedMedia[selectedImage]?.src} type="video/webm" />
-                      <source src={combinedMedia[selectedImage]?.src} type="video/ogg" />
-                      Your browser does not support the video tag.
-                    </video>
+                    {combinedMedia[selectedImage] && combinedMedia[selectedImage].src && isYouTubeUrl(combinedMedia[selectedImage].src) ? (
+                      <YouTubeVideo
+                        videoUrl={combinedMedia[selectedImage].src}
+                        title={`${product?.name || 'Product'} - Product Video`}
+                        className="w-full h-full"
+                        showThumbnail={false}
+                        autoplay={true}
+                      />
+                    ) : (
+                      <video
+                        className="w-full h-full object-contain"
+                        controls
+                        autoPlay
+                        poster="/placeholder.svg"
+                      >
+                        <source src={combinedMedia[selectedImage]?.src || ''} type="video/mp4" />
+                        <source src={combinedMedia[selectedImage]?.src || ''} type="video/webm" />
+                        <source src={combinedMedia[selectedImage]?.src || ''} type="video/ogg" />
+                        Your browser does not support the video tag.
+                      </video>
+                    )}
                   </div>
                 ) : (
                   <img
                     src={(() => {
-                      const img = product.images?.[selectedImage]
-                      return typeof img === 'string' ? img : img?.url || "/placeholder.svg"
+                      // First try to get URL from combinedMedia
+                      const mediaUrl = combinedMedia[selectedImage]?.src;
+                      if (mediaUrl && mediaUrl.trim() !== '') return mediaUrl;
+                      
+                      // Fallback to product images array
+                      const img = product?.images?.[selectedImage];
+                      const imgUrl = typeof img === 'string' ? img : img?.url;
+                      if (imgUrl && imgUrl.trim() !== '') return imgUrl;
+                      
+                      // Final fallback to default image
+                      return "/images/04 - Kits/Starter-Kit---Example---Do-Not-Use.png";
                     })()}
-                    alt={product.name}
+                    alt={product?.name || 'Product'}
                     className="w-full h-auto max-h-[80vh] object-contain"
                   />
                 )}
@@ -1974,14 +2122,11 @@ export default function BundleDetailPage() {
                     >
                       {media.type === 'video' ? (
                         <>
-                          <video
+                          <img
+                            src={media.src || "/placeholder.svg"}
+                            alt="Video thumbnail"
                             className="w-full h-full object-cover"
-                            muted
-                          >
-                            <source src={media.src} type="video/mp4" />
-                            <source src={media.src} type="video/webm" />
-                            <source src={media.src} type="video/ogg" />
-                          </video>
+                          />
                           <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                             <Play className="w-4 h-4 text-white" />
                           </div>
@@ -1989,7 +2134,7 @@ export default function BundleDetailPage() {
                       ) : (
                         <img
                           src={media.src || "/placeholder.svg"}
-                          alt={`${product.name} ${index + 1}`}
+                          alt={`${product?.name || 'Product'} ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
                       )}

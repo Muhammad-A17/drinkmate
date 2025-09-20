@@ -173,12 +173,12 @@ const config: Config = {
       },
       fontFamily: {
         // Primary fonts with proper fallbacks
-        cairo: ['var(--font-cairo)', 'var(--font-noto-arabic)', 'system-ui', 'sans-serif'],
-        montserrat: ['var(--font-montserrat)', 'var(--font-noto-sans)', 'system-ui', 'sans-serif'],
+        cairo: ['var(--font-cairo)', 'Cairo', 'var(--font-noto-arabic)', 'Noto Sans Arabic', 'system-ui', 'sans-serif'],
+        montserrat: ['var(--font-montserrat)', 'Montserrat', 'var(--font-noto-sans)', 'Noto Sans', 'system-ui', 'sans-serif'],
         
         // Semantic aliases for easy usage
-        primary: ['var(--font-primary)', 'system-ui', 'sans-serif'],
-        secondary: ['var(--font-secondary)', 'system-ui', 'sans-serif'],
+        primary: ['var(--font-primary)'],
+        secondary: ['var(--font-secondary)'],
         
         // Fallback system fonts
         sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
