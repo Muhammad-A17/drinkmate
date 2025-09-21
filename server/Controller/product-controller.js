@@ -623,10 +623,6 @@ exports.getProductsByCategory = async (req, res) => {
         // Get products in this category
         const products = await Product.find({ 
             status: 'active',
-            published: true,
-            visibility: 'public',
-            isArchived: { $ne: true },
-            stock: { $gt: 0 },
             $or: [
                 { category: category._id },
                 { category: category._id.toString() },
@@ -643,10 +639,6 @@ exports.getProductsByCategory = async (req, res) => {
         // Get total count for pagination
         const totalProducts = await Product.countDocuments({ 
             status: 'active',
-            published: true,
-            visibility: 'public',
-            isArchived: { $ne: true },
-            stock: { $gt: 0 },
             $or: [
                 { category: category._id },
                 { category: category._id.toString() },
