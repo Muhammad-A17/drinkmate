@@ -87,28 +87,53 @@ export default function ProductGrid({
     const productId = product._id || product.id
     const productTitle = product.name || product.title || 'product'
     const productSlug = product.slug || generateSlug(productTitle, productId)
+    
+    // Get the primary image and ensure it's an absolute URL
+    let primaryImage = product.images?.[0]?.url || product.image || '/placeholder-product.jpg'
+    
+    // Convert relative URLs to absolute URLs
+    if (primaryImage && !primaryImage.startsWith('http')) {
+      if (primaryImage.startsWith('/')) {
+        primaryImage = `http://localhost:3000${primaryImage}`
+      } else if (primaryImage.trim() !== "" && !primaryImage.includes("undefined")) {
+        primaryImage = `http://localhost:3000/${primaryImage}`
+      }
+    }
 
     // Convert from old format
     return {
       id: productId,
       slug: productSlug,
       title: productTitle,
-      image: product.images?.[0]?.url || product.image || '/placeholder-product.jpg',
+      image: primaryImage,
+      images: product.images || [], // Pass through the full images array
       rating: product.rating,
       reviewCount: product.reviewsCount || product.reviewCount,
       price: product.price || 0,
       compareAtPrice: product.compareAtPrice,
       inStock: (product.stock || 0) > 0,
       badges: product.badges || [],
-      variants: product.variants?.map((v: any) => ({
-        id: v._id || v.id || `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        colorName: v.name || v.colorName,
-        colorHex: v.colorHex || v.value,
-        image: v.image || product.images?.[0]?.url,
-        price: v.price || product.price,
-        compareAtPrice: v.compareAtPrice || product.compareAtPrice,
-        inStock: (v.stock || product.stock || 0) > 0
-      })) || [],
+      variants: product.variants?.map((v: any) => {
+        // Convert variant image to absolute URL
+        let variantImage = v.image || product.images?.[0]?.url || primaryImage
+        if (variantImage && !variantImage.startsWith('http')) {
+          if (variantImage.startsWith('/')) {
+            variantImage = `http://localhost:3000${variantImage}`
+          } else if (variantImage.trim() !== "" && !variantImage.includes("undefined")) {
+            variantImage = `http://localhost:3000/${variantImage}`
+          }
+        }
+        
+        return {
+          id: v._id || v.id || `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          colorName: v.name || v.colorName,
+          colorHex: v.colorHex || v.value,
+          image: variantImage,
+          price: v.price || product.price,
+          compareAtPrice: v.compareAtPrice || product.compareAtPrice,
+          inStock: (v.stock || product.stock || 0) > 0
+        }
+      }) || [],
       description: product.description,
       category: product.category,
       brand: product.brand,

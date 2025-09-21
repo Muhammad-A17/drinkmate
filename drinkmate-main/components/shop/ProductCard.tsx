@@ -45,27 +45,46 @@ export default function ProductCard({
 
   // Get the best available image
   const getBestImage = () => {
+    let imageUrl = ""
+    
     // First try selected variant image
-    if (selected?.image) return selected.image
-    
+    if (selected?.image) {
+      imageUrl = selected.image
+    }
     // Then try product.image (singular - from API mapping)
-    if (product.image) return product.image
-    
+    else if (product.image) {
+      imageUrl = product.image
+    }
     // Then try product.images array (plural - from API)
-    if ((product as any).images && Array.isArray((product as any).images)) {
+    else if ((product as any).images && Array.isArray((product as any).images)) {
       const images = (product as any).images
       // Find primary image first
       const primaryImage = images.find((img: any) => img.isPrimary)
-      if (primaryImage && primaryImage.url) return primaryImage.url
-      
+      if (primaryImage && primaryImage.url) {
+        imageUrl = primaryImage.url
+      }
       // Fall back to first image
-      if (images[0] && images[0].url) return images[0].url
-      
+      else if (images[0] && images[0].url) {
+        imageUrl = images[0].url
+      }
       // Handle case where images array contains strings
-      if (typeof images[0] === 'string') return images[0]
+      else if (typeof images[0] === 'string') {
+        imageUrl = images[0]
+      }
     }
     
-    return "/placeholder.svg"
+    // Convert relative URLs to absolute URLs
+    if (imageUrl && !imageUrl.startsWith('http')) {
+      if (imageUrl.startsWith('/')) {
+        imageUrl = `http://localhost:3000${imageUrl}`
+      } else if (imageUrl.trim() !== "" && !imageUrl.includes("undefined")) {
+        // Handle cases where the URL might not start with / but is still relative
+        imageUrl = `http://localhost:3000/${imageUrl}`
+      }
+    }
+    
+    // Return the processed URL or fallback to placeholder
+    return imageUrl && imageUrl.trim() !== "" && !imageUrl.includes("undefined") ? imageUrl : "/placeholder.svg"
   }
   
   const activeImage = getBestImage()

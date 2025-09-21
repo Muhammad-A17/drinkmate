@@ -122,7 +122,7 @@ export default function YouTubeThumbnail({
   if (!currentImageUrl || currentImageUrl.trim() === '') {
     // console.log('YouTubeThumbnail: No valid thumbnail URL, showing placeholder')
     return (
-      <div className={`w-full h-full flex items-center justify-center bg-gray-100 ${className}`}>
+      <div className={`relative w-full h-full flex items-center justify-center bg-gray-100 ${className}`}>
         <Image
           src="/placeholder.svg"
           alt="No image available"
@@ -136,7 +136,7 @@ export default function YouTubeThumbnail({
   }
 
   return (
-    <div className="relative">
+    <div className="relative w-full h-full">
       <Image
         src={currentImageUrl}
         alt={alt}
