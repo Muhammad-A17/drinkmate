@@ -3,7 +3,7 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { AlertCircle, RefreshCw } from 'lucide-react'
-import ProductCard from './ProductCard'
+import BundleStyleProductCard from './BundleStyleProductCard'
 import ProductCardSkeleton from './ProductCardSkeleton'
 import { ProductGridProps, Product } from '@/types/product'
 import { useCart } from '@/hooks/use-cart'
@@ -161,10 +161,10 @@ export default function ProductGrid({
     <>
       <div
         dir={dir}
-        className={`grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 ${className}`}
+        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 items-stretch ${className}`}
       >
         {products.map((product, index) => (
-          <ProductCard
+          <BundleStyleProductCard
             key={product.id || `product-${index}`}
             product={convertProduct(product)}
             dir={dir}

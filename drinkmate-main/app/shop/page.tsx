@@ -13,6 +13,7 @@ import ShopToolbar from '@/components/shop/ShopToolbar'
 import StickyToolbar from '@/components/shop/StickyToolbar'
 import ShopFilters from '@/components/shop/ShopFilters'
 import ProductGrid from '@/components/shop/ProductGrid'
+import BundleStyleProductCard from '@/components/shop/BundleStyleProductCard'
 import Pagination from '@/components/shop/Pagination'
 import MobileStickyBar from '@/components/shop/MobileStickyBar'
 import ProductComparison from '@/components/shop/ProductComparison'
@@ -599,23 +600,36 @@ function ShopPageContent() {
 
               {/* Product Grid Skeleton */}
               <div className="flex-1">
-                <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 items-stretch">
                   {Array.from({ length: 8 }).map((_, i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                        <div className="aspect-[4/5] bg-gray-200"></div>
-                        <div className="p-6 space-y-4">
-                          <div className="h-5 bg-gray-200 rounded w-4/5"></div>
-                          <div className="flex items-center gap-2">
+                      <div className="bg-white rounded-3xl border border-gray-100/80 overflow-hidden h-[500px] sm:h-[540px] lg:h-[580px] flex flex-col">
+                        <div className="h-[220px] sm:h-[260px] lg:h-[320px] bg-gray-200 relative p-3 sm:p-4">
+                          <div className="absolute top-4 right-4 w-16 h-6 bg-gray-300 rounded-full"></div>
+                        </div>
+                        <div className="p-4 sm:p-6 flex-1 flex flex-col">
+                          <div className="h-6 bg-gray-200 rounded w-4/5 mb-3"></div>
+                          <div className="flex items-center gap-3 mb-3">
                             <div className="flex gap-1">
                               {Array.from({ length: 5 }).map((_, j) => (
                                 <div key={j} className="w-4 h-4 bg-gray-200 rounded"></div>
                               ))}
                             </div>
                             <div className="h-4 bg-gray-200 rounded w-16"></div>
+                            <div className="h-4 bg-gray-200 rounded w-12"></div>
                           </div>
-                          <div className="h-6 bg-gray-200 rounded w-24"></div>
-                          <div className="h-10 bg-gray-200 rounded-lg"></div>
+                          <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="h-3 bg-gray-200 rounded w-16"></div>
+                            <div className="h-3 bg-gray-200 rounded w-20"></div>
+                          </div>
+                          <div className="mt-auto">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="h-6 bg-gray-200 rounded w-20"></div>
+                              <div className="h-8 bg-gray-200 rounded w-24"></div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -657,8 +671,8 @@ function ShopPageContent() {
 
   return (
     <PageLayout>
-      {/* Hero Section - Recipe Page Style */}
-      <section className="relative py-12 md:py-16 overflow-hidden">
+      {/* Professional Hero Section */}
+      <section className="relative py-16 md:py-20 lg:py-24 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -668,92 +682,139 @@ function ShopPageContent() {
             className="object-cover"
             priority
           />
-          {/* Overlay with opacity */}
-          <div className="absolute inset-0 bg-black/40"></div>
-          {/* Gradient overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/50"></div>
+          {/* Professional overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-black/40 to-black/60"></div>
+          {/* Subtle pattern overlay */}
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.03%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-60"></div>
         </div>
         
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight ${isRTL ? 'font-cairo' : 'font-montserrat'} tracking-tight`}>
+          <div className="text-center space-y-6">
+            <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight ${isRTL ? 'font-cairo' : 'font-montserrat'} tracking-tight`}>
               {isRTL ? "المتجر" : "Shop"}
             </h1>
-            <p className={`text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed ${isRTL ? 'font-cairo' : 'font-montserrat'}`}>
+            <p className={`text-base sm:text-lg md:text-xl text-white/90 max-w-2xl sm:max-w-3xl mx-auto leading-relaxed ${isRTL ? 'font-cairo' : 'font-montserrat'}`}>
               {isRTL ? "اكتشف منتجاتنا المتميزة من صانعات الصودا والنكهات والإكسسوارات." : "Discover our premium collection of soda makers, flavors, and accessories."}
             </p>
+            
+            {/* Professional Trust Indicators */}
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mt-8">
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 sm:px-4 py-2">
+                <Truck className="w-4 h-4 text-cyan-300" />
+                <span className="text-white text-sm font-medium">Free Delivery</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 sm:px-4 py-2">
+                <Shield className="w-4 h-4 text-green-300" />
+                <span className="text-white text-sm font-medium">100% Original</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 sm:px-4 py-2">
+                <Award className="w-4 h-4 text-yellow-300" />
+                <span className="text-white text-sm font-medium">Easy Returns</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Modern Toolbar */}
-      <div className="bg-white border-b border-gray-200/60 sticky top-0 z-40 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
-            {/* Search Section */}
+      {/* Professional Toolbar */}
+      <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200/60 shadow-lg">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+          <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 items-center justify-between">
+            {/* Enhanced Search Section */}
             <div className="flex flex-1 items-center gap-4 w-full lg:w-auto">
-              <div className="relative flex-1 max-w-lg">
-                {isSearching ? (
-                  <RefreshCw className="absolute left-4 top-1/2 transform -translate-y-1/2 text-brand-500 w-5 h-5 animate-spin" />
-                ) : (
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                )}
-                <input
-                  type="text"
-                  placeholder="Search products, brands, or categories..."
-                  value={filters.searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 h-12 text-base border-2 border-gray-200 rounded-xl focus:border-brand-500 focus:ring-4 focus:ring-brand-100 transition-all duration-300 bg-gray-50/50 hover:bg-white"
-                  dir={isRTL ? 'rtl' : 'ltr'}
-                />
+              <div className="relative flex-1 max-w-2xl">
+                <div className="relative">
+                  {isSearching ? (
+                    <RefreshCw className="absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-500 w-5 h-5 animate-spin" />
+                  ) : (
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  )}
+                  <input
+                    type="text"
+                    placeholder="Search products, brands, or categories..."
+                    value={filters.searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="w-full pl-12 pr-12 py-3 h-12 sm:h-14 text-sm sm:text-base border-2 border-gray-200 rounded-2xl focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 transition-all duration-300 bg-white shadow-sm hover:shadow-lg focus:shadow-xl"
+                    dir={isRTL ? 'rtl' : 'ltr'}
+                    aria-label="Search products"
+                    aria-describedby="search-help"
+                    autoComplete="off"
+                    role="searchbox"
+                  />
+                  {filters.searchQuery && (
+                    <button
+                      onClick={() => handleSearch('')}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-cyan-600 transition-colors p-1 rounded-full hover:bg-cyan-50"
+                      aria-label="Clear search"
+                      title="Clear search"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+                
+                {/* Search Suggestions/Results Count */}
                 {filters.searchQuery && (
-                  <button
-                    onClick={() => handleSearch('')}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                    aria-label="Clear search"
-                    title="Clear search"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-4" role="region" aria-live="polite">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Search className="w-4 h-4" />
+                        <span>Searching for "{filters.searchQuery}"</span>
+                      </div>
+                      <div className="text-sm font-medium text-cyan-600">
+                        {filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  </div>
                 )}
+                
+                {/* Hidden help text for screen readers */}
+                <div id="search-help" className="sr-only">
+                  Search for products by name, brand, or category. Results will update as you type.
+                </div>
               </div>
 
-              {/* Mobile Filter Button */}
+              {/* Enhanced Mobile Filter Button */}
               <Button
                 variant="outline"
                 onClick={handleFilterToggle}
-                className="lg:hidden flex items-center gap-2 px-4 py-3 h-12 border-2 border-gray-200 rounded-xl hover:border-brand-500 hover:bg-brand-50"
+                className="lg:hidden flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 h-12 sm:h-14 border-2 border-gray-200 rounded-2xl hover:border-cyan-500 hover:bg-cyan-50 transition-all duration-300 shadow-sm hover:shadow-lg bg-white font-semibold"
               >
                 <SlidersHorizontal className="w-5 h-5" />
-                <span>Filters</span>
+                <span className="font-medium">Filters</span>
                 {activeFilterCount > 0 && (
-                  <span className="bg-brand-500 text-white text-xs px-2 py-1 rounded-full">
+                  <span className="bg-cyan-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
                     {activeFilterCount}
                   </span>
                 )}
               </Button>
             </div>
 
-            {/* Controls Section */}
-            <div className="flex items-center gap-4">
-              {/* Results Count */}
-              <div className="text-sm text-gray-600 hidden md:block">
-                <span className="font-semibold text-gray-900">{filteredProducts.length}</span>
-                <span className="mx-1">products found</span>
+            {/* Professional Controls Section - Mobile Optimized */}
+            <div className="flex flex-row items-center gap-3 sm:gap-6">
+              {/* Results Count with Professional Styling */}
+              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl justify-center sm:justify-start border border-gray-200/50">
+                <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
+                <span className="text-xs sm:text-sm font-semibold text-gray-700">
+                  <span className="font-bold text-gray-900">{filteredProducts.length}</span>
+                  <span className="ml-1 hidden sm:inline">products found</span>
+                  <span className="ml-1 sm:hidden">found</span>
+                </span>
               </div>
 
-              {/* Sort Dropdown */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700 hidden sm:block">Sort:</span>
+              {/* Enhanced Sort Dropdown */}
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-semibold text-gray-700 hidden sm:block">Sort by:</span>
                 <select
                   value={`${sortBy}-${sortOrder}`}
                   onChange={(e) => {
                     const [field, order] = e.target.value.split('-')
                     handleSortChange(field, order as 'asc' | 'desc')
                   }}
-                  className="h-12 px-4 border-2 border-gray-200 rounded-xl focus:border-brand-500 focus:ring-4 focus:ring-brand-100 bg-gray-50/50 hover:bg-white transition-all duration-300"
+                  className="h-12 sm:h-14 px-4 sm:px-6 border-2 border-gray-200 rounded-2xl focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 bg-white hover:bg-gray-50 transition-all duration-300 font-semibold shadow-sm hover:shadow-lg text-sm sm:text-base"
                   aria-label="Sort products"
+                  aria-describedby="sort-help"
                 >
                   <option value="popularity-desc">Most Popular</option>
                   <option value="price-asc">Price: Low to High</option>
@@ -761,15 +822,22 @@ function ShopPageContent() {
                   <option value="newest-desc">Newest First</option>
                   <option value="rating-desc">Highest Rated</option>
                 </select>
+                <div id="sort-help" className="sr-only">
+                  Choose how to sort the products. Options include popularity, price, newest, and rating.
+                </div>
               </div>
 
-              {/* View Toggle */}
-              <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden bg-gray-50/50">
+              {/* Professional View Toggle */}
+              <div className="flex items-center border-2 border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-lg transition-shadow duration-300">
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => handleViewModeChange('grid')}
-                  className={`h-12 px-4 rounded-none border-0 ${viewMode === 'grid' ? 'bg-brand-500 text-white' : 'hover:bg-white text-gray-600'}`}
+                  className={`h-12 sm:h-14 px-4 sm:px-6 rounded-none border-0 transition-all duration-300 ${
+                    viewMode === 'grid' 
+                      ? 'bg-cyan-500 text-white shadow-md' 
+                      : 'hover:bg-cyan-50 text-gray-600 hover:text-cyan-600'
+                  }`}
                 >
                   <Grid3X3 className="w-5 h-5" />
                 </Button>
@@ -777,7 +845,11 @@ function ShopPageContent() {
                   variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => handleViewModeChange('list')}
-                  className={`h-12 px-4 rounded-none border-0 ${viewMode === 'list' ? 'bg-brand-500 text-white' : 'hover:bg-white text-gray-600'}`}
+                  className={`h-12 sm:h-14 px-4 sm:px-6 rounded-none border-0 transition-all duration-300 ${
+                    viewMode === 'list' 
+                      ? 'bg-cyan-500 text-white shadow-md' 
+                      : 'hover:bg-cyan-50 text-gray-600 hover:text-cyan-600'
+                  }`}
                 >
                   <List className="w-5 h-5" />
                 </Button>
@@ -785,36 +857,70 @@ function ShopPageContent() {
             </div>
           </div>
 
-          {/* Active Filters */}
+          {/* Enhanced Active Filters */}
           {activeFilterCount > 0 && (
-            <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-sm font-medium text-gray-700">Active filters:</span>
-                <span className="bg-brand-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                  {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} applied
-                </span>
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200/60">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
+                  <span className="text-sm font-semibold text-gray-700">Active filters:</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md">
+                    {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} applied
+                  </span>
+                  <div className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                    {filteredProducts.length} results
+                  </div>
+                </div>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleClearFilters}
-                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-lg"
+                className="text-gray-500 hover:text-cyan-600 hover:bg-cyan-50 px-4 py-2 rounded-xl transition-all duration-300 font-medium"
               >
                 <X className="w-4 h-4 mr-2" />
-                Clear all
+                Clear all filters
               </Button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Main Content Layout */}
-      <div className="bg-gray-50/30 min-h-screen">
-        <div className="max-w-10xl mx-auto px-2 py-8">
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Desktop Filters Sidebar */}
-            <div className="hidden lg:block w-80 flex-shrink-0 -ml-12">
-              <div className="sticky top-24">
+      {/* Professional Main Content Layout */}
+      <div className="bg-gradient-to-br from-gray-50/30 via-white to-cyan-50/10 min-h-screen">
+        <div className="max-w-10xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+          <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
+            {/* Enhanced Desktop Filters Sidebar */}
+            <div className="hidden lg:block w-80 flex-shrink-0 -ml-8">
+              <div className="sticky top-24 space-y-6">
+                {/* Quick Stats Card */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 ml-2">
+                  <h3 className="font-bold text-lg text-gray-900 mb-4 text-left">Quick Stats</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 text-left">Total Products</span>
+                      <span className="font-bold text-cyan-600">{products.length}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 text-left">Categories</span>
+                      <span className="font-bold text-cyan-600">{categories.length}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 text-left">Brands</span>
+                      <span className="font-bold text-cyan-600">{brands.length}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 text-left">In Stock</span>
+                      <span className="font-bold text-green-600">
+                        {products.filter(p => p.inStock).length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Filters */}
                 <ShopFilters
                   filters={filters}
                   onFiltersChange={handleFiltersChange}
@@ -827,28 +933,42 @@ function ShopPageContent() {
               </div>
             </div>
 
-            {/* Main Content Area */}
-            <div className="flex-1 min-w-0">
-              {/* Filter Chips */}
-              <FilterChips
-                filters={filters}
-                onFiltersChange={handleFiltersChange}
-                onClearFilters={handleClearFilters}
-                isRTL={isRTL}
-              />
-
-              {/* Product Grid */}
-              <div className="mt-6">
-                <ProductGrid
-                  products={paginatedProducts}
-                  loading={loading}
-                  dir={isRTL ? "rtl" : "ltr"}
-                  onAddToWishlist={handleAddToWishlist}
-                  onAddToComparison={handleAddToComparison}
-                  onProductView={handleProductView}
-                  wishlist={wishlist}
-                  comparisonList={comparisonList}
-                />
+            {/* Enhanced Main Content Area */}
+            <div className="flex-1 min-w-0 -ml-4">
+              {/* Product Grid with Enhanced Loading */}
+              <div className="mt-8">
+                {loading ? (
+                  <div className="space-y-6">
+                    {/* Loading Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
+                      <div className="h-10 bg-gray-200 rounded w-32 animate-pulse"></div>
+                    </div>
+                    
+                    {/* Loading Grid */}
+                    <ProductGrid
+                      products={[]}
+                      loading={true}
+                      dir={isRTL ? "rtl" : "ltr"}
+                      onAddToWishlist={handleAddToWishlist}
+                      onAddToComparison={handleAddToComparison}
+                      onProductView={handleProductView}
+                      wishlist={wishlist}
+                      comparisonList={comparisonList}
+                    />
+                  </div>
+                ) : (
+                  <ProductGrid
+                    products={paginatedProducts}
+                    loading={false}
+                    dir={isRTL ? "rtl" : "ltr"}
+                    onAddToWishlist={handleAddToWishlist}
+                    onAddToComparison={handleAddToComparison}
+                    onProductView={handleProductView}
+                    wishlist={wishlist}
+                    comparisonList={comparisonList}
+                  />
+                )}
               </div>
 
               {/* Pagination */}
@@ -865,25 +985,60 @@ function ShopPageContent() {
                 </div>
               )}
 
-              {/* No Results State */}
+              {/* Enhanced No Results State */}
               {filteredProducts.length === 0 && !loading && (
-                <div className="text-center py-16">
-                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Search className="w-12 h-12 text-gray-400" />
+                <div className="text-center py-20">
+                  <div className="relative">
+                    <div className="w-32 h-32 bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
+                      <Search className="w-16 h-16 text-cyan-500" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">!</span>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    No products found
-                  </h3>
-                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    We couldn't find any products matching your criteria. Try adjusting your filters or search terms.
-                  </p>
-                  <Button
-                    onClick={handleClearFilters}
-                    className="bg-brand-500 hover:bg-brand-600 text-white"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Clear all filters
-                  </Button>
+                  
+                  <div className="space-y-4 mb-8">
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      No products found
+                    </h3>
+                    <p className="text-gray-600 max-w-lg mx-auto leading-relaxed">
+                      We couldn't find any products matching your criteria. Try adjusting your filters or search terms to discover more products.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <Button
+                      onClick={handleClearFilters}
+                      className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <RefreshCw className="w-5 h-5 mr-2" />
+                      Clear all filters
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleSearch('')}
+                      className="border-2 border-gray-200 hover:border-cyan-500 hover:bg-cyan-50 text-gray-700 hover:text-cyan-600 px-8 py-3 rounded-2xl font-semibold transition-all duration-300"
+                    >
+                      <Search className="w-5 h-5 mr-2" />
+                      Browse all products
+                    </Button>
+                  </div>
+
+                  {/* Quick Suggestions */}
+                  <div className="mt-12 max-w-2xl mx-auto">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Try searching for:</h4>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {['soda maker', 'flavors', 'accessories', 'co2 cylinders', 'bottles'].map((term) => (
+                        <button
+                          key={term}
+                          onClick={() => handleSearch(term)}
+                          className="px-4 py-2 bg-gray-100 hover:bg-cyan-100 text-gray-700 hover:text-cyan-700 rounded-full text-sm font-medium transition-colors duration-200"
+                        >
+                          {term}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -905,18 +1060,6 @@ function ShopPageContent() {
         onClose={handleFilterClose}
       />
 
-      {/* Mobile Sticky Bar */}
-      <MobileStickyBar
-        onFilterToggle={handleFilterToggle}
-        onViewModeChange={handleViewModeChange}
-        onSortToggle={handleSortToggle}
-        viewMode={viewMode}
-        activeFilters={activeFilterCount}
-        cartItemCount={state.items.length}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        isRTL={isRTL}
-      />
 
       {/* Premium Modals */}
       <ProductComparison

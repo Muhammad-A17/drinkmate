@@ -195,6 +195,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       icon: <Package className="w-5 h-5" /> 
     },
     { 
+      name: "Exchange Cylinders", 
+      href: "/admin/exchange-cylinders", 
+      icon: <Package className="w-5 h-5" /> 
+    },
+    { 
       name: "Refill Cylinders", 
       href: "/admin/refill-cylinders", 
       icon: <Package className="w-5 h-5" /> 
@@ -274,6 +279,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       { 
         name: "Test", 
         href: "/admin/test", 
+        icon: <TestTube className="w-5 h-5" /> 
+      },
+      { 
+        name: "Test Exchange", 
+        href: "/admin/test-exchange", 
         icon: <TestTube className="w-5 h-5" /> 
       },
     ] : []),

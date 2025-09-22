@@ -95,7 +95,7 @@ export default function CO2() {
   return (
     <PageLayout currentPage="shop">
       {/* Hero Section */}
-      <section className="relative py-8 md:py-16 bg-white animate-fade-in-up overflow-hidden">
+      <section className="relative py-12 sm:py-16 md:py-20 bg-white animate-fade-in-up overflow-hidden">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -108,15 +108,15 @@ export default function CO2() {
           <div className="absolute inset-0 bg-black/50"></div>
         </div>
         
-        <div className="relative z-10 max-w-7xl mx-auto px-4">
-          <div className="text-center space-y-4 md:space-y-6">
+        <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4">
+          <div className="text-center space-y-4 sm:space-y-6">
             <h1
-              className={`text-3xl md:text-5xl font-bold text-white leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-tight`}
+              className={`text-2xl sm:text-3xl md:text-5xl font-bold text-white leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} animate-slide-in-up tracking-tight`}
             >
               Refill / Exchange Cylinders
             </h1>
             <p
-              className={`text-base md:text-xl text-gray-200 max-w-3xl mx-auto ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-up delay-200 leading-relaxed`}
+              className={`text-sm sm:text-base md:text-xl text-gray-200 max-w-3xl mx-auto ${isRTL ? "font-noto-arabic" : "font-noto-sans"} animate-slide-in-up delay-200 leading-relaxed`}
             >
               Never let your sparkling run out with our fast and amazing refill / exchange service.
             </p>
@@ -124,108 +124,43 @@ export default function CO2() {
         </div>
       </section>
 
-
-      {/* Cylinders Shop Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <CylindersShopSection />
+      {/* Shop CO2 Cylinders Section */}
+      <section className="py-12 sm:py-16 bg-gradient-to-b from-white to-[#f3f3f3]">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4">
+          <CylindersShopSection type="all" />
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#f3f3f3]">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-black font-montserrat mb-4 tracking-tight">
-              Drinkmate CO2 Benefits
-            </h2>
-            <p className="text-lg md:text-xl text-gray-600 font-noto-sans max-w-2xl mx-auto">
-              Discover why our CO2 service is the best choice for your carbonation needs
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit) => (
-              <div
-                key={benefit.id}
-                className="bg-white rounded-2xl h-[280px] flex items-center justify-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg"
-              >
-                <div className="text-center p-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    {benefit.icon}
-                  </div>
-                  <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">{benefit.title}</h3>
-                  <p className="text-gray-600 text-base leading-relaxed font-noto-sans">{benefit.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Exchange Cylinders Section */}
+      <section className="py-12 sm:py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4">
+          <CylindersShopSection type="exchange" />
         </div>
       </section>
 
-
-      {/* How It Works Section */}
-      <section className="py-16 bg-gradient-to-b from-[#f3f3f3] to-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-black font-montserrat mb-4 tracking-tight">
-              How Our CO2 Service Works
-            </h2>
-            <p className="text-lg md:text-xl text-gray-600 font-noto-sans max-w-2xl mx-auto">
-              Simple steps to keep your drinks sparkling
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg">
-              <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <span className="text-3xl font-bold text-[#12d6fa] font-montserrat">1</span>
-              </div>
-              <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">Order or Visit</h3>
-              <p className="text-gray-600 text-base leading-relaxed font-noto-sans">
-                Order online or visit our partner locations
-              </p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg">
-              <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <span className="text-3xl font-bold text-[#12d6fa] font-montserrat">2</span>
-              </div>
-              <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">Exchange Cylinder</h3>
-              <p className="text-gray-600 text-base leading-relaxed font-noto-sans">
-                Hand over your empty cylinder for a full one
-              </p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg">
-              <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#12d6fa]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <span className="text-3xl font-bold text-[#12d6fa] font-montserrat">3</span>
-              </div>
-              <h3 className="text-xl font-bold text-black mb-3 font-montserrat tracking-tight">Enjoy Sparkling</h3>
-              <p className="text-gray-600 text-base leading-relaxed font-noto-sans">
-                Start carbonating your favorite drinks immediately
-              </p>
-            </div>
-          </div>
+      {/* Refill Cylinders Section */}
+      <section className="py-12 sm:py-16 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4">
+          <CylindersShopSection type="refill" />
         </div>
       </section>
-
+    
       {/* FAQ Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <header className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-bold text-black text-3xl md:text-4xl mb-4 tracking-tight">Cylinders FAQ</h2>
-            <p className="font-semibold text-black text-lg md:text-xl">All the answers to your cylinders questions</p>
+      <section className="py-12 sm:py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4">
+          <header className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
+            <h2 className="font-bold text-black text-2xl sm:text-3xl md:text-4xl mb-3 sm:mb-4 tracking-tight">Cylinders FAQ</h2>
+            <p className="font-semibold text-black text-base sm:text-lg md:text-xl">All the answers to your cylinders questions</p>
           </header>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {faqCards.map((card) => (
               <div
                 key={card.id}
-                className="bg-white rounded-2xl p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                className="bg-white rounded-2xl p-4 sm:p-6 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-gray-100"
               >
-                <h3 className="text-lg font-bold text-black mb-3 tracking-tight">{card.question}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">{card.answer}</p>
+                <h3 className="text-base sm:text-lg font-bold text-black mb-2 sm:mb-3 tracking-tight">{card.question}</h3>
+                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">{card.answer}</p>
               </div>
             ))}
           </div>

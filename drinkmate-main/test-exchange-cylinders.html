@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Exchange Cylinders</title>
+</head>
+<body>
+    <h1>Test Exchange Cylinders Data</h1>
+    <div id="debug-info"></div>
+    <div id="cylinders-list"></div>
+    
+    <script>
+        // Mock data
+        const mockCylinders = [
+            {
+                _id: "1",
+                name: "60L CO2 Cylinder Exchange",
+                slug: "60l-co2-cylinder-exchange",
+                price: 45,
+                originalPrice: 60,
+                image: "https://res.cloudinary.com/drinkmate/image/upload/v1704067200/drinkmate/co2-cylinder-60l.jpg",
+                description: "Professional 60L CO2 cylinder exchange service with instant availability",
+                capacity: 60,
+                material: "Steel",
+                exchangeType: "instant",
+                estimatedTime: "Same Day",
+                rating: 4.8,
+                reviewCount: 124,
+                inStock: true,
+                badges: ["POPULAR", "INSTANT"],
+                createdAt: "2024-01-15T10:00:00Z",
+                updatedAt: "2024-01-15T10:00:00Z"
+            },
+            {
+                _id: "2",
+                name: "40L CO2 Cylinder Exchange",
+                slug: "40l-co2-cylinder-exchange",
+                price: 35,
+                originalPrice: 45,
+                image: "https://res.cloudinary.com/drinkmate/image/upload/v1704067200/drinkmate/co2-cylinder-40l.jpg",
+                description: "Compact 40L CO2 cylinder exchange for smaller operations",
+                capacity: 40,
+                material: "Steel",
+                exchangeType: "scheduled",
+                estimatedTime: "1-2 Days",
+                rating: 4.6,
+                reviewCount: 89,
+                inStock: true,
+                badges: ["COMPACT"],
+                createdAt: "2024-01-10T10:00:00Z",
+                updatedAt: "2024-01-10T10:00:00Z"
+            }
+        ];
+        
+        // Test filtering
+        const searchQuery = "";
+        const filterType = "all";
+        
+        const filteredCylinders = mockCylinders.filter(cylinder => {
+            const matchesSearch = cylinder.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                 cylinder.description.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesFilter = filterType === "all" || cylinder.exchangeType === filterType;
+            return matchesSearch && matchesFilter;
+        });
+        
+        // Display results
+        document.getElementById('debug-info').innerHTML = `
+            <p>Total cylinders: ${mockCylinders.length}</p>
+            <p>Filtered cylinders: ${filteredCylinders.length}</p>
+            <p>Search query: "${searchQuery}"</p>
+            <p>Filter type: "${filterType}"</p>
+        `;
+        
+        document.getElementById('cylinders-list').innerHTML = filteredCylinders.map(cylinder => `
+            <div style="border: 1px solid #ccc; margin: 10px; padding: 10px;">
+                <h3>${cylinder.name}</h3>
+                <p>Price: ${cylinder.price} SAR</p>
+                <p>Type: ${cylinder.exchangeType}</p>
+                <p>Description: ${cylinder.description}</p>
+            </div>
+        `).join('');
+    </script>
+</body>
+</html>

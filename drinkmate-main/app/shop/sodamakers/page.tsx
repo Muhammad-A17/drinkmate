@@ -14,7 +14,7 @@ import PageLayout from "@/components/layout/PageLayout"
 import { Star, Loader2, ShoppingCart, ChevronDown, Filter, X, Search } from "lucide-react"
 import { shopAPI } from "@/lib/api"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
-import ProductCard from "@/components/shop/ProductCard"
+import BundleStyleProductCard from "@/components/shop/BundleStyleProductCard"
 
 // Define product types
 interface Product {
@@ -353,22 +353,26 @@ export default function SodamakersPage() {
     return <div className="flex">{stars}</div>
   }
 
-  // Function to render product cards using enhanced ProductCard component
+  // Function to render product cards using bundle-style ProductCard component
   function renderProductCard(product: Product) {
     const handleAddToCart = (item: any) => {
       addItem(item)
     }
 
-    const handleAddToWishlist = (productId: string) => {
+    const handleAddToWishlist = (product: any) => {
       // Add wishlist functionality if needed
     }
 
-    const handleQuickView = (product: any) => {
-      // Add quick view functionality if needed
+    const handleAddToComparison = (product: any) => {
+      // Add comparison functionality if needed
+    }
+
+    const handleProductView = (product: any) => {
+      // Add product view functionality if needed
     }
 
     return (
-      <ProductCard
+      <BundleStyleProductCard
         key={product._id}
         product={{
           id: product._id,
@@ -396,6 +400,9 @@ export default function SodamakersPage() {
             category: product.category,
           })
         }}
+        onAddToWishlist={handleAddToWishlist}
+        onAddToComparison={handleAddToComparison}
+        onProductView={handleProductView}
         className="h-full"
       />
     )
@@ -403,26 +410,26 @@ export default function SodamakersPage() {
 
   return (
     <PageLayout currentPage="shop-sodamakers">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-medium mb-8 text-gray-900">Explore Our Premium Soda Makers</h1>
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <h1 className="text-xl sm:text-2xl font-medium mb-6 sm:mb-8 text-gray-900">Explore Our Premium Soda Makers</h1>
 
      
 
         {/* Category Banners */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* OmniFizz Banner */}
-          <div className="relative h-48 md:h-56 rounded-2xl overflow-hidden shadow-lg bg-[#ffc232]">
-            <div className="flex items-center justify-between h-full p-6">
+          <div className="relative h-40 sm:h-48 md:h-56 rounded-2xl overflow-hidden shadow-lg bg-[#ffc232]">
+            <div className="flex items-center justify-between h-full p-4 sm:p-6">
               <div className="text-black flex-1">
-                <h2 className="text-xl md:text-2xl font-bold mb-2">OmniFizz Soda Makers</h2>
-                <p className="text-sm md:text-base opacity-80">Premium carbonation for all beverages</p>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2">OmniFizz Soda Makers</h2>
+                <p className="text-xs sm:text-sm md:text-base opacity-80">Premium carbonation for all beverages</p>
               </div>
-              <div className="relative w-24 h-24 md:w-32 md:h-32 flex-shrink-0 ml-4">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 flex-shrink-0 ml-2 sm:ml-4">
                 <Image
                   src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559856/Banner-Omni-Fiz_yjehil.png"
                   alt="OmniFizz Soda Maker"
                   fill
-                  sizes="(max-width: 768px) 96px, 128px"
+                  sizes="(max-width: 640px) 80px, (max-width: 768px) 96px, 128px"
                   className="object-contain hover:scale-105 transition-transform duration-300"
                 />
               </div>
@@ -430,18 +437,18 @@ export default function SodamakersPage() {
           </div>
 
           {/* Luxe Banner */}
-          <div className="relative h-48 md:h-56 rounded-2xl overflow-hidden shadow-lg bg-black">
-            <div className="flex items-center justify-between h-full p-6">
+          <div className="relative h-40 sm:h-48 md:h-56 rounded-2xl overflow-hidden shadow-lg bg-black">
+            <div className="flex items-center justify-between h-full p-4 sm:p-6">
               <div className="text-white flex-1">
-                <h2 className="text-xl md:text-2xl font-bold mb-2">Luxe Soda Makers</h2>
-                <p className="text-sm md:text-base opacity-90">Luxurious and elegant carbonation experience</p>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2">Luxe Soda Makers</h2>
+                <p className="text-xs sm:text-sm md:text-base opacity-90">Luxurious and elegant carbonation experience</p>
               </div>
-              <div className="relative w-24 h-24 md:w-32 md:h-32 flex-shrink-0 ml-4">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 flex-shrink-0 ml-2 sm:ml-4">
                 <Image
                   src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756559856/Banner-Luxe-Machine_obvfmq.png"
                   alt="Luxe Soda Maker"
                   fill
-                  sizes="(max-width: 768px) 96px, 128px"
+                  sizes="(max-width: 640px) 80px, (max-width: 768px) 96px, 128px"
                   className="object-contain hover:scale-105 transition-transform duration-300"
                 />
               </div>
@@ -451,128 +458,89 @@ export default function SodamakersPage() {
 
         {/* Error message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl mb-8 shadow-sm">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 sm:px-6 py-3 sm:py-4 rounded-xl mb-6 sm:mb-8 shadow-sm">
             {error}
           </div>
         )}
 
         {/* Loading state */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="h-12 w-12 animate-spin text-[#12d6fa] mb-4" />
-            <p className="text-gray-600 font-medium">Loading premium products...</p>
+          <div className="flex flex-col items-center justify-center py-12 sm:py-16">
+            <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-[#12d6fa] mb-3 sm:mb-4" />
+            <p className="text-sm sm:text-base text-gray-600 font-medium">Loading premium products...</p>
           </div>
         ) : (
           <>
             {/* Bundles & Promotions Section */}
-            <div className="mb-16">
+            <div className="mb-12 sm:mb-16">
              
               {bundleSubcategorySections.length > 0 ? (
-                <div className="space-y-12">
+                <div className="space-y-8 sm:space-y-12">
                   {bundleSubcategorySections.map((section) => (
-                    <div key={section._id} className="space-y-6">
-                      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                    <div key={section._id} className="space-y-4 sm:space-y-6">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
                         {section.name}
                       </h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                         {section.bundles.map((bundle) => (
-                    <div
-                      key={bundle._id}
-                      className="bg-white rounded-3xl transition-all duration-300 p-6 flex flex-col border border-gray-100 hover:border-gray-200 relative transform hover:-translate-y-1"
-                    >
-                      <Link href={`/shop/sodamakers/bundles/${bundle.slug}`} className="block">
-                        <div className="relative h-80 bg-gray-50 overflow-hidden mb-6">
-                          <Image
-                            src={bundle.image || "/placeholder.svg"}
-                            alt={bundle.name}
-                            fill
-                            className="object-cover transition-transform duration-300 hover:scale-105"
-                            onError={(e) => {
-                              console.log("Image failed to load:", bundle.image)
-                              e.currentTarget.src = "/images/02 - Soda Makers/Artic-Black-Machine---Front.png"
-                            }}
-                          />
-                        </div>
-                        <h3 className="font-medium text-lg mb-3 line-clamp-2 text-gray-900 hover:text-[#12d6fa] transition-colors">
-                          {bundle.name}
-                        </h3>
-                      </Link>
-
-                      <div className="flex items-center gap-3 mb-4">
-                        {renderStars(bundle.rating)}
-                        <span className="text-sm text-gray-600">({bundle.reviews} Reviews)</span>
-                      </div>
-
-                      <div className="mt-auto">
-                        <p className="text-sm text-gray-600 mb-4">{bundle.description}</p>
-                        <div className="flex items-center gap-2 mb-2">
-                          {bundle.originalPrice && (
-                            <>
-                              <span className="text-gray-500 text-sm line-through">
-                                <SaudiRiyal amount={bundle.originalPrice} size="sm" />
-                              </span>
-                              <span className="bg-red-50 text-red-500 text-xs font-normal px-2 py-0.5 rounded-full">
-                                {Math.round(((bundle.originalPrice - bundle.price) / bundle.originalPrice) * 100)}% OFF
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium text-xl text-gray-900">
-                              <SaudiRiyal amount={bundle.price} size="lg" />
-                            </span>
-                          </div>
-                          <Button
-                            onClick={() => handleAddToCart({
-                              _id: bundle._id,
-                              id: bundle.id || bundle._id,
+                          <BundleStyleProductCard
+                            key={bundle._id}
+                            product={{
+                              id: bundle._id,
                               slug: bundle.slug,
-                              name: bundle.name,
+                              title: bundle.name,
+                              image: bundle.image || "/placeholder.svg",
                               price: bundle.price,
-                              originalPrice: bundle.originalPrice,
-                              image: bundle.image,
+                              compareAtPrice: bundle.originalPrice,
+                              rating: bundle.rating || 0,
+                              reviewCount: bundle.reviews || 0,
+                              description: bundle.description,
                               category: "bundle",
-                              rating: bundle.rating,
-                              reviews: bundle.reviews,
-                              description: bundle.description
-                            })}
-                            disabled={isInCart(bundle._id)}
-                            className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full w-full sm:w-auto justify-center px-4 sm:px-6 py-2 h-10 text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                          >
-                            <ShoppingCart className="w-4 h-4" />
-                            {isInCart(bundle._id) ? "Added" : "Add"}
-                          </Button>
-                        </div>
-                      </div>
-                      {bundle.badge && (
-                        <div className="absolute top-4 right-4 bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] text-black text-xs px-3 py-2 rounded-full shadow-lg">
-                          {bundle.badge}
-                        </div>
-                      )}
-                    </div>
+                              inStock: true,
+                              badges: bundle.badge ? [bundle.badge] : undefined,
+                            }}
+                            onAddToCart={({ productId, qty }) => {
+                              handleAddToCart({
+                                _id: productId,
+                                id: bundle.id || bundle._id,
+                                slug: bundle.slug,
+                                name: bundle.name,
+                                price: bundle.price,
+                                originalPrice: bundle.originalPrice,
+                                image: bundle.image,
+                                category: "bundle",
+                                rating: bundle.rating,
+                                reviews: bundle.reviews,
+                                description: bundle.description
+                              })
+                            }}
+                            onAddToWishlist={() => {}}
+                            onAddToComparison={() => {}}
+                            onProductView={() => {}}
+                            className="h-full"
+                          />
                         ))}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-2xl">
-                  <p className="text-gray-600">No bundles available for soda makers at the moment.</p>
-                  <p className="text-sm text-gray-500 mt-2">Check back soon for exciting bundle deals!</p>
+                <div className="text-center py-6 sm:py-8 bg-gray-50 rounded-2xl">
+                  <p className="text-sm sm:text-base text-gray-600">No bundles available for soda makers at the moment.</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-2">Check back soon for exciting bundle deals!</p>
                 </div>
               )}
             </div>
 
             {/* Filter Bar */}
-            <div className="bg-white rounded-2xl p-6 mb-8">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
                 {/* Mobile filter toggle */}
                 <div className="lg:hidden">
                   <Button
                     onClick={() => setShowFilters(!showFilters)}
                     variant="outline"
-                    className="w-full flex items-center justify-between py-3 rounded-xl border-gray-200 hover:bg-gray-50"
+                    className="w-full flex items-center justify-between py-2.5 sm:py-3 rounded-xl border-gray-200 hover:bg-gray-50 text-sm"
                   >
                     <span className="flex items-center gap-2">
                       <Filter className="w-4 h-4" />
@@ -583,22 +551,22 @@ export default function SodamakersPage() {
                 </div>
 
                 {/* Desktop filters */}
-                <div className={`${showFilters ? "block" : "hidden"} lg:flex space-y-4 lg:space-y-0 lg:items-center lg:gap-8`}>
+                <div className={`${showFilters ? "block" : "hidden"} lg:flex space-y-3 sm:space-y-4 lg:space-y-0 lg:items-center lg:gap-6 xl:gap-8`}>
                   {/* Search */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                     <div className="relative flex-1">
                       <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search sodamakers..."
-                        className="w-full pl-9 pr-3 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] focus:bg-white text-sm transition-all duration-200"
+                        className="w-full pl-9 pr-3 py-2.5 sm:py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] focus:bg-white text-sm transition-all duration-200"
                       />
                     </div>
                     {(selectedFilter !== "all" || searchQuery) && (
                       <button
                         onClick={clearFilters}
-                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 transition-colors duration-200"
+                        className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 transition-colors duration-200"
                       >
                         <X className="w-3.5 h-3.5" /> Clear
                       </button>
@@ -606,12 +574,12 @@ export default function SodamakersPage() {
                   </div>
 
                   {/* Filter Dropdown */}
-                  <div className="flex flex-col space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Filters</label>
+                  <div className="flex flex-col space-y-1 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium text-gray-700">Filters</label>
                     <select
                       value={selectedFilter}
                       onChange={(e) => setSelectedFilter(e.target.value)}
-                      className="px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
+                      className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
                       aria-label="Filter options"
                     >
                       {filterOptions.map((option) => (
@@ -623,12 +591,12 @@ export default function SodamakersPage() {
                   </div>
 
                   {/* Sort Filter */}
-                  <div className="flex flex-col space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Sort By</label>
+                  <div className="flex flex-col space-y-1 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium text-gray-700">Sort By</label>
                     <select
                       value={selectedSort}
                       onChange={(e) => setSelectedSort(e.target.value)}
-                      className="px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
+                      className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
                       aria-label="Sort options"
                     >
                       {sortOptions.map((option) => (
@@ -641,7 +609,7 @@ export default function SodamakersPage() {
                 </div>
 
                 {/* Results count */}
-                <div className="text-sm text-gray-600 font-medium bg-gray-50 px-3 py-2 rounded-lg">
+                <div className="text-xs sm:text-sm text-gray-600 font-medium bg-gray-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg">
                   {(() => {
                     if (selectedFilter === "all") {
                       return `${allSodaMakers.length} ${allSodaMakers.length === 1 ? "product" : "products"} found`
@@ -668,21 +636,21 @@ export default function SodamakersPage() {
             {selectedFilter === "all" ? (
               /* Show all subcategories with headlines when "All Sodamakers" is selected */
               subcategorySections.length > 0 && subcategorySections.map((section) => (
-                <div key={section._id} className="mb-16">
-                  <h2 className="text-xl font-medium mb-6 text-gray-900">{section.name}</h2>
+                <div key={section._id} className="mb-12 sm:mb-16">
+                  <h2 className="text-lg sm:text-xl font-medium mb-4 sm:mb-6 text-gray-900">{section.name}</h2>
                   {section.products.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                       {section.products.map((product) => renderProductCard(product))}
                     </div>
                   ) : (
-                    <div className="text-center py-16 bg-gray-50 rounded-2xl shadow-inner">
-                      <div className="text-gray-400 mb-6">
-                        <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="text-center py-12 sm:py-16 bg-gray-50 rounded-2xl shadow-inner">
+                      <div className="text-gray-400 mb-4 sm:mb-6">
+                        <svg className="mx-auto h-12 w-12 sm:h-16 sm:w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
                       </div>
-                      <h3 className="text-xl font-medium text-gray-900 mb-3">No products in this subcategory</h3>
-                      <Button onClick={() => router.push("/admin/products")} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-2 sm:mb-3">No products in this subcategory</h3>
+                      <Button onClick={() => router.push("/admin/products")} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 text-sm">
                         Add Products (Admin)
                       </Button>
                     </div>
@@ -726,17 +694,17 @@ export default function SodamakersPage() {
                 return filteredProducts.length > 0 ? (
                   <div>
                     {/* Show the selected subcategory headline */}
-                    <h2 className="text-xl font-medium mb-6 text-gray-900">
+                    <h2 className="text-lg sm:text-xl font-medium mb-4 sm:mb-6 text-gray-900">
                       {selectedSection.name}
                     </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                       {filteredProducts.map((product) => renderProductCard(product))}
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <div className="text-gray-400 mb-4">
-                      <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="text-center py-8 sm:py-12 bg-gray-50 rounded-lg">
+                    <div className="text-gray-400 mb-3 sm:mb-4">
+                      <svg className="mx-auto h-10 w-10 sm:h-12 sm:w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -745,13 +713,13 @@ export default function SodamakersPage() {
                         />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Products Found</h3>
-                    <p className="text-gray-500 mb-4">
+                    <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No Products Found</h3>
+                    <p className="text-sm sm:text-base text-gray-500 mb-3 sm:mb-4">
                       No products match your current filters. Try adjusting your selection.
                     </p>
                     <Button
                       onClick={clearFilters}
-                      className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
+                      className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white px-4 sm:px-6 py-2 sm:py-3 text-sm"
                     >
                       Clear Filters
                     </Button>

@@ -15,7 +15,7 @@ import { Star, Loader2, ShoppingCart, ChevronDown, Filter, X, Search } from "luc
 import { shopAPI } from "@/lib/api"
 import { logger } from "@/lib/logger"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
-import ProductCard from "@/components/shop/ProductCard"
+import BundleStyleProductCard from "@/components/shop/BundleStyleProductCard"
 
 // Define product types
 interface Product {
@@ -395,22 +395,26 @@ export default function FlavorPage() {
     return <div className="flex">{stars}</div>
   }
 
-  // Function to render product cards using enhanced ProductCard component
+  // Function to render product cards using bundle-style ProductCard component
   function renderProductCard(product: Product) {
     const handleAddToCart = (item: any) => {
       addItem(item)
     }
 
-    const handleAddToWishlist = (productId: string) => {
+    const handleAddToWishlist = (product: any) => {
       // Add wishlist functionality if needed
     }
 
-    const handleQuickView = (product: any) => {
-      // Add quick view functionality if needed
+    const handleAddToComparison = (product: any) => {
+      // Add comparison functionality if needed
+    }
+
+    const handleProductView = (product: any) => {
+      // Add product view functionality if needed
     }
 
     return (
-      <ProductCard
+      <BundleStyleProductCard
         key={product._id}
         product={{
           id: product._id,
@@ -438,6 +442,9 @@ export default function FlavorPage() {
             category: product.category,
           })
         }}
+        onAddToWishlist={handleAddToWishlist}
+        onAddToComparison={handleAddToComparison}
+        onProductView={handleProductView}
         className="h-full"
       />
     )
@@ -445,10 +452,10 @@ export default function FlavorPage() {
 
   return (
     <PageLayout currentPage="shop-flavor">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-medium mb-8 text-gray-900">Explore Our Premium Flavors</h1>
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <h1 className="text-xl sm:text-2xl font-medium mb-6 sm:mb-8 text-gray-900">Explore Our Premium Flavors</h1>
 
-        <div className="w-full h-[570px] md:h-[350px] mb-12 relative overflow-hidden rounded-2xl shadow-lg">
+        <div className="w-full h-[300px] sm:h-[400px] md:h-[350px] mb-8 sm:mb-12 relative overflow-hidden rounded-2xl shadow-lg">
           {/* Desktop Banner */}
           <Image
             src="/images/banner/flavor banner.webp"
@@ -479,109 +486,67 @@ export default function FlavorPage() {
 
         {/* Error message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl mb-8 shadow-sm">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 sm:px-6 py-3 sm:py-4 rounded-xl mb-6 sm:mb-8 shadow-sm">
             {error}
           </div>
         )}
 
         {/* Loading state */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="h-12 w-12 animate-spin text-[#12d6fa] mb-4" />
-            <p className="text-gray-600 font-medium">Loading premium products...</p>
+          <div className="flex flex-col items-center justify-center py-12 sm:py-16">
+            <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-[#12d6fa] mb-3 sm:mb-4" />
+            <p className="text-sm sm:text-base text-gray-600 font-medium">Loading premium products...</p>
           </div>
         ) : (
           <>
             {/* Bundles & Promotions Section */}
-            <div className="mb-16">
+            <div className="mb-12 sm:mb-16">
              
               {bundleSubcategorySections.length > 0 ? (
-                <div className="space-y-12">
+                <div className="space-y-8 sm:space-y-12">
                   {bundleSubcategorySections.map((section) => (
-                    <div key={section._id} className="space-y-6">
-                      <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                    <div key={section._id} className="space-y-4 sm:space-y-6">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
                         {section.name}
                       </h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                         {section.bundles.map((bundle) => (
-                    <div
-                      key={bundle._id}
-                      className="bg-white rounded-3xl transition-all duration-300 p-6 flex flex-col border border-gray-100 hover:border-gray-200 relative transform hover:-translate-y-1"
-                    >
-                      <Link href={`/shop/flavor/bundles/${bundle.slug}`} className="block">
-                        <div className="relative h-80 bg-gray-50 overflow-hidden mb-6">
-                          <Image
-                            src={bundle.image || "/placeholder.svg"}
-                            alt={bundle.name}
-                            fill
-                            className="object-cover transition-transform duration-300 hover:scale-105"
-                            onError={(e) => {
-                              const target = e.currentTarget;
-                              if (target) {
-                                logger.debug("Image failed to load:", bundle.image);
-                                target.src = "/images/01 - Flavors/Strawberry-Lemon-Flavor.png";
-                              }
-                            }}
-                          />
-                        </div>
-                        <h3 className="font-medium text-lg mb-3 line-clamp-2 text-gray-900 hover:text-[#12d6fa] transition-colors">
-                          {bundle.name}
-                        </h3>
-                      </Link>
-
-                      <div className="flex items-center gap-3 mb-4">
-                        {renderStars(bundle.rating)}
-                        <span className="text-sm text-gray-600">({bundle.reviews} Reviews)</span>
-                      </div>
-
-                      <div className="mt-auto">
-                        <p className="text-sm text-gray-600 mb-4">{bundle.description}</p>
-                        <div className="flex items-center gap-2 mb-2">
-                          {bundle.originalPrice && (
-                            <>
-                              <span className="text-gray-500 text-sm line-through">
-                                <SaudiRiyal amount={bundle.originalPrice} size="sm" />
-                              </span>
-                              <span className="bg-red-50 text-red-500 text-xs font-normal px-2 py-0.5 rounded-full">
-                                {Math.round(((bundle.originalPrice - bundle.price) / bundle.originalPrice) * 100)}% OFF
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium text-xl text-gray-900">
-                              <SaudiRiyal amount={bundle.price} size="lg" />
-                            </span>
-                          </div>
-                          <Button
-                            onClick={() => handleAddToCart({
-                              _id: bundle._id,
-                              id: bundle.id && typeof bundle.id === 'number' ? bundle.id : undefined,
-                              slug: bundle.slug || '',
-                              name: bundle.name,
+                          <BundleStyleProductCard
+                            key={bundle._id}
+                            product={{
+                              id: bundle._id,
+                              slug: bundle.slug,
+                              title: bundle.name,
+                              image: bundle.image || "/placeholder.svg",
                               price: bundle.price,
-                              originalPrice: bundle.originalPrice,
-                              image: bundle.image || '/placeholder.svg',
+                              compareAtPrice: bundle.originalPrice,
+                              rating: bundle.rating || 0,
+                              reviewCount: bundle.reviews || 0,
+                              description: bundle.description,
                               category: "bundle",
-                              rating: bundle.rating || 5,
-                              reviews: bundle.reviews || 0,
-                              description: bundle.description || ''
-                            })}
-                            disabled={isInCart(bundle._id)}
-                            className="bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] hover:from-[#14c4e8] hover:to-[#10b8d6] text-black rounded-full w-full sm:w-auto justify-center px-4 sm:px-6 py-2 h-10 text-xs sm:text-sm transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                          >
-                            <ShoppingCart className="w-4 h-4" />
-                            {isInCart(bundle._id) ? "Added" : "Add"}
-                          </Button>
-                        </div>
-                      </div>
-                      {bundle.badge && (
-                        <div className="absolute top-4 right-4 bg-gradient-to-r from-[#16d6fa] to-[#12d6fa] text-black text-xs px-3 py-2 rounded-full shadow-lg">
-                          {bundle.badge}
-                        </div>
-                      )}
-                    </div>
+                              inStock: true,
+                              badges: bundle.badge ? [bundle.badge] : undefined,
+                            }}
+                            onAddToCart={({ productId, qty }) => {
+                              handleAddToCart({
+                                _id: productId,
+                                id: bundle.id && typeof bundle.id === 'number' ? bundle.id : undefined,
+                                slug: bundle.slug || '',
+                                name: bundle.name,
+                                price: bundle.price,
+                                originalPrice: bundle.originalPrice,
+                                image: bundle.image || '/placeholder.svg',
+                                category: "bundle",
+                                rating: bundle.rating || 5,
+                                reviews: bundle.reviews || 0,
+                                description: bundle.description || ''
+                              })
+                            }}
+                            onAddToWishlist={() => {}}
+                            onAddToComparison={() => {}}
+                            onProductView={() => {}}
+                            className="h-full"
+                          />
                         ))}
                       </div>
                     </div>
@@ -596,14 +561,14 @@ export default function FlavorPage() {
             </div>
 
             {/* Filter Bar */}
-            <div className="bg-white rounded-2xl p-6 mb-8">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
                 {/* Mobile filter toggle */}
                 <div className="lg:hidden">
                   <Button
                     onClick={() => setShowFilters(!showFilters)}
                     variant="outline"
-                    className="w-full flex items-center justify-between py-3 rounded-xl border-gray-200 hover:bg-gray-50"
+                    className="w-full flex items-center justify-between py-2.5 sm:py-3 rounded-xl border-gray-200 hover:bg-gray-50 text-sm"
                   >
                     <span className="flex items-center gap-2">
                       <Filter className="w-4 h-4" />
@@ -614,22 +579,22 @@ export default function FlavorPage() {
                 </div>
 
                 {/* Desktop filters */}
-                <div className={`${showFilters ? "block" : "hidden"} lg:flex space-y-4 lg:space-y-0 lg:items-center lg:gap-8`}>
+                <div className={`${showFilters ? "block" : "hidden"} lg:flex space-y-3 sm:space-y-4 lg:space-y-0 lg:items-center lg:gap-6 xl:gap-8`}>
                   {/* Search */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                     <div className="relative flex-1">
                       <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search flavors..."
-                        className="w-full pl-9 pr-3 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] focus:bg-white text-sm transition-all duration-200"
+                        className="w-full pl-9 pr-3 py-2.5 sm:py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] focus:bg-white text-sm transition-all duration-200"
                       />
                     </div>
                     {(selectedFilter !== "all" || searchQuery) && (
                       <button
                         onClick={clearFilters}
-                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 transition-colors duration-200"
+                        className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 transition-colors duration-200"
                       >
                         <X className="w-3.5 h-3.5" /> Clear
                       </button>
@@ -637,12 +602,12 @@ export default function FlavorPage() {
                   </div>
 
                   {/* Filter Dropdown */}
-                  <div className="flex flex-col space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Filters</label>
+                  <div className="flex flex-col space-y-1 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium text-gray-700">Filters</label>
                     <select
                       value={selectedFilter}
                       onChange={(e) => setSelectedFilter(e.target.value)}
-                      className="px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
+                      className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
                       aria-label="Filter products by category"
                     >
                       {filterOptions.map((option) => (
@@ -654,12 +619,12 @@ export default function FlavorPage() {
                   </div>
 
                   {/* Sort Filter */}
-                  <div className="flex flex-col space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Sort By</label>
+                  <div className="flex flex-col space-y-1 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium text-gray-700">Sort By</label>
                     <select
                       value={selectedSort}
                       onChange={(e) => setSelectedSort(e.target.value)}
-                      className="px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
+                      className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
                       aria-label="Sort products"
                     >
                       {sortOptions.map((option) => (
@@ -672,7 +637,7 @@ export default function FlavorPage() {
                 </div>
 
                 {/* Results count */}
-                <div className="text-sm text-gray-600 font-medium bg-gray-50 px-3 py-2 rounded-lg">
+                <div className="text-xs sm:text-sm text-gray-600 font-medium bg-gray-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg">
                   {(() => {
                     if (selectedFilter === "all") {
                       const count = allFlavors?.length || 0
@@ -700,10 +665,10 @@ export default function FlavorPage() {
             {selectedFilter === "all" ? (
               /* Show all subcategories with headlines when "All Flavors" is selected */
               subcategorySections.length > 0 && subcategorySections.map((section) => (
-                <div key={section._id} className="mb-16">
-                  <h2 className="text-xl font-medium mb-6 text-gray-900">{section.name}</h2>
+                <div key={section._id} className="mb-12 sm:mb-16">
+                  <h2 className="text-lg sm:text-xl font-medium mb-4 sm:mb-6 text-gray-900">{section.name}</h2>
                   {section.products.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                       {section.products.map((product) => renderProductCard(product))}
                     </div>
                   ) : (
