@@ -184,7 +184,7 @@ export default function CheckoutTestPage() {
     }
   }
 
-  if (state.items.length === 0) return null
+  // Temporarily disabled for testing - if (state.items.length === 0) return null
 
   return (
     <div className="min-h-screen bg-gray-50">

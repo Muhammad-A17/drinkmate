@@ -13,16 +13,14 @@ import { CheckCircle, AlertCircle, LockIcon, CreditCard, Loader2, Truck, MapPin,
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
-import { getImageUrl } from "@/lib/image-utils"
 
-export default function CheckoutPage() {
+export default function CheckoutTestPage() {
   const router = useRouter()
-  const { state, clearCart, removeItem, updateQuantity } = useCart()
+  const { state, clearCart, removeItem } = useCart()
   const { user } = useAuth()
   
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("urways")
   const [isProcessing, setIsProcessing] = useState(false)
-  const [isPageLoading, setIsPageLoading] = useState(true)
   
   // Card details state
   const [cardDetails, setCardDetails] = useState({
@@ -68,20 +66,10 @@ export default function CheckoutPage() {
   const total = subtotal + shippingCost + tax
 
   useEffect(() => {
-    console.log("Checkout page loaded, cart items:", state.items.length)
-    console.log("Cart state:", state)
-    
-    // Set loading to false after a short delay
-    const loadingTimer = setTimeout(() => {
-      setIsPageLoading(false)
-    }, 300)
-
     if (state.items.length === 0) {
       toast.error("Your cart is empty")
       // Don't redirect - let user stay on checkout page
     }
-
-    return () => clearTimeout(loadingTimer)
   }, [state.items.length, router])
 
   const handleCardDetailsChange = (field: string, value: string) => {
@@ -96,6 +84,11 @@ export default function CheckoutPage() {
       ...prev,
       [field]: value
     }))
+  }
+
+  const handleRemoveItem = (itemId: string | number) => {
+    removeItem(itemId)
+    toast.success("Item removed from cart")
   }
 
   const validateForm = () => {
@@ -153,33 +146,25 @@ export default function CheckoutPage() {
       const paymentRequest = {
         amount: total,
         currency: 'SAR',
-        orderId: orderResponse.orderId || `ORDER-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        orderId: orderResponse.orderId || `ORDER-${Date.now()}`,
         customerEmail: deliveryAddress.email,
         customerName: `${deliveryAddress.firstName} ${deliveryAddress.lastName}`,
-        description: `DrinkMate Order - ${state.itemCount} items`,
-        returnUrl: `${window.location.origin}/payment/success`,
-        cancelUrl: `${window.location.origin}/payment/cancel`
+        description: `DrinkMate Order - ${state.itemCount} items`
       }
 
-      let paymentResponse: any
+      let paymentResponse
       if (selectedPaymentMethod === "urways") {
-        // Call backend API directly
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
-        paymentResponse = await fetch(`${backendUrl}/payments/urways`, {
+        paymentResponse = await fetch('/api/payments/urways', {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null}`
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(paymentRequest)
         })
       } else {
-        // For Tap, use the payment service
-        paymentResponse = await paymentService.processTapPayment(paymentRequest)
-        // Convert to Response-like object for consistency
-        paymentResponse = {
-          json: () => Promise.resolve(paymentResponse)
-        }
+        paymentResponse = await fetch('/api/payments/tap', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(paymentRequest)
+        })
       }
 
       const paymentData = await paymentResponse.json()
@@ -199,46 +184,17 @@ export default function CheckoutPage() {
     }
   }
 
-  // Show loading screen while page initializes
-  if (isPageLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#12d6fa]" />
-          <p className="text-gray-600">Loading checkout...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Show empty cart message if no items
-  if (state.items.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
-          <p className="text-gray-600 mb-6">Please add items to your cart before checkout</p>
-          <Button 
-            onClick={() => router.push("/shop")}
-            className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white"
-          >
-            Continue Shopping
-          </Button>
-        </div>
-      </div>
-    )
-  }
+  if (state.items.length === 0) return null
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout Test</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Delivery Address */}
+          {/* Delivery Address - UNCHANGED */}
           <div className="lg:col-span-2 bg-white rounded-2xl px-6 pt-6 pb-6 shadow-lg self-start">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
               <MapPin className="w-6 h-6" />
@@ -247,120 +203,120 @@ export default function CheckoutPage() {
             
             <div>
               <div className="grid grid-cols-2 gap-4 mb-4">
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
-                   <input
-                     type="text"
-                     value={deliveryAddress.firstName}
-                     onChange={(e) => handleAddressChange("firstName", e.target.value)}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                     aria-label="First Name"
-                     placeholder="First Name"
-                     required
-                   />
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
-                   <input
-                     type="text"
-                     value={deliveryAddress.lastName}
-                     onChange={(e) => handleAddressChange("lastName", e.target.value)}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                     aria-label="Last Name"
-                     placeholder="Last Name"
-                     required
-                   />
-                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                  <input
+                    type="text"
+                    value={deliveryAddress.firstName}
+                    onChange={(e) => handleAddressChange("firstName", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                    aria-label="First Name"
+                    placeholder="First Name"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                  <input
+                    type="text"
+                    value={deliveryAddress.lastName}
+                    onChange={(e) => handleAddressChange("lastName", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                    aria-label="Last Name"
+                    placeholder="Last Name"
+                    required
+                  />
+                </div>
               </div>
               
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                 <input
-                   type="email"
-                   value={deliveryAddress.email}
-                   onChange={(e) => handleAddressChange("email", e.target.value)}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                   aria-label="Email"
-                   placeholder="Email"
-                   required
-                 />
+                <input
+                  type="email"
+                  value={deliveryAddress.email}
+                  onChange={(e) => handleAddressChange("email", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                  aria-label="Email"
+                  placeholder="Email"
+                  required
+                />
               </div>
               
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
-                 <input
-                   type="tel"
-                   value={deliveryAddress.phone}
-                   onChange={(e) => handleAddressChange("phone", e.target.value)}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                   aria-label="Phone"
-                   placeholder="Phone"
-                   required
-                 />
+                <input
+                  type="tel"
+                  value={deliveryAddress.phone}
+                  onChange={(e) => handleAddressChange("phone", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                  aria-label="Phone"
+                  placeholder="Phone"
+                  required
+                />
               </div>
               
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Address Line 1 *</label>
-                 <input
-                   type="text"
-                   value={deliveryAddress.address1}
-                   onChange={(e) => handleAddressChange("address1", e.target.value)}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                   aria-label="Address Line 1"
-                   placeholder="Address Line 1"
-                   required
-                 />
+                <input
+                  type="text"
+                  value={deliveryAddress.address1}
+                  onChange={(e) => handleAddressChange("address1", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                  aria-label="Address Line 1"
+                  placeholder="Address Line 1"
+                  required
+                />
               </div>
               
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Address Line 2</label>
-                 <input
-                   type="text"
-                   value={deliveryAddress.address2}
-                   onChange={(e) => handleAddressChange("address2", e.target.value)}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                   aria-label="Address Line 2"
-                   placeholder="Address Line 2 (optional)"
-                 />
+                <input
+                  type="text"
+                  value={deliveryAddress.address2}
+                  onChange={(e) => handleAddressChange("address2", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                  aria-label="Address Line 2"
+                  placeholder="Address Line 2 (optional)"
+                />
               </div>
               
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
-                   <input
-                     type="text"
-                     value={deliveryAddress.city}
-                     onChange={(e) => handleAddressChange("city", e.target.value)}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                     aria-label="City"
-                     placeholder="City"
-                     required
-                   />
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
-                   <input
-                     type="text"
-                     value={deliveryAddress.state}
-                     onChange={(e) => handleAddressChange("state", e.target.value)}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                     aria-label="State"
-                     placeholder="State"
-                     required
-                   />
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code *</label>
-                   <input
-                     type="text"
-                     value={deliveryAddress.postalCode}
-                     onChange={(e) => handleAddressChange("postalCode", e.target.value)}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                     aria-label="Postal Code"
-                     placeholder="Postal Code"
-                     required
-                   />
-                 </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                  <input
+                    type="text"
+                    value={deliveryAddress.city}
+                    onChange={(e) => handleAddressChange("city", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                    aria-label="City"
+                    placeholder="City"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
+                  <input
+                    type="text"
+                    value={deliveryAddress.state}
+                    onChange={(e) => handleAddressChange("state", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                    aria-label="State"
+                    placeholder="State"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code *</label>
+                  <input
+                    type="text"
+                    value={deliveryAddress.postalCode}
+                    onChange={(e) => handleAddressChange("postalCode", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                    aria-label="Postal Code"
+                    placeholder="Postal Code"
+                    required
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -387,7 +343,7 @@ export default function CheckoutPage() {
                       {/* Remove Button */}
                       <div className="col-span-1">
                         <button
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => handleRemoveItem(item.id)}
                           className="w-6 h-6 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center transition-colors"
                           aria-label="Remove item"
                         >
@@ -398,27 +354,12 @@ export default function CheckoutPage() {
                       {/* Product Image and Name - Increased Image Size */}
                       <div className="col-span-6 flex items-center space-x-3">
                         <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                          {(() => {
-                            const imageUrl = getImageUrl(item.image, '/placeholder.svg')
-                            console.log('Checkout - item data:', item)
-                            console.log('Checkout - original image:', item.image)
-                            console.log('Checkout - processed image:', imageUrl)
-                            
-                            return imageUrl !== '/placeholder.svg' ? (
-                        <Image
-                                src={imageUrl} 
-                          alt={item.name}
-                                fill 
-                                className="object-contain" 
-                                onError={() => console.log('Checkout image error:', imageUrl)}
-                                onLoad={() => console.log('Checkout image loaded:', imageUrl)}
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                <span className="text-xs text-gray-400">No Image</span>
-                              </div>
-                            )
-                          })()}
+                          <Image 
+                            src={item.image || "/placeholder.svg"} 
+                            alt={item.name} 
+                            fill 
+                            className="object-contain" 
+                          />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
@@ -487,89 +428,89 @@ export default function CheckoutPage() {
             <div className="border-t border-gray-200 pt-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Payment Method</h2>
               
-                {/* Urways - Priority */}
-                <div
+              {/* Urways - Priority */}
+              <div
                 className={`border-2 rounded-lg p-3 cursor-pointer transition-all duration-200 mb-3 ${
-                    selectedPaymentMethod === "urways"
-                      ? "border-[#12d6fa] bg-[#12d6fa]/5"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                  onClick={() => setSelectedPaymentMethod("urways")}
-                >
-                  <div className="flex items-center justify-between">
+                  selectedPaymentMethod === "urways"
+                    ? "border-[#12d6fa] bg-[#12d6fa]/5"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+                onClick={() => setSelectedPaymentMethod("urways")}
+              >
+                <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-6 rounded flex items-center justify-center">
-                        <Image
-                          src="/images/payment-logos/urways-logo.svg"
-                          alt="Urways"
+                      <Image
+                        src="/images/payment-logos/urways-logo.svg"
+                        alt="Urways"
                         width={40}
                         height={24}
-                          className="object-contain"
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
+                        className="object-contain"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
                         <h3 className="font-semibold text-gray-900 text-sm">Urways</h3>
-                          <span className="bg-[#12d6fa] text-white text-xs px-2 py-1 rounded-full">
-                            Recommended
-                          </span>
+                        <span className="bg-[#12d6fa] text-white text-xs px-2 py-1 rounded-full">
+                          Recommended
+                        </span>
                       </div>
                       <p className="text-xs text-gray-600">Secure payment gateway</p>
                     </div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border-2 ${
-                      selectedPaymentMethod === "urways"
-                        ? "border-[#12d6fa] bg-[#12d6fa]"
-                        : "border-gray-300"
-                    }`}>
-                      {selectedPaymentMethod === "urways" && (
-                        <div className="w-full h-full rounded-full bg-[#12d6fa] flex items-center justify-center">
+                    selectedPaymentMethod === "urways"
+                      ? "border-[#12d6fa] bg-[#12d6fa]"
+                      : "border-gray-300"
+                  }`}>
+                    {selectedPaymentMethod === "urways" && (
+                      <div className="w-full h-full rounded-full bg-[#12d6fa] flex items-center justify-center">
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
+              </div>
 
-                {/* Tap Payment */}
-                <div
+              {/* Tap Payment */}
+              <div
                 className={`border-2 rounded-lg p-3 cursor-pointer transition-all duration-200 mb-4 ${
-                    selectedPaymentMethod === "tap"
-                      ? "border-[#12d6fa] bg-[#12d6fa]/5"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                  onClick={() => setSelectedPaymentMethod("tap")}
-                >
-                  <div className="flex items-center justify-between">
+                  selectedPaymentMethod === "tap"
+                    ? "border-[#12d6fa] bg-[#12d6fa]/5"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+                onClick={() => setSelectedPaymentMethod("tap")}
+              >
+                <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-6 rounded flex items-center justify-center">
-                        <Image
-                          src="/images/payment-logos/tap-logo.svg"
-                          alt="Tap Payment"
+                      <Image
+                        src="/images/payment-logos/tap-logo.svg"
+                        alt="Tap Payment"
                         width={40}
                         height={24}
-                          className="object-contain"
-                        />
-                      </div>
-                      <div>
+                        className="object-contain"
+                      />
+                    </div>
+                    <div>
                       <h3 className="font-semibold text-gray-900 text-sm">Tap Payment</h3>
                       <p className="text-xs text-gray-600">Fast and secure digital payments</p>
                     </div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border-2 ${
-                      selectedPaymentMethod === "tap"
-                        ? "border-[#12d6fa] bg-[#12d6fa]"
-                        : "border-gray-300"
-                    }`}>
-                      {selectedPaymentMethod === "tap" && (
-                        <div className="w-full h-full rounded-full bg-[#12d6fa] flex items-center justify-center">
+                    selectedPaymentMethod === "tap"
+                      ? "border-[#12d6fa] bg-[#12d6fa]"
+                      : "border-gray-300"
+                  }`}>
+                    {selectedPaymentMethod === "tap" && (
+                      <div className="w-full h-full rounded-full bg-[#12d6fa] flex items-center justify-center">
                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                        </div>
-                      )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-              
+
               {/* Card Details Form */}
               {(selectedPaymentMethod === "urways" || selectedPaymentMethod === "tap") && (
                 <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
@@ -631,9 +572,9 @@ export default function CheckoutPage() {
                         >
                           <option value="">YYYY</option>
                           {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map(year => (
-                              <option key={year} value={year}>
-                                {year}
-                              </option>
+                            <option key={year} value={year}>
+                              {year}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -653,7 +594,6 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               )}
-            </div>
 
               <Button
                 onClick={handlePayment}
@@ -672,6 +612,7 @@ export default function CheckoutPage() {
                   </>
                 )}
               </Button>
+            </div>
           </div>
         </div>
       </div>

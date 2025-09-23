@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import BundleStyleProductCard from './BundleStyleProductCard'
@@ -9,6 +9,7 @@ import { ProductGridProps, Product } from '@/types/product'
 import { useCart } from '@/hooks/use-cart'
 import { useCartAnimations } from '@/hooks/use-cart-animations'
 import CartNotification from '@/components/cart/CartNotification'
+import { getProductImageUrl, getImageUrl } from '@/lib/image-utils'
 
 const EmptyState = ({ onRetry, isRTL }: { onRetry?: () => void; isRTL?: boolean }) => (
   <div className="text-center py-16">
@@ -69,6 +70,12 @@ export default function ProductGrid({
 
   // Convert old product format to new format if needed
   const convertProduct = (product: any): Product => {
+    // Add safety check for undefined product
+    if (!product) {
+      console.error('convertProduct called with undefined product')
+      throw new Error('Product is undefined')
+    }
+    
     // If it's already in the new format, return as is
     if (product.id && product.slug) {
       return product
@@ -88,20 +95,11 @@ export default function ProductGrid({
     const productTitle = product.name || product.title || 'product'
     const productSlug = product.slug || generateSlug(productTitle, productId)
     
-    // Get the primary image and ensure it's an absolute URL
-    let primaryImage = product.images?.[0]?.url || product.image || '/placeholder-product.jpg'
-    
-    // Convert relative URLs to absolute URLs
-    if (primaryImage && !primaryImage.startsWith('http')) {
-      if (primaryImage.startsWith('/')) {
-        primaryImage = `http://localhost:3000${primaryImage}`
-      } else if (primaryImage.trim() !== "" && !primaryImage.includes("undefined")) {
-        primaryImage = `http://localhost:3000/${primaryImage}`
-      }
-    }
+    // Get the primary image using the utility function
+    const primaryImage = getProductImageUrl(product, '/placeholder-product.jpg')
 
     // Convert from old format
-    return {
+    const convertedProduct = {
       id: productId,
       slug: productSlug,
       title: productTitle,
@@ -111,18 +109,11 @@ export default function ProductGrid({
       reviewCount: product.reviewsCount || product.reviewCount,
       price: product.price || 0,
       compareAtPrice: product.compareAtPrice,
-      inStock: (product.stock || 0) > 0,
+      inStock: product.inStock !== false,
       badges: product.badges || [],
       variants: product.variants?.map((v: any) => {
-        // Convert variant image to absolute URL
-        let variantImage = v.image || product.images?.[0]?.url || primaryImage
-        if (variantImage && !variantImage.startsWith('http')) {
-          if (variantImage.startsWith('/')) {
-            variantImage = `http://localhost:3000${variantImage}`
-          } else if (variantImage.trim() !== "" && !variantImage.includes("undefined")) {
-            variantImage = `http://localhost:3000/${variantImage}`
-          }
-        }
+        // Get variant image using the utility function
+        const variantImage = getImageUrl(v.image || product.images?.[0] || primaryImage, primaryImage)
         
         return {
           id: v._id || v.id || `variant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -139,20 +130,47 @@ export default function ProductGrid({
       brand: product.brand,
       tags: product.tags || []
     }
+    
+    console.log('ProductGrid - original product:', product)
+    console.log('ProductGrid - converted product inStock:', convertedProduct.inStock)
+    console.log('ProductGrid - original product inStock:', product.inStock)
+    console.log('ProductGrid - original product stock:', product.stock)
+    
+    return convertedProduct
   }
 
+  // Convert all products once for consistent data
+  const convertedProducts = useMemo(() => {
+    return products.map(product => convertProduct(product))
+  }, [products])
+
   const handleAddToCart = (payload: { productId: string; variantId?: string; qty: number }) => {
-    const product = convertProduct(products.find(p => p.id === payload.productId)!)
+    console.log('handleAddToCart called with payload:', payload)
+    console.log('Available converted products:', convertedProducts.map(p => ({ id: p.id, title: p.title })))
+    
+    const product = convertedProducts.find(p => p.id === payload.productId)
+    console.log('Found product:', product)
+    
+    if (!product) {
+      console.error('Product not found with ID:', payload.productId)
+      console.error('Available product IDs:', convertedProducts.map(p => p.id))
+      return
+    }
+    
+    // Use the same image URL that's displayed on the shop page
+    const displayImage = getProductImageUrl(product, '/placeholder-product.jpg')
+    console.log('Display image (processed):', displayImage)
     
     const cartItem = {
       id: payload.productId,
       name: product.title,
       price: product.price,
       quantity: payload.qty,
-      image: product.image,
+      image: displayImage, // Use the processed image URL
       category: product.category || 'Product'
     }
 
+    console.log('Final cart item:', cartItem)
     addItem(cartItem)
     triggerAddAnimation(cartItem)
   }
@@ -163,10 +181,10 @@ export default function ProductGrid({
         dir={dir}
         className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 items-stretch ${className}`}
       >
-        {products.map((product, index) => (
+        {convertedProducts.map((product, index) => (
           <BundleStyleProductCard
             key={product.id || `product-${index}`}
-            product={convertProduct(product)}
+            product={product}
             dir={dir}
             onAddToCart={handleAddToCart}
             onAddToWishlist={onAddToWishlist}
@@ -184,8 +202,8 @@ export default function ProductGrid({
         isVisible={animationState.showNotification}
         onClose={hideNotification}
         onViewCart={() => {
-          // Navigate to cart page
-          window.location.href = '/cart'
+          // Don't navigate automatically - just close the notification
+          hideNotification()
         }}
       />
     </>

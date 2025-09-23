@@ -43,9 +43,12 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
     case 'ADD_ITEM': {
+      console.log('Cart reducer - ADD_ITEM:', action.payload)
+      console.log('Cart reducer - payload image:', action.payload.image)
       const existingItem = state.items.find(item => item.id === action.payload.id)
       
       if (existingItem) {
+        console.log('Cart reducer - updating existing item')
         // Update quantity if item already exists
         const updatedItems = state.items.map(item =>
           item.id === action.payload.id
@@ -62,10 +65,13 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
           itemCount: newItemCount
         }
       } else {
+        console.log('Cart reducer - adding new item')
         // Add new item
         const newItems = [...state.items, action.payload]
         const newTotal = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
         const newItemCount = newItems.reduce((sum, item) => sum + item.quantity, 0)
+        
+        console.log('Cart reducer - new items:', newItems)
         
         return {
           ...state,
@@ -170,6 +176,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Memoize cart operations to prevent unnecessary re-renders
   const addItem = useCallback((item: CartItem) => {
+    console.log('Cart context - adding item:', item)
+    console.log('Cart context - item image:', item.image)
+    console.log('Cart context - item image type:', typeof item.image)
     dispatch({ type: 'ADD_ITEM', payload: item })
   }, [])
 

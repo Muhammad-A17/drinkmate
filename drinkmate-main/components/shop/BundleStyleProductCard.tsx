@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { Star, ShoppingCart, Heart, Eye, Zap, Award, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
+import { getProductImageUrl } from "@/lib/image-utils"
 
 export default function BundleStyleProductCard({
   product,
@@ -35,27 +36,37 @@ export default function BundleStyleProductCard({
   // Get the best available image
   const getBestImage = () => {
     if (imageLoadError) return "/placeholder.svg"
-    
-    if (product.images && product.images.length > 0) {
-      const primaryImage = product.images.find(img => img.isPrimary)
-      if (primaryImage?.url) return primaryImage.url
-      return product.images[0]?.url || product.image
-    }
-    return product.image
+    return getProductImageUrl(product, "/placeholder.svg")
   }
 
-  const onAdd = async () => {
+  const onAdd = async (e: React.MouseEvent) => {
+    console.log('Add to cart button clicked!', { 
+      productId: product.id, 
+      productTitle: product.title,
+      onAddToCart: !!onAddToCart, 
+      isAddingToCart 
+    })
+    e.preventDefault()
+    e.stopPropagation()
+    
     if (onAddToCart && !isAddingToCart) {
+      const payload = {
+        productId: product.id,
+        variantId: hasVariants ? product.variants?.[0]?.id : undefined,
+        qty: 1
+      }
+      console.log('Calling onAddToCart with payload:', payload)
       setIsAddingToCart(true)
       try {
-        await onAddToCart({
-          productId: product.id,
-          variantId: hasVariants ? product.variants?.[0]?.id : undefined,
-          qty: 1
-        })
+        await onAddToCart(payload)
+        console.log('onAddToCart completed successfully')
+      } catch (error) {
+        console.error('Error in onAddToCart:', error)
       } finally {
         setTimeout(() => setIsAddingToCart(false), 1000)
       }
+    } else {
+      console.log('onAddToCart not called because:', { onAddToCart: !!onAddToCart, isAddingToCart })
     }
   }
 
@@ -65,6 +76,11 @@ export default function BundleStyleProductCard({
     : 0
 
   const isInStock = product.inStock
+  
+  console.log('BundleStyleProductCard - product:', product)
+  console.log('BundleStyleProductCard - isInStock:', isInStock)
+  console.log('BundleStyleProductCard - isAddingToCart:', isAddingToCart)
+  console.log('BundleStyleProductCard - button disabled:', !isInStock || isAddingToCart)
 
   return (
     <div
@@ -306,7 +322,7 @@ export default function BundleStyleProductCard({
               </span>
             </div>
             
-            <Button
+            <button
               onClick={onAdd}
               disabled={!isInStock || isAddingToCart}
               className={cn(
@@ -315,7 +331,8 @@ export default function BundleStyleProductCard({
                 "transition-all duration-300 transform hover:scale-105 hover:shadow-xl",
                 "disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
                 "flex items-center gap-1.5 shadow-lg border border-cyan-300/20",
-                "relative overflow-hidden whitespace-nowrap min-w-[120px] sm:min-w-[130px] flex-shrink-0"
+                "relative overflow-hidden whitespace-nowrap min-w-[120px] sm:min-w-[130px] flex-shrink-0",
+                "cursor-pointer"
               )}
             >
               {isAddingToCart ? (
@@ -330,7 +347,7 @@ export default function BundleStyleProductCard({
                 </>
               )}
               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-            </Button>
+            </button>
           </div>
         </div>
       </div>
