@@ -6,7 +6,7 @@ const getAllRecipes = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 12,
+      limit = 25,
       category,
       difficulty,
       featured,
@@ -16,11 +16,22 @@ const getAllRecipes = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    // Build filter object - default to published recipes for public API
-    const filter = { published: true };
+    // Build filter object - show all recipes for admin users, published only for public
+    const filter = {};
+    
+    // Only filter by published status if not an admin user
+    if (!req.user || !req.user.isAdmin) {
+      filter.published = true;
+    }
+    
     if (category) filter.category = category;
     if (difficulty) filter.difficulty = difficulty;
     if (featured) filter.featured = featured === 'true';
+    
+    // Allow admin to filter by published status if explicitly requested
+    if (req.user && req.user.isAdmin && published !== undefined) {
+      filter.published = published === 'true';
+    }
 
     // Add search functionality
     if (search) {
@@ -145,7 +156,7 @@ const createRecipe = async (req, res) => {
 
     const recipeData = {
       ...req.body,
-      author: req.user.id
+      author: req.user?.id || null
     };
 
     const recipe = new Recipe(recipeData);
@@ -261,7 +272,7 @@ const getFeaturedRecipes = async (req, res) => {
 const getRecipesByCategory = async (req, res) => {
   try {
     const { category } = req.params;
-    const { limit = 12 } = req.query;
+    const { limit = 25 } = req.query;
 
     const recipes = await Recipe.findByCategory(category, parseInt(limit));
 

@@ -45,7 +45,7 @@ export default function AnimatedCartItem({
     // Add a small delay for smooth animation
     await new Promise(resolve => setTimeout(resolve, 150))
     
-    onUpdateQuantity(item.id, newQuantity)
+    onUpdateQuantity(item.id || '', newQuantity)
     setIsUpdating(false)
   }
 
@@ -55,7 +55,7 @@ export default function AnimatedCartItem({
     // Wait for exit animation to complete
     await new Promise(resolve => setTimeout(resolve, 300))
     
-    onRemove(item.id)
+    onRemove(item.id || '')
   }
 
   const handleIncrement = () => {
@@ -209,7 +209,7 @@ export default function AnimatedCartItem({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onMoveToWishlist(item.id)}
+                    onClick={() => onMoveToWishlist(item.id || '')}
                     className="h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50"
                   >
                     <Heart className="w-4 h-4" />

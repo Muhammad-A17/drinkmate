@@ -854,48 +854,105 @@ export default function ProductsPage() {
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <div className="flex items-center space-x-1">
-                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                        // Show first page, last page, current page, and pages around current
-                        let pageToShow = i + 1;
-                        if (totalPages > 5) {
-                          if (currentPage > 3 && i === 0) {
-                            pageToShow = 1;
-                          } else if (currentPage > 3 && i === 1) {
-                            return (
+                      {(() => {
+                        const pages = [];
+                        const maxVisiblePages = 5;
+                        
+                        if (totalPages <= maxVisiblePages) {
+                          // Show all pages if total is 5 or less
+                          for (let i = 1; i <= totalPages; i++) {
+                            pages.push(
+                              <Button
+                                key={`page-${i}`}
+                                variant={currentPage === i ? "default" : "outline"}
+                                size="icon"
+                                onClick={() => paginate(i)}
+                                className={currentPage === i ? "bg-[#12d6fa] hover:bg-[#0fb8d9]" : ""}
+                              >
+                                {i}
+                              </Button>
+                            );
+                          }
+                        } else {
+                          // Complex pagination for more than 5 pages
+                          const showEllipsis = totalPages > 7;
+                          const startPage = Math.max(1, currentPage - 2);
+                          const endPage = Math.min(totalPages, currentPage + 2);
+                          
+                          // Track which pages we've already added to avoid duplicates
+                          const addedPages = new Set();
+                          
+                          // Always show first page
+                          if (!addedPages.has(1)) {
+                            pages.push(
+                              <Button
+                                key="page-1"
+                                variant={currentPage === 1 ? "default" : "outline"}
+                                size="icon"
+                                onClick={() => paginate(1)}
+                                className={currentPage === 1 ? "bg-[#12d6fa] hover:bg-[#0fb8d9]" : ""}
+                              >
+                                1
+                              </Button>
+                            );
+                            addedPages.add(1);
+                          }
+                          
+                          // Show ellipsis if needed
+                          if (showEllipsis && startPage > 2) {
+                            pages.push(
                               <span key="ellipsis-start" className="px-2">
                                 ...
                               </span>
                             );
-                          } else if (currentPage > 3 && i < 4) {
-                            pageToShow = currentPage + i - 2;
-                          } else if (i === 4) {
-                            if (currentPage + 2 >= totalPages) {
-                              pageToShow = totalPages;
-                            } else {
-                              return (
-                                <span key="ellipsis-end" className="px-2">
-                                  ...
-                                </span>
+                          }
+                          
+                          // Show middle pages
+                          for (let i = startPage; i <= endPage; i++) {
+                            if (i !== 1 && i !== totalPages && !addedPages.has(i)) {
+                              pages.push(
+                                <Button
+                                  key={`page-${i}`}
+                                  variant={currentPage === i ? "default" : "outline"}
+                                  size="icon"
+                                  onClick={() => paginate(i)}
+                                  className={currentPage === i ? "bg-[#12d6fa] hover:bg-[#0fb8d9]" : ""}
+                                >
+                                  {i}
+                                </Button>
                               );
+                              addedPages.add(i);
                             }
+                          }
+                          
+                          // Show ellipsis if needed
+                          if (showEllipsis && endPage < totalPages - 1) {
+                            pages.push(
+                              <span key="ellipsis-end" className="px-2">
+                                ...
+                              </span>
+                            );
+                          }
+                          
+                          // Always show last page
+                          if (totalPages > 1 && !addedPages.has(totalPages)) {
+                            pages.push(
+                              <Button
+                                key={`page-${totalPages}`}
+                                variant={currentPage === totalPages ? "default" : "outline"}
+                                size="icon"
+                                onClick={() => paginate(totalPages)}
+                                className={currentPage === totalPages ? "bg-[#12d6fa] hover:bg-[#0fb8d9]" : ""}
+                              >
+                                {totalPages}
+                              </Button>
+                            );
+                            addedPages.add(totalPages);
                           }
                         }
                         
-                        if (pageToShow <= totalPages) {
-                          return (
-                            <Button
-                              key={pageToShow}
-                              variant={currentPage === pageToShow ? "default" : "outline"}
-                              size="icon"
-                              onClick={() => paginate(pageToShow)}
-                              className={currentPage === pageToShow ? "bg-[#12d6fa] hover:bg-[#0fb8d9]" : ""}
-                            >
-                              {pageToShow}
-                            </Button>
-                          );
-                        }
-                        return null;
-                      })}
+                        return pages;
+                      })()}
                     </div>
                     <Button
                       variant="outline"

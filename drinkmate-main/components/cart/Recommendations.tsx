@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { Currency } from '@/utils/currency'
 import { useCart } from '@/hooks/use-cart'
 import { useCartSettings } from '@/lib/cart-settings-context'
+import { getImageUrl } from '@/lib/image-utils'
 
 interface RecItem {
   id: string | number
@@ -86,8 +87,8 @@ function ProductCard({ p, onAdd }: { p: RecItem; onAdd: () => void }) {
     <div className="rounded-soft border border-ink-200 hover:border-brand/60 transition-all duration-300 p-3 h-full flex flex-col group hover:shadow-lg">
       <div className="relative overflow-hidden rounded-md">
         <Image 
-          src={p.image || "/placeholder.svg"} 
-          alt={p.name} 
+          src={getImageUrl(p.image)} 
+          alt={p.name || 'Product'} 
           width={320} 
           height={320} 
           className="rounded-md object-cover aspect-[4/5] transition-transform duration-300 group-hover:scale-105" 

@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Skeleton } from "@/components/ui/skeleton"
 import { FreeGiftProduct } from "@/lib/freeGift"
 import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
+import { getImageUrl } from "@/lib/image-utils"
 
 interface FreeGiftGridProps {
   options: FreeGiftProduct[]
@@ -37,8 +38,8 @@ function GiftCard({
     >
       <div className="relative h-24 bg-white rounded-xl mb-3 flex items-center justify-center overflow-hidden">
         <Image
-          src={product.image || "/placeholder.svg"}
-          alt={product.name}
+          src={getImageUrl(product.image)}
+          alt={product.name || 'Product'}
           width={60}
           height={60}
           className="object-contain"

@@ -152,7 +152,7 @@ const refillOrderSchema = new mongoose.Schema({
 // Indexes for better query performance
 refillOrderSchema.index({ userId: 1, status: 1 });
 refillOrderSchema.index({ status: 1, createdAt: -1 });
-refillOrderSchema.index({ orderNumber: 1 });
+// orderNumber index removed - already has unique: true which creates an index
 refillOrderSchema.index({ userEmail: 1 });
 
 // Virtual for order age

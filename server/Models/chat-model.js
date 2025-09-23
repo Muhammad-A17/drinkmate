@@ -211,7 +211,7 @@ const chatSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-chatSchema.index({ sessionId: 1 });
+// sessionId index removed - already has unique: true which creates an index
 chatSchema.index({ 'customer.email': 1 });
 chatSchema.index({ status: 1, lastMessageAt: -1 });
 chatSchema.index({ assignedTo: 1, status: 1 });

@@ -168,7 +168,7 @@ co2CylinderSchema.index({ brand: 1, type: 1 });
 co2CylinderSchema.index({ status: 1, isAvailable: 1 });
 co2CylinderSchema.index({ price: 1 });
 co2CylinderSchema.index({ isBestSeller: 1, isFeatured: 1 });
-co2CylinderSchema.index({ slug: 1 });
+// slug index removed - already has unique: true which creates an index
 co2CylinderSchema.index({ averageRating: -1 });
 co2CylinderSchema.index({ totalReviews: -1 });
 co2CylinderSchema.index({ createdAt: -1 });

@@ -10,6 +10,7 @@ import Image from 'next/image'
 import { Currency } from '@/utils/currency'
 import Link from 'next/link'
 import { useCartSettings } from '@/lib/cart-settings-context'
+import { getImageUrl } from '@/lib/image-utils'
 
 interface CartPopupProps {
   isOpen: boolean
@@ -105,9 +106,14 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                   </div>
                 ) : (
                   <div className="p-2 sm:p-3 md:p-4 space-y-2 sm:space-y-3">
-                    {items.map((item) => (
+                    {items.map((item, index) => {
+                      // Debug: Log item structure to understand why id might be undefined
+                      if (process.env.NODE_ENV === 'development') {
+                        console.log('Cart item:', item, 'Index:', index);
+                      }
+                      return (
                       <motion.div
-                        key={item.id}
+                        key={item.id || `item-${index}`}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, x: -20 }}
@@ -116,8 +122,8 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                         {/* Product Image */}
                         <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex-shrink-0">
                           <Image
-                            src={item.image || '/placeholder.svg'}
-                            alt={item.name}
+                            src={getImageUrl(item.image)}
+                            alt={item.name || 'Product image'}
                             fill
                             className="object-cover rounded-md"
                           />
@@ -139,7 +145,7 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                                  disabled={isUpdating === item.id.toString()}
+                                  disabled={isUpdating === (item.id?.toString() || '')}
                                   className="h-5 w-5 sm:h-6 sm:w-6 p-0 hover:bg-[#12d6fa]/10 text-gray-600 hover:text-[#12d6fa]"
                                 >
                                   <Minus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -151,7 +157,7 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                                  disabled={isUpdating === item.id.toString()}
+                                  disabled={isUpdating === (item.id?.toString() || '')}
                                   className="h-5 w-5 sm:h-6 sm:w-6 p-0 hover:bg-[#12d6fa]/10 text-gray-600 hover:text-[#12d6fa]"
                                 >
                                   <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -169,7 +175,8 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                           </div>
                         </div>
                       </motion.div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
