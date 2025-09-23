@@ -27,15 +27,15 @@ export default function CartItemRow({ item }: CartItemRowProps) {
 
   const onDecrement = () => {
     if (item.quantity === 1) setConfirmDelete(true)
-    else updateQuantity(String(item.id), item.quantity - 1)
+    else updateQuantity(String(item.id || ''), item.quantity - 1)
   }
 
   const onIncrement = () => {
-    updateQuantity(String(item.id), item.quantity + 1)
+    updateQuantity(String(item.id || ''), item.quantity + 1)
   }
 
   const handleRemove = () => {
-    removeItem(String(item.id))
+    removeItem(String(item.id || ''))
     setConfirmDelete(false)
   }
 
@@ -90,7 +90,7 @@ export default function CartItemRow({ item }: CartItemRowProps) {
               value={item.quantity}
               onChange={(e) => {
                 const v = Number(e.target.value.replace(/\D/g, '')) || 1
-                updateQuantity(String(item.id), Math.max(1, v))
+                updateQuantity(String(item.id || ''), Math.max(1, v))
               }}
               className="w-10 h-9 text-center outline-none font-medium transition-all duration-150 focus:bg-ink-50"
             />
@@ -106,7 +106,7 @@ export default function CartItemRow({ item }: CartItemRowProps) {
           <div className="flex items-center gap-4 text-sm">
             <button 
               className="text-brand hover:underline" 
-              onClick={() => saveForLater(String(item.id))}
+              onClick={() => saveForLater(String(item.id || ''))}
             >
               {getText('general.saveForLaterEn')}
             </button>

@@ -36,7 +36,7 @@ export default function CartLineItem({
 
   const handleRemove = () => {
     setIsRemoving(true)
-    onRemove(item.id)
+    onRemove(item.id || '')
     toast.success(`${item.name} removed from cart`, {
       duration: 3000,
     })
@@ -54,7 +54,7 @@ export default function CartLineItem({
     setIsHighlighting(true)
     setTimeout(() => setIsHighlighting(false), 120)
     
-    onQuantityChange(item.id, newQuantity)
+    onQuantityChange(item.id || '', newQuantity)
   }
 
   const lineTotal = item.price * item.quantity
