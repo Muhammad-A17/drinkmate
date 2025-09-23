@@ -5,6 +5,7 @@ import { Currency } from '@/utils/currency'
 import { useCart } from '@/hooks/use-cart'
 import { useCartSettings } from '@/lib/cart-settings-context'
 import { useState } from 'react'
+import { getImageUrl } from '@/lib/image-utils'
 
 interface CartItem {
   id: string | number
@@ -42,8 +43,8 @@ export default function CartItemRow({ item }: CartItemRowProps) {
     <div className="flex gap-4 items-start group hover:bg-ink-50/50 transition-colors duration-200 p-2 -m-2 rounded-lg">
       <div className="relative overflow-hidden rounded-md flex-shrink-0">
         <Image
-          src={item.image || "/placeholder.svg"}
-          alt={item.name}
+          src={getImageUrl(item.image)}
+          alt={item.name || 'Product'}
           width={80}
           height={80}
           className="rounded-md bg-ink-100 object-cover transition-transform duration-300 group-hover:scale-105"

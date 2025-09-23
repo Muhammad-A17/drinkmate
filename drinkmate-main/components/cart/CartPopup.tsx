@@ -10,6 +10,7 @@ import Image from 'next/image'
 import { Currency } from '@/utils/currency'
 import Link from 'next/link'
 import { useCartSettings } from '@/lib/cart-settings-context'
+import { getImageUrl } from '@/lib/image-utils'
 
 interface CartPopupProps {
   isOpen: boolean
@@ -116,8 +117,8 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                         {/* Product Image */}
                         <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex-shrink-0">
                           <Image
-                            src={item.image || '/placeholder.svg'}
-                            alt={item.name}
+                            src={getImageUrl(item.image)}
+                            alt={item.name || 'Product image'}
                             fill
                             className="object-cover rounded-md"
                           />

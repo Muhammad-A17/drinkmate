@@ -7,6 +7,7 @@ import { fmt } from "@/lib/money"
 import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
 import QuantityControl from "./QuantityControl"
 import { toast } from "sonner"
+import { getImageUrl } from "@/lib/image-utils"
 
 interface CartLineItemProps {
   item: {
@@ -67,8 +68,8 @@ export default function CartLineItem({
       {/* Image */}
       <div className="relative w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border border-black/10 bg-white">
         <Image
-          src={item.image || "/placeholder.svg"}
-          alt={item.name}
+          src={getImageUrl(item.image)}
+          alt={item.name || 'Product'}
           fill
           className="object-contain p-2"
           sizes="88px"

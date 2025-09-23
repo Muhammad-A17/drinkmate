@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { FreeGiftProduct } from "@/lib/freeGift"
 import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
+import { getImageUrl } from "@/lib/image-utils"
 
 interface FreeGiftSelectedCardProps {
   item: FreeGiftProduct
@@ -30,8 +31,8 @@ export default function FreeGiftSelectedCard({
       <div className="flex items-center gap-3">
         <div className="relative h-16 w-16 bg-white rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
           <Image
-            src={item.image || "/placeholder.svg"}
-            alt={item.name}
+            src={getImageUrl(item.image)}
+            alt={item.name || 'Free gift'}
             width={40}
             height={40}
             className="object-contain"

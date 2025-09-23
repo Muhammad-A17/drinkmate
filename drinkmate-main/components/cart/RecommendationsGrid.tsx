@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "sonner"
+import { getImageUrl } from "@/lib/image-utils"
 
 interface Recommendation {
   id: number
@@ -52,8 +53,8 @@ function RecCard({ product, onAddToCart }: { product: Recommendation; onAddToCar
     <article className="rounded-2xl border border-black/10 bg-white p-4 shadow-[0_6px_20px_rgba(0,0,0,.04)] hover:shadow-[0_8px_25px_rgba(0,0,0,.08)] transition-all duration-200">
       <div className="rounded-xl bg-white/70 aspect-[4/3] grid place-items-center mb-3 overflow-hidden">
         <Image
-          src={product.image || "/placeholder.svg"}
-          alt={product.name}
+          src={getImageUrl(product.image)}
+          alt={product.name || 'Product'}
           width={120}
           height={90}
           className="h-full w-full object-contain"

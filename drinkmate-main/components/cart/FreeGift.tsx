@@ -5,6 +5,7 @@ import { useCart } from '@/hooks/use-cart'
 import { useCartSettings } from '@/lib/cart-settings-context'
 import { Gift, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { getImageUrl } from '@/lib/image-utils'
 
 interface FreeGiftProduct {
   id: string | number
@@ -158,8 +159,8 @@ export default function FreeGift() {
                 isSelected ? 'bg-green-100' : 'group-hover:bg-ink-50'
               }`}>
                 <Image
-                  src={gift.image || "/placeholder.svg"}
-                  alt={gift.name}
+                  src={getImageUrl(gift.image)}
+                  alt={gift.name || 'Free gift'}
                   width={80}
                   height={80}
                   className="object-contain transition-transform duration-300 group-hover:scale-110"
