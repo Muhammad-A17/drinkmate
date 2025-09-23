@@ -1,0 +1,2727 @@
+{
+  "timestamp": "2025-09-23T12:15:31.307Z",
+  "count": 45,
+  "recipes": [
+    {
+      "_id": "68d11dd1bbe4236d27a64fe3",
+      "title": "Minimal Recipe Test",
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "ingredients": [],
+      "instructions": [],
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T09:58:41.233Z",
+      "updatedAt": "2025-09-22T09:58:41.233Z",
+      "slug": "minimal-recipe-test",
+      "__v": 0
+    },
+    {
+      "_id": "68d121fdf7974c1f15e72a0d",
+      "title": "Test Recipe with Ingredients",
+      "description": "A test recipe with multiple ingredients and instructions",
+      "ingredients": [
+        {
+          "name": "Sugar",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68d121fdf7974c1f15e72a0e"
+        },
+        {
+          "name": "Water",
+          "amount": "2",
+          "unit": "",
+          "_id": "68d121fdf7974c1f15e72a0f"
+        },
+        {
+          "name": "Lemon",
+          "amount": "1",
+          "unit": "piece",
+          "_id": "68d121fdf7974c1f15e72a10"
+        },
+        {
+          "name": "Ice",
+          "amount": "5",
+          "unit": "",
+          "_id": "68d121fdf7974c1f15e72a11"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Mix sugar with water",
+          "_id": "68d121fdf7974c1f15e72a12"
+        },
+        {
+          "step": 2,
+          "instruction": "Add lemon juice",
+          "_id": "68d121fdf7974c1f15e72a13"
+        },
+        {
+          "step": 3,
+          "instruction": "Stir well",
+          "_id": "68d121fdf7974c1f15e72a14"
+        },
+        {
+          "step": 4,
+          "instruction": "Add ice and serve",
+          "_id": "68d121fdf7974c1f15e72a15"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T10:16:29.303Z",
+      "updatedAt": "2025-09-22T10:16:29.303Z",
+      "slug": "test-recipe-with-ingredients",
+      "__v": 0
+    },
+    {
+      "_id": "68d12608d04ca9b8733cfdb9",
+      "title": "Test Recipe Debug",
+      "description": "Testing recipe creation",
+      "ingredients": [
+        {
+          "name": "Sugar",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68d12608d04ca9b8733cfdba"
+        },
+        {
+          "name": "Water",
+          "amount": "2",
+          "unit": "",
+          "_id": "68d12608d04ca9b8733cfdbb"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Mix ingredients",
+          "_id": "68d12608d04ca9b8733cfdbc"
+        },
+        {
+          "step": 2,
+          "instruction": "Serve cold",
+          "_id": "68d12608d04ca9b8733cfdbd"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T10:33:44.630Z",
+      "updatedAt": "2025-09-22T10:33:44.630Z",
+      "slug": "test-recipe-debug",
+      "__v": 0
+    },
+    {
+      "_id": "68d12661d04ca9b8733cfdc2",
+      "title": "Fresh Token Test",
+      "description": "Testing with fresh token",
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "ingredients": [],
+      "instructions": [],
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T10:35:13.806Z",
+      "updatedAt": "2025-09-22T10:35:13.806Z",
+      "slug": "fresh-token-test",
+      "__v": 0
+    },
+    {
+      "_id": "68d129040f46ab4f95c07989",
+      "title": "Debug Test Recipe",
+      "description": "Testing recipe creation with debug",
+      "ingredients": [
+        {
+          "name": "Sugar",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68d129040f46ab4f95c0798a"
+        },
+        {
+          "name": "Water",
+          "amount": "2",
+          "unit": "",
+          "_id": "68d129040f46ab4f95c0798b"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Mix ingredients",
+          "_id": "68d129040f46ab4f95c0798c"
+        },
+        {
+          "step": 2,
+          "instruction": "Serve cold",
+          "_id": "68d129040f46ab4f95c0798d"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T10:46:28.481Z",
+      "updatedAt": "2025-09-22T10:46:28.481Z",
+      "slug": "debug-test-recipe",
+      "__v": 0
+    },
+    {
+      "_id": "68d129ab8495f08640a4212e",
+      "title": "Test Recipe New",
+      "description": "Testing recipe creation with new slug generation",
+      "ingredients": [
+        {
+          "name": "Sugar",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68d129ab8495f08640a4212f"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Mix ingredients",
+          "_id": "68d129ab8495f08640a42130"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T10:49:15.644Z",
+      "updatedAt": "2025-09-22T10:49:15.644Z",
+      "slug": "test-recipe-new",
+      "__v": 0
+    },
+    {
+      "_id": "68d12b01cc753fae7d6ffa9f",
+      "title": "Test Recipe New",
+      "description": "Testing duplicate slug handling",
+      "ingredients": [
+        {
+          "name": "Flour",
+          "amount": "2",
+          "unit": "cups",
+          "_id": "68d12b01cc753fae7d6ffaa0"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Mix flour and water",
+          "_id": "68d12b01cc753fae7d6ffaa1"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T10:54:57.147Z",
+      "updatedAt": "2025-09-22T10:54:57.147Z",
+      "slug": "test-recipe-new-1",
+      "__v": 0
+    },
+    {
+      "_id": "68d12f3b80363de2be35230c",
+      "title": "Test Recipe",
+      "description": "Test Description",
+      "ingredients": [
+        {
+          "name": "Test Ingredient",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68d12f3b80363de2be35230d"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Test instruction",
+          "_id": "68d12f3b80363de2be35230e"
+        }
+      ],
+      "prepTime": 5,
+      "cookTime": 10,
+      "servings": 2,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [
+        "test"
+      ],
+      "images": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T11:12:59.642Z",
+      "updatedAt": "2025-09-22T11:12:59.642Z",
+      "slug": "test-recipe-1",
+      "__v": 0
+    },
+    {
+      "_id": "68d12fe380363de2be352317",
+      "title": "Minimal Recipe",
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "ingredients": [],
+      "instructions": [],
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T11:15:47.185Z",
+      "updatedAt": "2025-09-22T11:15:47.185Z",
+      "slug": "minimal-recipe",
+      "__v": 0
+    },
+    {
+      "_id": "68d1355dd4d54979990be9c7",
+      "title": "Test via Frontend API",
+      "description": "Testing through Next.js API route",
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "ingredients": [],
+      "instructions": [],
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T11:39:09.458Z",
+      "updatedAt": "2025-09-22T11:39:09.458Z",
+      "slug": "test-via-frontend-api",
+      "__v": 0
+    },
+    {
+      "_id": "68d13577d4d54979990be9cc",
+      "title": "Debug Test Recipe",
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "ingredients": [],
+      "instructions": [],
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T11:39:35.727Z",
+      "updatedAt": "2025-09-22T11:39:35.727Z",
+      "slug": "debug-test-recipe-1",
+      "__v": 0
+    },
+    {
+      "_id": "68d13586d4d54979990be9d6",
+      "title": "Signature Mother’s Day Mimosa Recipe",
+      "description": "Test Description",
+      "ingredients": [
+        {
+          "name": "Strawberries",
+          "amount": "2",
+          "unit": "cups",
+          "_id": "68d13586d4d54979990be9d7"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Wash strawberries",
+          "_id": "68d13586d4d54979990be9d8"
+        }
+      ],
+      "prepTime": 10,
+      "cookTime": 0,
+      "servings": 4,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [
+        "fruity",
+        "summer"
+      ],
+      "images": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T11:39:50.468Z",
+      "updatedAt": "2025-09-22T12:01:41.391Z",
+      "slug": "test-recipe-with-all-fields",
+      "__v": 0
+    },
+    {
+      "_id": "68d137b6d4d54979990be9df",
+      "title": "Debug Test Recipe",
+      "description": "Testing with debug logging",
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "ingredients": [],
+      "instructions": [],
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T11:49:10.537Z",
+      "updatedAt": "2025-09-22T11:49:10.537Z",
+      "slug": "debug-test-recipe-2",
+      "__v": 0
+    },
+    {
+      "_id": "68d13c290dc65a5f0a672f29",
+      "title": "Frontend Test Recipe",
+      "description": "Testing from frontend",
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "ingredients": [],
+      "instructions": [],
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T12:08:09.737Z",
+      "updatedAt": "2025-09-22T12:08:09.737Z",
+      "slug": "frontend-test-recipe",
+      "__v": 0
+    },
+    {
+      "_id": "68d141d2e75c72c2768b180e",
+      "title": "Fresh Token Test",
+      "description": "Testing with fresh token",
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "ingredients": [],
+      "instructions": [],
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T12:32:18.058Z",
+      "updatedAt": "2025-09-22T12:32:18.058Z",
+      "slug": "fresh-token-test-1",
+      "__v": 0
+    },
+    {
+      "_id": "68d14585d0a61d5103f5ce49",
+      "title": "Direct Backend Test",
+      "description": "Testing direct backend call",
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "ingredients": [],
+      "instructions": [],
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T12:48:05.447Z",
+      "updatedAt": "2025-09-22T12:48:05.447Z",
+      "slug": "direct-backend-test",
+      "__v": 0
+    },
+    {
+      "_id": "68d14591d0a61d5103f5ce4e",
+      "title": "Next.js API Test",
+      "description": "Testing Next.js API route",
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "ingredients": [],
+      "instructions": [],
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T12:48:17.260Z",
+      "updatedAt": "2025-09-22T12:48:17.260Z",
+      "slug": "nextjs-api-test",
+      "__v": 0
+    },
+    {
+      "_id": "68d1461144d259e68a0c6ced",
+      "title": "Test After Restart",
+      "description": "Testing after server restart",
+      "ingredients": [
+        {
+          "name": "",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1461144d259e68a0c6cee"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "",
+          "_id": "68d1461144d259e68a0c6cef"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T12:50:25.223Z",
+      "updatedAt": "2025-09-22T12:50:25.223Z",
+      "slug": "test-after-restart",
+      "__v": 0
+    },
+    {
+      "_id": "68d146ac44d259e68a0c6cf4",
+      "title": "Frontend Test Fixed",
+      "description": "Testing frontend API after fix",
+      "ingredients": [
+        {
+          "name": "",
+          "amount": "",
+          "unit": "",
+          "_id": "68d146ac44d259e68a0c6cf5"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "",
+          "_id": "68d146ac44d259e68a0c6cf6"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T12:53:00.977Z",
+      "updatedAt": "2025-09-22T12:53:00.977Z",
+      "slug": "frontend-test-fixed",
+      "__v": 0
+    },
+    {
+      "_id": "68d14d66bc06ad4d8cfd1668",
+      "title": "Direct Backend Test",
+      "description": "Testing direct backend call",
+      "ingredients": [
+        {
+          "name": "",
+          "amount": "",
+          "unit": "",
+          "_id": "68d14d66bc06ad4d8cfd1669"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "",
+          "_id": "68d14d66bc06ad4d8cfd166a"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T13:21:42.065Z",
+      "updatedAt": "2025-09-22T13:21:42.065Z",
+      "slug": "direct-backend-test-1",
+      "__v": 0
+    },
+    {
+      "_id": "68d14eda28a2b7f17d7d096e",
+      "title": "fvflknvknd,m",
+      "description": ",jn,j nmvjm",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T13:27:54.012Z",
+      "updatedAt": "2025-09-22T13:27:54.012Z",
+      "slug": "fvflknvkndm",
+      "__v": 0
+    },
+    {
+      "_id": "68d15aba155bbb840aea5dcc",
+      "title": "Minimal Recipe",
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "ingredients": [],
+      "instructions": [],
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T14:18:34.209Z",
+      "updatedAt": "2025-09-22T14:18:34.209Z",
+      "slug": "minimal-recipe-1",
+      "__v": 0
+    },
+    {
+      "_id": "68d15efd155bbb840aea5de3",
+      "title": "Test Recipe with 4 Ingredients and 4 Instructions",
+      "description": "This is a test recipe to verify the form works with exactly 4 ingredients and 4 instructions as requested",
+      "ingredients": [
+        {
+          "name": "Water",
+          "_id": "68d15efd155bbb840aea5de4"
+        },
+        {
+          "name": "Sugar",
+          "_id": "68d15efd155bbb840aea5de5"
+        },
+        {
+          "name": "Lemon juice",
+          "_id": "68d15efd155bbb840aea5de6"
+        },
+        {
+          "name": "Ice cubes",
+          "_id": "68d15efd155bbb840aea5de7"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Pour water into a large pitcher",
+          "_id": "68d15efd155bbb840aea5de8"
+        },
+        {
+          "step": 2,
+          "instruction": "Add sugar and stir until completely dissolved",
+          "_id": "68d15efd155bbb840aea5de9"
+        },
+        {
+          "step": 3,
+          "instruction": "Squeeze fresh lemon juice and add to the mixture",
+          "_id": "68d15efd155bbb840aea5dea"
+        },
+        {
+          "step": 4,
+          "instruction": "Add ice cubes and serve chilled",
+          "_id": "68d15efd155bbb840aea5deb"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T14:36:45.843Z",
+      "updatedAt": "2025-09-22T14:36:45.843Z",
+      "slug": "test-recipe-with-4-ingredients-and-4-instructions",
+      "__v": 0
+    },
+    {
+      "_id": "68d164c1c66441f04f77b1b0",
+      "title": "mj nkl lkl",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T15:01:21.183Z",
+      "updatedAt": "2025-09-22T15:01:21.183Z",
+      "slug": "mj-nkl-lkl",
+      "__v": 0
+    },
+    {
+      "_id": "68d164d7c66441f04f77b1d0",
+      "title": "lklkmlklk",
+      "description": "",
+      "ingredients": [],
+      "instructions": [],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [],
+      "featured": false,
+      "published": false,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T15:01:43.791Z",
+      "updatedAt": "2025-09-22T15:01:43.791Z",
+      "slug": "lklkmlklk",
+      "__v": 0
+    },
+    {
+      "_id": "68d1702259aa6bb70b9a04ca",
+      "title": "Signature Mother’s Day Mimosa Recipe",
+      "description": "There’s something about a mimosa that just says celebration—but this isn’t your typical orange juice and bubbly. This Signature Mimosa brings a citrusy twist with limeade or lemonade and a gentle fizz that wakes up your palate (and your brunch table).\n\nWhether you're raising a glass to Mom, hosting Sunday brunch, or just treating yourself to something bright and refreshing, this sparkling mimosa is the perfect sip.\n\nAnd thanks to the Drinkmate line of sparkling water makers , it couldn’t be easier to add those perfect, tiny bubbles. Unlike traditional soda makers, the Drinkmate lets you carbonate more than just water—juice, cocktails, mocktails, and yes, even wine blends.\n\nWhy You’ll Love This Sparkling Mimosa\nNo flat mixers – Say goodbye to lackluster brunch drinks.\nCustom fizz level – You control the sparkle.\nEco-friendly and cost-saving – Skip the store-bought bottles and cut down on waste.\nEndlessly customizable – Try it with grapefruit juice, pineapple, or sparkling mocktail versions!\nAnd if you’re looking to impress, that sugar rim + citrus garnish combo gives this drink real main character energy.\n\nBrighten Your Brunch\nThere’s no wrong time for a mimosa, but this one feels extra perfect for Mother's Day, spring brunches, bridal showers, or even a solo Saturday on the patio.\n\nSo grab your Drinkmate, grab your ingredients, and get ready to sparkle something beautiful.\n\nCheers to brighter mornings and better bubbles. 🧡",
+      "ingredients": [
+        {
+          "name": "Orange Juice",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1702259aa6bb70b9a04cb"
+        },
+        {
+          "name": "Limeade or Lemonade",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1702259aa6bb70b9a04cc"
+        },
+        {
+          "name": "Cocktail rimming sugar",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1702259aa6bb70b9a04cd"
+        },
+        {
+          "name": "Tangerine for garnish",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1702259aa6bb70b9a04ce"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Pour all ingredients into your Drinkmate OmniFizz to carbonate.",
+          "_id": "68d1702259aa6bb70b9a04cf"
+        },
+        {
+          "step": 2,
+          "instruction": "Rim glass with sugar (get the rim wet first so it sticks!)",
+          "_id": "68d1702259aa6bb70b9a04d0"
+        },
+        {
+          "step": 3,
+          "instruction": "Pour into glass without touching the rim.",
+          "_id": "68d1702259aa6bb70b9a04d1"
+        },
+        {
+          "step": 4,
+          "instruction": "Garnish with a tangerine slice.",
+          "_id": "68d1702259aa6bb70b9a04d2"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758567563/drinkmate/rmzvjtceqm9wsb7wgtgm.png",
+          "alt": "signature_rb6rxf.png",
+          "isPrimary": true,
+          "_id": "68d19ca038525e99192224a9"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T15:49:54.323Z",
+      "updatedAt": "2025-09-22T18:59:44.031Z",
+      "slug": "signature-mothers-day-mimosa-recipe",
+      "__v": 0
+    },
+    {
+      "_id": "68d1710559aa6bb70b9a050d",
+      "title": "Red, White, & Blue Mocktail Recipe",
+      "description": "Sometimes you want a fun drink that doesn’t need alcohol to shine—and this bold, tropical mocktail is exactly what your next hangout needs. It’s bright, refreshing, and takes just seconds to make with your Drinkmate OmniFizz, the only carbonation system that lets you sparkle any drink.\n\nThat’s right. Not just water.\nNot just juice.\nAnything.\n\nThis mocktail blends the tangy zip of Cran-Apple, the cool blue of your favorite electrolyte drink, and a tropical swirl of Piña Colada—all carbonated to fizzy perfection. It’s a hit at parties, family BBQs, or just as a pick-me-up on a weekday afternoon.\n\nWant to level it up? Try swapping in frozen juice cubes instead of ice, or serve it with a citrus garnish for an extra pop of color.\n\nSparkle Smarter\n\nNo single-use bottles. No sugary sodas. Just you, your ingredients, and a Drinkmate soda maker ready to fizz up some fun.\n\nGo on. Sparkle anything.",
+      "ingredients": [
+        {
+          "name": "Cran-Apple Juice",
+          "amount": "2",
+          "unit": "oz",
+          "_id": "68d1710559aa6bb70b9a050e"
+        },
+        {
+          "name": "Blue Gatorade or Powerade",
+          "amount": "2",
+          "unit": "oz",
+          "_id": "68d1710559aa6bb70b9a050f"
+        },
+        {
+          "name": "Pina Colada Juice",
+          "amount": "1",
+          "unit": "oz",
+          "_id": "68d1710559aa6bb70b9a0510"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Fill your Drinkmate with the Cran-Apple, Blue Gatorade, and Pina Colada juice.",
+          "_id": "68d1710559aa6bb70b9a0511"
+        },
+        {
+          "step": 2,
+          "instruction": "Add sparkle!",
+          "_id": "68d1710559aa6bb70b9a0512"
+        },
+        {
+          "step": 3,
+          "instruction": "Pour into a glass over ice and enjoy!",
+          "_id": "68d1710559aa6bb70b9a0513"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758569108/drinkmate/qf8vsn2i5ey2pgcmmdtk.webp",
+          "alt": "redhiteblue.jpg",
+          "isPrimary": true,
+          "_id": "68d1a29a38525e99192230e1"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T15:53:41.920Z",
+      "updatedAt": "2025-09-22T19:25:14.576Z",
+      "slug": "red-white-blue-mocktail-recipe",
+      "__v": 0
+    },
+    {
+      "_id": "68d1718259aa6bb70b9a0550",
+      "title": "Homemade Orange Soda Recipe",
+      "description": "Looking for something clean, uplifting, and just a little unexpected? Meet your new go-to: this Homemade Orange Soda. With just three natural ingredients—fresh orange juice, raw honey, and water—you’ve got a better-for-you beverage that’s lightly sweet, citrusy, and sparkling with life. And the magic? It’s all in the Drinkmate OmniFizz. \n\nWhile other soda makers are limited to water only, Drinkmate lets you fizz up anything—including fresh juice blends like this one.\n\nWhy You'll Love This Drink\nAll-natural ingredients – No artificial flavors or added sugar\nSoothing and refreshing – A little honey, a lot of citrusy goodness\nPerfect for mornings or wind-down evenings\nKid-friendly, brunch-ready, and endlessly customizable\nWant a zesty twist? Add a squeeze of lemon. Craving extra chill? Serve over ice with a sprig of mint. Or just keep it classic—three ingredients and all the sparkle you need.\n\nMake Every Sip Better\nWith the Drinkmate soda maker, the possibilities go way beyond sparkling water. From homemade sodas to mocktails and wellness drinks, you’re in control of the fizz—and the fun.\n\nSo go ahead. Pour it in, sparkle it up, and toast to something simple and seriously refreshing.\n\nSparkle anything. Love everything.",
+      "ingredients": [
+        {
+          "name": "Freshly Squeezed Orange Juice",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1718259aa6bb70b9a0551"
+        },
+        {
+          "name": "Raw Honey",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1718259aa6bb70b9a0552"
+        },
+        {
+          "name": "Water",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1718259aa6bb70b9a0553"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Add all ingredients to Drinkmate & carbonate!",
+          "_id": "68d1718259aa6bb70b9a0554"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758567682/drinkmate/tyqatfqbhfkeeqaqyqys.webp",
+          "alt": "Homemade_Orange_Soda.jpg",
+          "isPrimary": true,
+          "_id": "68d19d0638525e9919222555"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T15:55:46.606Z",
+      "updatedAt": "2025-09-22T19:01:26.711Z",
+      "slug": "homemade-orange-soda-recipe",
+      "__v": 0
+    },
+    {
+      "_id": "68d1722f59aa6bb70b9a0597",
+      "title": "Homemade Lime Green Soda",
+      "description": "",
+      "ingredients": [
+        {
+          "name": "Sugar",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68d1722f59aa6bb70b9a0598"
+        },
+        {
+          "name": "Water",
+          "amount": "1",
+          "unit": "Liter",
+          "_id": "68d1722f59aa6bb70b9a0599"
+        },
+        {
+          "name": "Lime Juice, plus rind from 1 Lime",
+          "amount": "1/4",
+          "unit": "cup",
+          "_id": "68d1722f59aa6bb70b9a059a"
+        },
+        {
+          "name": "6-8 Drops Green Food Coloring",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1722f59aa6bb70b9a059b"
+        },
+        {
+          "name": "Lime Slices for Garnish",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1722f59aa6bb70b9a059c"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "1. In a small pot on medium heat dissolve sugar in water. Raise the heat, add the lime rind and bring to a boil.",
+          "_id": "68d1722f59aa6bb70b9a059d"
+        },
+        {
+          "step": 2,
+          "instruction": "Lower the heat to a simmer and cook until slightly reduced. Remove from heat and discard the lime rinds. Stir in the food coloring and cool, add ice.",
+          "_id": "68d1722f59aa6bb70b9a059e"
+        },
+        {
+          "step": 3,
+          "instruction": "2. Next Pour into your drinkmate machine to carbonate. Pour into glass and garnish with lime slice.",
+          "_id": "68d1722f59aa6bb70b9a059f"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758567723/drinkmate/dmbrffh5rnuhgcrmi18q.webp",
+          "alt": "homemadelimegreensoda.jpg",
+          "isPrimary": true,
+          "_id": "68d19d3038525e9919222618"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T15:58:39.598Z",
+      "updatedAt": "2025-09-22T19:02:08.980Z",
+      "slug": "homemade-lime-green-soda",
+      "__v": 0
+    },
+    {
+      "_id": "68d1730959aa6bb70b9a05ea",
+      "title": "Drinkmate Pineapple Mocktail",
+      "description": "",
+      "ingredients": [
+        {
+          "name": "pineapple juice",
+          "amount": "2/3",
+          "unit": "cup",
+          "_id": "68d1730959aa6bb70b9a05eb"
+        },
+        {
+          "name": "Orange Juice",
+          "amount": "1/3",
+          "unit": "cup",
+          "_id": "68d1730959aa6bb70b9a05ec"
+        },
+        {
+          "name": "lemon lime juice",
+          "amount": "2/3",
+          "unit": "cup",
+          "_id": "68d1730959aa6bb70b9a05ed"
+        },
+        {
+          "name": "Garnish: Pineapple",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1730959aa6bb70b9a05ee"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Combine all liquid ingredients before carbonating.",
+          "_id": "68d1730959aa6bb70b9a05ef"
+        },
+        {
+          "step": 2,
+          "instruction": "Add to Drinkmate bottle; up to the Max Fill line or below.",
+          "_id": "68d1730959aa6bb70b9a05f0"
+        },
+        {
+          "step": 3,
+          "instruction": "Shake bottle to mix ingredients before carbonating. Push button or pull trigger to carbonate.",
+          "_id": "68d1730959aa6bb70b9a05f1"
+        },
+        {
+          "step": 4,
+          "instruction": "Shake gently again for 5 seconds. Let stand 5 seconds, then release pressure, adjusting speed as needed to avoid foam reaching the top.",
+          "_id": "68d1730959aa6bb70b9a05f2"
+        },
+        {
+          "step": 5,
+          "instruction": "Pour into ice filled glass if desired.",
+          "_id": "68d1730959aa6bb70b9a05f3"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758567777/drinkmate/oor6g6ya7xoxgrrsgvtg.webp",
+          "alt": "pineapplemock.jpg",
+          "isPrimary": true,
+          "_id": "68d19d7238525e99192226d0"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T16:02:17.042Z",
+      "updatedAt": "2025-09-22T19:03:14.541Z",
+      "slug": "drinkmate-pineapple-mocktail",
+      "__v": 0
+    },
+    {
+      "_id": "68d173c859aa6bb70b9a0641",
+      "title": "Drinkmate Orange Spritzer",
+      "description": "",
+      "ingredients": [
+        {
+          "name": "orange juice",
+          "amount": "4",
+          "unit": "oz",
+          "_id": "68d173c859aa6bb70b9a0642"
+        },
+        {
+          "name": "water",
+          "amount": "4",
+          "unit": "oz",
+          "_id": "68d173c859aa6bb70b9a0643"
+        },
+        {
+          "name": "wedge of real orange garnish",
+          "amount": "",
+          "unit": "",
+          "_id": "68d173c859aa6bb70b9a0644"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Combine all liquid ingredients before carbonating.",
+          "_id": "68d173c859aa6bb70b9a0645"
+        },
+        {
+          "step": 2,
+          "instruction": "Add to Drinkmate bottle; up to the Max Fill line or below.",
+          "_id": "68d173c859aa6bb70b9a0646"
+        },
+        {
+          "step": 3,
+          "instruction": "Shake bottle to mix ingredients before carbonating. Push button or pull trigger to carbonate.",
+          "_id": "68d173c859aa6bb70b9a0647"
+        },
+        {
+          "step": 4,
+          "instruction": "Shake gently again for 5 seconds. Let stand 5 seconds, then release pressure, adjusting speed as needed to avoid foam reaching the top.",
+          "_id": "68d173c859aa6bb70b9a0648"
+        },
+        {
+          "step": 5,
+          "instruction": "Pour into ice filled glass if desired.",
+          "_id": "68d173c859aa6bb70b9a0649"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758567883/drinkmate/k5iuxfeerwu2q9f0vfhe.webp",
+          "alt": "orange_spritz.jpg",
+          "isPrimary": true,
+          "_id": "68d19dd838525e9919222832"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T16:05:28.536Z",
+      "updatedAt": "2025-09-22T19:04:56.439Z",
+      "slug": "drinkmate-orange-spritzer",
+      "__v": 0
+    },
+    {
+      "_id": "68d174d959aa6bb70b9a0744",
+      "title": "Drinkmate Citrus Cooler",
+      "description": "",
+      "ingredients": [
+        {
+          "name": "Lemonade",
+          "amount": "2",
+          "unit": "cups",
+          "_id": "68d174d959aa6bb70b9a0745"
+        },
+        {
+          "name": "Orange Juice",
+          "amount": "2",
+          "unit": "cups",
+          "_id": "68d174d959aa6bb70b9a0746"
+        },
+        {
+          "name": "Lime juice",
+          "amount": "1/4",
+          "unit": "cup",
+          "_id": "68d174d959aa6bb70b9a0747"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Combine all liquid ingredients before carbonating.",
+          "_id": "68d174d959aa6bb70b9a0748"
+        },
+        {
+          "step": 2,
+          "instruction": "Add to Drinkmate bottle; up to the Max Fill line or below.  Shake bottle to mix ingredients before carbonating. Push button or pull trigger to carbonate.",
+          "_id": "68d174d959aa6bb70b9a0749"
+        },
+        {
+          "step": 3,
+          "instruction": "Shake gently again for 5 seconds.",
+          "_id": "68d174d959aa6bb70b9a074a"
+        },
+        {
+          "step": 4,
+          "instruction": "Let stand 5 seconds, then release pressure, adjusting speed as needed to avoid foam reaching the top.",
+          "_id": "68d174d959aa6bb70b9a074b"
+        },
+        {
+          "step": 5,
+          "instruction": "Pour into ice filled glass if desired.",
+          "_id": "68d174d959aa6bb70b9a074c"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 4,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758567938/drinkmate/struxdpdhmxojoirvwl0.webp",
+          "alt": "citruscooler.jpg",
+          "isPrimary": true,
+          "_id": "68d19e2f38525e99192228e6"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T16:10:01.092Z",
+      "updatedAt": "2025-09-22T19:06:23.926Z",
+      "slug": "drinkmate-citrus-cooler",
+      "__v": 0
+    },
+    {
+      "_id": "68d1763359aa6bb70b9a07ac",
+      "title": "Strawberry mint cocktail",
+      "description": "Strawberry Mint Cocktail is a refreshing and delicious drink that combines the flavors of ripe strawberries and fresh mint to create the perfect balance of sweetness and aroma. This cocktail typically includes crushed strawberries, mint leaves, a touch of simple syrup for sweetness, and a little citrus juice such as lemon or lime. Mix these ingredients with ice and then strain into a chilled glass. Garnished with a sprig of mint and fresh strawberries, this cocktail is not only a treat for the senses but also a beautiful and aromatic visual experience as well, making it a popular choice for those looking for a fruity and herbaceous drink to enjoy on warm days or during social gatherings.",
+      "ingredients": [
+        {
+          "name": "Ice cubes",
+          "amount": "8",
+          "unit": "",
+          "_id": "68d1763359aa6bb70b9a07ad"
+        },
+        {
+          "name": "fresh strawberries",
+          "amount": "250",
+          "unit": "gramss",
+          "_id": "68d1763359aa6bb70b9a07ae"
+        },
+        {
+          "name": "Lemon slices",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1763359aa6bb70b9a07af"
+        },
+        {
+          "name": "Fresh mint leaves",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1763359aa6bb70b9a07b0"
+        },
+        {
+          "name": "Carbonated water (using Drinkmate)",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1763359aa6bb70b9a07b1"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Crush the ice cubes with a blender and pour them into a cup",
+          "_id": "68d1763359aa6bb70b9a07b2"
+        },
+        {
+          "step": 2,
+          "instruction": "Add the strawberries with some mint leaves to the blender and grind them with half a cup of carbonated water until the ingredients are well mixed.",
+          "_id": "68d1763359aa6bb70b9a07b3"
+        },
+        {
+          "step": 3,
+          "instruction": "Add the mixture to the cup of ice",
+          "_id": "68d1763359aa6bb70b9a07b4"
+        },
+        {
+          "step": 4,
+          "instruction": "We fill the rest of the cup with carbonated water and decorate it with lemon slices and mint leaves",
+          "_id": "68d1763359aa6bb70b9a07b5"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758569140/drinkmate/utisqccvbkcy5ox9qys3.webp",
+          "alt": "straberrymint.jpg",
+          "isPrimary": true,
+          "_id": "68d1a2be38525e991922319e"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T16:15:47.986Z",
+      "updatedAt": "2025-09-22T19:25:50.688Z",
+      "slug": "strawberry-mint-cocktail",
+      "__v": 0
+    },
+    {
+      "_id": "68d1770e59aa6bb70b9a0808",
+      "title": "Mojito with mint",
+      "description": "Mint Mojito is a refreshing drink perfect for summer times. It features a wonderful blend of lemon juice and fresh mint, which gives it a citrusy and refreshing flavour. Lemon is mixed with simple sugar, mint leaves, and lime fruits to add sweetness and depth to the drink. The mint mojito is served with crushed ice to give it the perfect chill. This drink is perfect for those looking for a refreshing taste experience on hot summer days. Flavors can be further customized by adding fruits like strawberries or raspberries to add an extra fruity touch. The Mint Mojito is the perfect embodiment of simplicity and freshness in the world of summer drinks.",
+      "ingredients": [
+        {
+          "name": "Fresh mint leaves.",
+          "amount": "6",
+          "unit": "",
+          "_id": "68d1770e59aa6bb70b9a0809"
+        },
+        {
+          "name": "water.",
+          "amount": "100",
+          "unit": "ml",
+          "_id": "68d1770e59aa6bb70b9a080a"
+        },
+        {
+          "name": "Fresh lemon juice.",
+          "amount": "150",
+          "unit": "ml",
+          "_id": "68d1770e59aa6bb70b9a080b"
+        },
+        {
+          "name": "Sugar",
+          "amount": "4",
+          "unit": "tbl spoon",
+          "_id": "68d1770e59aa6bb70b9a080c"
+        },
+        {
+          "name": "Chopped lemon slices.",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1770e59aa6bb70b9a080d"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Mix water, fresh lemon juice, mint leaves and sugar in a blender.",
+          "_id": "68d1770e59aa6bb70b9a080e"
+        },
+        {
+          "step": 2,
+          "instruction": "Filter the mixture into a bowl, then add it to the Drinkmate bottle. To make a soft drink.",
+          "_id": "68d1770e59aa6bb70b9a080f"
+        },
+        {
+          "step": 3,
+          "instruction": "Pour the fizzy mixture into a glass decorated with ice and lemon slices.",
+          "_id": "68d1770e59aa6bb70b9a0810"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758569352/drinkmate/kt38rfn1yzrasz68ehhn.webp",
+          "alt": "mojito.jpg",
+          "isPrimary": true,
+          "_id": "68d1a39138525e99192233d3"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T16:19:26.401Z",
+      "updatedAt": "2025-09-22T19:29:21.229Z",
+      "slug": "mojito-with-mint",
+      "__v": 0
+    },
+    {
+      "_id": "68d177ae59aa6bb70b9a086c",
+      "title": "Drinkmate Hibiscus Iced Tea Sparkler",
+      "description": "General Directions: Combine all liquid ingredients before carbonating.  Add to Drinkmate bottle; up to the Max Fill line or below.  Shake bottle to mix ingredients before carbonating. Push button or pull trigger to carbonate.  Shake gently again for 5 seconds. Let stand 5 seconds, then release pressure, adjusting speed as needed to avoid foam reaching the top.  Pour into ice filled glass if desired.",
+      "ingredients": [
+        {
+          "name": "bags of hibiscus tea",
+          "amount": "8",
+          "unit": "",
+          "_id": "68d177ae59aa6bb70b9a086d"
+        },
+        {
+          "name": "Honey",
+          "amount": "1/2",
+          "unit": "cup",
+          "_id": "68d177ae59aa6bb70b9a086e"
+        },
+        {
+          "name": "water",
+          "amount": "6",
+          "unit": "cups",
+          "_id": "68d177ae59aa6bb70b9a086f"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Boil water, add tea bags and honey, let infuse for 5 minutes",
+          "_id": "68d177ae59aa6bb70b9a0870"
+        },
+        {
+          "step": 2,
+          "instruction": "Remove tea bags, chill drink in refrigerator, then carbonate",
+          "_id": "68d177ae59aa6bb70b9a0871"
+        },
+        {
+          "step": 3,
+          "instruction": "Garnish: mint leaf or strawberry",
+          "_id": "68d177ae59aa6bb70b9a0872"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 6,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758568134/drinkmate/xnvsq1xcieplvcbf87l5.webp",
+          "alt": "hisbiscustea.jpg",
+          "isPrimary": true,
+          "_id": "68d19ecf38525e9919222a51"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T16:22:06.623Z",
+      "updatedAt": "2025-09-22T19:09:03.934Z",
+      "slug": "drinkmate-hibiscus-iced-tea-sparkler",
+      "__v": 0
+    },
+    {
+      "_id": "68d1786259aa6bb70b9a08d3",
+      "title": "Canadian Cream Soda",
+      "description": "",
+      "ingredients": [
+        {
+          "name": "water",
+          "amount": "4",
+          "unit": "oz",
+          "_id": "68d1786259aa6bb70b9a08d4"
+        },
+        {
+          "name": "Apple cider",
+          "amount": "4",
+          "unit": "oz",
+          "_id": "68d1786259aa6bb70b9a08d5"
+        },
+        {
+          "name": "Real maple syrup",
+          "amount": "1/2",
+          "unit": "oz",
+          "_id": "68d1786259aa6bb70b9a08d6"
+        },
+        {
+          "name": "drops of vanilla extract",
+          "amount": "3",
+          "unit": "",
+          "_id": "68d1786259aa6bb70b9a08d7"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Add all ingredients to Drinkmate bottle",
+          "_id": "68d1786259aa6bb70b9a08d8"
+        },
+        {
+          "step": 2,
+          "instruction": "Depress button until gas vents",
+          "_id": "68d1786259aa6bb70b9a08d9"
+        },
+        {
+          "step": 3,
+          "instruction": "Shake for 10 seconds",
+          "_id": "68d1786259aa6bb70b9a08da"
+        },
+        {
+          "step": 4,
+          "instruction": "Let stand 5 seconds, then release pressure using quick release valve, adjusting speed as needed to avoid foam reaching the wand",
+          "_id": "68d1786259aa6bb70b9a08db"
+        },
+        {
+          "step": 5,
+          "instruction": "Pour into ice-filled glass",
+          "_id": "68d1786259aa6bb70b9a08dc"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758568083/drinkmate/nlb2uqvrzjixsrqwlovg.webp",
+          "alt": "canadiancream.jpg",
+          "isPrimary": true,
+          "_id": "68d19e9738525e991922299d"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T16:25:06.171Z",
+      "updatedAt": "2025-09-22T19:08:07.331Z",
+      "slug": "canadian-cream-soda",
+      "__v": 0
+    },
+    {
+      "_id": "68d1795959aa6bb70b9a0948",
+      "title": "Drinkmate Ting",
+      "description": "",
+      "ingredients": [
+        {
+          "name": "Pulp free grapefruit juice",
+          "amount": "250",
+          "unit": "ml",
+          "_id": "68d1795959aa6bb70b9a0949"
+        },
+        {
+          "name": "rich syrup (like simple syrup but 2:1 sugar to water)",
+          "amount": "2",
+          "unit": "tbl spoon",
+          "_id": "68d1795959aa6bb70b9a094a"
+        },
+        {
+          "name": "splash of cider vinegar",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1795959aa6bb70b9a094b"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Combine all liquid ingredients before carbonating.",
+          "_id": "68d1795959aa6bb70b9a094c"
+        },
+        {
+          "step": 2,
+          "instruction": "Add to Drinkmate bottle; up to the Max Fill line or below.  Shake bottle to mix ingredients before carbonating.",
+          "_id": "68d1795959aa6bb70b9a094d"
+        },
+        {
+          "step": 3,
+          "instruction": "Push button or pull trigger to carbonate.",
+          "_id": "68d1795959aa6bb70b9a094e"
+        },
+        {
+          "step": 4,
+          "instruction": "Shake gently again for 5 seconds. Let stand 5 seconds, then release pressure.",
+          "_id": "68d1795959aa6bb70b9a094f"
+        },
+        {
+          "step": 5,
+          "instruction": "Pour into ice filled glass if desired.",
+          "_id": "68d1795959aa6bb70b9a0950"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758568386/drinkmate/o0wkqis6k7snyxrrf1i6.webp",
+          "alt": "ting.jpg",
+          "isPrimary": true,
+          "_id": "68d19fc838525e9919222bad"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T16:29:13.387Z",
+      "updatedAt": "2025-09-22T19:13:12.628Z",
+      "slug": "drinkmate-ting",
+      "__v": 0
+    },
+    {
+      "_id": "68d181fa942e30ac648a9877",
+      "title": "Drinkmate Diet Fizzy Grape Juice",
+      "description": "",
+      "ingredients": [
+        {
+          "name": "few drops of liquid sucralose sweetener",
+          "amount": "",
+          "unit": "",
+          "_id": "68d181fa942e30ac648a9878"
+        },
+        {
+          "name": "juice",
+          "amount": "6",
+          "unit": "oz",
+          "_id": "68d181fa942e30ac648a9879"
+        },
+        {
+          "name": "water",
+          "amount": "",
+          "unit": "",
+          "_id": "68d181fa942e30ac648a987a"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Combine all liquid ingredients before carbonating.  Add to Drinkmate bottle; up to the Max Fill line or below.",
+          "_id": "68d181fa942e30ac648a987b"
+        },
+        {
+          "step": 2,
+          "instruction": "Shake bottle to mix ingredients before carbonating. Push button or pull trigger to carbonate.",
+          "_id": "68d181fa942e30ac648a987c"
+        },
+        {
+          "step": 3,
+          "instruction": "Shake gently again for 5 seconds.",
+          "_id": "68d181fa942e30ac648a987d"
+        },
+        {
+          "step": 4,
+          "instruction": "Let stand 5 seconds, then release pressure, adjusting speed as needed to avoid foam reaching the top.",
+          "_id": "68d181fa942e30ac648a987e"
+        },
+        {
+          "step": 5,
+          "instruction": "Pour into ice filled glass if desired.",
+          "_id": "68d181fa942e30ac648a987f"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758568438/drinkmate/icx16bchwwuqapo1wpwy.webp",
+          "alt": "dietfizzygrape.jpg",
+          "isPrimary": true,
+          "_id": "68d19ffd38525e9919222c64"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T17:06:02.489Z",
+      "updatedAt": "2025-09-22T19:14:05.485Z",
+      "slug": "drinkmate-diet-fizzy-grape-juice",
+      "__v": 0
+    },
+    {
+      "_id": "68d1825f942e30ac648a98f6",
+      "title": "Fruit Infused Sparkling Water",
+      "description": "",
+      "ingredients": [
+        {
+          "name": "Sliced Fruit",
+          "amount": "",
+          "unit": "",
+          "_id": "68d1825f942e30ac648a98f7"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Add your favorite sliced or whole fruit to a bottle of water.",
+          "_id": "68d1825f942e30ac648a98f8"
+        },
+        {
+          "step": 2,
+          "instruction": "Refrigerate for several hours or overnight.",
+          "_id": "68d1825f942e30ac648a98f9"
+        },
+        {
+          "step": 3,
+          "instruction": "Carbonate in your Drinkmate.  Then enjoy a delicious and healthy drink!",
+          "_id": "68d1825f942e30ac648a98fa"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758568470/drinkmate/gf3vd2bgrhdapylyjy9u.webp",
+          "alt": "fruitinfusedsparkling.jpg",
+          "isPrimary": true,
+          "_id": "68d1a01d38525e9919222d17"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T17:07:43.739Z",
+      "updatedAt": "2025-09-22T19:14:37.503Z",
+      "slug": "fruit-infused-sparkling-water",
+      "__v": 0
+    },
+    {
+      "_id": "68d182e2942e30ac648a9978",
+      "title": "Drinkmate Diet Fizzy Grapefruit Juice",
+      "description": "",
+      "ingredients": [
+        {
+          "name": "Grapefruit Juice (per 1 liter bottle)",
+          "amount": "6",
+          "unit": "oz",
+          "_id": "68d182e2942e30ac648a9979"
+        },
+        {
+          "name": "water",
+          "amount": "",
+          "unit": "",
+          "_id": "68d182e2942e30ac648a997a"
+        },
+        {
+          "name": "few drops of liquid sucralose sweetener",
+          "amount": "",
+          "unit": "",
+          "_id": "68d182e2942e30ac648a997b"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Combine all liquid ingredients before carbonating.",
+          "_id": "68d182e2942e30ac648a997c"
+        },
+        {
+          "step": 2,
+          "instruction": "Add to Drinkmate bottle; up to the Max Fill line or below.",
+          "_id": "68d182e2942e30ac648a997d"
+        },
+        {
+          "step": 3,
+          "instruction": "Shake bottle to mix ingredients before carbonating. Push button or pull trigger to carbonate.",
+          "_id": "68d182e2942e30ac648a997e"
+        },
+        {
+          "step": 4,
+          "instruction": "Shake gently again for 5 seconds. Let stand 5 seconds, then release pressure, adjusting speed as needed to avoid foam reaching the top.",
+          "_id": "68d182e2942e30ac648a997f"
+        },
+        {
+          "step": 5,
+          "instruction": "Pour into ice filled glass if desired.",
+          "_id": "68d182e2942e30ac648a9980"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758568640/drinkmate/gtx22rhdmjtkp3e54oka.webp",
+          "alt": "dietfizzygrapefruit.jpg",
+          "isPrimary": true,
+          "_id": "68d1a0c638525e9919223016"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 1,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T17:09:54.955Z",
+      "updatedAt": "2025-09-22T19:34:46.535Z",
+      "slug": "drinkmate-diet-fizzy-grapefruit-juice",
+      "__v": 0
+    },
+    {
+      "_id": "68d18342942e30ac648a9a05",
+      "title": "Drinkmate Fruit Juice Spritzer",
+      "description": "",
+      "ingredients": [
+        {
+          "name": "frozen peach/grape concentrate (per 1 liter bottle)",
+          "amount": "4",
+          "unit": "oz",
+          "_id": "68d18342942e30ac648a9a06"
+        },
+        {
+          "name": "water",
+          "amount": "",
+          "unit": "",
+          "_id": "68d18342942e30ac648a9a07"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Combine all liquid ingredients before carbonating.",
+          "_id": "68d18342942e30ac648a9a08"
+        },
+        {
+          "step": 2,
+          "instruction": "Add to Drinkmate bottle; up to the Max Fill line or below.",
+          "_id": "68d18342942e30ac648a9a09"
+        },
+        {
+          "step": 3,
+          "instruction": "Shake bottle to mix ingredients before carbonating. Push button or pull trigger to carbonate.",
+          "_id": "68d18342942e30ac648a9a0a"
+        },
+        {
+          "step": 4,
+          "instruction": "Shake gently again for 5 seconds. Let stand 5 seconds, then release pressure, adjusting speed as needed to avoid foam reaching the top.",
+          "_id": "68d18342942e30ac648a9a0b"
+        },
+        {
+          "step": 5,
+          "instruction": "Pour into ice filled glass if desired.",
+          "_id": "68d18342942e30ac648a9a0c"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758568511/drinkmate/kjzcbpssox8l1e2x9hsc.webp",
+          "alt": "fruitjuicespritzer.jpg",
+          "isPrimary": true,
+          "_id": "68d1a04338525e9919222dca"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T17:11:30.028Z",
+      "updatedAt": "2025-09-22T19:15:15.202Z",
+      "slug": "drinkmate-fruit-juice-spritzer",
+      "__v": 0
+    },
+    {
+      "_id": "68d183c5942e30ac648a9b21",
+      "title": "Drinkmate Raspberry Delight",
+      "description": "Combine all liquid ingredients before carbonating.  Add to Drinkmate bottle; up to the Max Fill line or below.  Shake bottle to mix ingredients before carbonating. Push button or pull trigger to carbonate.  Shake gently again for 5 seconds. Let stand 5 seconds, then release pressure, adjusting speed as needed to avoid foam reaching the top.  Pour into ice filled glass if desired.",
+      "ingredients": [
+        {
+          "name": "water",
+          "amount": "1",
+          "unit": "quart",
+          "_id": "68d18405942e30ac648a9bab"
+        },
+        {
+          "name": "Raspberries",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68d18405942e30ac648a9bac"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Pour 1 quart of water over a cup of raspberries & leave in the fridge overnight",
+          "_id": "68d18405942e30ac648a9bad"
+        },
+        {
+          "step": 2,
+          "instruction": "Strain off the raspberry water and carbonate - it’s incredibly delicious!",
+          "_id": "68d18405942e30ac648a9bae"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758567820/drinkmate/m48plwx4jv7nckgm1cj7.webp",
+          "alt": "raspberrydelight.jpg",
+          "isPrimary": true,
+          "_id": "68d19d9d38525e9919222781"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T17:13:41.303Z",
+      "updatedAt": "2025-09-22T19:03:57.331Z",
+      "slug": "drinkmate-raspberry-delight",
+      "__v": 0
+    },
+    {
+      "_id": "68d18475942e30ac648a9c42",
+      "title": "Drinkmate Lime Peppermint Syrup",
+      "description": "",
+      "ingredients": [
+        {
+          "name": "Peppermint leaves",
+          "amount": "",
+          "unit": "",
+          "_id": "68d18475942e30ac648a9c43"
+        },
+        {
+          "name": "water",
+          "amount": "2",
+          "unit": "cups",
+          "_id": "68d18475942e30ac648a9c44"
+        },
+        {
+          "name": "stevia or similar sweetener",
+          "amount": "1/4",
+          "unit": "cup",
+          "_id": "68d18475942e30ac648a9c45"
+        },
+        {
+          "name": "lime extract",
+          "amount": "1",
+          "unit": "tbl spoon",
+          "_id": "68d18475942e30ac648a9c46"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Peppermint leaves, strained in 2 cups water",
+          "_id": "68d18475942e30ac648a9c47"
+        },
+        {
+          "step": 2,
+          "instruction": "1/4 cup stevia or similar sweetener",
+          "_id": "68d18475942e30ac648a9c48"
+        },
+        {
+          "step": 3,
+          "instruction": "1 tablespoon of lime extract",
+          "_id": "68d18475942e30ac648a9c49"
+        },
+        {
+          "step": 4,
+          "instruction": "Add water to Drinkmate bottle to about 5 oz below the fill line",
+          "_id": "68d18475942e30ac648a9c4a"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758568542/drinkmate/galxf9bffec7fecfigdp.webp",
+          "alt": "lime_pepp.jpg",
+          "isPrimary": true,
+          "_id": "68d1a06738525e9919222e83"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T17:16:37.356Z",
+      "updatedAt": "2025-09-22T19:15:51.214Z",
+      "slug": "drinkmate-lime-peppermint-syrup",
+      "__v": 0
+    },
+    {
+      "_id": "68d184f9942e30ac648a9ce3",
+      "title": "Homemade Lime Green Soda",
+      "description": "",
+      "ingredients": [
+        {
+          "name": "Sugar",
+          "amount": "1",
+          "unit": "Cup",
+          "_id": "68d184f9942e30ac648a9ce4"
+        },
+        {
+          "name": "Water",
+          "amount": "1",
+          "unit": "Liter",
+          "_id": "68d184f9942e30ac648a9ce5"
+        },
+        {
+          "name": "Lime Juice",
+          "amount": "1/4",
+          "unit": "cup",
+          "_id": "68d184f9942e30ac648a9ce6"
+        },
+        {
+          "name": "Rind from 1 Lime",
+          "amount": "",
+          "unit": "",
+          "_id": "68d184f9942e30ac648a9ce7"
+        },
+        {
+          "name": "Green Food Coloring Drops",
+          "amount": "7",
+          "unit": "",
+          "_id": "68d184f9942e30ac648a9ce8"
+        },
+        {
+          "name": "Lime Slices for Garnish",
+          "amount": "",
+          "unit": "",
+          "_id": "68d184f9942e30ac648a9ce9"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "In a small pot on medium heat dissolve sugar in water. Raise the heat, add the lime rind and bring to a boil. Lower the heat to a simmer and cook until slightly reduced. Remove from heat and discard the lime rinds. Stir in the food coloring and cool, add ice.",
+          "_id": "68d184f9942e30ac648a9cea"
+        },
+        {
+          "step": 2,
+          "instruction": "Next Pour into your drinkmate machine to carbonate. Pour into glass and garnish with lime slice.",
+          "_id": "68d184f9942e30ac648a9ceb"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758568565/drinkmate/vaq4k7yiddtkzqadzn8v.webp",
+          "alt": "homemadelimegreensoda.jpg",
+          "isPrimary": true,
+          "_id": "68d1a07a38525e9919222f3c"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T17:18:49.173Z",
+      "updatedAt": "2025-09-22T19:16:10.801Z",
+      "slug": "homemade-lime-green-soda-1",
+      "__v": 0
+    },
+    {
+      "_id": "68d185c2942e30ac648a9d97",
+      "title": "Drinkmate Diet Fizzy Lemonade",
+      "description": "Make batch of Crystal Light sugar free lemonade and carbonate",
+      "ingredients": [
+        {
+          "name": "Lemonade",
+          "amount": "",
+          "unit": "",
+          "_id": "68d185c2942e30ac648a9d98"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Combine all liquid ingredients before carbonating.",
+          "_id": "68d185c2942e30ac648a9d99"
+        },
+        {
+          "step": 2,
+          "instruction": "Add to Drinkmate bottle; up to the Max Fill line or below.",
+          "_id": "68d185c2942e30ac648a9d9a"
+        },
+        {
+          "step": 3,
+          "instruction": "Shake bottle to mix ingredients before carbonating. Push button or pull trigger to carbonate.",
+          "_id": "68d185c2942e30ac648a9d9b"
+        },
+        {
+          "step": 4,
+          "instruction": "Shake gently again for 5 seconds. Let stand 5 seconds, then release pressure, adjusting speed as needed to avoid foam reaching the top.",
+          "_id": "68d185c2942e30ac648a9d9c"
+        },
+        {
+          "step": 5,
+          "instruction": "Pour into ice filled glass if desired.",
+          "_id": "68d185c2942e30ac648a9d9d"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1758568599/drinkmate/aley81ovqn8ivnum3chd.webp",
+          "alt": "dietfizzylemonade.jpg",
+          "isPrimary": true,
+          "_id": "68d1a09f38525e9919222f55"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68d10d0a66aebf194ecf97d7",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "variations": [],
+      "createdAt": "2025-09-22T17:22:10.335Z",
+      "updatedAt": "2025-09-22T19:16:47.712Z",
+      "slug": "drinkmate-diet-fizzy-lemonade",
+      "__v": 0
+    }
+  ]
+}

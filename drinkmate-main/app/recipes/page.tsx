@@ -145,10 +145,15 @@ export default function Recipes() {
         setLoading(true)
         const params = new URLSearchParams({
           page: currentPage.toString(),
-          limit: '12'
+          // Load 3 rows at a time (3 columns x 3 rows = 9)
+          limit: '9'
         })
         
-        if (searchQuery) params.append('search', searchQuery)
+        if (searchQuery) {
+          // Use starts-with server search by sending a caret-anchored regex
+          const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          params.append('search', `^${escaped}`)
+        }
         if (selectedCategory !== 'all') params.append('category', selectedCategory)
 
         const response = await fetch(`/api/recipes?${params}`)
@@ -176,17 +181,18 @@ export default function Recipes() {
             instructions: recipe.instructions?.map((inst: any) => inst.instruction) || [],
             isFeatured: recipe.featured || false
           }))
-          setRecipes(transformedRecipes)
+          // Append on load more, replace on first page or new filters
+          setRecipes(prev => currentPage === 1 ? transformedRecipes : [...prev, ...transformedRecipes])
           setHasMore(data.pagination?.hasNext || false)
         } else {
           // Fallback to mock data if API fails
-          setRecipes(mockRecipes)
+          setRecipes(prev => currentPage === 1 ? mockRecipes : [...prev, ...mockRecipes])
           setHasMore(false)
         }
       } catch (error) {
         console.error('Error fetching recipes:', error)
         // Fallback to mock data if API fails
-        setRecipes(mockRecipes)
+        setRecipes(prev => currentPage === 1 ? mockRecipes : [...prev, ...mockRecipes])
         setHasMore(false)
       } finally {
         setLoading(false)
@@ -229,6 +235,9 @@ export default function Recipes() {
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query)
+    // Reset list for a fresh server-side search
+    setRecipes([])
+    setHasMore(true)
     setCurrentPage(1)
   }
 
@@ -238,6 +247,8 @@ export default function Recipes() {
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category)
+    setRecipes([])
+    setHasMore(true)
     setCurrentPage(1)
   }
 

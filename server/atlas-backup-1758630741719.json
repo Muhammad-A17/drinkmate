@@ -1,0 +1,1641 @@
+{
+  "timestamp": "2025-09-23T12:32:21.478Z",
+  "count": 13,
+  "recipes": [
+    {
+      "_id": "68c709225c05e92c66783678",
+      "title": "Classic Strawberry Lemonade",
+      "slug": "classic-strawberry-lemonade",
+      "description": "A refreshing and tangy strawberry lemonade perfect for hot summer days. Made with fresh strawberries and real lemon juice.",
+      "ingredients": [
+        {
+          "name": "Fresh strawberries",
+          "amount": "1 cup",
+          "unit": "chopped",
+          "_id": "68c709225c05e92c66783679"
+        },
+        {
+          "name": "Fresh lemon juice",
+          "amount": "1/2 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c6678367a"
+        },
+        {
+          "name": "Sugar",
+          "amount": "1/2 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c6678367b"
+        },
+        {
+          "name": "Water",
+          "amount": "3 cups",
+          "unit": "",
+          "_id": "68c709225c05e92c6678367c"
+        },
+        {
+          "name": "Ice cubes",
+          "amount": "1 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c6678367d"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "In a blender, combine strawberries and 1/4 cup water. Blend until smooth.",
+          "_id": "68c709225c05e92c6678367e"
+        },
+        {
+          "step": 2,
+          "instruction": "Strain the strawberry puree through a fine mesh sieve to remove seeds.",
+          "_id": "68c709225c05e92c6678367f"
+        },
+        {
+          "step": 3,
+          "instruction": "In a large pitcher, combine strawberry puree, lemon juice, sugar, and remaining water.",
+          "_id": "68c709225c05e92c66783680"
+        },
+        {
+          "step": 4,
+          "instruction": "Stir until sugar is completely dissolved.",
+          "_id": "68c709225c05e92c66783681"
+        },
+        {
+          "step": 5,
+          "instruction": "Add ice cubes and serve immediately. Garnish with fresh strawberry slices.",
+          "_id": "68c709225c05e92c66783682"
+        }
+      ],
+      "prepTime": 15,
+      "cookTime": 0,
+      "servings": 4,
+      "difficulty": "Easy",
+      "category": "Fruity",
+      "tags": [
+        "strawberry",
+        "lemonade",
+        "refreshing",
+        "summer",
+        "non-alcoholic"
+      ],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/strawberry-lemonade.jpg",
+          "alt": "Classic Strawberry Lemonade",
+          "isPrimary": true,
+          "_id": "68c709225c05e92c66783683"
+        }
+      ],
+      "featured": true,
+      "published": true,
+      "author": "68bef3d3d2c1bab7543f15ac",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "nutrition": {
+        "calories": 120,
+        "protein": 1,
+        "carbs": 30,
+        "fat": 0,
+        "sugar": 28,
+        "fiber": 2
+      },
+      "equipment": [
+        "Blender",
+        "Fine mesh sieve",
+        "Large pitcher"
+      ],
+      "tips": [
+        "Use fresh, ripe strawberries for the best flavor",
+        "Adjust sugar amount based on sweetness of strawberries",
+        "Serve immediately for best taste and texture"
+      ],
+      "relatedRecipes": [],
+      "seo": {
+        "metaTitle": "Classic Strawberry Lemonade Recipe | Drinkmate",
+        "metaDescription": "Learn how to make the perfect strawberry lemonade with fresh ingredients. Easy recipe with step-by-step instructions.",
+        "keywords": [
+          "strawberry lemonade",
+          "lemonade recipe",
+          "summer drinks",
+          "refreshing drinks"
+        ]
+      },
+      "variations": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T18:27:46.277Z",
+      "updatedAt": "2025-09-14T18:27:46.277Z"
+    },
+    {
+      "_id": "68c709225c05e92c66783684",
+      "title": "Lime Mojito Mocktail",
+      "slug": "lime-mojito-mocktail",
+      "description": "A refreshing non-alcoholic version of the classic mojito with fresh lime, mint, and sparkling water.",
+      "ingredients": [
+        {
+          "name": "Fresh lime juice",
+          "amount": "1/4 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c66783685"
+        },
+        {
+          "name": "Fresh mint leaves",
+          "amount": "10-12",
+          "unit": "leaves",
+          "_id": "68c709225c05e92c66783686"
+        },
+        {
+          "name": "Sugar",
+          "amount": "2 tablespoons",
+          "unit": "",
+          "_id": "68c709225c05e92c66783687"
+        },
+        {
+          "name": "Sparkling water",
+          "amount": "1 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c66783688"
+        },
+        {
+          "name": "Lime slices",
+          "amount": "2",
+          "unit": "for garnish",
+          "_id": "68c709225c05e92c66783689"
+        },
+        {
+          "name": "Ice cubes",
+          "amount": "1 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c6678368a"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "In a glass, muddle mint leaves with sugar and lime juice.",
+          "_id": "68c709225c05e92c6678368b"
+        },
+        {
+          "step": 2,
+          "instruction": "Add ice cubes to the glass.",
+          "_id": "68c709225c05e92c6678368c"
+        },
+        {
+          "step": 3,
+          "instruction": "Top with sparkling water and stir gently.",
+          "_id": "68c709225c05e92c6678368d"
+        },
+        {
+          "step": 4,
+          "instruction": "Garnish with lime slices and additional mint leaves.",
+          "_id": "68c709225c05e92c6678368e"
+        },
+        {
+          "step": 5,
+          "instruction": "Serve immediately while cold and bubbly.",
+          "_id": "68c709225c05e92c6678368f"
+        }
+      ],
+      "prepTime": 10,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Refreshing",
+      "tags": [
+        "lime",
+        "mint",
+        "mocktail",
+        "sparkling",
+        "refreshing"
+      ],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/lime-mojito.jpg",
+          "alt": "Lime Mojito Mocktail",
+          "isPrimary": true,
+          "_id": "68c709225c05e92c66783690"
+        }
+      ],
+      "featured": true,
+      "published": true,
+      "author": "68bef3d3d2c1bab7543f15ac",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "nutrition": {
+        "calories": 80,
+        "protein": 0,
+        "carbs": 20,
+        "fat": 0,
+        "sugar": 18,
+        "fiber": 1
+      },
+      "equipment": [
+        "Muddler",
+        "Highball glass"
+      ],
+      "tips": [
+        "Muddle gently to release mint oils without tearing leaves",
+        "Use fresh mint for the best aroma",
+        "Serve immediately to maintain carbonation"
+      ],
+      "relatedRecipes": [],
+      "seo": {
+        "metaTitle": "Lime Mojito Mocktail Recipe | Drinkmate",
+        "metaDescription": "Create a refreshing lime mojito mocktail with fresh mint and sparkling water. Perfect non-alcoholic summer drink.",
+        "keywords": [
+          "lime mojito",
+          "mocktail",
+          "mint drink",
+          "sparkling water",
+          "non-alcoholic"
+        ]
+      },
+      "variations": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T18:27:46.278Z",
+      "updatedAt": "2025-09-14T18:27:46.278Z"
+    },
+    {
+      "_id": "68c709225c05e92c66783691",
+      "title": "Grapefruit Juice Spritzer",
+      "slug": "grapefruit-juice-spritzer",
+      "description": "A light and refreshing grapefruit juice spritzer with a hint of sweetness and sparkling water.",
+      "ingredients": [
+        {
+          "name": "Fresh grapefruit juice",
+          "amount": "1 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c66783692"
+        },
+        {
+          "name": "Sparkling water",
+          "amount": "1 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c66783693"
+        },
+        {
+          "name": "Honey",
+          "amount": "1 tablespoon",
+          "unit": "",
+          "_id": "68c709225c05e92c66783694"
+        },
+        {
+          "name": "Fresh rosemary",
+          "amount": "1 sprig",
+          "unit": "",
+          "_id": "68c709225c05e92c66783695"
+        },
+        {
+          "name": "Grapefruit slices",
+          "amount": "2",
+          "unit": "for garnish",
+          "_id": "68c709225c05e92c66783696"
+        },
+        {
+          "name": "Ice cubes",
+          "amount": "1 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c66783697"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "In a pitcher, mix grapefruit juice with honey until honey dissolves.",
+          "_id": "68c709225c05e92c66783698"
+        },
+        {
+          "step": 2,
+          "instruction": "Add ice cubes to serving glasses.",
+          "_id": "68c709225c05e92c66783699"
+        },
+        {
+          "step": 3,
+          "instruction": "Pour grapefruit mixture over ice, filling glasses halfway.",
+          "_id": "68c709225c05e92c6678369a"
+        },
+        {
+          "step": 4,
+          "instruction": "Top with sparkling water.",
+          "_id": "68c709225c05e92c6678369b"
+        },
+        {
+          "step": 5,
+          "instruction": "Garnish with grapefruit slices and rosemary sprig.",
+          "_id": "68c709225c05e92c6678369c"
+        }
+      ],
+      "prepTime": 5,
+      "cookTime": 0,
+      "servings": 2,
+      "difficulty": "Easy",
+      "category": "Refreshing",
+      "tags": [
+        "grapefruit",
+        "spritzer",
+        "sparkling",
+        "refreshing",
+        "citrus"
+      ],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/grapefruit-juice.jpg",
+          "alt": "Grapefruit Juice Spritzer",
+          "isPrimary": true,
+          "_id": "68c709225c05e92c6678369d"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68bef3d3d2c1bab7543f15ac",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "nutrition": {
+        "calories": 90,
+        "protein": 1,
+        "carbs": 22,
+        "fat": 0,
+        "sugar": 20,
+        "fiber": 1
+      },
+      "equipment": [
+        "Pitcher",
+        "Serving glasses"
+      ],
+      "tips": [
+        "Use fresh grapefruit juice for the best flavor",
+        "Adjust honey amount based on grapefruit sweetness",
+        "Serve immediately to maintain carbonation"
+      ],
+      "relatedRecipes": [],
+      "seo": {
+        "metaTitle": "Grapefruit Juice Spritzer Recipe | Drinkmate",
+        "metaDescription": "Make a refreshing grapefruit juice spritzer with sparkling water and fresh herbs. Light and healthy drink option.",
+        "keywords": [
+          "grapefruit spritzer",
+          "citrus drink",
+          "sparkling water",
+          "healthy drinks",
+          "refreshing"
+        ]
+      },
+      "variations": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T18:27:46.278Z",
+      "updatedAt": "2025-09-14T18:27:46.278Z"
+    },
+    {
+      "_id": "68c709225c05e92c6678369e",
+      "title": "Blue Raspberry Slushie",
+      "slug": "blue-raspberry-slushie",
+      "description": "A vibrant and sweet blue raspberry slushie that's perfect for kids and adults alike. Made with real fruit and ice.",
+      "ingredients": [
+        {
+          "name": "Frozen blueberries",
+          "amount": "1 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c6678369f"
+        },
+        {
+          "name": "Raspberry syrup",
+          "amount": "1/4 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c667836a0"
+        },
+        {
+          "name": "Sugar",
+          "amount": "2 tablespoons",
+          "unit": "",
+          "_id": "68c709225c05e92c667836a1"
+        },
+        {
+          "name": "Water",
+          "amount": "1/2 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c667836a2"
+        },
+        {
+          "name": "Ice cubes",
+          "amount": "2 cups",
+          "unit": "",
+          "_id": "68c709225c05e92c667836a3"
+        },
+        {
+          "name": "Fresh blueberries",
+          "amount": "1/4 cup",
+          "unit": "for garnish",
+          "_id": "68c709225c05e92c667836a4"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "In a blender, combine frozen blueberries, raspberry syrup, sugar, and water.",
+          "_id": "68c709225c05e92c667836a5"
+        },
+        {
+          "step": 2,
+          "instruction": "Add ice cubes and blend until smooth and slushy consistency.",
+          "_id": "68c709225c05e92c667836a6"
+        },
+        {
+          "step": 3,
+          "instruction": "Taste and adjust sweetness if needed.",
+          "_id": "68c709225c05e92c667836a7"
+        },
+        {
+          "step": 4,
+          "instruction": "Pour into serving glasses.",
+          "_id": "68c709225c05e92c667836a8"
+        },
+        {
+          "step": 5,
+          "instruction": "Garnish with fresh blueberries and serve immediately.",
+          "_id": "68c709225c05e92c667836a9"
+        }
+      ],
+      "prepTime": 10,
+      "cookTime": 0,
+      "servings": 2,
+      "difficulty": "Easy",
+      "category": "Fruity",
+      "tags": [
+        "blueberry",
+        "raspberry",
+        "slushie",
+        "frozen",
+        "sweet"
+      ],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/blue-raspberry.jpg",
+          "alt": "Blue Raspberry Slushie",
+          "isPrimary": true,
+          "_id": "68c709225c05e92c667836aa"
+        }
+      ],
+      "featured": true,
+      "published": true,
+      "author": "68bef3d3d2c1bab7543f15ac",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "nutrition": {
+        "calories": 150,
+        "protein": 1,
+        "carbs": 38,
+        "fat": 0,
+        "sugar": 35,
+        "fiber": 3
+      },
+      "equipment": [
+        "Blender",
+        "Serving glasses"
+      ],
+      "tips": [
+        "Use frozen blueberries for the best slushie texture",
+        "Blend in short pulses to achieve the right consistency",
+        "Serve immediately to maintain slushie texture"
+      ],
+      "relatedRecipes": [],
+      "seo": {
+        "metaTitle": "Blue Raspberry Slushie Recipe | Drinkmate",
+        "metaDescription": "Create a delicious blue raspberry slushie with frozen fruit and ice. Perfect summer treat for all ages.",
+        "keywords": [
+          "blue raspberry slushie",
+          "frozen drinks",
+          "blueberry",
+          "summer treats",
+          "slushie recipe"
+        ]
+      },
+      "variations": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T18:27:46.278Z",
+      "updatedAt": "2025-09-14T18:27:46.278Z"
+    },
+    {
+      "_id": "68c709225c05e92c667836ab",
+      "title": "Orange Creamsicle Float",
+      "slug": "orange-creamsicle-float",
+      "description": "A creamy and dreamy orange creamsicle float that combines the best of orange and vanilla flavors.",
+      "ingredients": [
+        {
+          "name": "Orange juice",
+          "amount": "1 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c667836ac"
+        },
+        {
+          "name": "Vanilla ice cream",
+          "amount": "2 scoops",
+          "unit": "",
+          "_id": "68c709225c05e92c667836ad"
+        },
+        {
+          "name": "Orange soda",
+          "amount": "1/2 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c667836ae"
+        },
+        {
+          "name": "Whipped cream",
+          "amount": "2 tablespoons",
+          "unit": "",
+          "_id": "68c709225c05e92c667836af"
+        },
+        {
+          "name": "Orange slice",
+          "amount": "1",
+          "unit": "for garnish",
+          "_id": "68c709225c05e92c667836b0"
+        },
+        {
+          "name": "Maraschino cherry",
+          "amount": "1",
+          "unit": "for garnish",
+          "_id": "68c709225c05e92c667836b1"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Pour orange juice into a tall glass.",
+          "_id": "68c709225c05e92c667836b2"
+        },
+        {
+          "step": 2,
+          "instruction": "Add vanilla ice cream scoops to the glass.",
+          "_id": "68c709225c05e92c667836b3"
+        },
+        {
+          "step": 3,
+          "instruction": "Slowly pour orange soda over the ice cream.",
+          "_id": "68c709225c05e92c667836b4"
+        },
+        {
+          "step": 4,
+          "instruction": "Top with whipped cream.",
+          "_id": "68c709225c05e92c667836b5"
+        },
+        {
+          "step": 5,
+          "instruction": "Garnish with orange slice and cherry. Serve immediately.",
+          "_id": "68c709225c05e92c667836b6"
+        }
+      ],
+      "prepTime": 5,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Creamy",
+      "tags": [
+        "orange",
+        "vanilla",
+        "float",
+        "ice cream",
+        "creamy"
+      ],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/orange-creamsicle.jpg",
+          "alt": "Orange Creamsicle Float",
+          "isPrimary": true,
+          "_id": "68c709225c05e92c667836b7"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68bef3d3d2c1bab7543f15ac",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "nutrition": {
+        "calories": 280,
+        "protein": 4,
+        "carbs": 45,
+        "fat": 10,
+        "sugar": 40,
+        "fiber": 1
+      },
+      "equipment": [
+        "Tall glass",
+        "Ice cream scoop"
+      ],
+      "tips": [
+        "Use high-quality vanilla ice cream for best results",
+        "Pour soda slowly to prevent overflow",
+        "Serve immediately to prevent melting"
+      ],
+      "relatedRecipes": [],
+      "seo": {
+        "metaTitle": "Orange Creamsicle Float Recipe | Drinkmate",
+        "metaDescription": "Make a delicious orange creamsicle float with vanilla ice cream and orange soda. Perfect dessert drink.",
+        "keywords": [
+          "orange creamsicle",
+          "float",
+          "ice cream drink",
+          "vanilla",
+          "dessert drink"
+        ]
+      },
+      "variations": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T18:27:46.278Z",
+      "updatedAt": "2025-09-14T18:27:46.278Z"
+    },
+    {
+      "_id": "68c709225c05e92c667836b8",
+      "title": "Grape Soda Fizz",
+      "slug": "grape-soda-fizz",
+      "description": "A bubbly and refreshing grape soda made with real grape juice and sparkling water.",
+      "ingredients": [
+        {
+          "name": "Grape juice",
+          "amount": "1 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c667836b9"
+        },
+        {
+          "name": "Sparkling water",
+          "amount": "1 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c667836ba"
+        },
+        {
+          "name": "Lime juice",
+          "amount": "1 tablespoon",
+          "unit": "",
+          "_id": "68c709225c05e92c667836bb"
+        },
+        {
+          "name": "Sugar",
+          "amount": "1 tablespoon",
+          "unit": "",
+          "_id": "68c709225c05e92c667836bc"
+        },
+        {
+          "name": "Grape slices",
+          "amount": "2",
+          "unit": "for garnish",
+          "_id": "68c709225c05e92c667836bd"
+        },
+        {
+          "name": "Ice cubes",
+          "amount": "1 cup",
+          "unit": "",
+          "_id": "68c709225c05e92c667836be"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "In a pitcher, mix grape juice with lime juice and sugar.",
+          "_id": "68c709225c05e92c667836bf"
+        },
+        {
+          "step": 2,
+          "instruction": "Stir until sugar dissolves completely.",
+          "_id": "68c709225c05e92c667836c0"
+        },
+        {
+          "step": 3,
+          "instruction": "Add ice cubes to serving glasses.",
+          "_id": "68c709225c05e92c667836c1"
+        },
+        {
+          "step": 4,
+          "instruction": "Pour grape mixture over ice, filling glasses halfway.",
+          "_id": "68c709225c05e92c667836c2"
+        },
+        {
+          "step": 5,
+          "instruction": "Top with sparkling water and garnish with grape slices.",
+          "_id": "68c709225c05e92c667836c3"
+        }
+      ],
+      "prepTime": 5,
+      "cookTime": 0,
+      "servings": 2,
+      "difficulty": "Easy",
+      "category": "Fruity",
+      "tags": [
+        "grape",
+        "soda",
+        "sparkling",
+        "fizzy",
+        "refreshing"
+      ],
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/grape-soda.jpg",
+          "alt": "Grape Soda Fizz",
+          "isPrimary": true,
+          "_id": "68c709225c05e92c667836c4"
+        }
+      ],
+      "featured": false,
+      "published": true,
+      "author": "68bef3d3d2c1bab7543f15ac",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "nutrition": {
+        "calories": 100,
+        "protein": 0,
+        "carbs": 25,
+        "fat": 0,
+        "sugar": 23,
+        "fiber": 0
+      },
+      "equipment": [
+        "Pitcher",
+        "Serving glasses"
+      ],
+      "tips": [
+        "Use 100% grape juice for the best flavor",
+        "Add lime juice to balance sweetness",
+        "Serve immediately to maintain fizz"
+      ],
+      "relatedRecipes": [],
+      "seo": {
+        "metaTitle": "Grape Soda Fizz Recipe | Drinkmate",
+        "metaDescription": "Create a refreshing grape soda fizz with real grape juice and sparkling water. Easy homemade soda recipe.",
+        "keywords": [
+          "grape soda",
+          "homemade soda",
+          "grape juice",
+          "sparkling water",
+          "fizzy drinks"
+        ]
+      },
+      "variations": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T18:27:46.278Z",
+      "updatedAt": "2025-09-14T18:27:46.278Z"
+    },
+    {
+      "_id": "68c738edbdff2bfc883d1e95",
+      "slug": "drinkmate-diet-fizzy-grapefruit-juice",
+      "__v": 0,
+      "author": "68bef3d3d2c1bab7543f15ac",
+      "category": "Refreshing",
+      "cookTime": 0,
+      "createdAt": "2025-09-14T21:51:39.526Z",
+      "description": "Perfect balance of flavors with a refreshing grapefruit twist. This low-calorie drink is perfect for those watching their sugar intake while still enjoying a delicious sparkling beverage.",
+      "difficulty": "Easy",
+      "equipment": [
+        "DrinkMate machine",
+        "Measuring cup",
+        "Spoon"
+      ],
+      "featured": true,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+          "alt": "DrinkMate Diet Fizzy Grapefruit Juice",
+          "isPrimary": true,
+          "_id": "68c738eb9b7339459deb1509"
+        }
+      ],
+      "ingredients": [
+        {
+          "name": "Fresh grapefruit juice",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb14ff"
+        },
+        {
+          "name": "Cold water",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb1500"
+        },
+        {
+          "name": "Stevia or sweetener",
+          "amount": "1",
+          "unit": "tsp",
+          "_id": "68c738eb9b7339459deb1501"
+        },
+        {
+          "name": "Fresh mint leaves",
+          "amount": "4-5",
+          "unit": "leaves",
+          "_id": "68c738eb9b7339459deb1502"
+        },
+        {
+          "name": "Ice cubes",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb1503"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Pour fresh grapefruit juice into your DrinkMate bottle",
+          "_id": "68c738eb9b7339459deb1504"
+        },
+        {
+          "step": 2,
+          "instruction": "Add cold water and sweetener, mix well",
+          "_id": "68c738eb9b7339459deb1505"
+        },
+        {
+          "step": 3,
+          "instruction": "Add fresh mint leaves for extra freshness",
+          "_id": "68c738eb9b7339459deb1506"
+        },
+        {
+          "step": 4,
+          "instruction": "Carbonate using your DrinkMate machine",
+          "_id": "68c738eb9b7339459deb1507"
+        },
+        {
+          "step": 5,
+          "instruction": "Pour over ice and enjoy immediately",
+          "_id": "68c738eb9b7339459deb1508"
+        }
+      ],
+      "likes": 89,
+      "nutrition": {
+        "calories": 45,
+        "protein": 1.2,
+        "carbs": 11,
+        "fat": 0.1,
+        "sugar": 8,
+        "fiber": 2.1
+      },
+      "prepTime": 3,
+      "published": true,
+      "rating": {
+        "average": 4.8,
+        "count": 23
+      },
+      "relatedRecipes": [],
+      "seo": {
+        "metaTitle": "DrinkMate Diet Fizzy Grapefruit Juice Recipe",
+        "metaDescription": "Learn how to make a refreshing low-calorie grapefruit sparkling drink with your DrinkMate machine.",
+        "keywords": [
+          "grapefruit",
+          "diet",
+          "sparkling",
+          "low calorie",
+          "healthy drinks"
+        ]
+      },
+      "servings": 2,
+      "tags": [
+        "refreshing",
+        "low-calorie",
+        "citrus",
+        "diet",
+        "healthy"
+      ],
+      "tips": [
+        "Use fresh grapefruit juice for best flavor",
+        "Adjust sweetness to your preference",
+        "Serve immediately after carbonation for maximum fizz"
+      ],
+      "title": "DrinkMate Diet Fizzy Grapefruit Juice",
+      "updatedAt": "2025-09-14T21:51:39.526Z",
+      "variations": [],
+      "views": 1250
+    },
+    {
+      "_id": "68c738edbdff2bfc883d1e96",
+      "slug": "italian-strawberry-lemonade",
+      "__v": 0,
+      "author": "68bef3d3d2c1bab7543f15ac",
+      "category": "Fruity",
+      "cookTime": 0,
+      "createdAt": "2025-09-14T21:51:39.664Z",
+      "description": "Classic Italian strawberry lemonade with a sparkling twist. This fruity and refreshing drink combines the sweetness of strawberries with the tartness of fresh lemons.",
+      "difficulty": "Easy",
+      "equipment": [
+        "DrinkMate machine",
+        "Mixing bowl",
+        "Strainer",
+        "Spoon"
+      ],
+      "featured": false,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400&h=400&fit=crop",
+          "alt": "Italian Strawberry Lemonade",
+          "isPrimary": true,
+          "_id": "68c738eb9b7339459deb1520"
+        }
+      ],
+      "ingredients": [
+        {
+          "name": "Fresh strawberries",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb1516"
+        },
+        {
+          "name": "Fresh lemon juice",
+          "amount": "1/2",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb1517"
+        },
+        {
+          "name": "Simple syrup",
+          "amount": "1/4",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb1518"
+        },
+        {
+          "name": "Cold water",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb1519"
+        },
+        {
+          "name": "Ice cubes",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb151a"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Mash fresh strawberries in a bowl",
+          "_id": "68c738eb9b7339459deb151b"
+        },
+        {
+          "step": 2,
+          "instruction": "Mix strawberry puree with lemon juice and simple syrup",
+          "_id": "68c738eb9b7339459deb151c"
+        },
+        {
+          "step": 3,
+          "instruction": "Add cold water and stir well",
+          "_id": "68c738eb9b7339459deb151d"
+        },
+        {
+          "step": 4,
+          "instruction": "Carbonate using your DrinkMate machine",
+          "_id": "68c738eb9b7339459deb151e"
+        },
+        {
+          "step": 5,
+          "instruction": "Strain and serve over ice",
+          "_id": "68c738eb9b7339459deb151f"
+        }
+      ],
+      "likes": 67,
+      "nutrition": {
+        "calories": 85,
+        "protein": 0.8,
+        "carbs": 22,
+        "fat": 0.2,
+        "sugar": 19,
+        "fiber": 1.5
+      },
+      "prepTime": 5,
+      "published": true,
+      "rating": {
+        "average": 4.6,
+        "count": 18
+      },
+      "relatedRecipes": [],
+      "seo": {
+        "metaTitle": "Italian Strawberry Lemonade Recipe with DrinkMate",
+        "metaDescription": "Make authentic Italian strawberry lemonade with a sparkling twist using your DrinkMate machine.",
+        "keywords": [
+          "strawberry lemonade",
+          "italian",
+          "fruity",
+          "sparkling",
+          "summer drinks"
+        ]
+      },
+      "servings": 4,
+      "tags": [
+        "fruity",
+        "summer",
+        "refreshing",
+        "italian",
+        "strawberry"
+      ],
+      "tips": [
+        "Use ripe strawberries for best flavor",
+        "Adjust sweetness with more or less simple syrup",
+        "Garnish with fresh strawberry slices"
+      ],
+      "title": "Italian Strawberry Lemonade",
+      "updatedAt": "2025-09-14T21:51:39.664Z",
+      "variations": [],
+      "views": 890
+    },
+    {
+      "_id": "68c738edbdff2bfc883d1e97",
+      "slug": "blue-raspberry-blast",
+      "__v": 0,
+      "author": "68bef3d3d2c1bab7543f15ac",
+      "category": "Fruity",
+      "cookTime": 0,
+      "createdAt": "2025-09-14T21:51:39.790Z",
+      "description": "A burst of blue raspberry flavor that's both sweet and refreshing. This vibrant drink is perfect for kids and adults alike, with its eye-catching blue color and delicious taste.",
+      "difficulty": "Easy",
+      "equipment": [
+        "DrinkMate machine",
+        "Measuring spoons",
+        "Spoon"
+      ],
+      "featured": false,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=400&fit=crop",
+          "alt": "Blue Raspberry Blast",
+          "isPrimary": true,
+          "_id": "68c738eb9b7339459deb1537"
+        }
+      ],
+      "ingredients": [
+        {
+          "name": "Blue raspberry syrup",
+          "amount": "2",
+          "unit": "tbsp",
+          "_id": "68c738eb9b7339459deb152d"
+        },
+        {
+          "name": "Cold water",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb152e"
+        },
+        {
+          "name": "Lemon juice",
+          "amount": "1",
+          "unit": "tbsp",
+          "_id": "68c738eb9b7339459deb152f"
+        },
+        {
+          "name": "Ice cubes",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb1530"
+        },
+        {
+          "name": "Blue food coloring",
+          "amount": "2-3",
+          "unit": "drops",
+          "_id": "68c738eb9b7339459deb1531"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Mix blue raspberry syrup with cold water",
+          "_id": "68c738eb9b7339459deb1532"
+        },
+        {
+          "step": 2,
+          "instruction": "Add lemon juice for a slight tartness",
+          "_id": "68c738eb9b7339459deb1533"
+        },
+        {
+          "step": 3,
+          "instruction": "Add a few drops of blue food coloring for vibrant color",
+          "_id": "68c738eb9b7339459deb1534"
+        },
+        {
+          "step": 4,
+          "instruction": "Carbonate using your DrinkMate machine",
+          "_id": "68c738eb9b7339459deb1535"
+        },
+        {
+          "step": 5,
+          "instruction": "Serve over ice and enjoy the blast of flavor",
+          "_id": "68c738eb9b7339459deb1536"
+        }
+      ],
+      "likes": 45,
+      "nutrition": {
+        "calories": 95,
+        "protein": 0.1,
+        "carbs": 24,
+        "fat": 0,
+        "sugar": 22,
+        "fiber": 0.2
+      },
+      "prepTime": 4,
+      "published": true,
+      "rating": {
+        "average": 4.7,
+        "count": 15
+      },
+      "relatedRecipes": [],
+      "seo": {
+        "metaTitle": "Blue Raspberry Blast Recipe - DrinkMate",
+        "metaDescription": "Create a vibrant blue raspberry sparkling drink with your DrinkMate machine.",
+        "keywords": [
+          "blue raspberry",
+          "colorful drinks",
+          "fruity",
+          "sparkling",
+          "kids drinks"
+        ]
+      },
+      "servings": 2,
+      "tags": [
+        "berry",
+        "blue",
+        "sweet",
+        "colorful",
+        "kids-friendly"
+      ],
+      "tips": [
+        "Use high-quality blue raspberry syrup",
+        "Adjust sweetness to taste",
+        "Add more food coloring for deeper blue color"
+      ],
+      "title": "Blue Raspberry Blast",
+      "updatedAt": "2025-09-14T21:51:39.790Z",
+      "variations": [],
+      "views": 650
+    },
+    {
+      "_id": "68c738edbdff2bfc883d1e98",
+      "slug": "lime-mojito-sparkle",
+      "__v": 0,
+      "author": "68bef3d3d2c1bab7543f15ac",
+      "category": "Refreshing",
+      "cookTime": 0,
+      "createdAt": "2025-09-14T21:51:39.915Z",
+      "description": "A sparkling twist on the classic mojito with fresh lime and mint. This refreshing mocktail is perfect for summer gatherings and adds a sophisticated touch to any occasion.",
+      "difficulty": "Medium",
+      "equipment": [
+        "DrinkMate machine",
+        "Muddler",
+        "Strainer",
+        "Spoon"
+      ],
+      "featured": true,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&h=400&fit=crop",
+          "alt": "Lime Mojito Sparkle",
+          "isPrimary": true,
+          "_id": "68c738eb9b7339459deb154e"
+        }
+      ],
+      "ingredients": [
+        {
+          "name": "Fresh lime juice",
+          "amount": "1/2",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb1544"
+        },
+        {
+          "name": "Fresh mint leaves",
+          "amount": "10-12",
+          "unit": "leaves",
+          "_id": "68c738eb9b7339459deb1545"
+        },
+        {
+          "name": "Simple syrup",
+          "amount": "1/4",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb1546"
+        },
+        {
+          "name": "Cold water",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb1547"
+        },
+        {
+          "name": "Ice cubes",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738eb9b7339459deb1548"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Muddle fresh mint leaves in the bottom of your DrinkMate bottle",
+          "_id": "68c738eb9b7339459deb1549"
+        },
+        {
+          "step": 2,
+          "instruction": "Add fresh lime juice and simple syrup",
+          "_id": "68c738eb9b7339459deb154a"
+        },
+        {
+          "step": 3,
+          "instruction": "Add cold water and mix well",
+          "_id": "68c738eb9b7339459deb154b"
+        },
+        {
+          "step": 4,
+          "instruction": "Carbonate using your DrinkMate machine",
+          "_id": "68c738eb9b7339459deb154c"
+        },
+        {
+          "step": 5,
+          "instruction": "Strain into glasses over ice and garnish with mint",
+          "_id": "68c738eb9b7339459deb154d"
+        }
+      ],
+      "likes": 78,
+      "nutrition": {
+        "calories": 65,
+        "protein": 0.3,
+        "carbs": 17,
+        "fat": 0.1,
+        "sugar": 15,
+        "fiber": 0.5
+      },
+      "prepTime": 6,
+      "published": true,
+      "rating": {
+        "average": 4.9,
+        "count": 21
+      },
+      "relatedRecipes": [],
+      "seo": {
+        "metaTitle": "Lime Mojito Sparkle Mocktail Recipe",
+        "metaDescription": "Learn to make a refreshing sparkling mojito mocktail with your DrinkMate machine.",
+        "keywords": [
+          "mojito",
+          "lime",
+          "mint",
+          "mocktail",
+          "sparkling",
+          "refreshing"
+        ]
+      },
+      "servings": 2,
+      "tags": [
+        "citrus",
+        "mint",
+        "refreshing",
+        "mocktail",
+        "sophisticated"
+      ],
+      "tips": [
+        "Use fresh mint for best flavor",
+        "Muddle gently to release oils without tearing leaves",
+        "Serve immediately for maximum freshness"
+      ],
+      "title": "Lime Mojito Sparkle",
+      "updatedAt": "2025-09-14T21:51:39.915Z",
+      "variations": [],
+      "views": 1100
+    },
+    {
+      "_id": "68c738edbdff2bfc883d1e99",
+      "slug": "orange-creamsicle-delight",
+      "__v": 0,
+      "author": "68bef3d3d2c1bab7543f15ac",
+      "category": "Creamy",
+      "cookTime": 0,
+      "createdAt": "2025-09-14T21:51:40.037Z",
+      "description": "Creamy orange delight that tastes just like the classic ice cream treat. This nostalgic drink combines the sweetness of orange with the creaminess of vanilla for a perfect dessert beverage.",
+      "difficulty": "Easy",
+      "equipment": [
+        "DrinkMate machine",
+        "Measuring cup",
+        "Spoon"
+      ],
+      "featured": false,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=400&h=400&fit=crop",
+          "alt": "Orange Creamsicle Delight",
+          "isPrimary": true,
+          "_id": "68c738ec9b7339459deb1565"
+        }
+      ],
+      "ingredients": [
+        {
+          "name": "Orange juice",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738ec9b7339459deb155b"
+        },
+        {
+          "name": "Heavy cream",
+          "amount": "1/4",
+          "unit": "cup",
+          "_id": "68c738ec9b7339459deb155c"
+        },
+        {
+          "name": "Vanilla extract",
+          "amount": "1",
+          "unit": "tsp",
+          "_id": "68c738ec9b7339459deb155d"
+        },
+        {
+          "name": "Simple syrup",
+          "amount": "2",
+          "unit": "tbsp",
+          "_id": "68c738ec9b7339459deb155e"
+        },
+        {
+          "name": "Cold water",
+          "amount": "1/2",
+          "unit": "cup",
+          "_id": "68c738ec9b7339459deb155f"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Mix orange juice with heavy cream",
+          "_id": "68c738ec9b7339459deb1560"
+        },
+        {
+          "step": 2,
+          "instruction": "Add vanilla extract and simple syrup",
+          "_id": "68c738ec9b7339459deb1561"
+        },
+        {
+          "step": 3,
+          "instruction": "Add cold water and stir well",
+          "_id": "68c738ec9b7339459deb1562"
+        },
+        {
+          "step": 4,
+          "instruction": "Carbonate using your DrinkMate machine",
+          "_id": "68c738ec9b7339459deb1563"
+        },
+        {
+          "step": 5,
+          "instruction": "Chill and serve over ice",
+          "_id": "68c738ec9b7339459deb1564"
+        }
+      ],
+      "likes": 52,
+      "nutrition": {
+        "calories": 120,
+        "protein": 1.8,
+        "carbs": 18,
+        "fat": 4.2,
+        "sugar": 16,
+        "fiber": 0.8
+      },
+      "prepTime": 5,
+      "published": true,
+      "rating": {
+        "average": 4.5,
+        "count": 16
+      },
+      "relatedRecipes": [],
+      "seo": {
+        "metaTitle": "Orange Creamsicle Delight Recipe",
+        "metaDescription": "Make a creamy orange sparkling drink that tastes like the classic ice cream treat.",
+        "keywords": [
+          "orange creamsicle",
+          "creamy",
+          "dessert drink",
+          "vanilla",
+          "nostalgic"
+        ]
+      },
+      "servings": 3,
+      "tags": [
+        "fruity",
+        "orange",
+        "creamy",
+        "dessert",
+        "nostalgic"
+      ],
+      "tips": [
+        "Use fresh orange juice for best flavor",
+        "Adjust creaminess by adding more or less heavy cream",
+        "Serve well chilled for best taste"
+      ],
+      "title": "Orange Creamsicle Delight",
+      "updatedAt": "2025-09-14T21:51:40.037Z",
+      "variations": [],
+      "views": 720
+    },
+    {
+      "_id": "68c738edbdff2bfc883d1e9a",
+      "slug": "grape-soda-supreme",
+      "__v": 0,
+      "author": "68bef3d3d2c1bab7543f15ac",
+      "category": "Classic",
+      "cookTime": 0,
+      "createdAt": "2025-09-14T21:51:40.161Z",
+      "description": "The ultimate grape soda experience with premium flavor. This classic drink gets a modern twist with your DrinkMate machine, creating the perfect balance of sweetness and fizz.",
+      "difficulty": "Easy",
+      "equipment": [
+        "DrinkMate machine",
+        "Measuring spoons",
+        "Spoon"
+      ],
+      "featured": false,
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=400&fit=crop",
+          "alt": "Grape Soda Supreme",
+          "isPrimary": true,
+          "_id": "68c738ec9b7339459deb157c"
+        }
+      ],
+      "ingredients": [
+        {
+          "name": "Grape syrup",
+          "amount": "3",
+          "unit": "tbsp",
+          "_id": "68c738ec9b7339459deb1572"
+        },
+        {
+          "name": "Cold water",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738ec9b7339459deb1573"
+        },
+        {
+          "name": "Lemon juice",
+          "amount": "1",
+          "unit": "tsp",
+          "_id": "68c738ec9b7339459deb1574"
+        },
+        {
+          "name": "Ice cubes",
+          "amount": "1",
+          "unit": "cup",
+          "_id": "68c738ec9b7339459deb1575"
+        },
+        {
+          "name": "Purple food coloring",
+          "amount": "2-3",
+          "unit": "drops",
+          "_id": "68c738ec9b7339459deb1576"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Mix grape syrup with cold water",
+          "_id": "68c738ec9b7339459deb1577"
+        },
+        {
+          "step": 2,
+          "instruction": "Add a splash of lemon juice for balance",
+          "_id": "68c738ec9b7339459deb1578"
+        },
+        {
+          "step": 3,
+          "instruction": "Add purple food coloring for vibrant color",
+          "_id": "68c738ec9b7339459deb1579"
+        },
+        {
+          "step": 4,
+          "instruction": "Carbonate using your DrinkMate machine",
+          "_id": "68c738ec9b7339459deb157a"
+        },
+        {
+          "step": 5,
+          "instruction": "Serve chilled over ice",
+          "_id": "68c738ec9b7339459deb157b"
+        }
+      ],
+      "likes": 38,
+      "nutrition": {
+        "calories": 110,
+        "protein": 0.1,
+        "carbs": 28,
+        "fat": 0,
+        "sugar": 26,
+        "fiber": 0.1
+      },
+      "prepTime": 3,
+      "published": true,
+      "rating": {
+        "average": 4.4,
+        "count": 12
+      },
+      "relatedRecipes": [],
+      "seo": {
+        "metaTitle": "Grape Soda Supreme Recipe - DrinkMate",
+        "metaDescription": "Create the ultimate grape soda with your DrinkMate machine.",
+        "keywords": [
+          "grape soda",
+          "classic",
+          "purple",
+          "sweet",
+          "sparkling"
+        ]
+      },
+      "servings": 2,
+      "tags": [
+        "grape",
+        "soda",
+        "classic",
+        "purple",
+        "sweet"
+      ],
+      "tips": [
+        "Use high-quality grape syrup",
+        "Adjust sweetness to taste",
+        "Add more food coloring for deeper purple color"
+      ],
+      "title": "Grape Soda Supreme",
+      "updatedAt": "2025-09-14T21:51:40.161Z",
+      "variations": [],
+      "views": 580
+    },
+    {
+      "_id": "68d16ba5882fbe835575ad95",
+      "title": "Test Cloud Database Recipe",
+      "description": "Testing recipe creation with cloud database",
+      "ingredients": [
+        {
+          "name": "Water",
+          "_id": "68d16ba5882fbe835575ad96"
+        },
+        {
+          "name": "Sugar",
+          "_id": "68d16ba5882fbe835575ad97"
+        },
+        {
+          "name": "Lemon",
+          "_id": "68d16ba5882fbe835575ad98"
+        },
+        {
+          "name": "Ice",
+          "_id": "68d16ba5882fbe835575ad99"
+        }
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Mix water and sugar",
+          "_id": "68d16ba5882fbe835575ad9a"
+        },
+        {
+          "step": 2,
+          "instruction": "Add lemon juice",
+          "_id": "68d16ba5882fbe835575ad9b"
+        },
+        {
+          "step": 3,
+          "instruction": "Add ice cubes",
+          "_id": "68d16ba5882fbe835575ad9c"
+        },
+        {
+          "step": 4,
+          "instruction": "Serve chilled",
+          "_id": "68d16ba5882fbe835575ad9d"
+        }
+      ],
+      "prepTime": 0,
+      "cookTime": 0,
+      "servings": 1,
+      "difficulty": "Easy",
+      "category": "Classic",
+      "tags": [],
+      "featured": false,
+      "published": true,
+      "author": "68bf14b18f38d4a30dce24f8",
+      "views": 0,
+      "likes": 0,
+      "rating": {
+        "average": 0,
+        "count": 0
+      },
+      "equipment": [],
+      "tips": [],
+      "relatedRecipes": [],
+      "seo": {
+        "keywords": []
+      },
+      "images": [],
+      "variations": [],
+      "createdAt": "2025-09-22T15:30:45.578Z",
+      "updatedAt": "2025-09-22T15:30:45.578Z",
+      "slug": "test-cloud-database-recipe",
+      "__v": 0
+    }
+  ]
+}
