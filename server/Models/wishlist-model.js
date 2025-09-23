@@ -70,7 +70,7 @@ const wishlistSchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-wishlistSchema.index({ user: 1 });
+// user index removed - already has unique: true which creates an index
 wishlistSchema.index({ 'items.product': 1 });
 wishlistSchema.index({ 'items.addedAt': -1 });
 

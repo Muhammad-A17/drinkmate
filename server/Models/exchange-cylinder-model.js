@@ -268,7 +268,7 @@ exchangeCylinderSchema.index({ brand: 1, exchangeType: 1 });
 exchangeCylinderSchema.index({ status: 1, isAvailable: 1 });
 exchangeCylinderSchema.index({ price: 1 });
 exchangeCylinderSchema.index({ isBestSeller: 1, isFeatured: 1 });
-exchangeCylinderSchema.index({ slug: 1 });
+// slug index removed - already has unique: true which creates an index
 exchangeCylinderSchema.index({ averageRating: -1 });
 exchangeCylinderSchema.index({ totalReviews: -1 });
 exchangeCylinderSchema.index({ createdAt: -1 });

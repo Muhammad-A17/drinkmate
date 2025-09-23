@@ -157,7 +157,7 @@ const co2OrderSchema = new mongoose.Schema({
 });
 
 // Indexes for better query performance
-co2OrderSchema.index({ orderNumber: 1 });
+// orderNumber index removed - already has unique: true which creates an index
 co2OrderSchema.index({ userId: 1, status: 1 });
 co2OrderSchema.index({ status: 1, createdAt: 1 });
 co2OrderSchema.index({ orderType: 1, status: 1 });
