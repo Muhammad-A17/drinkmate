@@ -156,12 +156,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.log('Login response:', data);
           }
           
-          // Store token in appropriate storage based on rememberMe flag
-          if (rememberMe) {
-            localStorage.setItem(TOKEN_KEY, data.token);
-          } else {
-            sessionStorage.setItem(TOKEN_KEY, data.token);
-          }
+          // Store token in both localStorage and sessionStorage for reliability
+          localStorage.setItem(TOKEN_KEY, data.token);
+          sessionStorage.setItem(TOKEN_KEY, data.token);
           
           const newAuthState = {
             user: data.user,
@@ -173,11 +170,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setAuthState(newAuthState);
           
           console.log('Auth state updated after login:', newAuthState);
-          
-          // Force a re-render by updating state again
-          setTimeout(() => {
-            setAuthState(prev => ({ ...prev, isAuthenticated: true }));
-          }, 100);
           
           return { success: true, message: data.message || "Login successful" };
         } catch (error: any) {

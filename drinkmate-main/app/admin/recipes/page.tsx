@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { getAuthToken } from '@/lib/auth-context'
 import { useTranslation } from '@/lib/translation-context'
 import AdminLayout from '@/components/layout/AdminLayout'
 import { Button } from '@/components/ui/button'
@@ -13,9 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Plus, Search, Edit, Trash2, Eye, Star, Clock, Users, Filter, Save, X, Image as ImageIcon, ChefHat, TrendingUp, CheckCircle, BarChart3, Download, MoreHorizontal, ChevronLeft, ChevronRight, Loader2, RefreshCw } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, Star, Clock, Users, Filter, Save, X, Image as ImageIcon, ChefHat, TrendingUp, CheckCircle, BarChart3, Download, MoreHorizontal, ChevronLeft, ChevronRight, Loader2, RefreshCw, Upload, Trash } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
+import { uploadImageWithProgress } from '@/lib/cloud-storage'
 
 interface Recipe {
   _id: string
@@ -100,6 +102,8 @@ export default function AdminRecipesPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [showForm, setShowForm] = useState(false)
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
+  const [uploadingImages, setUploadingImages] = useState<boolean[]>([])
+  const [imageUploadProgress, setImageUploadProgress] = useState<number[]>([])
   const [formData, setFormData] = useState<RecipeFormData>({
     title: '',
     description: '',
@@ -109,7 +113,7 @@ export default function AdminRecipesPage() {
     cookTime: 0,
     servings: 1,
     featured: false,
-    published: false,
+    published: true,
     ingredients: [{ name: '', amount: '', unit: '' }],
     instructions: [{ step: 1, instruction: '' }],
     tags: [],
@@ -123,8 +127,8 @@ export default function AdminRecipesPage() {
   const fetchRecipes = async () => {
     try {
       setLoading(true)
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const response = await fetch('/api/recipes', {
+      const token = getAuthToken() || (typeof window !== 'undefined' ? localStorage.getItem('auth-token') || localStorage.getItem('token') : null)
+      const response = await fetch(`http://localhost:3000/recipes`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -166,21 +170,57 @@ export default function AdminRecipesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const url = editingRecipe ? `/api/recipes/${editingRecipe._id}` : '/api/recipes'
-      const method = editingRecipe ? 'PUT' : 'POST'
+      // Check authentication first
+      if (!isAuthenticated || !user) {
+        toast.error('Please log in to create recipes')
+        return
+      }
+
+      // Clean up form data - remove empty ingredients and instructions
+      const cleanedFormData = {
+        ...formData,
+        ingredients: formData.ingredients.filter(ing => ing.name.trim() !== ''),
+        instructions: formData.instructions.filter(inst => inst.instruction.trim() !== '')
+      }
       
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const response = await fetch(url, {
+            const url = editingRecipe ? `http://localhost:3000/recipes/${editingRecipe._id}` : `http://localhost:3000/recipes`
+            const method = editingRecipe ? 'PUT' : 'POST'
+      
+      const token = getAuthToken() || (typeof window !== 'undefined' ? localStorage.getItem('auth-token') || localStorage.getItem('token') : null)
+      
+      console.log('Submitting recipe:', cleanedFormData) // Debug log
+      console.log('Token found:', !!token) // Debug log
+      console.log('Token value:', token ? token.substring(0, 20) + '...' : 'No token') // Debug log
+      console.log('User authenticated:', isAuthenticated) // Debug log
+      console.log('User is admin:', user?.isAdmin) // Debug log
+      
+      if (!token) {
+        toast.error('Authentication token not found. Please log in again.')
+        return
+      }
+      
+      const requestOptions = {
         method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
-      })
+        body: JSON.stringify(cleanedFormData)
+      }
+      
+      console.log('Request URL:', url) // Debug log
+      console.log('Request options:', requestOptions) // Debug log
+      
+      const response = await fetch(url, requestOptions)
+      
+      console.log('Response status:', response.status) // Debug log
+      console.log('Response headers:', Object.fromEntries(response.headers.entries())) // Debug log
+      
+      const responseData = await response.json()
+      console.log('Response:', responseData) // Debug log
       
       if (!response.ok) {
-        throw new Error('Failed to save recipe')
+        throw new Error(responseData.message || 'Failed to save recipe')
       }
       
       await fetchRecipes()
@@ -189,8 +229,9 @@ export default function AdminRecipesPage() {
       resetForm()
       toast.success(editingRecipe ? 'Recipe updated successfully' : 'Recipe created successfully')
     } catch (err) {
+      console.error('Recipe save error:', err) // Debug log
       setError(err instanceof Error ? err.message : 'Failed to save recipe')
-      toast.error('Failed to save recipe')
+      toast.error(err instanceof Error ? err.message : 'Failed to save recipe')
     }
   }
 
@@ -205,7 +246,7 @@ export default function AdminRecipesPage() {
       cookTime: 0,
       servings: 1,
       featured: false,
-      published: false,
+      published: true,
       ingredients: [{ name: '', amount: '', unit: '' }],
       instructions: [{ step: 1, instruction: '' }],
       tags: [],
@@ -239,8 +280,8 @@ export default function AdminRecipesPage() {
     if (!confirm('Are you sure you want to delete this recipe?')) return
     
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const response = await fetch(`/api/recipes/${id}`, {
+      const token = getAuthToken() || (typeof window !== 'undefined' ? localStorage.getItem('auth-token') || localStorage.getItem('token') : null)
+      const response = await fetch(`http://localhost:3000/recipes/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -319,6 +360,95 @@ export default function AdminRecipesPage() {
         tags: [...prev.tags, tag.trim()]
       }))
     }
+  }
+
+  // Handle image upload
+  const handleImageUpload = async (file: File, index: number) => {
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file')
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB')
+      return
+    }
+
+    try {
+      // Set uploading state
+      setUploadingImages(prev => {
+        const newState = [...prev]
+        newState[index] = true
+        return newState
+      })
+
+      setImageUploadProgress(prev => {
+        const newState = [...prev]
+        newState[index] = 0
+        return newState
+      })
+
+      // Upload image
+      const result = await uploadImageWithProgress(file, (progress) => {
+        setImageUploadProgress(prev => {
+          const newState = [...prev]
+          newState[index] = progress
+          return newState
+        })
+      })
+
+      if (result.success && result.url) {
+        // Add image to form data
+        const newImage = {
+          url: result.url,
+          alt: file.name,
+          isPrimary: formData.images.length === 0, // First image is primary
+          publicId: result.publicId
+        }
+
+        setFormData(prev => ({
+          ...prev,
+          images: [...prev.images, newImage]
+        }))
+
+        toast.success('Image uploaded successfully')
+      } else {
+        toast.error(result.error || 'Failed to upload image')
+      }
+    } catch (error) {
+      console.error('Image upload error:', error)
+      toast.error('Failed to upload image')
+    } finally {
+      // Clear uploading state
+      setUploadingImages(prev => {
+        const newState = [...prev]
+        newState[index] = false
+        return newState
+      })
+    }
+  }
+
+  // Remove image
+  const removeImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }))
+  }
+
+  // Set primary image
+  const setPrimaryImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.map((img, i) => ({
+        ...img,
+        isPrimary: i === index
+      }))
+    }))
   }
 
   // Remove tag
@@ -675,14 +805,13 @@ export default function AdminRecipesPage() {
                         </div>
                     
                     <div>
-                      <Label htmlFor="description">Description *</Label>
+                      <Label htmlFor="description">Description</Label>
                       <Textarea
                         id="description"
                         value={formData.description}
                         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                         placeholder="Recipe description"
                         rows={3}
-                        required
                       />
                     </div>
                     
@@ -856,7 +985,114 @@ export default function AdminRecipesPage() {
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="media" className="space-y-4">
+                  <TabsContent value="media" className="space-y-6">
+                    {/* Images Section */}
+                    <div>
+                      <h3 className="text-lg font-medium mb-4">Recipe Images</h3>
+                      <div className="space-y-4">
+                        {/* Current Images */}
+                        {formData.images.length > 0 && (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {formData.images.map((image, index) => (
+                              <div key={index} className="relative group">
+                                <div className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200">
+                                  <Image
+                                    src={image.url}
+                                    alt={image.alt || `Recipe image ${index + 1}`}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                  {image.isPrimary && (
+                                    <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium">
+                                      Primary
+                                    </div>
+                                  )}
+                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                    <div className="flex gap-2">
+                                      {!image.isPrimary && (
+                                        <Button
+                                          type="button"
+                                          size="sm"
+                                          variant="secondary"
+                                          onClick={() => setPrimaryImage(index)}
+                                          className="bg-white text-gray-700 hover:bg-gray-100"
+                                        >
+                                          <Star className="w-4 h-4" />
+                                        </Button>
+                                      )}
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="destructive"
+                                        onClick={() => removeImage(index)}
+                                        className="bg-red-500 hover:bg-red-600"
+                                      >
+                                        <Trash className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Upload New Image */}
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (file) {
+                                handleImageUpload(file, formData.images.length)
+                              }
+                            }}
+                            className="hidden"
+                            id="image-upload"
+                          />
+                          <label
+                            htmlFor="image-upload"
+                            className="cursor-pointer flex flex-col items-center space-y-2"
+                          >
+                            <Upload className="w-8 h-8 text-gray-400" />
+                            <div className="text-sm text-gray-600">
+                              <span className="font-medium text-blue-600 hover:text-blue-500">
+                                Click to upload
+                              </span>
+                              {' '}or drag and drop
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              PNG, JPG, GIF up to 5MB
+                            </div>
+                          </label>
+                        </div>
+
+                        {/* Upload Progress */}
+                        {uploadingImages.some(uploading => uploading) && (
+                          <div className="space-y-2">
+                            {uploadingImages.map((uploading, index) => (
+                              uploading && (
+                                <div key={index} className="space-y-1">
+                                  <div className="flex justify-between text-sm text-gray-600">
+                                    <span>Uploading image {index + 1}...</span>
+                                    <span>{imageUploadProgress[index] || 0}%</span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                      style={{ width: `${imageUploadProgress[index] || 0}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              )
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Tags Section */}
                     <div>
                       <h3 className="text-lg font-medium mb-4">Tags</h3>
                       <div className="flex flex-wrap gap-2 mb-4">
@@ -900,7 +1136,7 @@ export default function AdminRecipesPage() {
                         </Button>
                       </div>
                     </div>
-                      </TabsContent>
+                  </TabsContent>
                     </Tabs>
                   </form>
                 </div>

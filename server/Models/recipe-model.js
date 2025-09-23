@@ -10,25 +10,25 @@ const recipeSchema = new mongoose.Schema({
   },
   slug: {
     type: String,
-    required: true,
+    required: false,
     unique: true,
     lowercase: true,
     trim: true
   },
   description: {
     type: String,
-    required: true,
-    maxlength: 500
+    required: false,
+    maxlength: 2100
   },
   ingredients: [{
     name: {
       type: String,
-      required: true,
+      required: false,
       trim: true
     },
     amount: {
       type: String,
-      required: true,
+      required: false,
       trim: true
     },
     unit: {
@@ -39,28 +39,31 @@ const recipeSchema = new mongoose.Schema({
   instructions: [{
     step: {
       type: Number,
-      required: true
+      required: false
     },
     instruction: {
       type: String,
-      required: true,
+      required: false,
       trim: true
     }
   }],
   prepTime: {
     type: Number, // in minutes
-    required: true,
-    min: 0
+    required: false,
+    min: 0,
+    default: 0
   },
   cookTime: {
     type: Number, // in minutes
-    required: true,
-    min: 0
+    required: false,
+    min: 0,
+    default: 0
   },
   servings: {
     type: Number,
-    required: true,
-    min: 1
+    required: false,
+    min: 1,
+    default: 1
   },
   difficulty: {
     type: String,
@@ -69,8 +72,9 @@ const recipeSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    required: true,
-    enum: ['Classic', 'Fruity', 'Creamy', 'Refreshing', 'Seasonal', 'Specialty']
+    required: false,
+    enum: ['Classic', 'Fruity', 'Creamy', 'Refreshing', 'Seasonal', 'Specialty'],
+    default: 'Classic'
   },
   tags: [{
     type: String,
@@ -80,7 +84,7 @@ const recipeSchema = new mongoose.Schema({
   images: [{
     url: {
       type: String,
-      required: true
+      required: false
     },
     alt: {
       type: String,
@@ -102,7 +106,7 @@ const recipeSchema = new mongoose.Schema({
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
   },
   views: {
     type: Number,
@@ -215,7 +219,7 @@ recipeSchema.statics.findFeatured = function(limit = 6) {
 };
 
 // Static method to find by category
-recipeSchema.statics.findByCategory = function(category, limit = 12) {
+recipeSchema.statics.findByCategory = function(category, limit = 25) {
   return this.find({ category, published: true })
     .sort({ 'rating.average': -1, createdAt: -1 })
     .limit(limit)
@@ -239,6 +243,30 @@ recipeSchema.methods.updateRating = function(newRating) {
   
   return this.save();
 };
+
+// Pre-save middleware to generate unique slug
+recipeSchema.pre('save', async function(next) {
+  if (this.isModified('title')) {
+    let baseSlug = this.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .trim();
+    
+    let slug = baseSlug;
+    let counter = 1;
+    
+    // Check if slug exists and generate unique one
+    while (await this.constructor.findOne({ slug: slug, _id: { $ne: this._id } })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+    
+    this.slug = slug;
+  }
+  next();
+});
 
 // Add pagination plugin
 recipeSchema.plugin(mongoosePaginate);
