@@ -36,6 +36,7 @@ import {
 import CloudinaryImageUpload from "@/components/ui/cloudinary-image-upload"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import { toast } from "@/hooks/use-toast"
+import { exchangeCylinderAPI } from "@/lib/exchange-cylinder-api"
 
 interface ExchangeCylinder {
   _id: string
@@ -54,6 +55,8 @@ interface ExchangeCylinder {
   reviewCount: number
   inStock: boolean
   badges?: string[]
+  weight?: number
+  brand?: string
   createdAt: string
   updatedAt: string
 }
@@ -76,13 +79,15 @@ export default function ExchangeCylindersAdmin() {
     images: [] as string[],
     description: "",
     capacity: 0,
-    material: "",
+    material: "steel",
     exchangeType: "instant" as "instant" | "scheduled" | "pickup",
-    estimatedTime: "",
+    estimatedTime: "Same Day",
     rating: 0,
     reviewCount: 0,
     inStock: true,
-    badges: [] as string[]
+    badges: [] as string[],
+    weight: 10,
+    brand: "drinkmate"
   })
 
   // Handle client-side mounting
@@ -90,74 +95,42 @@ export default function ExchangeCylindersAdmin() {
     setMounted(true)
   }, [])
 
-  // Mock data for demonstration
-  useEffect(() => {
-    if (!mounted) return
-    const mockCylinders: ExchangeCylinder[] = [
-      {
-        _id: "1",
-        name: "60L CO2 Cylinder Exchange",
-        slug: "60l-co2-cylinder-exchange",
-        price: 45,
-        originalPrice: 60,
-        image: "https://res.cloudinary.com/drinkmate/image/upload/v1704067200/drinkmate/co2-cylinder-60l.jpg",
-        images: ["https://res.cloudinary.com/drinkmate/image/upload/v1704067200/drinkmate/co2-cylinder-60l.jpg"],
-        description: "Professional 60L CO2 cylinder exchange service with instant availability",
-        capacity: 60,
-        material: "Steel",
-        exchangeType: "instant",
-        estimatedTime: "Same Day",
-        rating: 4.8,
-        reviewCount: 124,
-        inStock: true,
-        badges: ["POPULAR", "INSTANT"],
-        createdAt: "2024-01-15T10:00:00Z",
-        updatedAt: "2024-01-15T10:00:00Z"
-      },
-      {
-        _id: "2",
-        name: "40L CO2 Cylinder Exchange",
-        slug: "40l-co2-cylinder-exchange",
-        price: 35,
-        originalPrice: 45,
-        image: "https://res.cloudinary.com/drinkmate/image/upload/v1704067200/drinkmate/co2-cylinder-40l.jpg",
-        images: ["https://res.cloudinary.com/drinkmate/image/upload/v1704067200/drinkmate/co2-cylinder-40l.jpg"],
-        description: "Compact 40L CO2 cylinder exchange for smaller operations",
-        capacity: 40,
-        material: "Steel",
-        exchangeType: "scheduled",
-        estimatedTime: "1-2 Days",
-        rating: 4.6,
-        reviewCount: 89,
-        inStock: true,
-        badges: ["COMPACT"],
-        createdAt: "2024-01-10T10:00:00Z",
-        updatedAt: "2024-01-10T10:00:00Z"
-      },
-      {
-        _id: "3",
-        name: "80L CO2 Cylinder Exchange",
-        slug: "80l-co2-cylinder-exchange",
-        price: 65,
-        originalPrice: 80,
-        image: "https://res.cloudinary.com/drinkmate/image/upload/v1704067200/drinkmate/co2-cylinder-80l.jpg",
-        images: ["https://res.cloudinary.com/drinkmate/image/upload/v1704067200/drinkmate/co2-cylinder-80l.jpg"],
-        description: "Large capacity 80L CO2 cylinder exchange for high-volume operations",
-        capacity: 80,
-        material: "Steel",
-        exchangeType: "pickup",
-        estimatedTime: "2-3 Days",
-        rating: 4.9,
-        reviewCount: 67,
-        inStock: true,
-        badges: ["HIGH-VOLUME"],
-        createdAt: "2024-01-05T10:00:00Z",
-        updatedAt: "2024-01-05T10:00:00Z"
+  // Load exchange cylinders from API
+  const loadCylinders = async () => {
+    try {
+      setLoading(true)
+      const response = await exchangeCylinderAPI.getExchangeCylinders({
+        page: 1,
+        limit: 100 // Load all cylinders for admin
+      }) as { success: boolean; cylinders?: ExchangeCylinder[]; message?: string }
+      
+      if (response.success) {
+        setCylinders(response.cylinders || [])
+      } else {
+        console.error('Failed to load cylinders:', response.message)
+        toast({
+          title: "Error",
+          description: "Failed to load exchange cylinders",
+          variant: "destructive"
+        })
       }
-    ]
-    
-    setCylinders(mockCylinders)
-    setLoading(false)
+    } catch (error) {
+      console.error('Error loading cylinders:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load exchange cylinders",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Load cylinders on mount
+  useEffect(() => {
+    if (mounted) {
+      loadCylinders()
+    }
   }, [mounted])
 
   const filteredCylinders = cylinders.filter(cylinder => {
@@ -180,8 +153,10 @@ export default function ExchangeCylindersAdmin() {
 
 
   const handleCreate = () => {
-    setIsCreating(true)
-    setEditingCylinder(null)
+    setIsCreating(true);
+    setEditingCylinder(null);
+    
+    // Initialize with default values
     setFormData({
       name: "",
       slug: "",
@@ -191,77 +166,357 @@ export default function ExchangeCylindersAdmin() {
       images: [],
       description: "",
       capacity: 0,
-      material: "",
+      material: "steel",
       exchangeType: "instant",
-      estimatedTime: "",
+      estimatedTime: "Same Day",
       rating: 0,
       reviewCount: 0,
       inStock: true,
-      badges: []
-    })
-    setIsDialogOpen(true)
+      badges: [],
+      weight: 10,
+      brand: "drinkmate"
+    });
+    
+    // Log for debugging
+    console.log('Initialized form for creating new cylinder');
+    
+    setIsDialogOpen(true);
   }
 
   const handleEdit = (cylinder: ExchangeCylinder) => {
-    setEditingCylinder(cylinder)
-    setIsCreating(false)
-    setFormData({
-      name: cylinder.name,
-      slug: cylinder.slug,
-      price: cylinder.price,
+    console.log('handleEdit called with cylinder:', cylinder);
+    setEditingCylinder(cylinder);
+    setIsCreating(false);
+    
+    // Process images properly
+    const cylinderImages: string[] = [];
+    
+    // Add the main image if it exists and is not already in images array
+    if (cylinder.image) {
+      cylinderImages.push(cylinder.image);
+    }
+    
+    // Add any additional images from the images array
+    if (cylinder.images && Array.isArray(cylinder.images)) {
+      cylinder.images.forEach(img => {
+        if (img && !cylinderImages.includes(img)) {
+          cylinderImages.push(img);
+        }
+      });
+    }
+    
+    console.log('Processed images for editing:', cylinderImages);
+    
+    const formDataToSet = {
+      name: cylinder.name || '',
+      slug: cylinder.slug || '',
+      price: cylinder.price || 0,
       originalPrice: cylinder.originalPrice || 0,
-      image: cylinder.image,
-      images: cylinder.image ? [cylinder.image] : [],
-      description: cylinder.description,
-      capacity: cylinder.capacity,
-      material: cylinder.material,
-      exchangeType: cylinder.exchangeType,
-      estimatedTime: cylinder.estimatedTime,
-      rating: cylinder.rating,
-      reviewCount: cylinder.reviewCount,
-      inStock: cylinder.inStock,
-      badges: cylinder.badges || []
-    })
-    setIsDialogOpen(true)
+      image: cylinder.image || '',
+      images: cylinderImages,
+      description: cylinder.description || '',
+      capacity: cylinder.capacity || 0,
+      material: cylinder.material || "steel",
+      exchangeType: cylinder.exchangeType || "instant",
+      estimatedTime: cylinder.estimatedTime || "Same Day",
+      rating: cylinder.rating || 0,
+      reviewCount: cylinder.reviewCount || 0,
+      inStock: cylinder.inStock ?? true,
+      badges: cylinder.badges || [],
+      weight: (cylinder as any).weight || 10,
+      brand: (cylinder as any).brand || "drinkmate"
+    };
+    
+    console.log('Setting form data for editing:', formDataToSet);
+    setFormData(formDataToSet);
+    console.log('Opening dialog for editing');
+    setIsDialogOpen(true);
   }
 
-  const handleSave = () => {
-    if (!formData.name || !formData.slug || formData.price <= 0) {
+  const handleSave = async () => {
+    console.log('=== HANDLE SAVE CALLED ===');
+    console.log('Current form data:', formData);
+    console.log('Is creating:', isCreating);
+    console.log('Editing cylinder:', editingCylinder);
+    
+    // Enhanced validation for all required fields
+    if (!formData.name?.trim()) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields",
+        description: "Name is required",
         variant: "destructive"
       })
       return
     }
 
-    if (isCreating) {
-      const newCylinder: ExchangeCylinder = {
-        _id: Date.now().toString(),
-        ...formData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-      setCylinders([newCylinder, ...cylinders])
+    if (!formData.slug?.trim()) {
       toast({
-        title: "Success",
-        description: "Exchange cylinder created successfully"
+        title: "Validation Error",
+        description: "Slug is required",
+        variant: "destructive"
       })
-    } else if (editingCylinder) {
-      setCylinders(cylinders.map(cylinder => 
-        cylinder._id === editingCylinder._id 
-          ? { ...cylinder, ...formData, updatedAt: new Date().toISOString() }
-          : cylinder
-      ))
-      toast({
-        title: "Success",
-        description: "Exchange cylinder updated successfully"
-      })
+      return
     }
 
-    setEditingCylinder(null)
-    setIsCreating(false)
-    setIsDialogOpen(false)
+    if (formData.price <= 0) {
+      toast({
+        title: "Validation Error",
+        description: "Price must be greater than 0",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (formData.capacity <= 0) {
+      toast({
+        title: "Validation Error",
+        description: "Capacity must be greater than 0",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!formData.description?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Description is required",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!formData.material?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Material is required",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Ensure slug is URL-friendly
+    if (!/^[a-z0-9-]+$/.test(formData.slug)) {
+      toast({
+        title: "Validation Error",
+        description: "Slug must contain only lowercase letters, numbers, and hyphens",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Validate weight
+    if (formData.weight <= 0) {
+      toast({
+        title: "Validation Error",
+        description: "Weight must be greater than 0",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Ensure originalPrice is set properly
+    if (formData.originalPrice <= 0) {
+      formData.originalPrice = formData.price
+    }
+
+    // Ensure image is set (use placeholder if none provided)
+    if (!formData.image && (!formData.images || formData.images.length === 0)) {
+      toast({
+        title: "Validation Error",
+        description: "Please upload at least one image",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      setLoading(true)
+      
+      // Check if user is authenticated
+      const token = localStorage.getItem('token')
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Please log in to create exchange cylinders",
+          variant: "destructive"
+        })
+        return
+      }
+
+      // Validate token format
+      if (!token.startsWith('eyJ')) {
+        toast({
+          title: "Authentication Error",
+          description: "Invalid authentication token. Please log in again.",
+          variant: "destructive"
+        })
+        return
+      }
+
+      // Check if we have at least one image
+      if (!formData.image && (!formData.images || formData.images.length === 0)) {
+        toast({
+          title: "Validation Error",
+          description: "Please upload at least one image",
+          variant: "destructive"
+        })
+        return
+      }
+      
+      // Prepare images array
+      let imagesArray: string[] = [];
+      if (formData.images && formData.images.length > 0) {
+        imagesArray = formData.images;
+      } else if (formData.image) {
+        imagesArray = [formData.image];
+      }
+
+      // Ensure we have at least one image
+      if (imagesArray.length === 0) {
+        imagesArray = ["/images/placeholder.jpg"];
+      }
+
+      // Make sure image and images are consistent
+      const requestData = {
+        name: formData.name.trim(),
+        slug: formData.slug.trim(),
+        price: Number(formData.price),
+        originalPrice: Number(formData.originalPrice) || Number(formData.price),
+        image: imagesArray[0],
+        images: imagesArray,
+        description: formData.description.trim(),
+        capacity: Number(formData.capacity),
+        material: formData.material.trim(),
+        weight: Number(formData.weight) || 10,
+        brand: formData.brand || "drinkmate",
+        exchangeType: formData.exchangeType,
+        estimatedTime: formData.estimatedTime || "Same Day",
+        
+        // Default values for required fields
+        serviceLevel: 'standard',
+        status: 'active',
+        isAvailable: Boolean(formData.inStock),
+        stock: 100,
+        minStock: 10,
+        exchangeFee: 0,
+        deliveryFee: 0,
+        pickupFee: 0,
+        discount: 0,
+        exchangeRadius: 50,
+        pickupRequired: false,
+        deliveryAvailable: true,
+        serviceAreas: [],
+        operatingHours: {
+          monday: { start: "08:00", end: "18:00", closed: false },
+          tuesday: { start: "08:00", end: "18:00", closed: false },
+          wednesday: { start: "08:00", end: "18:00", closed: false },
+          thursday: { start: "08:00", end: "18:00", closed: false },
+          friday: { start: "08:00", end: "18:00", closed: false },
+          saturday: { start: "08:00", end: "18:00", closed: false },
+          sunday: { start: "08:00", end: "18:00", closed: false }
+        },
+        emergencyService: false,
+        isBestSeller: false,
+        isFeatured: false,
+        isNewProduct: false,
+        isEcoFriendly: false,
+        averageRating: 0,
+        totalReviews: 0,
+        totalExchanges: 0
+      };
+      
+      // Log what we're about to send
+      console.log('Preparing to save cylinder with images:', {
+        image: requestData.image,
+        imagesCount: requestData.images.length,
+        images: requestData.images
+      });
+      
+      // Additional validation
+      console.log('Form validation check:', {
+        hasName: !!requestData.name,
+        hasSlug: !!requestData.slug,
+        hasPrice: requestData.price > 0,
+        hasCapacity: requestData.capacity > 0,
+        hasDescription: !!requestData.description,
+        hasMaterial: !!requestData.material,
+        hasImage: !!requestData.image,
+        hasImages: requestData.images.length > 0
+      });
+      
+      if (isCreating) {
+        // Create new exchange cylinder
+        console.log('Creating cylinder with data:', requestData);
+        
+        const createResult = await exchangeCylinderAPI.createExchangeCylinder(requestData);
+        console.log('Create API result:', createResult);
+        
+        if (createResult.success) {
+          toast({
+            title: "Success",
+            description: "Exchange cylinder created successfully"
+          });
+          loadCylinders(); // Reload data from API
+        } else {
+          console.error('Create failed:', createResult);
+          throw new Error(createResult.message || 'Failed to create exchange cylinder');
+        }
+      } else if (editingCylinder) {
+        // Update existing exchange cylinder
+        console.log('=== UPDATE PROCESS START ===');
+        console.log('Editing cylinder object:', editingCylinder);
+        console.log('Editing cylinder ID:', editingCylinder._id);
+        console.log('Is creating flag:', isCreating);
+        console.log('Update data being sent:', requestData);
+        
+        const updateResult = await exchangeCylinderAPI.updateExchangeCylinder(editingCylinder._id, requestData);
+        console.log('Update API result:', updateResult);
+        
+        if (updateResult.success) {
+          console.log('Update successful, showing success toast');
+          toast({
+            title: "Success",
+            description: "Exchange cylinder updated successfully"
+          });
+          loadCylinders(); // Reload data from API
+        } else {
+          console.error('Update failed:', updateResult);
+          throw new Error(updateResult.message || 'Failed to update exchange cylinder');
+        }
+        console.log('=== UPDATE PROCESS END ===');
+      } else {
+        console.error('Neither creating nor editing - this should not happen');
+        console.log('isCreating:', isCreating);
+        console.log('editingCylinder:', editingCylinder);
+      }
+    } catch (error) {
+      console.error('Error saving cylinder:', error)
+      
+      let errorMessage = "Failed to save exchange cylinder";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        // Handle API error responses
+        const apiError = error as any;
+        if (apiError.response?.data?.message) {
+          errorMessage = apiError.response.data.message;
+        } else if (apiError.message) {
+          errorMessage = apiError.message;
+        }
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+      setEditingCylinder(null)
+      setIsCreating(false)
+      setIsDialogOpen(false)
+    }
   }
 
   const handleCloseDialog = () => {
@@ -270,21 +525,209 @@ export default function ExchangeCylindersAdmin() {
     setIsDialogOpen(false)
   }
 
-  const handleImagesChange = (images: string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      images: images,
-      image: images.length > 0 ? images[0] : "" // Use first image as main image
-    }))
+  // Test API connection
+  const testApiConnection = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/exchange-cylinders/cylinders', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      console.log('API connection test response:', response.status)
+      let data
+      
+      try {
+        const text = await response.text()
+        console.log('API connection test raw text:', text.substring(0, 200) + '...')
+        data = JSON.parse(text)
+      } catch (parseError) {
+        console.error('Failed to parse API response:', parseError)
+        return {
+          success: false,
+          status: response.status,
+          error: 'Failed to parse response'
+        }
+      }
+      
+      console.log('API connection data:', data)
+      
+      return {
+        success: response.ok,
+        status: response.status,
+        data
+      }
+    } catch (error) {
+      console.error('API connection test error:', error)
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }
+    }
   }
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this exchange cylinder?")) {
-      setCylinders(cylinders.filter(cylinder => cylinder._id !== id))
+  // Test function to create a minimal exchange cylinder
+  const testCreateCylinder = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      setLoading(true)
+      
+      // Check if user is authenticated
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Please log in first",
+          variant: "destructive"
+        })
+        return
+      }
+      
+      console.log('Using token:', token ? 'Present' : 'Missing')
+      console.log('API endpoint URL:', `${window.location.origin}/api/exchange-cylinders/cylinders`)
+      console.log('Token format check:', token.substring(0, 10) + '...')
+      
+      // Test API connection first
+      const connectionTest = await testApiConnection()
+      console.log('API connection test result:', connectionTest)
+      
+      if (!connectionTest.success) {
+        toast({
+          title: "API Connection Error",
+          description: `API connection test failed: ${connectionTest.error || 'Unknown error'}`,
+          variant: "destructive"
+        })
+        setLoading(false)
+        return
+      }
+
+      const testData = {
+        name: "Test Cylinder " + new Date().toISOString().substring(0, 19),
+        slug: "test-cylinder-" + Date.now(),
+        price: 50,
+        originalPrice: 60,
+        description: "Test description",
+        capacity: 60,
+        material: "steel",
+        exchangeType: "instant",
+        estimatedTime: "Same Day",
+        image: "/images/placeholder.jpg",
+        images: ["/images/placeholder.jpg"],
+        weight: 10,
+        brand: "drinkmate",
+        serviceLevel: "standard",
+        status: "active",
+        isAvailable: true,
+        stock: 100,
+        minStock: 10,
+        exchangeFee: 0,
+        deliveryFee: 0,
+        pickupFee: 0,
+        discount: 0,
+        exchangeRadius: 50,
+        pickupRequired: false,
+        deliveryAvailable: true,
+        serviceAreas: [],
+        operatingHours: {
+          monday: { start: "08:00", end: "18:00", closed: false },
+          tuesday: { start: "08:00", end: "18:00", closed: false },
+          wednesday: { start: "08:00", end: "18:00", closed: false },
+          thursday: { start: "08:00", end: "18:00", closed: false },
+          friday: { start: "08:00", end: "18:00", closed: false },
+          saturday: { start: "08:00", end: "18:00", closed: false },
+          sunday: { start: "08:00", end: "18:00", closed: false }
+        },
+        emergencyService: false,
+        isBestSeller: false,
+        isFeatured: false,
+        isNewProduct: false,
+        isEcoFriendly: false,
+        averageRating: 0,
+        totalReviews: 0,
+        totalExchanges: 0
+      }
+
+      console.log('Testing with minimal data:', testData)
+
+      // Use our API method for consistency
+      const result = await exchangeCylinderAPI.createExchangeCylinder(testData)
+      console.log('Test creation result:', result)
+
+      if (result.success) {
+        toast({
+          title: "Test Success",
+          description: "Test cylinder created successfully"
+        })
+        loadCylinders()
+      } else {
+        toast({
+          title: "Test Failed",
+          description: result.message || "Failed to create test cylinder",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Test error:', error)
       toast({
-        title: "Success",
-        description: "Exchange cylinder deleted successfully"
+        title: "Test Error",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive"
       })
+    }
+  }
+
+  const handleImagesChange = (images: string[]) => {
+    console.log('Images changed in CloudinaryImageUpload:', images);
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        images: images,
+        // Set the main image to the first image if available
+        image: images.length > 0 ? images[0] : prev.image
+      };
+      console.log('Updated form data with new images:', updated);
+      return updated;
+    });
+  }
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this exchange cylinder?")) {
+      try {
+        setLoading(true)
+        
+        const token = localStorage.getItem('token')
+        if (!token) {
+          toast({
+            title: "Authentication Error",
+            description: "Please log in to delete exchange cylinders",
+            variant: "destructive"
+          })
+          return
+        }
+        
+        const deleteResult = await exchangeCylinderAPI.deleteExchangeCylinder(id)
+        console.log('Delete API result:', deleteResult)
+        
+        if (deleteResult.success) {
+          toast({
+            title: "Success",
+            description: "Exchange cylinder deleted successfully"
+          })
+          loadCylinders() // Reload data from API
+        } else {
+          throw new Error(deleteResult.message || 'Failed to delete exchange cylinder')
+        }
+      } catch (error) {
+        console.error('Error deleting cylinder:', error)
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to delete exchange cylinder",
+          variant: "destructive"
+        })
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
@@ -338,6 +781,27 @@ export default function ExchangeCylindersAdmin() {
             <p className="text-gray-600 mt-1">Manage CO2 cylinder exchange services and pricing</p>
           </div>
           <div className="flex items-center gap-3">
+            <Button 
+              onClick={loadCylinders} 
+              variant="outline" 
+              className="flex items-center gap-2"
+              disabled={loading}
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button onClick={handleCreate} className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Add Exchange Cylinder
+            </Button>
+            <Button onClick={testCreateCylinder} variant="outline" className="flex items-center gap-2">
+              <RefreshCw className="w-4 h-4" />
+              Test Create
+            </Button>
+            <Button onClick={testApiConnection} variant="outline" className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              Test API
+            </Button>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Package className="w-4 h-4" />
               <span>{filteredCylinders.length} Exchange Services</span>
@@ -451,13 +915,47 @@ export default function ExchangeCylindersAdmin() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="material">Material</Label>
+                  <Label htmlFor="material">Material *</Label>
+                  <Select value={formData.material} onValueChange={(value) => setFormData({...formData, material: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="steel">Steel</SelectItem>
+                      <SelectItem value="aluminum">Aluminum</SelectItem>
+                      <SelectItem value="composite">Composite</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="weight">Weight (kg) *</Label>
                   <Input
-                    id="material"
-                    value={formData.material}
-                    onChange={(e) => setFormData({...formData, material: e.target.value})}
-                    placeholder="Steel"
+                    id="weight"
+                    type="number"
+                    value={formData.weight}
+                    onChange={(e) => setFormData({...formData, weight: Number(e.target.value)})}
+                    placeholder="10"
+                    min="1"
                   />
+                </div>
+                <div>
+                  <Label htmlFor="brand">Brand *</Label>
+                  <Select value={formData.brand} onValueChange={(value) => setFormData({...formData, brand: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="drinkmate">DrinkMate</SelectItem>
+                      <SelectItem value="sodastream">SodaStream</SelectItem>
+                      <SelectItem value="errva">Errva</SelectItem>
+                      <SelectItem value="fawwar">Fawwar</SelectItem>
+                      <SelectItem value="phillips">Phillips</SelectItem>
+                      <SelectItem value="ultima-cosa">Ultima Cosa</SelectItem>
+                      <SelectItem value="bubble-bro">Bubble Bro</SelectItem>
+                      <SelectItem value="yoco-cosa">Yoco Cosa</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="exchangeType">Exchange Type</Label>
@@ -493,7 +991,7 @@ export default function ExchangeCylindersAdmin() {
                   <input
                     type="checkbox"
                     id="inStock"
-                    checked={formData.inStock}
+                    checked={formData.inStock || false}
                     onChange={(e) => setFormData({...formData, inStock: e.target.checked})}
                     className="rounded"
                     aria-label="In Stock"

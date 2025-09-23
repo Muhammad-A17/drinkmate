@@ -228,7 +228,7 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
             {getSectionDescription()}
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 items-start">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <SkeletonCard key={i} />
           ))}
@@ -266,7 +266,7 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 items-start">
         {cylinders.map((cylinder) => {
           const serviceType = getServiceType(cylinder.type)
           
@@ -274,7 +274,7 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
           if (type === "exchange" || (serviceType === "refill" && type === "refill")) {
             return (
               <ExchangeCylinderCard
-                key={cylinder._id}
+                key={`exchange-${cylinder._id}`}
                 product={{
                   id: cylinder._id,
                   slug: cylinder.slug,

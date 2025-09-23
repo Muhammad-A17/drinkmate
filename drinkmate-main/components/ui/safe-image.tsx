@@ -5,6 +5,30 @@ import Image from "next/image"
 import { isImageAccessible, getCacheBustingUrl } from "@/lib/fetch-utils"
 import { logger } from "@/lib/logger"
 
+// Utility to transform Cloudinary URLs for better performance and reliability
+const optimizeCloudinaryUrl = (url: string): string => {
+  if (!url || typeof url !== 'string' || !url.includes('cloudinary.com') || !url.includes('/upload/')) {
+    return url;
+  }
+  
+  try {
+    // Parse the URL into base and path parts
+    const [baseUrl, imagePath] = url.split('/upload/');
+    
+    // Check if URL already has transformations
+    if (imagePath.includes('/')) {
+      // Already has transformations, leave as is
+      return url;
+    }
+    
+    // Add quality auto and format auto transformations
+    return `${baseUrl}/upload/q_auto,f_auto/${imagePath}`;
+  } catch (error) {
+    console.warn('Error optimizing Cloudinary URL:', error);
+    return url;
+  }
+};
+
 interface SafeImageProps {
   src: string | any
   alt: string
@@ -46,7 +70,12 @@ export function SafeImage({
       
       if (typeof src === 'string') {
         if (src.startsWith('http')) {
-          processedSrc = src // Full URL
+          // Check if it's a Cloudinary URL that needs optimization
+          if (src.includes('cloudinary.com')) {
+            processedSrc = optimizeCloudinaryUrl(src)
+          } else {
+            processedSrc = src // Regular full URL
+          }
         } else if (src.startsWith('/uploads/')) {
           // Will be updated after baseUrl is set
           processedSrc = src 
@@ -105,27 +134,62 @@ export function SafeImage({
   }, [baseUrl, src, imageSrc]);
 
   const handleError = (e: any) => {
-    console.error('Image failed to load:', imageSrc)
+    // Don't log error for fallback image failures to avoid infinite loop warnings
+    if (imageSrc !== fallbackSrc) {
+      console.warn('Image failed to load:', imageSrc)
+    }
     
-    // Try to reload the image once with a slight delay in case of temporary server issues
-    if (imageSrc !== fallbackSrc && imageSrc.includes('/uploads/')) {
-      logger.warn('Attempting to reload image after error:', imageSrc);
-      
-      // Small delay before retry
-      setTimeout(async () => {
-        // Check if the image exists
-        const imageExists = await isImageAccessible(imageSrc);
-        
-        if (imageExists) {
-          logger.debug('Image exists on retry, attempting to reload');
-          // Force reload by updating state with cache-busting query param
-          setImageSrc(getCacheBustingUrl(imageSrc));
-        } else {
-          logger.warn('Image still not available, falling back');
-          setImageSrc(fallbackSrc);
+    // Handle different image sources differently
+    if (imageSrc !== fallbackSrc) {
+      // For Cloudinary images
+      if (imageSrc.includes('cloudinary.com')) {
+        try {
+          // If URL already has transformations but still fails, try a simpler version
+          if (imageSrc.includes('/upload/q_auto')) {
+            // Try a more basic version without transformations
+            const [baseUrl, imagePath] = imageSrc.split('/upload/');
+            const simpleImagePath = imagePath.split('/').pop(); // Get just the filename
+            if (simpleImagePath) {
+              const simplifiedUrl = `${baseUrl}/upload/${simpleImagePath}`;
+              logger.debug('Trying simplified Cloudinary URL:', simplifiedUrl);
+              setImageSrc(simplifiedUrl);
+              return;
+            }
+          } else {
+            // Try different transformations if not already applied
+            const transformedUrl = optimizeCloudinaryUrl(imageSrc);
+            if (transformedUrl !== imageSrc) {
+              logger.debug('Trying transformed Cloudinary URL:', transformedUrl);
+              setImageSrc(transformedUrl);
+              return;
+            }
+          }
+        } catch (error) {
+          logger.error('Error handling Cloudinary URL:', error);
         }
-      }, 1500);
-    } else if (imageSrc !== fallbackSrc) {
+      } 
+      // For local uploaded images
+      else if (imageSrc.includes('/uploads/')) {
+        logger.warn('Attempting to reload local image after error:', imageSrc);
+        
+        // Small delay before retry
+        setTimeout(async () => {
+          // Check if the image exists
+          const imageExists = await isImageAccessible(imageSrc);
+          
+          if (imageExists) {
+            logger.debug('Image exists on retry, attempting to reload');
+            // Force reload by updating state with cache-busting query param
+            setImageSrc(getCacheBustingUrl(imageSrc));
+          } else {
+            logger.warn('Image still not available, falling back');
+            setImageSrc(fallbackSrc);
+          }
+        }, 1500);
+        return;
+      }
+      
+      // Fall back if all special handling fails
       setImageSrc(fallbackSrc);
     }
     

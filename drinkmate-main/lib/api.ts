@@ -23,8 +23,35 @@ console.log('API Configuration:', {
 });
 
 // Cache configuration
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes in milliseconds (increased to reduce API calls)
 export const apiCache = new Map();
+
+// Debounce map to prevent rapid API calls
+const debounceMap = new Map();
+
+// Debounced API call function
+export const debouncedApiCall = (key: string, apiCall: () => Promise<any>, delay: number = 1000) => {
+  return new Promise((resolve, reject) => {
+    // Clear existing timeout for this key
+    if (debounceMap.has(key)) {
+      clearTimeout(debounceMap.get(key));
+    }
+    
+    // Set new timeout
+    const timeoutId = setTimeout(async () => {
+      try {
+        const result = await apiCall();
+        debounceMap.delete(key);
+        resolve(result);
+      } catch (error) {
+        debounceMap.delete(key);
+        reject(error);
+      }
+    }, delay);
+    
+    debounceMap.set(key, timeoutId);
+  });
+};
 
 // Create axios instance with default config
 export const api = axios.create({

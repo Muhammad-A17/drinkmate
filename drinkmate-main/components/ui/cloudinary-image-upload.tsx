@@ -36,9 +36,78 @@ export default function CloudinaryImageUpload({
   className,
   disabled = false
 }: CloudinaryImageUploadProps) {
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>(
-    currentImages.map(url => ({ url, publicId: '', filename: '' }))
-  )
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>(() => {
+    // Safely process current images, filtering out any empty/invalid URLs
+    if (!currentImages || currentImages.length === 0) return [];
+    
+    return currentImages
+      .filter(url => url && typeof url === 'string' && url.trim() !== '')
+      .map(url => {
+        // For debugging purposes
+        console.log('Processing initial image URL:', url);
+        
+        return { 
+          url, 
+          publicId: url.includes('cloudinary.com') ? extractPublicIdFromUrl(url) : '', 
+          filename: url.split('/').pop() || 'image' 
+        };
+      });
+  });
+  
+  // Helper function to extract publicId from Cloudinary URL
+  function extractPublicIdFromUrl(url: string): string {
+    try {
+      // Guard against invalid inputs
+      if (!url || typeof url !== 'string') {
+        return '';
+      }
+      
+      // Check if it's a Cloudinary URL
+      if (!url.includes('cloudinary.com')) {
+        return '';
+      }
+      
+      // For URLs with format: https://res.cloudinary.com/cloud-name/image/upload/v1234567890/folder/image-name.jpg
+      if (url.includes('/upload/')) {
+        // Get everything after /upload/
+        const afterUpload = url.split('/upload/')[1];
+        
+        // Handle URLs with transformations
+        const parts = afterUpload.split('/');
+        
+        // Get the last part which should be the filename
+        const filename = parts[parts.length - 1];
+        
+        // Remove file extension and query parameters
+        const filenameWithoutExt = filename.split('.')[0].split('?')[0];
+        
+        // If there are path parts before the filename, include them in the publicId
+        if (parts.length > 1) {
+          const folderPath = parts.slice(0, -1).join('/');
+          const publicId = `${folderPath}/${filenameWithoutExt}`;
+          console.log('Extracted publicId with folder from URL:', publicId);
+          return publicId;
+        } else {
+          const publicId = filenameWithoutExt;
+          console.log('Extracted publicId from URL:', publicId);
+          return publicId;
+        }
+      } 
+      
+      // For URLs with format: https://res.cloudinary.com/cloud-name/image/upload/folder/image-name.jpg
+      // This is a fallback method
+      const urlParts = url.split('/');
+      const filename = urlParts[urlParts.length - 1];
+      const publicId = filename.split('.')[0].split('?')[0];
+      
+      console.log('Extracted publicId (fallback) from URL:', publicId);
+      return publicId;
+    } catch (e) {
+      console.warn('Error extracting publicId from Cloudinary URL:', e, 'URL:', url);
+      // Return a fallback ID based on timestamp to ensure we have something
+      return `unknown_${new Date().getTime()}`;
+    }
+  }
   const [isUploading, setIsUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -262,6 +331,8 @@ export default function CloudinaryImageUpload({
           className="hidden"
           disabled={disabled || isUploading}
           id="cloudinary-file-input"
+          aria-label="Upload product images"
+          title="Choose files to upload"
         />
       </div>
 
@@ -270,14 +341,25 @@ export default function CloudinaryImageUpload({
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {uploadedImages.map((image, index) => (
             <div key={index} className="relative group">
-              <div className="aspect-square rounded-lg overflow-hidden border">
+              <div className="aspect-square rounded-lg overflow-hidden border relative">
                 <SafeImage
                   src={image.url}
                   alt={`Product image ${index + 1}`}
                   width={200}
                   height={200}
                   className="w-full h-full object-cover"
+                  fallbackSrc="/images/placeholder.jpg"
+                  onError={(e) => {
+                    console.error(`Image failed to load: ${image.url}`, e);
+                  }}
+                  onLoad={() => {
+                    console.log(`Image loaded successfully: ${image.url}`);
+                  }}
                 />
+                {/* Image load status indicator */}
+                <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 truncate">
+                  {image.filename || `Image ${index + 1}`}
+                </div>
               </div>
               
               {/* Remove Button */}
@@ -291,11 +373,6 @@ export default function CloudinaryImageUpload({
               >
                 <X className="h-3 w-3" />
               </Button>
-              
-              {/* Image Info */}
-              <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 truncate">
-                {image.filename || `Image ${index + 1}`}
-              </div>
             </div>
           ))}
         </div>

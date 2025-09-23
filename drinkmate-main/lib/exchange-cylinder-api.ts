@@ -1,4 +1,4 @@
-import { api, retryRequest, apiCache, getAuthToken } from './api'
+import { api, retryRequest, apiCache, getAuthToken, debouncedApiCall } from './api'
 
 // Simple online check
 const isOnline = () => {
@@ -31,12 +31,13 @@ export const exchangeCylinderAPI = {
       };
     }
     
-    // Clear cache to get fresh data
+    // Use cache to reduce API calls
     const cacheKey = 'exchange-cylinders';
-    apiCache.delete(cacheKey);
+    // Don't clear cache aggressively - let it expire naturally
     
     try {
-      return await retryRequest(async () => {
+      return await debouncedApiCall('get-exchange-cylinders', async () => {
+        return await retryRequest(async () => {
         // Get token for admin requests
         const token = getAuthToken();
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -67,7 +68,8 @@ export const exchangeCylinderAPI = {
           console.log('ExchangeCylinderAPI Response:', response.data);
         }
         return response.data;
-      }, cacheKey, 3, 1500); // More retries with longer initial delay
+      }, cacheKey, 2, 2000); // Fewer retries with longer delay
+      }, 500); // 500ms debounce delay
     } catch (error) {
       console.error('ExchangeCylinderAPI Error:', error);
       // Return fallback data in the same format as the API would
@@ -110,7 +112,7 @@ export const exchangeCylinderAPI = {
         });
         
         return response.data;
-      }, cacheKey, 3, 1500); // More retries with longer initial delay
+      }, cacheKey, 2, 2000); // Fewer retries with longer delay
     } catch (error) {
       console.error(`ExchangeCylinderAPI Error for cylinder ${id}:`, error);
       return {
@@ -241,6 +243,154 @@ export const exchangeCylinderAPI = {
       return {
         success: false,
         message: 'Failed to update rating'
+      };
+    }
+  },
+
+  // Create a new exchange cylinder
+  createExchangeCylinder: async (cylinderData: any) => {
+    if (!isOnline()) {
+      console.warn('ExchangeCylinderAPI: Device appears to be offline, cannot create cylinder');
+      return {
+        success: false,
+        message: 'Device is offline, cannot create cylinder'
+      };
+    }
+
+    try {
+      // Get admin token
+      const token = getAuthToken();
+      if (!token) {
+        console.error('ExchangeCylinderAPI: No auth token available for creating cylinder');
+        return {
+          success: false,
+          message: 'Authentication required to create exchange cylinder'
+        };
+      }
+
+      console.log('ExchangeCylinderAPI: Creating cylinder with token', token ? token.substring(0, 10) + '...' : 'none');
+      console.log('ExchangeCylinderAPI: Creating cylinder with data', cylinderData);
+
+      const headers = { 'Authorization': `Bearer ${token}` };
+      
+      const response = await api.post('/exchange-cylinders/cylinders', 
+        cylinderData, 
+        { 
+          headers, 
+          timeout: 15000 // Extended timeout for creation
+        }
+      );
+      
+      console.log('ExchangeCylinderAPI: Create response', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('ExchangeCylinderAPI Error creating cylinder:', error);
+      // Return more detailed error information
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Failed to create exchange cylinder',
+        error: {
+          status: error.response?.status,
+          data: error.response?.data
+        }
+      };
+    }
+  },
+
+  // Update an existing exchange cylinder
+  updateExchangeCylinder: async (cylinderId: string, cylinderData: any) => {
+    if (!isOnline()) {
+      console.warn('ExchangeCylinderAPI: Device appears to be offline, cannot update cylinder');
+      return {
+        success: false,
+        message: 'Device is offline, cannot update cylinder'
+      };
+    }
+
+    try {
+      // Get admin token
+      const token = getAuthToken();
+      if (!token) {
+        console.error('ExchangeCylinderAPI: No auth token available for updating cylinder');
+        return {
+          success: false,
+          message: 'Authentication required to update exchange cylinder'
+        };
+      }
+
+      console.log('ExchangeCylinderAPI: Updating cylinder with token', token ? token.substring(0, 10) + '...' : 'none');
+      console.log('ExchangeCylinderAPI: Updating cylinder with data', cylinderData);
+
+      const headers = { 'Authorization': `Bearer ${token}` };
+      
+      const response = await api.put(`/exchange-cylinders/cylinders/${cylinderId}`, 
+        cylinderData, 
+        { 
+          headers, 
+          timeout: 15000 // Extended timeout for update
+        }
+      );
+      
+      console.log('ExchangeCylinderAPI: Update response', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('ExchangeCylinderAPI Error updating cylinder:', error);
+      // Return more detailed error information
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Failed to update exchange cylinder',
+        error: {
+          status: error.response?.status,
+          data: error.response?.data
+        }
+      };
+    }
+  },
+
+  // Delete an exchange cylinder
+  deleteExchangeCylinder: async (cylinderId: string) => {
+    if (!isOnline()) {
+      console.warn('ExchangeCylinderAPI: Device appears to be offline, cannot delete cylinder');
+      return {
+        success: false,
+        message: 'Device is offline, cannot delete cylinder'
+      };
+    }
+
+    try {
+      // Get admin token
+      const token = getAuthToken();
+      if (!token) {
+        console.error('ExchangeCylinderAPI: No auth token available for deleting cylinder');
+        return {
+          success: false,
+          message: 'Authentication required to delete exchange cylinder'
+        };
+      }
+
+      console.log('ExchangeCylinderAPI: Deleting cylinder with token', token ? token.substring(0, 10) + '...' : 'none');
+
+      const headers = { 'Authorization': `Bearer ${token}` };
+      
+      const response = await api.delete(`/exchange-cylinders/cylinders/${cylinderId}`, 
+        { 
+          headers, 
+          timeout: 15000 // Extended timeout for deletion
+        }
+      );
+      
+      console.log('ExchangeCylinderAPI: Delete response', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('ExchangeCylinderAPI Error deleting cylinder:', error);
+      // Return more detailed error information
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Failed to delete exchange cylinder',
+        error: {
+          status: error.response?.status,
+          data: error.response?.data
+        }
       };
     }
   }

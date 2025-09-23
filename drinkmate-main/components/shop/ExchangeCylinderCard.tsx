@@ -102,8 +102,8 @@ export default function ExchangeCylinderCard({
       className={cn(
         "group bg-white rounded-3xl overflow-hidden flex flex-col border border-gray-100/80",
         "hover:border-cyan-200/60 transform hover:-translate-y-2 transition-all duration-500 ease-out",
-        "h-[520px] sm:h-[560px] lg:h-[580px] shadow-lg hover:shadow-2xl hover:shadow-cyan-500/20",
-        "relative backdrop-blur-sm bg-gradient-to-b from-white to-gray-50/30",
+        "min-h-[520px] sm:min-h-[560px] lg:min-h-[580px] shadow-lg hover:shadow-2xl hover:shadow-cyan-500/20",
+        "relative",
         className
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -131,15 +131,72 @@ export default function ExchangeCylinderCard({
             {/* Premium Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             
-            {/* Exchange Type Badge */}
-            <div className="absolute top-4 right-4 z-10">
-              <div className="bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-xl backdrop-blur-sm border border-white/20">
-                <div className="flex items-center gap-1">
-                  <ExchangeIcon className="w-3 h-3" />
-                  EXCHANGE
-                </div>
+            {/* Product Badges */}
+            {product.badges && product.badges.length > 0 && (
+              <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+                {product.badges.map((badge, index) => {
+                  const getBadgeStyle = (badgeText: string) => {
+                    const lowerBadge = badgeText.toLowerCase()
+                    if (lowerBadge.includes('bestseller')) {
+                      return {
+                        bg: "bg-gradient-to-r from-amber-500 to-yellow-500",
+                        icon: <Award className="w-3 h-3" />
+                      }
+                    }
+                    if (lowerBadge.includes('featured')) {
+                      return {
+                        bg: "bg-gradient-to-r from-cyan-500 to-blue-500",
+                        icon: <Award className="w-3 h-3" />
+                      }
+                    }
+                    if (lowerBadge.includes('new')) {
+                      return {
+                        bg: "bg-gradient-to-r from-green-500 to-emerald-500",
+                        icon: <Zap className="w-3 h-3" />
+                      }
+                    }
+                    if (lowerBadge.includes('limited')) {
+                      return {
+                        bg: "bg-gradient-to-r from-purple-500 to-violet-500",
+                        icon: <Award className="w-3 h-3" />
+                      }
+                    }
+                    if (lowerBadge.includes('premium')) {
+                      return {
+                        bg: "bg-gradient-to-r from-rose-500 to-pink-500",
+                        icon: <Award className="w-3 h-3" />
+                      }
+                    }
+                    if (lowerBadge.includes('sale') || lowerBadge.includes('off')) {
+                      return {
+                        bg: "bg-gradient-to-r from-red-500 to-pink-500",
+                        icon: <Zap className="w-3 h-3" />
+                      }
+                    }
+                    // Default style
+                    return {
+                      bg: "bg-gradient-to-r from-cyan-500 to-cyan-400",
+                      icon: <Award className="w-3 h-3" />
+                    }
+                  }
+                  
+                  const badgeStyle = getBadgeStyle(badge)
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={cn(
+                        "rounded-full text-white text-xs px-3 py-1.5 font-bold shadow-xl backdrop-blur-sm border border-white/20 flex items-center gap-1",
+                        badgeStyle.bg
+                      )}
+                    >
+                      {badgeStyle.icon}
+                      {badge}
+                    </div>
+                  )
+                })}
               </div>
-            </div>
+            )}
 
             {/* Exchange Type Indicator */}
             <div className="absolute top-4 left-4 z-10">
