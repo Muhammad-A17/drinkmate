@@ -44,7 +44,12 @@ router.post('/cylinders/:cylinderId/rating', authenticateToken, exchangeCylinder
 // ===== ADMIN ROUTES =====
 
 // Create new exchange cylinder (admin only)
-router.post('/cylinders', authenticateToken, isAdmin, exchangeCylinderController.createExchangeCylinder);
+router.post('/cylinders', authenticateToken, isAdmin, (req, res, next) => {
+  console.log('POST /cylinders - Request received');
+  console.log('Auth headers:', req.headers.authorization ? 'Present' : 'Missing');
+  console.log('Request user:', req.user);
+  next();
+}, exchangeCylinderController.createExchangeCylinder);
 
 // Update exchange cylinder (admin only)
 router.put('/cylinders/:id', authenticateToken, isAdmin, exchangeCylinderController.updateExchangeCylinder);

@@ -185,7 +185,15 @@ const authenticateToken = async (req, res, next) => {
 };
 
 const isAdmin = async (req, res, next) => {
+  console.log('isAdmin middleware check:', {
+    hasUser: !!req.user,
+    userRole: req.user ? (req.user.role || 'no role') : 'no user',
+    isAdmin: req.user ? (req.user.isAdmin || false) : false,
+    userId: req.user ? (req.user._id || 'unknown') : 'no user'
+  });
+
   if (!req.user) {
+    console.log('Admin check failed: No user in request');
     return res.status(401).json({ 
       error: 'Authentication required',
       code: 'AUTH_REQUIRED'
@@ -193,6 +201,7 @@ const isAdmin = async (req, res, next) => {
   }
   
   if (!req.user.isAdmin) {
+    console.log('Admin check failed: User is not admin');
     return res.status(403).json({ 
       error: 'Admin access required',
       code: 'ADMIN_REQUIRED'
@@ -201,6 +210,7 @@ const isAdmin = async (req, res, next) => {
   
   // Additional security check for admin access
   if (req.user.isDemo && process.env.NODE_ENV === 'production') {
+    console.log('Admin check failed: Demo account in production');
     return res.status(403).json({ 
       error: 'Demo accounts cannot access admin features in production',
       code: 'DEMO_ADMIN_BLOCKED'

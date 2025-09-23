@@ -56,8 +56,9 @@ const exchangeCylinderSchema = new mongoose.Schema({
   },
   originalPrice: {
     type: Number,
-    required: true,
-    min: 0
+    required: false,
+    min: 0,
+    default: 0
   },
   exchangeFee: {
     type: Number,
@@ -93,7 +94,8 @@ const exchangeCylinderSchema = new mongoose.Schema({
   },
   weight: {
     type: Number, // in kg
-    required: true
+    required: false,
+    default: 10
   },
   dimensions: {
     height: Number, // in cm

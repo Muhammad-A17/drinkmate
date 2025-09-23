@@ -111,13 +111,51 @@ const exchangeCylinderController = {
   // Create new exchange cylinder
   createExchangeCylinder: async (req, res) => {
     try {
+      console.log('Request body received:', JSON.stringify(req.body, null, 2));
+      console.log('User from auth middleware:', req.user);
+      
+      // Additional validation checks
+      if (!req.body.name) {
+        console.error('Validation error: name is required');
+        return res.status(400).json({
+          success: false,
+          message: 'Validation error: name is required'
+        });
+      }
+      
+      if (!req.body.price || typeof req.body.price !== 'number') {
+        console.error('Validation error: price must be a number');
+        return res.status(400).json({
+          success: false,
+          message: 'Validation error: price must be a number'
+        });
+      }
+      
+      // Log auth status
+      console.log('Admin check:', req.user ? (req.user.isAdmin ? 'Is Admin' : 'Not Admin') : 'No User');
+      
       const cylinder = new ExchangeCylinder(req.body);
+      
+      // Validate the model before saving
+      const validationError = cylinder.validateSync();
+      if (validationError) {
+        console.error('Validation error:', validationError);
+        return res.status(400).json({ 
+          success: false,
+          message: 'Validation error',
+          errors: validationError.errors
+        });
+      }
+      
       const savedCylinder = await cylinder.save();
+      console.log('Successfully saved cylinder:', savedCylinder._id);
+      
       res.status(201).json({
         success: true,
         cylinder: savedCylinder
       });
     } catch (error) {
+      console.error('Error creating cylinder:', error);
       res.status(400).json({ 
         success: false,
         message: error.message 
