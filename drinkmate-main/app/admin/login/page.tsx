@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { useAuth } from "@/lib/auth-context"
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState("admin@drinkmate.com")
-  const [password, setPassword] = useState("admin123")
+  const [email, setEmail] = useState("aisha.mutairi@example.com")
+  const [password, setPassword] = useState("Faizanhassan1999.")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const { login } = useAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,30 +22,18 @@ export default function AdminLoginPage() {
     setError("")
 
     try {
-      const response = await fetch('http://localhost:3000/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
-      })
+      console.log('Admin login attempt with:', { email })
+      const result = await login(email, password, true) // Remember me = true
+      console.log('Admin login result:', result)
 
-      const data = await response.json()
-      console.log('Login response:', data)
-
-      if (data.token) {
-        // Store token in both localStorage and sessionStorage
-        localStorage.setItem('auth-token', data.token)
-        sessionStorage.setItem('auth-token', data.token)
-        
-        console.log('Token stored successfully')
-        alert('Login successful! Redirecting to admin dashboard...')
+      if (result.success) {
+        console.log('Admin login successful, redirecting...')
         router.push('/admin')
       } else {
-        setError(data.message || 'Login failed')
+        setError(result.message || 'Login failed')
       }
     } catch (err: any) {
-      console.error('Login error:', err)
+      console.error('Admin login error:', err)
       setError(err.message || 'Login failed')
     } finally {
       setLoading(false)

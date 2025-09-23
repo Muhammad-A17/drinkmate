@@ -15,47 +15,52 @@ const {
 const { authenticateToken, isAdmin } = require('../Middleware/auth-middleware');
 const { body, param, query } = require('express-validator');
 
-// Validation middleware
+// Validation middleware - Only title is required
 const validateRecipe = [
   body('title')
     .trim()
-    .isLength({ min: 3, max: 100 })
-    .withMessage('Title must be between 3 and 100 characters'),
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Title is required and must be between 1 and 100 characters'),
   body('description')
+    .optional()
     .trim()
-    .isLength({ min: 10, max: 500 })
-    .withMessage('Description must be between 10 and 500 characters'),
+    .isLength({ max: 2100 })
+    .withMessage('Description must be less than 2100 characters'),
   body('ingredients')
-    .isArray({ min: 1 })
-    .withMessage('At least one ingredient is required'),
+    .optional()
+    .isArray()
+    .withMessage('Ingredients must be an array'),
   body('ingredients.*.name')
-    .trim()
-    .notEmpty()
-    .withMessage('Ingredient name is required'),
+    .optional()
+    .trim(),
   body('ingredients.*.amount')
-    .trim()
-    .notEmpty()
-    .withMessage('Ingredient amount is required'),
+    .optional()
+    .trim(),
   body('instructions')
-    .isArray({ min: 1 })
-    .withMessage('At least one instruction is required'),
+    .optional()
+    .isArray()
+    .withMessage('Instructions must be an array'),
   body('instructions.*.instruction')
-    .trim()
-    .notEmpty()
-    .withMessage('Instruction text is required'),
+    .optional()
+    .trim(),
   body('prepTime')
+    .optional()
     .isInt({ min: 0 })
     .withMessage('Prep time must be a positive number'),
   body('cookTime')
+    .optional()
     .isInt({ min: 0 })
     .withMessage('Cook time must be a positive number'),
   body('servings')
+    .optional()
     .isInt({ min: 1 })
     .withMessage('Servings must be at least 1'),
   body('difficulty')
+    .optional()
     .isIn(['Easy', 'Medium', 'Hard'])
     .withMessage('Difficulty must be Easy, Medium, or Hard'),
   body('category')
+    .optional()
     .isIn(['Classic', 'Fruity', 'Creamy', 'Refreshing', 'Seasonal', 'Specialty'])
     .withMessage('Invalid category'),
   body('images')
@@ -64,8 +69,8 @@ const validateRecipe = [
     .withMessage('Images must be an array'),
   body('images.*.url')
     .optional()
-    .isURL()
-    .withMessage('Image URL must be valid'),
+    .notEmpty()
+    .withMessage('Image URL cannot be empty if provided'),
   body('featured')
     .optional()
     .isBoolean()
@@ -97,5 +102,10 @@ router.get('/admin/:id', authenticateToken, getRecipeById);
 router.post('/admin', authenticateToken, isAdmin, validateRecipe, createRecipe);
 router.put('/admin/:id', authenticateToken, isAdmin, validateRecipe, updateRecipe);
 router.delete('/admin/:id', authenticateToken, isAdmin, deleteRecipe);
+
+// Also add regular routes for admin panel
+router.post('/', authenticateToken, isAdmin, validateRecipe, createRecipe);
+router.put('/:id', authenticateToken, isAdmin, validateRecipe, updateRecipe);
+router.delete('/:id', authenticateToken, isAdmin, deleteRecipe);
 
 module.exports = router;

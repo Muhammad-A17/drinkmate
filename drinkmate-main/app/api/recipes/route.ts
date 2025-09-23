@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const authHeader = request.headers.get('Authorization')
 
     // Make request to backend
     const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/recipes`
@@ -63,14 +64,15 @@ export async function POST(request: NextRequest) {
     const response = await fetch(backendUrl, {
       method: 'POST',
       headers: {
-        'Authorization': request.headers.get('Authorization') || '',
+        'Authorization': authHeader || '',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(body)
     })
 
     if (!response.ok) {
-      throw new Error(`Backend responded with status: ${response.status}`)
+      const errorText = await response.text()
+      throw new Error(`Backend responded with status: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()

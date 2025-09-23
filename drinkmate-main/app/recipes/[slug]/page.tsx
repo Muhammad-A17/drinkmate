@@ -12,52 +12,94 @@ import { Heart, Share2, Copy, Clock, Star, Utensils } from "lucide-react"
 import { toast } from "sonner"
 
 interface Recipe {
-  id: number
+  _id: string
   title: string
   slug: string
-  image: string
+  description: string
   category: string
-  rating: number
-  prepTime: number
   difficulty: string
+  prepTime: number
+  cookTime: number
   servings: number
+  featured: boolean
+  published: boolean
+  images: Array<{
+    url: string
+    alt: string
+    isPrimary: boolean
+    publicId?: string
+  }>
+  ingredients: Array<{
+    name: string
+    amount?: string
+    unit?: string
+  }>
+  instructions: Array<{
+    step: number
+    instruction: string
+  }>
   tags: string[]
-  description?: string
-  ingredients: string[]
-  instructions: string[]
-  author?: string
-  publishedAt?: string
+  author?: {
+    _id: string
+    username: string
+    firstName: string
+    lastName: string
+  }
+  createdAt: string
+  updatedAt: string
+  rating?: {
+    average: number
+    count: number
+  }
 }
 
 // Mock recipe data - replace with actual API call
 const mockRecipe: Recipe = {
-  id: 1,
+  _id: "1",
   title: "Drinkmate Diet Fizzy Grapefruit Juice",
   slug: "drinkmate-diet-fizzy-grapefruit-juice",
-  image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/grapefruit-juice.jpg",
+  description: "Perfect balance of flavors with a refreshing grapefruit twist that's perfect for any occasion.",
   category: "Mocktails",
-  rating: 4.8,
+  rating: {
+    average: 4.8,
+    count: 24
+  },
   prepTime: 3,
+  cookTime: 0,
   difficulty: "Easy",
   servings: 2,
   tags: ["refreshing", "low-calorie", "citrus", "diet"],
-  description: "Perfect balance of flavors with a refreshing grapefruit twist that's perfect for any occasion.",
+  featured: false,
+  published: true,
+  images: [
+    {
+      url: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/grapefruit-juice.jpg",
+      alt: "Drinkmate Diet Fizzy Grapefruit Juice",
+      isPrimary: true
+    }
+  ],
   ingredients: [
-    "1 cup fresh grapefruit juice",
-    "1/2 cup water",
-    "2 tbsp sweetener (optional)",
-    "Ice cubes",
-    "Fresh mint leaves for garnish"
+    { name: "1 cup fresh grapefruit juice" },
+    { name: "1/2 cup water" },
+    { name: "2 tbsp sweetener (optional)" },
+    { name: "Ice cubes" },
+    { name: "Fresh mint leaves for garnish" }
   ],
   instructions: [
-    "Pour grapefruit juice into Drinkmate bottle",
-    "Add water and sweetener if desired",
-    "Add sparkle using your Drinkmate device",
-    "Pour over ice and garnish with mint",
-    "Enjoy immediately for best taste"
+    { step: 1, instruction: "Pour grapefruit juice into Drinkmate bottle" },
+    { step: 2, instruction: "Add water and sweetener if desired" },
+    { step: 3, instruction: "Add sparkle using your Drinkmate device" },
+    { step: 4, instruction: "Pour over ice and garnish with mint" },
+    { step: 5, instruction: "Enjoy immediately for best taste" }
   ],
-  author: "Drinkmate Team",
-  publishedAt: "2024-01-15"
+  author: {
+    _id: "mock-author-id",
+    username: "drinkmate",
+    firstName: "Drinkmate",
+    lastName: "Team"
+  },
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
 }
 
 export default function RecipeDetail() {
@@ -69,12 +111,27 @@ export default function RecipeDetail() {
   const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set())
 
   useEffect(() => {
-    // Simulate API call
     const fetchRecipe = async () => {
+      if (!params.slug) return
+      
       setLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setRecipe(mockRecipe)
-      setLoading(false)
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/recipes/slug/${params.slug}`)
+        
+        if (!response.ok) {
+          throw new Error('Recipe not found')
+        }
+        
+        const data = await response.json()
+        setRecipe(data.recipe)
+      } catch (error) {
+        console.error('Error fetching recipe:', error)
+        toast.error('Failed to load recipe')
+        // Fallback to mock data for development
+        setRecipe(mockRecipe as any)
+      } finally {
+        setLoading(false)
+      }
     }
     fetchRecipe()
   }, [params.slug])
@@ -85,7 +142,11 @@ export default function RecipeDetail() {
   }
 
   const copyIngredients = () => {
-    const ingredientsText = recipe?.ingredients.join('\n') || ''
+    const ingredientsText = recipe?.ingredients.map(ingredient => 
+      ingredient.amount && ingredient.unit 
+        ? `${ingredient.amount} ${ingredient.unit} ${ingredient.name}`
+        : ingredient.name
+    ).join('\n') || ''
     navigator.clipboard.writeText(ingredientsText)
     toast.success("Ingredients copied to clipboard")
   }
@@ -176,27 +237,32 @@ export default function RecipeDetail() {
             "@context": "https://schema.org",
             "@type": "Recipe",
             "name": recipe.title,
-            "image": [recipe.image],
+            "image": recipe.images?.map(img => img.url) || [],
             "description": recipe.description,
             "prepTime": `PT${recipe.prepTime}M`,
+            "cookTime": `PT${recipe.cookTime}M`,
             "recipeCategory": recipe.category,
             "recipeCuisine": "International",
-            "recipeIngredient": recipe.ingredients,
+            "recipeIngredient": recipe.ingredients.map(ingredient => 
+              ingredient.amount && ingredient.unit 
+                ? `${ingredient.amount} ${ingredient.unit} ${ingredient.name}`
+                : ingredient.name
+            ),
             "recipeInstructions": recipe.instructions.map((instruction, index) => ({
               "@type": "HowToStep",
-              "text": instruction,
-              "position": index + 1
+              "text": instruction.instruction,
+              "position": instruction.step || index + 1
             })),
-            "aggregateRating": {
+            "aggregateRating": recipe.rating ? {
               "@type": "AggregateRating",
-              "ratingValue": recipe.rating.toString(),
-              "ratingCount": "156"
-            },
+              "ratingValue": recipe.rating.average.toString(),
+              "ratingCount": recipe.rating.count.toString()
+            } : undefined,
             "author": {
-              "@type": "Organization",
-              "name": recipe.author || "Drinkmate"
+              "@type": "Person",
+              "name": recipe.author ? `${recipe.author.firstName} ${recipe.author.lastName}` : "Drinkmate"
             },
-            "datePublished": recipe.publishedAt,
+            "datePublished": recipe.createdAt,
             "recipeYield": recipe.servings.toString()
           })
         }}
@@ -227,24 +293,61 @@ export default function RecipeDetail() {
                 label={isRTL ? "الحصص" : "Servings"} 
                 value={recipe.servings.toString()} 
               />
-              <StatPill 
-                icon="⭐" 
-                label={isRTL ? "التقييم" : "Rating"} 
-                value={recipe.rating.toFixed(1)} 
-              />
+              {recipe.rating && (
+                <StatPill 
+                  icon="⭐" 
+                  label={isRTL ? "التقييم" : "Rating"} 
+                  value={recipe.rating.average.toFixed(1)} 
+                />
+              )}
             </div>
           </header>
 
           <div className="grid gap-8 lg:grid-cols-12">
             <figure className="lg:col-span-6 order-last lg:order-first">
-              <Image
-                src={recipe.image}
-                alt={recipe.title}
-                width={600}
-                height={450}
-                className="rounded-2xl w-full aspect-[4/3] object-cover"
-                priority
-              />
+              {recipe.images && recipe.images.length > 0 ? (
+                <div className="relative group">
+                  <Image
+                    src={recipe.images.find(img => img.isPrimary)?.url || recipe.images[0].url}
+                    alt={recipe.images.find(img => img.isPrimary)?.alt || recipe.title}
+                    width={600}
+                    height={450}
+                    className="rounded-2xl w-full aspect-[4/3] object-cover shadow-2xl"
+                    priority
+                  />
+                  
+                  {/* Image Gallery Indicator */}
+                  {recipe.images.length > 1 && (
+                    <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      {recipe.images.findIndex(img => img.isPrimary) + 1} / {recipe.images.length}
+                    </div>
+                  )}
+                  
+                  {/* Image Gallery Overlay */}
+                  {recipe.images.length > 1 && (
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="bg-white/90 text-gray-900 hover:bg-white"
+                        onClick={() => {
+                          // TODO: Open image gallery modal
+                          toast.info('Image gallery coming soon!')
+                        }}
+                      >
+                        View Gallery ({recipe.images.length})
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-2xl w-full aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-2xl">
+                  <div className="text-center text-gray-400">
+                    <Utensils className="w-16 h-16 mx-auto mb-2" />
+                    <p className="text-sm font-medium">No image available</p>
+                  </div>
+                </div>
+              )}
             </figure>
 
             <div className="lg:col-span-6">
@@ -262,7 +365,10 @@ export default function RecipeDetail() {
                         onChange={() => toggleIngredient(index)}
                       />
                       <span className={`${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
-                        {ingredient}
+                        {ingredient.amount && ingredient.unit 
+                          ? `${ingredient.amount} ${ingredient.unit} ${ingredient.name}`
+                          : ingredient.name
+                        }
                       </span>
                     </li>
                   ))}
@@ -274,9 +380,9 @@ export default function RecipeDetail() {
                   {isRTL ? "التعليمات" : "Instructions"}
                 </h2>
                 <ol className="space-y-3 list-decimal list-inside">
-                  {recipe.instructions.map((step, index) => (
+                  {recipe.instructions.map((instruction, index) => (
                     <li key={index} className={`${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
-                      {step}
+                      {instruction.instruction}
                     </li>
                   ))}
                 </ol>

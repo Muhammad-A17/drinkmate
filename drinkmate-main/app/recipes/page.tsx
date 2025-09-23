@@ -286,7 +286,7 @@ export default function Recipes() {
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="relative aspect-[4/3]">
                     <Image
-                      src={currentRecipe.image}
+                      src={currentRecipe.image || '/images/placeholder-recipe.jpg'}
                       alt={currentRecipe.title}
                       fill
                       className="object-cover"
