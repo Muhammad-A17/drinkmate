@@ -5,7 +5,7 @@ import { useTranslation } from '@/lib/translation-context'
 import { useWishlist } from '@/hooks/use-wishlist'
 import { useCart } from '@/lib/cart-context'
 import { Button } from '@/components/ui/button'
-import { Heart, ShoppingCart, Trash2, Eye, Loader2 } from 'lucide-react'
+import { Heart, ShoppingCart, Trash2, Eye, Loader2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
@@ -87,6 +87,16 @@ export default function WishlistPage() {
 
   return (
     <div className="space-y-6">
+      {/* Back Navigation */}
+      <div className="mb-4">
+        <Link href="/account">
+          <Button variant="outline" className="hover:bg-orange-50 hover:border-orange-200">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {language === 'AR' ? 'العودة إلى الحساب' : 'Back to Account'}
+          </Button>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

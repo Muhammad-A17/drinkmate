@@ -207,13 +207,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
-                  {t("footer.information.reprintReturnLabel")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms-of-service" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
-                  {t("footer.information.legalTerms")}
+                <Link href="/exchange-and-return-policy" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                  Exchange and Return Policy
                 </Link>
               </li>
               <li>

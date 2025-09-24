@@ -39,18 +39,16 @@ const orderSchema = new mongoose.Schema({
   
   // Addresses (matches controller format)
   shippingAddress: {
-    firstName: String,
-    lastName: String,
+    fullName: String,
     email: String,
     phone: String,
-    street: String,
+    district: String,
     city: String,
-    state: String,
-    postalCode: String,
     country: {
       type: String,
       default: 'Saudi Arabia'
     },
+    nationalAddress: String,
     specialInstructions: String
   },
   
@@ -59,15 +57,16 @@ const orderSchema = new mongoose.Schema({
       type: Boolean,
       default: true
     },
-    firstName: String,
-    lastName: String,
+    fullName: String,
     email: String,
     phone: String,
-    street: String,
+    district: String,
     city: String,
-    state: String,
-    postalCode: String,
-    country: String
+    country: {
+      type: String,
+      default: 'Saudi Arabia'
+    },
+    nationalAddress: String
   },
   
   // Payment Information (matches controller format)
@@ -181,8 +180,8 @@ const orderSchema = new mongoose.Schema({
 
 // Virtual for customer full name
 orderSchema.virtual('customerFullName').get(function() {
-  if (this.shippingAddress && this.shippingAddress.firstName && this.shippingAddress.lastName) {
-    return `${this.shippingAddress.firstName} ${this.shippingAddress.lastName}`;
+  if (this.shippingAddress && this.shippingAddress.fullName) {
+    return this.shippingAddress.fullName;
   }
   return 'Unknown Customer';
 });

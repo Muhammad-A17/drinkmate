@@ -293,7 +293,7 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
                   exchangeType: type === "exchange" ? (cylinder.exchangeType as "instant" | "scheduled" | "pickup" || "instant") : "scheduled",
                   estimatedTime: type === "exchange" ? (cylinder.estimatedTime || "Same Day") : "1-2 Days"
                 }}
-                onAddToCart={({ productId, qty }) => {
+                onAddToCart={({ productId, qty }: { productId: string; qty: number }) => {
                   console.log('Add CO2 cylinder to cart:', productId, qty);
                 }}
                 onAddToWishlist={() => {}}
@@ -309,7 +309,9 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
             <BundleStyleProductCard
               key={cylinder._id}
               product={{
+                _id: cylinder._id,
                 id: cylinder._id,
+                name: cylinder.name,
                 slug: cylinder.slug,
                 title: cylinder.name,
                 image: cylinder.image || "/placeholder.svg",
@@ -322,7 +324,7 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
                 inStock: cylinder.stock > 0,
                 badges: cylinder.isBestSeller ? ["BESTSELLER"] : cylinder.isFeatured ? ["FEATURED"] : undefined,
               }}
-              onAddToCart={({ productId, qty }) => {
+              onAddToCart={({ productId, qty }: { productId: string; qty: number }) => {
                 console.log('Add CO2 cylinder to cart:', productId, qty);
               }}
               onAddToWishlist={() => {}}

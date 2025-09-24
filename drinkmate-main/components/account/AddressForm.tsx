@@ -19,11 +19,12 @@ interface AddressFormProps {
 export default function AddressForm({ address, onSubmit, onCancel }: AddressFormProps) {
   const { language, isRTL } = useTranslation()
   const [formData, setFormData] = useState({
-    firstName: address?.firstName || '',
-    lastName: address?.lastName || '',
+    fullName: address?.fullName || '',
+    phone: address?.phone || '',
     district: address?.district || '',
     city: address?.city || '',
-    phone: address?.phone || '',
+    country: 'Saudi Arabia',
+    nationalAddress: address?.nationalAddress || '',
     isDefault: address?.isDefault || false
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -31,12 +32,16 @@ export default function AddressForm({ address, onSubmit, onCancel }: AddressForm
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = language === 'AR' ? 'الاسم الأول مطلوب' : 'First name is required'
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = language === 'AR' ? 'الاسم الكامل مطلوب' : 'Full name is required'
     }
 
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = language === 'AR' ? 'الاسم الأخير مطلوب' : 'Last name is required'
+    if (!formData.phone.trim()) {
+      newErrors.phone = language === 'AR' ? 'رقم الهاتف مطلوب' : 'Phone number is required'
+    } else if (!/^\+966\d{9}$/.test(formData.phone)) {
+      newErrors.phone = language === 'AR' 
+        ? 'رقم الهاتف يجب أن يبدأ بـ +966 ويحتوي على 9 أرقام'
+        : 'Phone number must start with +966 and contain 9 digits'
     }
 
     if (!formData.district.trim()) {
@@ -47,12 +52,8 @@ export default function AddressForm({ address, onSubmit, onCancel }: AddressForm
       newErrors.city = language === 'AR' ? 'المدينة مطلوبة' : 'City is required'
     }
 
-    if (!formData.phone.trim()) {
-      newErrors.phone = language === 'AR' ? 'رقم الهاتف مطلوب' : 'Phone number is required'
-    } else if (!/^\+966\d{9}$/.test(formData.phone)) {
-      newErrors.phone = language === 'AR' 
-        ? 'رقم الهاتف يجب أن يبدأ بـ +966 ويحتوي على 9 أرقام'
-        : 'Phone number must start with +966 and contain 9 digits'
+    if (!formData.country.trim()) {
+      newErrors.country = language === 'AR' ? 'البلد مطلوب' : 'Country is required'
     }
 
     setErrors(newErrors)
@@ -90,40 +91,39 @@ export default function AddressForm({ address, onSubmit, onCancel }: AddressForm
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* First Name */}
-          <div>
-            <Label htmlFor="firstName">
-              {language === 'AR' ? 'الاسم الأول' : 'First Name'}
-            </Label>
-            <Input
-              id="firstName"
-              value={formData.firstName}
-              onChange={(e) => handleInputChange('firstName', e.target.value)}
-              className={cn(errors.firstName && 'border-red-500')}
-              placeholder={language === 'AR' ? 'أدخل الاسم الأول' : 'Enter first name'}
-            />
-            {errors.firstName && (
-              <p className="text-sm text-red-600 mt-1">{errors.firstName}</p>
-            )}
-          </div>
+        {/* Full Name */}
+        <div>
+          <Label htmlFor="fullName">
+            {language === 'AR' ? 'الاسم الكامل' : 'Full Name'}
+          </Label>
+          <Input
+            id="fullName"
+            value={formData.fullName}
+            onChange={(e) => handleInputChange('fullName', e.target.value)}
+            className={cn(errors.fullName && 'border-red-500')}
+            placeholder={language === 'AR' ? 'أدخل الاسم الكامل' : 'Enter full name'}
+          />
+          {errors.fullName && (
+            <p className="text-sm text-red-600 mt-1">{errors.fullName}</p>
+          )}
+        </div>
 
-          {/* Last Name */}
-          <div>
-            <Label htmlFor="lastName">
-              {language === 'AR' ? 'الاسم الأخير' : 'Last Name'}
-            </Label>
-            <Input
-              id="lastName"
-              value={formData.lastName}
-              onChange={(e) => handleInputChange('lastName', e.target.value)}
-              className={cn(errors.lastName && 'border-red-500')}
-              placeholder={language === 'AR' ? 'أدخل الاسم الأخير' : 'Enter last name'}
-            />
-            {errors.lastName && (
-              <p className="text-sm text-red-600 mt-1">{errors.lastName}</p>
-            )}
-          </div>
+        {/* Phone */}
+        <div>
+          <Label htmlFor="phone">
+            {language === 'AR' ? 'رقم الهاتف' : 'Phone Number'}
+          </Label>
+          <Input
+            id="phone"
+            type="tel"
+            value={formData.phone}
+            onChange={(e) => handleInputChange('phone', e.target.value)}
+            className={cn(errors.phone && 'border-red-500')}
+            placeholder="+966501234567"
+          />
+          {errors.phone && (
+            <p className="text-sm text-red-600 mt-1">{errors.phone}</p>
+          )}
         </div>
 
         {/* District */}
@@ -175,6 +175,36 @@ export default function AddressForm({ address, onSubmit, onCancel }: AddressForm
           />
           {errors.phone && (
             <p className="text-sm text-red-600 mt-1">{errors.phone}</p>
+          )}
+        </div>
+
+        {/* Country */}
+        <div>
+          <Label htmlFor="country">
+            {language === 'AR' ? 'البلد' : 'Country'}
+          </Label>
+          <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
+            Saudi Arabia
+          </div>
+        </div>
+
+        {/* National Address */}
+        <div>
+          <Label htmlFor="nationalAddress">
+            {language === 'AR' ? 'العنوان المختصر' : 'Short Address'} (<a href="https://splonline.com.sa/en/national-address-1/" target="_blank" rel="noopener noreferrer" className="text-[#12d6fa] hover:text-[#0bc4e8] underline">{language === 'AR' ? 'العنوان الوطني' : 'National Address'}</a>) {language === 'AR' ? '(اختياري)' : '(optional)'}
+          </Label>
+          <Input
+            id="nationalAddress"
+            value={formData.nationalAddress}
+            onChange={(e) => handleInputChange('nationalAddress', e.target.value.toUpperCase())}
+            className={cn(errors.nationalAddress && 'border-red-500', 'font-mono tracking-wider')}
+            placeholder="JESA3591"
+            maxLength={8}
+            pattern="[A-Z]{4}[0-9]{4}"
+          />
+          <p className="text-xs text-gray-500 mt-1">{language === 'AR' ? 'التنسيق: 4 أحرف متبوعة بـ 4 أرقام (مثال: JESA3591)' : 'Format: 4 letters followed by 4 numbers (e.g., JESA3591)'}</p>
+          {errors.nationalAddress && (
+            <p className="text-sm text-red-600 mt-1">{errors.nationalAddress}</p>
           )}
         </div>
 

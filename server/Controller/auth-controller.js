@@ -244,6 +244,7 @@ const verifyToken = async (req, res) => {
                     user: {
                         _id: decoded.id,
                         username: 'Demo User',
+                        name: 'Demo User',
                         email: 'demo@example.com',
                         isAdmin: decoded.isAdmin || false,
                     }
@@ -261,7 +262,12 @@ const verifyToken = async (req, res) => {
                     user: {
                         _id: user._id,
                         username: user.username,
+                        name: user.name,
                         email: user.email,
+                        phone: user.phone,
+                        district: user.district,
+                        city: user.city,
+                        nationalAddress: user.nationalAddress,
                         isAdmin: user.isAdmin,
                     }
                 });
@@ -273,6 +279,7 @@ const verifyToken = async (req, res) => {
                     user: {
                         _id: decoded.id,
                         username: 'User',
+                        name: 'User',
                         email: 'user@example.com',
                         isAdmin: decoded.isAdmin || false,
                     }
@@ -564,7 +571,9 @@ const getUserProfile = async (req, res) => {
 const updateUserProfile = async (req, res) => {
     try {
         const userId = req.user._id;
-        const { firstName, lastName, phone, username, email } = req.body;
+        const { firstName, lastName, name, phone, username, email, district, city, nationalAddress } = req.body;
+        
+        console.log('Update profile request:', { userId, firstName, lastName, name, phone, username, email, district, city, nationalAddress });
         
         // Try to update user in MongoDB first
         try {
@@ -600,9 +609,36 @@ const updateUserProfile = async (req, res) => {
                 // Update other fields
                 if (firstName !== undefined) user.firstName = firstName;
                 if (lastName !== undefined) user.lastName = lastName;
+                if (name !== undefined && name.trim()) user.name = name;
                 if (phone !== undefined) user.phone = phone;
+                if (district !== undefined) user.district = district;
+                if (city !== undefined) user.city = city;
+                if (nationalAddress !== undefined) user.nationalAddress = nationalAddress;
+                
+                // Ensure name field is not empty
+                if (!user.name || user.name.trim() === '') {
+                    // Use provided name, firstName + lastName, or fallback to username
+                    if (name && name.trim()) {
+                        user.name = name.trim();
+                    } else if (user.firstName && user.lastName) {
+                        user.name = `${user.firstName} ${user.lastName}`.trim();
+                    } else if (user.username) {
+                        user.name = user.username;
+                    } else {
+                        user.name = 'User'; // Fallback
+                    }
+                }
                 
                 await user.save();
+                
+                console.log('User updated successfully:', {
+                    _id: user._id,
+                    name: user.name,
+                    phone: user.phone,
+                    district: user.district,
+                    city: user.city,
+                    nationalAddress: user.nationalAddress
+                });
                 
                 return res.status(200).json({
                     success: true,
@@ -613,7 +649,11 @@ const updateUserProfile = async (req, res) => {
                         email: user.email,
                         firstName: user.firstName,
                         lastName: user.lastName,
+                        name: user.name,
                         phone: user.phone,
+                        district: user.district,
+                        city: user.city,
+                        nationalAddress: user.nationalAddress,
                         avatar: user.avatar,
                         isAdmin: user.isAdmin,
                         status: user.status,

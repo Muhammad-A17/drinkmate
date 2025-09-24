@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/translation-context'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth, getAuthToken } from '@/lib/auth-context'
+import { useToast } from '@/lib/toast-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -34,19 +35,17 @@ import {
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import WishlistSidebar from '@/components/account/WishlistSidebar'
+import SaudiRiyal from '@/components/ui/SaudiRiyal'
 
 interface UserProfile {
   id: string
   name: string
   email: string
   phone: string
-  address: {
-    street: string
-    city: string
-    state: string
-    zipCode: string
-    country: string
-  }
+  district: string
+  city: string
+  country: string
+  nationalAddress: string
 }
 
 interface PasswordChange {
@@ -72,12 +71,14 @@ interface Order {
 
 export default function AccountDashboard() {
   const { language, isRTL } = useTranslation()
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
+  const { showSuccess, showError } = useToast()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [isEditingAddress, setIsEditingAddress] = useState(false)
+  const [isSavingAddress, setIsSavingAddress] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [showPasswords, setShowPasswords] = useState({
     current: false,
@@ -88,17 +89,19 @@ export default function AccountDashboard() {
   // Profile state
   const [profile, setProfile] = useState<UserProfile>({
     id: user?._id || '1',
-    name: user?.name || '',
+    name: user?.name || user?.username || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    address: {
-      street: '123 Main Street',
-      city: 'Riyadh',
-      state: 'Riyadh Province',
-      zipCode: '12345',
-      country: 'Saudi Arabia'
-    }
+    district: (user as any)?.district || '',
+    city: (user as any)?.city || '',
+    country: 'Saudi Arabia',
+    nationalAddress: (user as any)?.nationalAddress || ''
   })
+
+  // Debug profile state changes
+  useEffect(() => {
+    console.log("Profile state updated:", profile)
+  }, [profile])
 
   // Password change state
   const [passwordData, setPasswordData] = useState<PasswordChange>({
@@ -110,6 +113,26 @@ export default function AccountDashboard() {
   // Orders state
   const [orders, setOrders] = useState<Order[]>([])
   
+
+  // Update profile when user data changes
+  useEffect(() => {
+    if (user) {
+      console.log("User data changed, updating profile:", user)
+      console.log("User name field:", user.name)
+      console.log("User username field:", user.username)
+      setProfile(prev => ({
+        ...prev,
+        id: user._id || '1',
+        name: user.name || user.username || prev.name || '',
+        email: user.email || prev.email,
+        phone: (user as any)?.phone || prev.phone,
+        district: (user as any)?.district || prev.district,
+        city: (user as any)?.city || prev.city,
+        country: 'Saudi Arabia',
+        nationalAddress: (user as any)?.nationalAddress || prev.nationalAddress
+      }))
+    }
+  }, [user])
 
   useEffect(() => {
     const fetchAccountData = async () => {
@@ -169,16 +192,170 @@ export default function AccountDashboard() {
     fetchAccountData()
   }, [])
 
-  const handleProfileSave = () => {
-    // Here you would typically make an API call to save the profile
-    console.log('Saving profile:', profile)
-    setIsEditingProfile(false)
+  const handleProfileSave = async () => {
+    try {
+      // Basic validation
+      if (!profile.name.trim()) {
+        showError(
+          language === 'AR' ? 'يرجى ملء الاسم الكامل' : 'Please fill in full name',
+          language === 'AR' ? 'الاسم الكامل مطلوب' : 'Full name is required'
+        )
+        return
+      }
+
+      // Make API call to save the profile
+      const token = getAuthToken()
+      if (!token) {
+        showError(
+          language === 'AR' ? 'غير مسجل الدخول' : 'Not authenticated',
+          language === 'AR' ? 'يرجى تسجيل الدخول أولاً' : 'Please log in first'
+        )
+        return
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: profile.name,
+          phone: profile.phone,
+          district: profile.district,
+          city: profile.city,
+          nationalAddress: profile.nationalAddress
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to save profile')
+      }
+
+      // Update the profile state with the saved data
+      if (result.user) {
+        setProfile(prev => ({
+          ...prev,
+          name: result.user.name || result.user.firstName + ' ' + result.user.lastName || prev.name,
+          phone: result.user.phone || prev.phone,
+          district: result.user.district || prev.district,
+          city: result.user.city || prev.city,
+          nationalAddress: result.user.nationalAddress || prev.nationalAddress
+        }))
+        
+        // Refresh user data to show updated information
+        await refreshUser()
+      }
+
+      setIsEditingProfile(false)
+      
+      showSuccess(
+        language === 'AR' ? 'تم حفظ الملف الشخصي بنجاح!' : 'Profile saved successfully!',
+        language === 'AR' ? 'تم تحديث معلومات الملف الشخصي الخاصة بك' : 'Your profile information has been updated'
+      )
+    } catch (error) {
+      console.error('Error saving profile:', error)
+      showError(
+        language === 'AR' ? 'حدث خطأ في حفظ الملف الشخصي' : 'Error saving profile',
+        language === 'AR' ? 'يرجى المحاولة مرة أخرى' : 'Please try again'
+      )
+    }
   }
 
-  const handleAddressSave = () => {
-    // Here you would typically make an API call to save the address
-    console.log('Saving address:', profile.address)
-    setIsEditingAddress(false)
+  const handleAddressSave = async () => {
+    try {
+      setIsSavingAddress(true)
+      
+      // Basic validation
+      if (!profile.district.trim() || !profile.city.trim()) {
+        showError(
+          language === 'AR' ? 'يرجى ملء الحي والمدينة' : 'Please fill in district and city',
+          language === 'AR' ? 'جميع الحقول المطلوبة يجب أن تكون مملوءة' : 'All required fields must be filled'
+        )
+        return
+      }
+
+      // Validate national address format if provided
+      if (profile.nationalAddress && !/^[A-Z]{4}[0-9]{4}$/.test(profile.nationalAddress)) {
+        showError(
+          language === 'AR' ? 'تنسيق العنوان الوطني غير صحيح' : 'Invalid national address format',
+          language === 'AR' ? 'يجب أن يكون التنسيق: 4 أحرف متبوعة بـ 4 أرقام (مثال: JESA3591)' : 'Format must be: 4 letters followed by 4 numbers (e.g., JESA3591)'
+        )
+        return
+      }
+
+      // Make API call to save the address
+      const token = getAuthToken()
+      if (!token) {
+        showError(
+          language === 'AR' ? 'غير مسجل الدخول' : 'Not authenticated',
+          language === 'AR' ? 'يرجى تسجيل الدخول أولاً' : 'Please log in first'
+        )
+        return
+      }
+
+      const requestBody = {
+        name: profile.name,
+        phone: profile.phone,
+        district: profile.district,
+        city: profile.city,
+        nationalAddress: profile.nationalAddress
+      }
+      
+      console.log('Sending address update request:', requestBody)
+      console.log('Token:', token ? 'Present' : 'Missing')
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to save address')
+      }
+
+      // Update the profile state with the saved data
+      if (result.user) {
+        setProfile(prev => ({
+          ...prev,
+          name: result.user.name || result.user.firstName + ' ' + result.user.lastName || prev.name,
+          phone: result.user.phone || prev.phone,
+          district: result.user.district || prev.district,
+          city: result.user.city || prev.city,
+          nationalAddress: result.user.nationalAddress || prev.nationalAddress
+        }))
+        
+        // Refresh user data to show updated information
+        console.log("Calling refreshUser for address save...")
+        await refreshUser()
+        console.log("refreshUser completed for address save")
+      }
+      
+      setIsEditingAddress(false)
+      
+      // Show success message
+      console.log('Address saved successfully!')
+      showSuccess(
+        language === 'AR' ? 'تم حفظ العنوان بنجاح!' : 'Address saved successfully!',
+        language === 'AR' ? 'تم تحديث معلومات العنوان الخاصة بك' : 'Your address information has been updated'
+      )
+    } catch (error) {
+      console.error('Error saving address:', error)
+      showError(
+        language === 'AR' ? 'حدث خطأ في حفظ العنوان' : 'Error saving address',
+        language === 'AR' ? 'يرجى المحاولة مرة أخرى' : 'Please try again'
+      )
+    } finally {
+      setIsSavingAddress(false)
+    }
   }
 
   const handlePasswordChange = () => {
@@ -405,86 +582,84 @@ export default function AccountDashboard() {
               <CardContent className="p-6">
                 {isEditingAddress ? (
                   <div className="space-y-6">
-                    <div>
-                      <Label htmlFor="street" className="text-sm font-semibold text-gray-700">
-                        {language === 'AR' ? 'الشارع' : 'Street Address'}
-                      </Label>
-                      <Input
-                        id="street"
-                        value={profile.address.street}
-                        onChange={(e) => setProfile({
-                          ...profile, 
-                          address: {...profile.address, street: e.target.value}
-                        })}
-                        className="mt-2 border-gray-300 focus:border-green-500 focus:ring-green-500"
-                      />
-                    </div>
                     <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="district" className="text-sm font-semibold text-gray-700">
+                          {language === 'AR' ? 'الحي' : 'District'}
+                        </Label>
+                        <Input
+                          id="district"
+                          value={profile.district}
+                          onChange={(e) => setProfile({
+                            ...profile, 
+                            district: e.target.value
+                          })}
+                          className="mt-2 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                          placeholder={language === 'AR' ? 'أدخل الحي' : 'Enter district'}
+                        />
+                      </div>
                       <div>
                         <Label htmlFor="city" className="text-sm font-semibold text-gray-700">
                           {language === 'AR' ? 'المدينة' : 'City'}
                         </Label>
                         <Input
                           id="city"
-                          value={profile.address.city}
+                          value={profile.city}
                           onChange={(e) => setProfile({
                             ...profile, 
-                            address: {...profile.address, city: e.target.value}
+                            city: e.target.value
                           })}
                           className="mt-2 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                          placeholder={language === 'AR' ? 'أدخل المدينة' : 'Enter city'}
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="zipCode" className="text-sm font-semibold text-gray-700">
-                          {language === 'AR' ? 'الرمز البريدي' : 'ZIP Code'}
-                        </Label>
-                        <Input
-                          id="zipCode"
-                          value={profile.address.zipCode}
-                          onChange={(e) => setProfile({
-                            ...profile, 
-                            address: {...profile.address, zipCode: e.target.value}
-                          })}
-                          className="mt-2 border-gray-300 focus:border-green-500 focus:ring-green-500"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="state" className="text-sm font-semibold text-gray-700">
-                        {language === 'AR' ? 'المحافظة' : 'State/Province'}
-                      </Label>
-                      <Input
-                        id="state"
-                        value={profile.address.state}
-                        onChange={(e) => setProfile({
-                          ...profile, 
-                          address: {...profile.address, state: e.target.value}
-                        })}
-                        className="mt-2 border-gray-300 focus:border-green-500 focus:ring-green-500"
-                      />
                     </div>
                     <div>
                       <Label htmlFor="country" className="text-sm font-semibold text-gray-700">
                         {language === 'AR' ? 'البلد' : 'Country'}
                       </Label>
+                      <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 mt-2">
+                        Saudi Arabia
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="nationalAddress" className="text-sm font-semibold text-gray-700">
+                        {language === 'AR' ? 'العنوان المختصر' : 'Short Address'} (<a href="https://splonline.com.sa/en/national-address-1/" target="_blank" rel="noopener noreferrer" className="text-[#12d6fa] hover:text-[#0bc4e8] underline">{language === 'AR' ? 'العنوان الوطني' : 'National Address'}</a>) {language === 'AR' ? '(اختياري)' : '(optional)'}
+                      </Label>
                       <Input
-                        id="country"
-                        value={profile.address.country}
+                        id="nationalAddress"
+                        value={profile.nationalAddress}
                         onChange={(e) => setProfile({
                           ...profile, 
-                          address: {...profile.address, country: e.target.value}
+                          nationalAddress: e.target.value.toUpperCase()
                         })}
-                        className="mt-2 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                        className="mt-2 border-gray-300 focus:border-green-500 focus:ring-green-500 font-mono tracking-wider"
+                        placeholder="JESA3591"
+                        maxLength={8}
+                        pattern="[A-Z]{4}[0-9]{4}"
                       />
+                      <p className="text-xs text-gray-500 mt-1">{language === 'AR' ? 'التنسيق: 4 أحرف متبوعة بـ 4 أرقام (مثال: JESA3591)' : 'Format: 4 letters followed by 4 numbers (e.g., JESA3591)'}</p>
                     </div>
                     <div className="flex gap-3">
-                      <Button onClick={handleAddressSave} className="flex-1 bg-green-600 hover:bg-green-700">
-                        <Save className="h-4 w-4 mr-2" />
-                        {language === 'AR' ? 'حفظ العنوان' : 'Save Address'}
+                      <Button 
+                        onClick={handleAddressSave} 
+                        disabled={isSavingAddress}
+                        className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {isSavingAddress ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4 mr-2" />
+                        )}
+                        {isSavingAddress 
+                          ? (language === 'AR' ? 'جاري الحفظ...' : 'Saving...') 
+                          : (language === 'AR' ? 'حفظ العنوان' : 'Save Address')
+                        }
                       </Button>
                       <Button 
                         variant="outline" 
                         onClick={() => setIsEditingAddress(false)}
+                        disabled={isSavingAddress}
                         className="px-6"
                       >
                         <X className="h-4 w-4 mr-2" />
@@ -496,12 +671,12 @@ export default function AccountDashboard() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">{language === 'AR' ? 'العنوان الكامل' : 'Full Address'}</p>
-                        <p className="font-semibold text-lg">{profile.address.street}</p>
+                        <p className="text-sm text-gray-500 mb-1">{language === 'AR' ? 'العنوان' : 'Address'}</p>
+                        <p className="font-semibold text-lg">{profile.district}</p>
                         <p className="text-gray-600">
-                          {profile.address.city}, {profile.address.state} {profile.address.zipCode}
+                          {profile.city}, {profile.country}
+                          {profile.nationalAddress && ` - ${profile.nationalAddress}`}
                         </p>
-                        <p className="text-gray-600">{profile.address.country}</p>
                       </div>
                       <Button
                         variant="outline"
@@ -663,7 +838,9 @@ export default function AccountDashboard() {
                           </Badge>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-xl text-gray-900">${order.total.toFixed(2)}</p>
+                          <div className="font-bold text-xl text-gray-900">
+                            <SaudiRiyal amount={order.total} size="lg" />
+                          </div>
                           <p className="text-sm text-gray-500">{order.itemsCount} items</p>
                         </div>
                       </div>

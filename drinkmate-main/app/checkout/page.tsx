@@ -32,24 +32,24 @@ export default function CheckoutPage() {
   const [shipToDifferentAddress, setShipToDifferentAddress] = useState(false)
   const [orderNotes, setOrderNotes] = useState("")
   const [deliveryAddress, setDeliveryAddress] = useState({
-    firstName: (user as any)?.firstName || "",
-    lastName: (user as any)?.lastName || "",
+    fullName: user?.name || "",
     email: user?.email || "",
     phone: (user as any)?.phone || "",
-    district: "",
-    city: "",
-    country: "Saudi Arabia"
+    district: (user as any)?.district || "",
+    city: (user as any)?.city || "",
+    country: "Saudi Arabia",
+    nationalAddress: (user as any)?.nationalAddress || ""
   })
   
   // Shipping address (if different from billing)
   const [shippingAddress, setShippingAddress] = useState({
-    firstName: "",
-    lastName: "",
+    fullName: "",
     email: "",
     phone: "",
     district: "",
     city: "",
-    country: "Saudi Arabia"
+    country: "Saudi Arabia",
+    nationalAddress: ""
   })
 
   // Calculate delivery costs based on Aramex options
@@ -94,24 +94,26 @@ export default function CheckoutPage() {
       console.log('User data for checkout:', user);
       setDeliveryAddress(prev => ({
         ...prev,
-        firstName: (user as any)?.firstName || user.name?.split(' ')[0] || "",
-        lastName: (user as any)?.lastName || user.name?.split(' ').slice(1).join(' ') || "",
+        fullName: user.name || "",
         email: user.email || "",
         phone: (user as any)?.phone || "",
         district: (user as any)?.district || "",
-        city: (user as any)?.city || ""
+        city: (user as any)?.city || "",
+        country: "Saudi Arabia",
+        nationalAddress: (user as any)?.nationalAddress || ""
       }))
       
       // Also set shipping address to same as delivery if user has address data
-      if ((user as any)?.firstName || user.name) {
+      if ((user as any)?.district && (user as any)?.city) {
         setShippingAddress(prev => ({
           ...prev,
-          firstName: (user as any)?.firstName || user.name?.split(' ')[0] || "",
-          lastName: (user as any)?.lastName || user.name?.split(' ').slice(1).join(' ') || "",
+          fullName: user.name || "",
           email: user.email || "",
           phone: (user as any)?.phone || "",
           district: (user as any)?.district || "",
-          city: (user as any)?.city || ""
+          city: (user as any)?.city || "",
+          country: "Saudi Arabia",
+          nationalAddress: (user as any)?.nationalAddress || ""
         }))
       }
     }
@@ -149,17 +151,29 @@ export default function CheckoutPage() {
 
   const validateForm = () => {
     // Validate main address
-    if (!deliveryAddress.firstName || !deliveryAddress.lastName || !deliveryAddress.email || 
-        !deliveryAddress.phone || !deliveryAddress.district || !deliveryAddress.city) {
+    if (!deliveryAddress.fullName || !deliveryAddress.phone || 
+        !deliveryAddress.district || !deliveryAddress.city) {
       toast.error("Please fill in all required fields")
+      return false
+    }
+
+    // For guest users, also validate email
+    if (!user && !deliveryAddress.email) {
+      toast.error("Please provide your email address")
       return false
     }
 
     // Validate shipping address if different
     if (shipToDifferentAddress) {
-      if (!shippingAddress.firstName || !shippingAddress.lastName || !shippingAddress.email || 
-          !shippingAddress.phone || !shippingAddress.district || !shippingAddress.city) {
+      if (!shippingAddress.fullName || !shippingAddress.phone || 
+          !shippingAddress.district || !shippingAddress.city) {
         toast.error("Please fill in all required shipping address fields")
+        return false
+      }
+      
+      // For guest users, also validate shipping email
+      if (!user && !shippingAddress.email) {
+        toast.error("Please provide email for shipping address")
         return false
       }
     }
@@ -213,7 +227,7 @@ export default function CheckoutPage() {
         currency: 'SAR',
         orderId: orderResponse.orderId || `ORDER-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         customerEmail: deliveryAddress.email,
-        customerName: `${deliveryAddress.firstName} ${deliveryAddress.lastName}`,
+        customerName: deliveryAddress.fullName,
         description: `DrinkMate Order - ${state.itemCount} items`,
         returnUrl: `${window.location.origin}/payment/success`,
         cancelUrl: `${window.location.origin}/payment/cancel`
@@ -311,42 +325,29 @@ export default function CheckoutPage() {
         
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Streamlined Delivery Address Form */}
-          <div className="lg:col-span-2 bg-white rounded-2xl px-6 pt-6 pb-6 shadow-lg self-start">
+          <div className="lg:col-span-2 bg-white rounded-2xl px-6 pt-6 pb-6 shadow-lg">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
               <MapPin className="w-6 h-6" />
               Delivery Information
             </h2>
             
             <div className="space-y-6">
-              {/* Name Fields */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
-                  <input
-                    type="text"
-                    value={deliveryAddress.firstName}
-                    onChange={(e) => handleAddressChange("firstName", e.target.value)}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
-                    placeholder="First Name"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
-                  <input
-                    type="text"
-                    value={deliveryAddress.lastName}
-                    onChange={(e) => handleAddressChange("lastName", e.target.value)}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
-                    placeholder="Last Name"
-                    required
-                  />
-                </div>
+              {/* Full Name Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                <input
+                  type="text"
+                  value={deliveryAddress.fullName}
+                  onChange={(e) => handleAddressChange("fullName", e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
+                  placeholder="Full Name"
+                  required
+                />
               </div>
 
               {/* Country (Read-only) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Country (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
                 <div className="w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
                   Saudi Arabia
                 </div>
@@ -378,6 +379,23 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
+              {/* National Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Short Address (<a href="https://splonline.com.sa/en/national-address-1/" target="_blank" rel="noopener noreferrer" className="text-[#12d6fa] hover:text-[#0bc4e8] underline">National Address</a>) (optional)
+                </label>
+                <input
+                  type="text"
+                  value={deliveryAddress.nationalAddress}
+                  onChange={(e) => handleAddressChange("nationalAddress", e.target.value.toUpperCase())}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg font-mono tracking-wider"
+                  placeholder="JESA3591"
+                  maxLength={8}
+                  pattern="[A-Z]{4}[0-9]{4}"
+                />
+                <p className="text-xs text-gray-500 mt-1">Format: 4 letters followed by 4 numbers (e.g., JESA3591)</p>
+              </div>
+
               {/* Phone */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
@@ -391,17 +409,28 @@ export default function CheckoutPage() {
                 />
               </div>
 
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email (optional)</label>
-                <input
-                  type="email"
-                  value={deliveryAddress.email}
-                  onChange={(e) => handleAddressChange("email", e.target.value)}
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
-                  placeholder="Email Address"
-                />
-              </div>
+              {/* Email - Only for guest users */}
+              {!user ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                  <input
+                    type="email"
+                    value={deliveryAddress.email}
+                    onChange={(e) => handleAddressChange("email", e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
+                    placeholder="Email Address"
+                    required
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <div className="w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 flex items-center">
+                    <span>{deliveryAddress.email}</span>
+                    <span className="ml-2 text-xs text-gray-500">(from your account)</span>
+                  </div>
+                </div>
+              )}
 
               {/* Ship to Different Address Checkbox */}
               <div className="flex items-center space-x-3">
@@ -421,29 +450,16 @@ export default function CheckoutPage() {
               {shipToDifferentAddress && (
                 <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900">Shipping Address</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
-                      <input
-                        type="text"
-                        value={shippingAddress.firstName}
-                        onChange={(e) => handleShippingAddressChange("firstName", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                        placeholder="First Name"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
-                      <input
-                        type="text"
-                        value={shippingAddress.lastName}
-                        onChange={(e) => handleShippingAddressChange("lastName", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                        placeholder="Last Name"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                    <input
+                      type="text"
+                      value={shippingAddress.fullName}
+                      onChange={(e) => handleShippingAddressChange("fullName", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                      placeholder="Full Name"
+                      required
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -470,6 +486,21 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Short Address (<a href="https://splonline.com.sa/en/national-address-1/" target="_blank" rel="noopener noreferrer" className="text-[#12d6fa] hover:text-[#0bc4e8] underline">National Address</a>) (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={shippingAddress.nationalAddress}
+                      onChange={(e) => handleShippingAddressChange("nationalAddress", e.target.value.toUpperCase())}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] font-mono tracking-wider"
+                      placeholder="JESA3591"
+                      maxLength={8}
+                      pattern="[A-Z]{4}[0-9]{4}"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Format: 4 letters followed by 4 numbers (e.g., JESA3591)</p>
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
                     <input
                       type="tel"
@@ -480,16 +511,28 @@ export default function CheckoutPage() {
                       required
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email (optional)</label>
-                    <input
-                      type="email"
-                      value={shippingAddress.email}
-                      onChange={(e) => handleShippingAddressChange("email", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                      placeholder="Email Address"
-                    />
-                  </div>
+                  {/* Email - Only for guest users */}
+                  {!user ? (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                      <input
+                        type="email"
+                        value={shippingAddress.email}
+                        onChange={(e) => handleShippingAddressChange("email", e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                        placeholder="Email Address"
+                        required
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                      <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 flex items-center">
+                        <span>{shippingAddress.email}</span>
+                        <span className="ml-2 text-xs text-gray-500">(from your account)</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -508,9 +551,9 @@ export default function CheckoutPage() {
           </div>
 
           {/* Combined Order Summary and Payment Method Card */}
-          <div className="lg:col-span-3 bg-white rounded-2xl p-6 shadow-lg">
+          <div className="lg:col-span-3 bg-white rounded-2xl p-6 shadow-lg self-start">
             {/* Order Summary Section */}
-            <div className="mb-8">
+            <div className="mb-8 self-start">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">Order Summary</h3>
               
               {/* Headers */}
@@ -625,12 +668,12 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Simplified Payment Method Section */}
+            {/* Enhanced Payment Method Section */}
             <div className="border-t border-gray-200 pt-6">
               <h2 className="text-xl font-bold text-gray-900 mb-6">Payment Method</h2>
               
               <div className="space-y-4">
-                {/* Card Payment Option */}
+                {/* Card Payment Option - First */}
                 <div
                   className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                     selectedPaymentMethod === "card"
@@ -641,7 +684,7 @@ export default function CheckoutPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-3">
                         <input
                           type="radio"
                           name="payment"
@@ -672,18 +715,23 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* Tabby Payment Option */}
+                {/* Tabby Payment Option - Second */}
                 <div
-                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 relative ${
                     selectedPaymentMethod === "tabby"
                       ? "border-[#12d6fa] bg-[#12d6fa]/5"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                   onClick={() => setSelectedPaymentMethod("tabby")}
                 >
+                  {/* New Badge */}
+                  <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    NEW
+                  </div>
+                  
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-3">
                         <input
                           type="radio"
                           name="payment"
@@ -692,27 +740,48 @@ export default function CheckoutPage() {
                           onChange={() => setSelectedPaymentMethod("tabby")}
                           className="w-4 h-4 text-[#12d6fa] border-gray-300 focus:ring-[#12d6fa]"
                         />
-                        <div className="w-20 h-8 bg-white rounded flex items-center justify-center border border-gray-200">
-                          <Image
-                            src={paymentProviders.tabby.logo}
-                            alt="tabby"
-                            width={60}
-                            height={24}
-                            className="object-contain"
-                          />
+                        <div className="flex items-center space-x-2">
+                          <div className="w-24 h-8 bg-white rounded flex items-center justify-center border border-gray-200">
+                            <Image
+                              src={paymentProviders.tabby.logo}
+                              alt="Tabby"
+                              width={70}
+                              height={28}
+                              className="object-contain"
+                            />
+                          </div>
+                          <span className="text-lg font-semibold text-gray-900">Tabby</span>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-600">{paymentProviders.tabby.description}</span>
+                        <span className="text-sm text-gray-600 font-medium">Divide it by 4. Without any interest or fees.</span>
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
                             setShowTabbyDialog(true)
                           }}
-                          className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center hover:bg-gray-500 transition-colors"
+                          className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"
                         >
-                          <span className="text-white text-xs">i</span>
+                          <span className="text-white text-xs font-bold">i</span>
                         </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Tabby Benefits */}
+                  <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+                    <div className="flex items-center space-x-4 text-sm">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-green-700 font-medium">No interest</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-green-700 font-medium">No fees</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-green-700 font-medium">Pay later</span>
                       </div>
                     </div>
                   </div>

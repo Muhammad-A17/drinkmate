@@ -22,7 +22,7 @@ import RecentlyViewed from '@/components/shop/RecentlyViewed'
 import ProductRecommendations from '@/components/shop/ProductRecommendations'
 import FilterChips from '@/components/shop/FilterChips'
 import { shopAPI } from '@/lib/api'
-import { Product } from '@/types/product'
+import { Product } from '@/lib/types'
 import { Bundle, CO2Cylinder } from '@/lib/types'
 import {
   AlertCircle,

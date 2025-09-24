@@ -417,7 +417,9 @@ export default function FlavorPage() {
       <BundleStyleProductCard
         key={product._id}
         product={{
+          _id: product._id,
           id: product._id,
+          name: product.name,
           slug: (product as any).slug || product._id,
           title: product.name,
           image: product.image,
@@ -432,7 +434,7 @@ export default function FlavorPage() {
           // Pass the images array as well for better image handling
           images: product.images
         }}
-        onAddToCart={({ productId, qty }) => {
+        onAddToCart={({ productId, qty }: { productId: string; qty: number }) => {
           handleAddToCart({
             _id: productId,
             name: product.name,
@@ -514,7 +516,9 @@ export default function FlavorPage() {
                           <BundleStyleProductCard
                             key={bundle._id}
                             product={{
+                              _id: bundle._id,
                               id: bundle._id,
+                              name: bundle.name,
                               slug: bundle.slug,
                               title: bundle.name,
                               image: bundle.image || "/placeholder.svg",
@@ -527,7 +531,7 @@ export default function FlavorPage() {
                               inStock: true,
                               badges: bundle.badge ? [bundle.badge] : undefined,
                             }}
-                            onAddToCart={({ productId, qty }) => {
+                            onAddToCart={({ productId, qty }: { productId: string; qty: number }) => {
                               handleAddToCart({
                                 _id: productId,
                                 id: bundle.id && typeof bundle.id === 'number' ? bundle.id : undefined,

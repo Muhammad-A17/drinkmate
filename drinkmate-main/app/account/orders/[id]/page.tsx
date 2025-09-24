@@ -326,7 +326,7 @@ export default function OrderDetailPage() {
     try {
       // Create a mock PDF blob for demonstration
       // In a real app, this would fetch the actual invoice from the server
-      const mockPdfContent = `Invoice ${invoice.number}\nOrder: ${order?.number}\nDate: ${invoice.createdAt}\nAmount: $${order?.total}`
+      const mockPdfContent = `Invoice ${invoice.number}\nOrder: ${order?.number}\nDate: ${invoice.createdAt}\nAmount: ${order?.total} SAR`
       const blob = new Blob([mockPdfContent], { type: 'application/pdf' })
       const url = window.URL.createObjectURL(blob)
       

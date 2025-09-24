@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ProductCardProps } from '@/lib/types'
 import { useCart } from '@/hooks/use-cart'
 import { useWishlist } from '@/hooks/use-wishlist'
+import { getImageUrl } from '@/lib/image-utils'
 import { 
   Star, 
   ShoppingCart, 
@@ -47,19 +48,21 @@ export default function ProductCard({
       id: product._id,
       name: product.name,
       price: (product as any).salePrice || product.price,
-      image: product.images?.[0] || product.image || '/placeholder.svg',
+      image: typeof product.images?.[0] === 'string' ? product.images[0] : 
+             typeof product.images?.[0] === 'object' ? product.images[0]?.url || product.image || '/placeholder.svg' :
+             product.image || '/placeholder.svg',
       quantity: 1,
       productType: 'product' as const
     }
 
     addItem(cartItem)
-    onAddToCart?.(cartItem)
+    onAddToCart?.({ productId: product._id, qty: 1 })
     toast.success('Product added to cart!')
   }
 
   const handleWishlistToggle = () => {
     toggleWishlist(product._id)
-    onAddToWishlist?.(product._id)
+    onAddToWishlist?.(product)
     toast.success(isInWishlist(product._id) ? 'Removed from wishlist' : 'Added to wishlist')
   }
 
@@ -96,7 +99,7 @@ export default function ProductCard({
       <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 rounded-t-2xl">
         <Link href={`/shop/${product.slug}`}>
           <Image
-            src={product.images?.[0] || product.image || '/placeholder.svg'}
+            src={getImageUrl(product.images?.[0] || product.image)}
             alt={product.name}
             fill
             className={`object-cover object-top transition-all duration-700 group-hover:scale-110 ${

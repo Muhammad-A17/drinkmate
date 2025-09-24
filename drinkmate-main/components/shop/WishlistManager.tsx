@@ -18,7 +18,7 @@ import {
   Share2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Product } from '@/types/product'
+import { Product } from '@/lib/types'
 import Image from 'next/image'
 
 interface WishlistManagerProps {
@@ -135,12 +135,12 @@ export default function WishlistManager({
                         <div className="aspect-square relative rounded-lg overflow-hidden mb-3">
                           <Image
                             src={product.image}
-                            alt={product.title}
+                            alt={product.title || product.name || 'Product image'}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                           <button
-                            onClick={() => onRemoveProduct(product.id)}
+                            onClick={() => onRemoveProduct(String(product._id || product.id || ''))}
                             className="absolute top-2 right-2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110"
                             aria-label={`Remove ${product.title} from wishlist`}
                           >

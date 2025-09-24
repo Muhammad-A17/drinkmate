@@ -3,7 +3,18 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
-import { ProductCardProps, Variant, Product } from "@/types/product"
+import { ProductCardProps, Product } from "@/lib/types"
+
+// Define Variant interface locally since it was removed
+interface Variant {
+  id: string
+  colorName?: string
+  colorHex?: string
+  image?: string
+  price: number
+  compareAtPrice?: number
+  inStock: boolean
+}
 import { cn } from "@/lib/utils"
 import { Star, ShoppingCart, Heart, Eye, Zap, Award, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -51,7 +62,7 @@ export default function BundleStyleProductCard({
     
     if (onAddToCart && !isAddingToCart) {
       const payload = {
-        productId: product.id,
+        productId: String(product._id || product.id || ''),
         variantId: hasVariants ? product.variants?.[0]?.id : undefined,
         qty: 1
       }
@@ -112,7 +123,7 @@ export default function BundleStyleProductCard({
           <div className="relative h-[220px] sm:h-[260px] lg:h-[320px] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden p-3 sm:p-4">
             <Image
               src={getBestImage()}
-              alt={product.title}
+              alt={product.title || product.name || 'Product image'}
               fill
               className="object-contain object-center transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
