@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useAuth } from "@/lib/auth-context"
+import { useRouter } from "next/navigation"
 import AdminLayout from "@/components/layout/AdminLayout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -62,6 +64,9 @@ interface ExchangeCylinder {
 }
 
 export default function ExchangeCylindersAdmin() {
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
+  
   const [cylinders, setCylinders] = useState<ExchangeCylinder[]>([])
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
@@ -89,6 +94,19 @@ export default function ExchangeCylindersAdmin() {
     weight: 10,
     brand: "drinkmate"
   })
+
+  // Authentication check
+  useEffect(() => {
+    // Wait for authentication to complete
+    if (isLoading) return
+    
+    // Check if user is authenticated and is admin
+    if (!isAuthenticated || !user || !user.isAdmin) {
+      console.log('User not authenticated or not admin:', { user, isAuthenticated, isAdmin: user?.isAdmin })
+      router.push('/admin/login')
+      return
+    }
+  }, [user, isAuthenticated, isLoading, router])
 
   // Handle client-side mounting
   useEffect(() => {
@@ -333,7 +351,7 @@ export default function ExchangeCylindersAdmin() {
       setLoading(true)
       
       // Check if user is authenticated
-      const token = localStorage.getItem('token') || localStorage.getItem('auth-token')
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
       if (!token) {
         toast({
           title: "Authentication Error",
@@ -764,6 +782,34 @@ export default function ExchangeCylindersAdmin() {
       default:
         return <Badge variant="outline">Exchange</Badge>
     }
+  }
+
+  // Show loading while authenticating
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="w-6 h-6 animate-spin" />
+            <span>Authenticating...</span>
+          </div>
+        </div>
+      </AdminLayout>
+    )
+  }
+
+  // Redirect if not authenticated (this shouldn't show due to useEffect redirect)
+  if (!isAuthenticated || !user || !user.isAdmin) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+            <p className="text-gray-600">You need admin privileges to access this page.</p>
+          </div>
+        </div>
+      </AdminLayout>
+    )
   }
 
   if (!mounted || loading) {

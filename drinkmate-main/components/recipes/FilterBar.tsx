@@ -42,10 +42,20 @@ export default function FilterBar({
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery)
   const [debouncedSearchQuery] = useDebounce(localSearchQuery, 250)
 
+  // Sync local search query with parent prop changes
+  useEffect(() => {
+    if (searchQuery !== localSearchQuery) {
+      setLocalSearchQuery(searchQuery)
+    }
+  }, [searchQuery, localSearchQuery])
+
   // Update parent when debounced search changes
   useEffect(() => {
-    onSearchChange(debouncedSearchQuery)
-  }, [debouncedSearchQuery, onSearchChange])
+    // Only call parent if the search query actually changed
+    if (debouncedSearchQuery !== searchQuery) {
+      onSearchChange(debouncedSearchQuery)
+    }
+  }, [debouncedSearchQuery, onSearchChange, searchQuery])
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalSearchQuery(e.target.value)
@@ -72,6 +82,8 @@ export default function FilterBar({
           className={`h-10 rounded-xl border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}
           value={sortBy}
           onChange={handleSortChange}
+          title="Sort recipes"
+          aria-label="Sort recipes"
         >
           {sortOptions.map(option => (
             <option key={option.value} value={option.value}>

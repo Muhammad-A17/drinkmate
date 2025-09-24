@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import Image from "next/image"
 import { useTranslation } from "@/lib/translation-context"
 import PageLayout from "@/components/layout/PageLayout"
@@ -8,9 +8,10 @@ import RecipeCard from "@/components/recipes/RecipeCard"
 import RecipeCardSkeleton from "@/components/recipes/RecipeCardSkeleton"
 import FilterBar from "@/components/recipes/FilterBar"
 import { useRecipeRotation, formatTimeRemaining } from "@/hooks/use-recipe-rotation"
+import { recipeAPI } from "@/lib/recipe-api"
 
 interface Recipe {
-  id: number
+  id: string
   title: string
   slug: string
   image: string
@@ -29,7 +30,7 @@ interface Recipe {
 // Mock recipes data - replace with actual API call
 const mockRecipes: Recipe[] = [
     {
-      id: 1,
+      id: "1",
     title: "Drinkmate Diet Fizzy Grapefruit Juice",
     slug: "drinkmate-diet-fizzy-grapefruit-juice",
     image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/grapefruit-juice.jpg",
@@ -45,7 +46,7 @@ const mockRecipes: Recipe[] = [
     isFeatured: true
   },
   {
-    id: 2,
+    id: "2",
     title: "Italian Strawberry Lemonade",
     slug: "italian-strawberry-lemonade",
     image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/strawberry-lemonade.jpg",
@@ -61,7 +62,7 @@ const mockRecipes: Recipe[] = [
     isFeatured: false
   },
   {
-    id: 3,
+    id: "3",
     title: "Blue Raspberry Blast",
     slug: "blue-raspberry-blast",
     image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/blue-raspberry.jpg",
@@ -77,7 +78,7 @@ const mockRecipes: Recipe[] = [
     isFeatured: false
   },
   {
-    id: 4,
+    id: "4",
     title: "Lime Mojito Sparkle",
     slug: "lime-mojito-sparkle",
     image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/lime-mojito.jpg",
@@ -93,7 +94,7 @@ const mockRecipes: Recipe[] = [
     isFeatured: false
   },
   {
-    id: 5,
+    id: "5",
     title: "Orange Creamsicle Delight",
     slug: "orange-creamsicle-delight",
     image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/orange-creamsicle.jpg",
@@ -109,7 +110,7 @@ const mockRecipes: Recipe[] = [
     isFeatured: false
   },
   {
-    id: 6,
+    id: "6",
     title: "Grape Soda Supreme",
     slug: "grape-soda-supreme",
     image: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/grape-soda.jpg",
@@ -135,34 +136,53 @@ export default function Recipes() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
+  const isFetchingRef = useRef(false)
+  
+  console.log('Component render - recipes length:', recipes.length, 'loading:', loading)
 
-  const { currentRecipe, timeUntilNext } = useRecipeRotation(recipes)
+  // Temporarily disable to debug infinite loop
+  // const { currentRecipe, timeUntilNext } = useRecipeRotation(recipes)
+  const currentRecipe: Recipe | null = null
+  const timeUntilNext = 0
 
   // Fetch recipes from API
   useEffect(() => {
+    console.log('useEffect triggered with dependencies:', { currentPage, searchQuery, selectedCategory })
+    
     const fetchRecipes = async () => {
+      // Prevent multiple simultaneous calls
+      if (isFetchingRef.current) {
+        console.log('Already fetching, skipping...')
+        return
+      }
+      
+      isFetchingRef.current = true
+      console.log('Starting to fetch recipes...')
+      
       try {
         setLoading(true)
-        const params = new URLSearchParams({
-          page: currentPage.toString(),
-          // Load 3 rows at a time (3 columns x 3 rows = 9)
-          limit: '9'
-        })
+        
+        // Build filters for the direct backend API
+        const filters: any = {
+          page: currentPage,
+          limit: 9, // Load 3 rows at a time (3 columns x 3 rows = 9)
+          published: true, // Only show published recipes for public
+        }
         
         if (searchQuery) {
           // Use starts-with server search by sending a caret-anchored regex
           const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-          params.append('search', `^${escaped}`)
+          filters.search = `^${escaped}`
         }
-        if (selectedCategory !== 'all') params.append('category', selectedCategory)
+        if (selectedCategory !== 'all') {
+          filters.category = selectedCategory
+        }
 
-        const response = await fetch(`/api/recipes?${params}`)
+        console.log('Fetching recipes with filters:', filters)
+        console.log('API base URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
+        const data = await recipeAPI.getRecipes(filters)
+        console.log('API response:', data)
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch recipes')
-        }
-
-        const data = await response.json()
         if (data.success && data.recipes) {
           // Transform API data to match frontend interface
           const transformedRecipes = data.recipes.map((recipe: any) => ({
@@ -177,32 +197,54 @@ export default function Recipes() {
             servings: recipe.servings,
             tags: recipe.tags || [],
             description: recipe.description,
-            ingredients: recipe.ingredients?.map((ing: any) => `${ing.amount} ${ing.unit} ${ing.name}`) || [],
+            ingredients: recipe.ingredients?.map((ing: any) => 
+              ing.amount && ing.unit ? `${ing.amount} ${ing.unit} ${ing.name}` : ing.name
+            ) || [],
             instructions: recipe.instructions?.map((inst: any) => inst.instruction) || [],
             isFeatured: recipe.featured || false
           }))
-          // Append on load more, replace on first page or new filters
-          setRecipes(prev => currentPage === 1 ? transformedRecipes : [...prev, ...transformedRecipes])
+          
+          console.log('Transformed recipes:', transformedRecipes.length)
+          console.log('First recipe:', transformedRecipes[0])
+          
+          // Handle pagination - append for page > 1, replace for page 1
+          if (currentPage === 1) {
+            console.log('Setting recipes (page 1):', transformedRecipes.length)
+            setRecipes(transformedRecipes)
+          } else {
+            console.log('Appending recipes (page', currentPage + '):', transformedRecipes.length)
+            setRecipes(prev => [...prev, ...transformedRecipes])
+          }
           setHasMore(data.pagination?.hasNext || false)
         } else {
-          // Fallback to mock data if API fails
-          setRecipes(prev => currentPage === 1 ? mockRecipes : [...prev, ...mockRecipes])
+          console.warn('API response not successful or no recipes:', data)
+          // Fallback to mock data if API fails (only on page 1)
+          if (currentPage === 1) {
+            console.log('Using mock recipes:', mockRecipes.length)
+            setRecipes(mockRecipes)
+          }
           setHasMore(false)
         }
       } catch (error) {
         console.error('Error fetching recipes:', error)
-        // Fallback to mock data if API fails
-        setRecipes(prev => currentPage === 1 ? mockRecipes : [...prev, ...mockRecipes])
+        // Fallback to mock data if API fails (only on page 1)
+        if (currentPage === 1) {
+          console.log('Error occurred, using mock recipes:', mockRecipes.length)
+          setRecipes(mockRecipes)
+        }
         setHasMore(false)
       } finally {
         setLoading(false)
+        isFetchingRef.current = false
       }
     }
+    
     fetchRecipes()
   }, [currentPage, searchQuery, selectedCategory])
 
   // Filter and sort recipes
   const filteredAndSortedRecipes = useMemo(() => {
+    console.log('useMemo triggered - recipes length:', recipes.length)
     let filtered = recipes.filter(recipe => {
       const matchesSearch = recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            recipe.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -216,7 +258,7 @@ export default function Recipes() {
     // Sort recipes
     switch (sortBy) {
       case "new":
-        filtered.sort((a, b) => b.id - a.id)
+        filtered.sort((a, b) => b.id.localeCompare(a.id))
         break
       case "time":
         filtered.sort((a, b) => a.prepTime - b.prepTime)
@@ -230,31 +272,38 @@ export default function Recipes() {
         break
     }
 
+    console.log('Filtered recipes result:', filtered.length, 'from', recipes.length, 'total recipes')
+    console.log('Search query:', searchQuery, 'Category:', selectedCategory, 'Sort:', sortBy)
     return filtered
   }, [recipes, searchQuery, selectedCategory, sortBy])
 
-  const handleSearchChange = (query: string) => {
+  const handleSearchChange = useCallback((query: string) => {
+    console.log('handleSearchChange called with:', query)
     setSearchQuery(query)
-    // Reset list for a fresh server-side search
-    setRecipes([])
-    setHasMore(true)
     setCurrentPage(1)
-  }
+    setHasMore(true)
+  }, [])
 
-  const handleSortChange = (sort: string) => {
+  const handleSortChange = useCallback((sort: string) => {
+    console.log('handleSortChange called with:', sort)
     setSortBy(sort)
-  }
+  }, [])
 
-  const handleCategoryChange = (category: string) => {
+  const handleCategoryChange = useCallback((category: string) => {
+    console.log('handleCategoryChange called with:', category)
     setSelectedCategory(category)
-    setRecipes([])
-    setHasMore(true)
     setCurrentPage(1)
-  }
+    setHasMore(true)
+  }, [])
 
-  const loadMore = () => {
-    setCurrentPage(prev => prev + 1)
-  }
+  const loadMore = useCallback(() => {
+    console.log('Load More clicked, current page:', currentPage)
+    setCurrentPage(prev => {
+      const nextPage = prev + 1
+      console.log('Setting page to:', nextPage)
+      return nextPage
+    })
+  }, [currentPage])
 
   return (
     <PageLayout currentPage="recipes">
@@ -289,16 +338,16 @@ export default function Recipes() {
           </div>
         </section>
 
-        {/* Featured Recipe Section */}
-        {currentRecipe && (
+        {/* Featured Recipe Section - Temporarily disabled */}
+        {/* {currentRecipe && (
           <section className="py-16 bg-gradient-to-r from-sky-50 to-emerald-50">
             <div className="max-w-7xl mx-auto px-4">
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="relative aspect-[4/3]">
                     <Image
-                      src={currentRecipe.image || '/images/placeholder-recipe.jpg'}
-                      alt={currentRecipe.title}
+                      src={currentRecipe?.image || '/images/placeholder-recipe.jpg'}
+                      alt={currentRecipe?.title || 'Recipe'}
                       fill
                       className="object-cover"
                       priority
@@ -312,22 +361,22 @@ export default function Recipes() {
                   </div>
                   <div className="p-8">
                     <h2 className={`text-2xl font-bold mb-4 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
-                      {currentRecipe.title}
+                      {currentRecipe?.title || 'Featured Recipe'}
                     </h2>
                     <p className={`text-gray-600 mb-6 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                       {isRTL ? "وصفة هذا الأسبوع تظهر التوازن المثالي للنكهات وهي مثالية لأي مناسبة." : "This week's featured recipe showcases the perfect balance of flavors and is perfect for any occasion."}
                     </p>
                     <div className="flex gap-4 text-sm text-gray-600">
-                      <span>⏱ {currentRecipe.time}</span>
-                      <span>🍹 {currentRecipe.difficulty}</span>
-                      <span>⭐ {currentRecipe.rating.toFixed(1)}</span>
+                      <span>⏱ {currentRecipe?.prepTime || 0}min</span>
+                      <span>🍹 {currentRecipe?.difficulty || 'Easy'}</span>
+                      <span>⭐ {currentRecipe?.rating?.toFixed(1) || '0.0'}</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </section>
-        )}
+        )} */}
             
             {/* Filter Bar */}
         <section className="py-8 bg-white">
@@ -383,6 +432,11 @@ export default function Recipes() {
                   >
                       {isRTL ? "تحميل المزيد" : "Load More"}
                   </button>
+                  {process.env.NODE_ENV === 'development' && (
+                    <div className="text-xs text-gray-500 mt-2">
+                      Debug: hasMore={hasMore.toString()}, recipes={filteredAndSortedRecipes.length}, page={currentPage}
+                    </div>
+                  )}
                 </div>
                 )}
               </>

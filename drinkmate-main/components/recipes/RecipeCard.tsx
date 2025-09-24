@@ -5,7 +5,7 @@ import StatPill from "./StatPill"
 import { isValidImageUrl } from '@/lib/utils'
 
 interface Recipe {
-  id: number
+  id: string
   title: string
   slug: string
   image: string

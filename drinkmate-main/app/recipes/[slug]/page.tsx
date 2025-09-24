@@ -10,6 +10,7 @@ import StatPill from "@/components/recipes/StatPill"
 import { Button } from "@/components/ui/button"
 import { Heart, Share2, Copy, Clock, Star, Utensils } from "lucide-react"
 import { toast } from "sonner"
+import { recipeAPI } from "@/lib/recipe-api"
 
 interface Recipe {
   _id: string
@@ -116,14 +117,15 @@ export default function RecipeDetail() {
       
       setLoading(true)
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/recipes/slug/${params.slug}`)
+        console.log('Fetching recipe by slug:', params.slug)
+        const data = await recipeAPI.getRecipeBySlug(params.slug as string)
         
-        if (!response.ok) {
-          throw new Error('Recipe not found')
+        if (data.success && data.recipe) {
+          console.log('Recipe fetched successfully:', data.recipe.title)
+          setRecipe(data.recipe)
+        } else {
+          throw new Error(data.message || 'Recipe not found')
         }
-        
-        const data = await response.json()
-        setRecipe(data.recipe)
       } catch (error) {
         console.error('Error fetching recipe:', error)
         toast.error('Failed to load recipe')
@@ -363,6 +365,8 @@ export default function RecipeDetail() {
                         className="h-4 w-4 rounded border-gray-300 text-sky-500 focus:ring-sky-500"
                         checked={checkedIngredients.has(index)}
                         onChange={() => toggleIngredient(index)}
+                        aria-label={`Check off ingredient: ${ingredient.name || ingredient}`}
+                        title={`Check off ingredient: ${ingredient.name || ingredient}`}
                       />
                       <span className={`${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                         {ingredient.amount && ingredient.unit 
