@@ -6,22 +6,32 @@ export interface BaseProduct {
   id?: string | number
   slug: string
   name: string
+  title?: string // Alias for name for compatibility
   brand?: string
   price: number
   originalPrice?: number
   salePrice?: number
   discount?: number
+  compareAtPrice?: number // Alias for originalPrice
+  minPrice?: number
+  maxPrice?: number
   image: string
-  images?: string[]
+  images?: Array<{ 
+    url: string; 
+    alt?: string; 
+    isPrimary?: boolean; 
+    order?: number 
+  }> | string[]
   description?: string
   shortDescription?: string
   fullDescription?: string
-  rating?: number
+  rating?: number | { average: number; count: number }
   reviews?: number
   averageRating?: number
   reviewCount?: number
   stock?: number
   minStock?: number
+  inStock?: boolean
   status?: string
   isBestSeller?: boolean
   bestSeller?: boolean
@@ -34,6 +44,8 @@ export interface BaseProduct {
   createdAt?: string
   updatedAt?: string
   warranty?: string
+  badges?: string[] // e.g., ["Premium", "New"]
+  tags?: string[]
   dimensions?: {
     width: number
     height: number
@@ -53,7 +65,17 @@ export interface BaseProduct {
     code?: string
     inStock?: boolean
   } | string>
-  features?: string[]
+  variants?: Array<{
+    id: string
+    colorName?: string
+    colorHex?: string
+    image?: string
+    price: number
+    compareAtPrice?: number
+    inStock: boolean
+  }>
+  sizes?: string[]
+  features?: (string | { title: string; description?: string })[]
   specifications?: Record<string, string>
   videos?: string[]
   documents?: Array<{
@@ -87,8 +109,42 @@ export interface Product extends BaseProduct {
   subcategory?: string
 }
 
+// Product component props
+export interface ProductCardProps {
+  product: Product
+  dir?: "ltr" | "rtl"        // pass "rtl" on Arabic pages
+  onAddToCart?: (payload: {
+    productId: string
+    variantId?: string
+    qty: number
+  }) => void
+  onAddToWishlist?: (product: Product) => void
+  onQuickView?: (product: Product) => void
+  showQuickActions?: boolean
+  className?: string
+}
+
+// Type for onAddToCart callback parameters
+export interface AddToCartPayload {
+  productId: string
+  variantId?: string
+  qty: number
+}
+
+export interface ProductGridProps {
+  products: Product[]
+  dir?: "ltr" | "rtl"
+  className?: string
+  loading?: boolean
+}
+
 // Bundle interface - extends BaseProduct for consistency
 export interface Bundle extends BaseProduct {
+  category: {
+    _id: string
+    name: string
+    slug: string
+  } | string
   products: Product[]
   savings: number
   isActive: boolean
@@ -246,10 +302,10 @@ export interface ProductFilters {
 }
 
 // Component props interfaces
-export interface ProductCardProps {
+export interface UnifiedProductCardProps {
   product: Product | Bundle | CO2Cylinder
   onAddToCart?: (item: CartItem) => void
-  onAddToWishlist?: (productId: string) => void
+  onAddToWishlist?: (product: Product) => void
   onQuickView?: (product: Product | Bundle | CO2Cylinder) => void
   showQuickActions?: boolean
   className?: string

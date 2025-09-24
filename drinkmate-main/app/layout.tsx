@@ -14,6 +14,7 @@ import { ChatStatusProvider } from "@/lib/chat-status-context"
 import { Providers } from "@/components/providers"
 import { suppressHydrationWarnings } from "@/lib/suppress-hydration-warnings"
 import FloatingCartButton from "@/components/cart/FloatingCartButton"
+import { ToastProvider } from "@/lib/toast-context"
 // Suppress hydration warnings caused by browser extensions
 typeof window !== 'undefined' && suppressHydrationWarnings()
 
@@ -212,8 +213,10 @@ export default function RootLayout({
                     <ChatStatusProvider>
                       <ChatContextProvider>
                         <Providers>
-                          <div suppressHydrationWarning>{children}</div>
-                          <FloatingCartButton />
+                          <ToastProvider>
+                            <div suppressHydrationWarning>{children}</div>
+                            <FloatingCartButton />
+                          </ToastProvider>
                         </Providers>
                         <ChatProvider />
                       </ChatContextProvider>

@@ -25,17 +25,12 @@ const userSchema = new mongoose.Schema({
   },
   
   // Personal Information
-  firstName: {
+  name: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
-    maxlength: 50
-  },
-  lastName: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 50
+    maxlength: 100,
+    default: ''
   },
   phone: {
     type: String,
@@ -44,42 +39,24 @@ const userSchema = new mongoose.Schema({
   },
   
   // Address Information
-  addresses: [{
-    type: {
-      type: String,
-      enum: ['home', 'work', 'other'],
-      default: 'home'
-    },
-    street: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    city: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    state: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    postalCode: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    country: {
-      type: String,
-      default: 'Saudi Arabia',
-      trim: true
-    },
-    isDefault: {
-      type: Boolean,
-      default: false
-    }
-  }],
+  district: {
+    type: String,
+    trim: true
+  },
+  city: {
+    type: String,
+    trim: true
+  },
+  country: {
+    type: String,
+    default: 'Saudi Arabia',
+    trim: true
+  },
+  nationalAddress: {
+    type: String,
+    trim: true,
+    match: [/^[A-Z]{4}[0-9]{4}$/, 'National Address must be 4 letters followed by 4 numbers (e.g., JESA3591)']
+  },
   
   // Account Status
   status: {
@@ -179,17 +156,9 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Virtual for full name
+// Virtual for full name (now just returns the name field)
 userSchema.virtual('fullName').get(function() {
-  return `${this.firstName} ${this.lastName}`;
-});
-
-// Virtual for default address
-userSchema.virtual('defaultAddress').get(function() {
-  if (!this.addresses || !Array.isArray(this.addresses)) {
-    return null;
-  }
-  return this.addresses.find(addr => addr.isDefault) || this.addresses[0];
+  return this.name;
 });
 
 // Indexes for better performance (email and username already have unique indexes)

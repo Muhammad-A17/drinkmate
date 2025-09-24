@@ -13,6 +13,7 @@ import { useCart } from "@/lib/cart-context"
 import { useTranslation } from "@/lib/translation-context"
 import { useWishlist } from "@/hooks/use-wishlist"
 import { Button } from "@/components/ui/button"
+import { Product as ShopProduct, BaseProduct } from '@/lib/types'
 import {
   Plus,
   Minus,
@@ -79,8 +80,6 @@ import SaudiRiyal from "@/components/ui/SaudiRiyal"
 // Dynamic export to prevent static optimization
 export const dynamic = "force-dynamic"
 
-import { BaseProduct } from "@/lib/types"
-
 interface Color {
   name: string
   hexCode: string
@@ -96,78 +95,6 @@ interface Feature {
 interface Specification {
   name: string
   value: string
-}
-
-interface Image {
-  url: string
-  alt: string
-  isPrimary: boolean
-}
-
-interface ShopProduct {
-  // Basic product fields
-  _id: string
-  id?: string
-  name: string
-  slug: string
-  description: string
-  shortDescription?: string
-  fullDescription?: string
-  price: number
-  originalPrice?: number
-  salePrice?: number
-  discount?: number
-  sku?: string
-  stock?: number
-  isActive?: boolean
-  isFeatured?: boolean
-  isBestSeller?: boolean
-  isNewProduct?: boolean
-  isEcoFriendly?: boolean
-  averageRating?: number
-  rating?: number | { average: number; count: number }
-  reviewCount?: number
-  reviews?: number
-  totalReviews?: number
-  
-  // Category and classification
-  category: string | { _id: string; name: string; slug: string }
-  categoryId?: string
-  subcategory?: string
-  tags?: string[]
-  
-  // SEO and marketing
-  seoTitle?: string
-  seoDescription?: string
-  badge?: string
-  brand?: string
-  
-  // Media
-  image?: string
-  images?: (string | Image)[] // Support both string and object formats
-  
-  // Product options
-  colors?: (string | Color)[] // Support both string and object formats
-  sizes?: string[]
-  
-  // Product details
-  features?: (string | Feature)[] // Support both string and object formats
-  specifications?: Specification[] | Record<string, any> // Support both array and object formats
-  safetyFeatures?: string[]
-  dimensions?: {
-    width: number
-    height: number
-    depth: number
-    weight: number
-  }
-  warranty?: string
-  certifications?: string[]
-  compatibility?: string[]
-  videos?: string[]
-  documents?: string[]
-  
-  // Legacy compatibility
-  material?: string
 }
 
 interface Review {
@@ -1021,13 +948,13 @@ export default function ShopProductDetail() {
                           {product.averageRating || (typeof product.rating === 'object' ? product.rating?.average : product.rating) || 0}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          ({product.totalReviews || product.reviews || (typeof product.rating === 'object' ? product.rating?.count : 0) || 0} reviews)
+                          ({product.reviewCount || product.reviews || (typeof product.rating === 'object' ? product.rating?.count : 0) || 0} reviews)
                         </span>
                       </div>
                       <Separator orientation="vertical" className="h-4 hidden sm:block" />
                       <div className="flex items-center space-x-1 text-xs sm:text-sm text-muted-foreground">
                         <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span>{product.totalReviews || product.reviews || 0} reviews</span>
+                        <span>{product.reviewCount || product.reviews || 0} reviews</span>
                       </div>
                     </div>
 
@@ -1468,7 +1395,7 @@ export default function ShopProductDetail() {
                               ))}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              Based on {product.totalReviews || product.reviews || 0} reviews
+                              Based on {product.reviewCount || product.reviews || 0} reviews
                             </div>
                           </div>
                           <div className="space-y-2">
@@ -1898,7 +1825,7 @@ export default function ShopProductDetail() {
                                   ))}
                                 </div>
                                 <span className="text-xs text-muted-foreground">
-                                  ({relatedProduct.totalReviews || relatedProduct.reviews || 0})
+                                  ({relatedProduct.reviewCount || relatedProduct.reviews || 0})
                                 </span>
                               </div>
                               <div className="flex items-center justify-between">

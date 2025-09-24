@@ -26,7 +26,7 @@ interface ProductGridProps {
   viewMode?: 'grid' | 'list'
   loading?: boolean
   onAddToCart?: (item: any) => void
-  onAddToWishlist?: (productId: string) => void
+  onAddToWishlist?: (product: Product) => void
   onQuickView?: (product: Product | Bundle | CO2Cylinder) => void
   onViewModeChange?: (mode: 'grid' | 'list') => void
   onSortChange?: (sortBy: string, sortOrder: 'asc' | 'desc') => void

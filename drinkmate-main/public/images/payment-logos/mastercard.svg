@@ -1,0 +1,9 @@
+<svg width="40" height="16" viewBox="0 0 40 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="40" height="16" rx="2" fill="white" stroke="#E5E7EB"/>
+  <g transform="translate(4, 2)">
+    <circle cx="6" cy="6" r="4" fill="#EB001B"/>
+    <circle cx="10" cy="6" r="4" fill="#F79E1B"/>
+    <path d="M8 2C7 3 7 8 8 9C9 8 9 3 8 2Z" fill="#FF5F00"/>
+    <text x="8" y="12" text-anchor="middle" fill="#1A1F71" font-family="Arial, sans-serif" font-size="4" font-weight="bold">MC</text>
+  </g>
+</svg>

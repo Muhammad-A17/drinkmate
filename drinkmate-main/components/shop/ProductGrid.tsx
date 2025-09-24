@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import BundleStyleProductCard from './BundleStyleProductCard'
 import ProductCardSkeleton from './ProductCardSkeleton'
-import { ProductGridProps, Product } from '@/types/product'
+import { ProductGridProps, Product } from '@/lib/types'
 import { useCart } from '@/hooks/use-cart'
 import { useCartAnimations } from '@/hooks/use-cart-animations'
 import CartNotification from '@/components/cart/CartNotification'
@@ -106,7 +106,9 @@ export default function ProductGrid({
 
     // Convert from old format
     const convertedProduct = {
+      _id: productId,
       id: productId,
+      name: productTitle,
       slug: productSlug,
       title: productTitle,
       image: primaryImage,
@@ -164,11 +166,11 @@ export default function ProductGrid({
     
     const cartItem = {
       id: payload.productId,
-      name: product.title,
+      name: product.title || product.name || '',
       price: product.price,
       quantity: payload.qty,
       image: displayImage, // Use the processed image URL
-      category: product.category || 'Product'
+      category: typeof product.category === 'string' ? product.category : product.category?.name || 'Product'
     }
 
     console.log('Final cart item:', cartItem)

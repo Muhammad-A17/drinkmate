@@ -25,11 +25,13 @@ import {
   Star,
   TrendingUp,
   AlertCircle,
-  Loader2
+  Loader2,
+  ArrowLeft
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Price } from '@/components/account/Price'
+import SaudiRiyal from '@/components/ui/SaudiRiyal'
 
 export default function OrdersPage() {
   const { language, isRTL } = useTranslation()
@@ -202,6 +204,16 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Back Navigation */}
+        <div className="mb-6">
+          <Link href="/account">
+            <Button variant="outline" className="hover:bg-orange-50 hover:border-orange-200">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {language === 'AR' ? 'العودة إلى الحساب' : 'Back to Account'}
+            </Button>
+          </Link>
+        </div>
+
         {/* Header with Stats */}
         <div className="mb-8">
           <div className="bg-gradient-to-r from-orange-600 to-amber-600 rounded-2xl p-8 text-white shadow-xl">
@@ -231,7 +243,9 @@ export default function OrdersPage() {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold">${stats.totalValue.toFixed(0)}</div>
+                  <div className="text-3xl font-bold flex items-center justify-center gap-1">
+                    <SaudiRiyal amount={stats.totalValue} size="lg" />
+                  </div>
                   <div className="text-orange-100 text-sm">
                     {language === 'AR' ? 'إجمالي القيمة' : 'Total Value'}
                   </div>
@@ -298,7 +312,9 @@ export default function OrdersPage() {
                   <p className="text-sm text-gray-500 mb-1">
                     {language === 'AR' ? 'إجمالي القيمة' : 'Total Value'}
                   </p>
-                  <p className="text-2xl font-bold text-purple-600">${stats.totalValue.toFixed(0)}</p>
+                  <div className="text-2xl font-bold text-purple-600">
+                    <SaudiRiyal amount={stats.totalValue} size="lg" />
+                  </div>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-lg">
                   <TrendingUp className="h-6 w-6 text-purple-600" />
@@ -448,7 +464,9 @@ export default function OrdersPage() {
                                 <span className="text-gray-700">
                                   {item.name} (x{item.quantity})
                                 </span>
-                                <span className="font-medium">${item.price.toFixed(2)}</span>
+                                <span className="font-medium">
+                                  <SaudiRiyal amount={item.price} size="sm" />
+                                </span>
                               </div>
                             ))}
                             {order.items && order.items.length > 2 && (

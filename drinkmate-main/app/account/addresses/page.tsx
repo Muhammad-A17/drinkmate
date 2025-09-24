@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { MapPin, Plus, Edit, Trash2, Star } from 'lucide-react'
+import { MapPin, Plus, Edit, Trash2, Star, ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import AddressForm from '@/components/account/AddressForm'
+import Link from 'next/link'
 
 export default function AddressesPage() {
   const { language, isRTL } = useTranslation()
@@ -22,10 +23,11 @@ export default function AddressesPage() {
   const mockAddresses: Address[] = [
     {
       id: '1',
-      firstName: 'Ahmed',
-      lastName: 'Al-Rashid',
+      fullName: 'Ahmed Al-Rashid',
       district: 'Al-Riyadh',
       city: 'Riyadh',
+      country: 'Saudi Arabia',
+      nationalAddress: 'JESA3591',
       phone: '+966501234567',
       isDefault: true,
       createdAt: '2024-01-01T00:00:00Z',
@@ -33,10 +35,11 @@ export default function AddressesPage() {
     },
     {
       id: '2',
-      firstName: 'Ahmed',
-      lastName: 'Al-Rashid',
+      fullName: 'Ahmed Al-Rashid',
       district: 'Al-Malaz',
       city: 'Riyadh',
+      country: 'Saudi Arabia',
+      nationalAddress: 'KHRT2847',
       phone: '+966501234567',
       isDefault: false,
       createdAt: '2024-01-05T00:00:00Z',
@@ -115,6 +118,16 @@ export default function AddressesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Back Navigation */}
+      <div className="mb-4">
+        <Link href="/account">
+          <Button variant="outline" className="hover:bg-orange-50 hover:border-orange-200">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {language === 'AR' ? 'العودة إلى الحساب' : 'Back to Account'}
+          </Button>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -167,11 +180,11 @@ export default function AddressesPage() {
               
               <div className="mb-4">
                 <h3 className="font-semibold text-gray-900 mb-2">
-                  {address.firstName} {address.lastName}
+                  {address.fullName}
                 </h3>
                 <div className="space-y-1 text-sm text-gray-600">
                   <p>{address.district}</p>
-                  <p>{address.city}</p>
+                  <p>{address.city}, {address.country} {address.nationalAddress && `- ${address.nationalAddress}`}</p>
                   <p>{address.phone}</p>
                 </div>
               </div>

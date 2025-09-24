@@ -58,16 +58,13 @@ interface Order {
   };
   items: OrderItem[];
   shippingAddress: {
-    firstName: string;
-    lastName: string;
+    fullName: string;
     email: string;
     phone: string;
-    address1: string;
-    address2?: string;
+    district: string;
     city: string;
-    state: string;
-    postalCode: string;
     country: string;
+    nationalAddress?: string;
   };
   paymentMethod: string;
   deliveryOption: string;
@@ -144,16 +141,13 @@ export default function OrderDetailsPage() {
             { name: "CO2 Cylinder", quantity: 1, price: 89 }
           ],
           shippingAddress: {
-            firstName: "Ahmed",
-            lastName: "Al-Farsi",
+            fullName: "Ahmed Al-Farsi",
             email: "ahmed@example.com",
             phone: "+966501234567",
-            address1: "123 King Fahd Road",
-            address2: "Apartment 5B",
+            district: "Al-Riyadh",
             city: "Riyadh",
-            state: "Riyadh",
-            postalCode: "12345",
-            country: "Saudi Arabia"
+            country: "Saudi Arabia",
+            nationalAddress: "JESA3591"
           },
           paymentMethod: "urways",
           deliveryOption: "standard",
@@ -187,15 +181,13 @@ export default function OrderDetailsPage() {
             { name: "Drinkmate Luxe", quantity: 1, price: 599 }
           ],
           shippingAddress: {
-            firstName: "Sara",
-            lastName: "Al-Qahtani",
+            fullName: "Sara Al-Qahtani",
             email: "sara@example.com",
             phone: "+966507654321",
-            address1: "456 Prince Sultan Street",
+            district: "Al-Balad",
             city: "Jeddah",
-            state: "Makkah",
-            postalCode: "54321",
-            country: "Saudi Arabia"
+            country: "Saudi Arabia",
+            nationalAddress: "KHRT2847"
           },
           paymentMethod: "tap_payment",
           deliveryOption: "express",
@@ -223,15 +215,13 @@ export default function OrderDetailsPage() {
             { name: "Black Bottle 500ml", quantity: 1, price: 79 }
           ],
           shippingAddress: {
-            firstName: "Mohammed",
-            lastName: "Al-Otaibi",
+            fullName: "Mohammed Al-Otaibi",
             email: "mohammed@example.com",
             phone: "+966509876543",
-            address1: "789 Al Olaya Street",
+            district: "Al-Faisaliyah",
             city: "Dammam",
-            state: "Eastern Province",
-            postalCode: "67890",
-            country: "Saudi Arabia"
+            country: "Saudi Arabia",
+            nationalAddress: "DMMN1234"
           },
           paymentMethod: "cash_on_delivery",
           deliveryOption: "economy",
@@ -606,65 +596,51 @@ export default function OrderDetailsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">First Name</label>
-                    {editing ? (
-                      <Input
-                        value={editData.shippingAddress?.firstName || order.shippingAddress.firstName}
-                        onChange={(e) => handleAddressChange('firstName', e.target.value)}
-                        className="mt-1"
-                      />
-                    ) : (
-                      <p className="text-sm">{order.shippingAddress.firstName}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Last Name</label>
-                    {editing ? (
-                      <Input
-                        value={editData.shippingAddress?.lastName || order.shippingAddress.lastName}
-                        onChange={(e) => handleAddressChange('lastName', e.target.value)}
-                        className="mt-1"
-                      />
-                    ) : (
-                      <p className="text-sm">{order.shippingAddress.lastName}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Email</label>
-                    {editing ? (
-                      <Input
-                        value={editData.shippingAddress?.email || order.shippingAddress.email}
-                        onChange={(e) => handleAddressChange('email', e.target.value)}
-                        className="mt-1"
-                      />
-                    ) : (
-                      <p className="text-sm flex items-center gap-1">
-                        <Mail className="w-3 h-3" />
-                        {order.shippingAddress.email}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Phone</label>
-                    {editing ? (
-                      <Input
-                        value={editData.shippingAddress?.phone || order.shippingAddress.phone}
-                        onChange={(e) => handleAddressChange('phone', e.target.value)}
-                        className="mt-1"
-                      />
-                    ) : (
-                      <p className="text-sm flex items-center gap-1">
-                        <Phone className="w-3 h-3" />
-                        {order.shippingAddress.phone}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Username</label>
-                    <p className="text-sm">{order.user.username}</p>
-                  </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Full Name</label>
+                  {editing ? (
+                    <Input
+                      value={editData.shippingAddress?.fullName || order.shippingAddress.fullName}
+                      onChange={(e) => handleAddressChange('fullName', e.target.value)}
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="text-sm">{order.shippingAddress.fullName}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Email</label>
+                  {editing ? (
+                    <Input
+                      value={editData.shippingAddress?.email || order.shippingAddress.email}
+                      onChange={(e) => handleAddressChange('email', e.target.value)}
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="text-sm flex items-center gap-1">
+                      <Mail className="w-3 h-3" />
+                      {order.shippingAddress.email}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Phone</label>
+                  {editing ? (
+                    <Input
+                      value={editData.shippingAddress?.phone || order.shippingAddress.phone}
+                      onChange={(e) => handleAddressChange('phone', e.target.value)}
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="text-sm flex items-center gap-1">
+                      <Phone className="w-3 h-3" />
+                      {order.shippingAddress.phone}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Username</label>
+                  <p className="text-sm">{order.user.username}</p>
                 </div>
               </CardContent>
             </Card>
@@ -680,33 +656,19 @@ export default function OrderDetailsPage() {
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Address Line 1</label>
+                    <label className="text-sm font-medium text-gray-500">District</label>
                     {editing ? (
                       <Input
-                        value={editData.shippingAddress?.address1 || order.shippingAddress.address1}
-                        onChange={(e) => handleAddressChange('address1', e.target.value)}
+                        value={editData.shippingAddress?.district || order.shippingAddress.district}
+                        onChange={(e) => handleAddressChange('district', e.target.value)}
                         className="mt-1"
                       />
                     ) : (
-                      <p className="text-sm">{order.shippingAddress.address1}</p>
+                      <p className="text-sm">{order.shippingAddress.district}</p>
                     )}
                   </div>
                   
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Address Line 2 (Optional)</label>
-                    {editing ? (
-                      <Input
-                        value={editData.shippingAddress?.address2 || order.shippingAddress.address2 || ''}
-                        onChange={(e) => handleAddressChange('address2', e.target.value)}
-                        className="mt-1"
-                        placeholder="Apartment, suite, etc."
-                      />
-                    ) : (
-                      order.shippingAddress.address2 && <p className="text-sm">{order.shippingAddress.address2}</p>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium text-gray-500">City</label>
                       {editing ? (
@@ -720,42 +682,29 @@ export default function OrderDetailsPage() {
                       )}
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">State/Province</label>
+                      <label className="text-sm font-medium text-gray-500">
+                        Short Address (<a href="https://splonline.com.sa/en/national-address-1/" target="_blank" rel="noopener noreferrer" className="text-[#12d6fa] hover:text-[#0bc4e8] underline">National Address</a>) (Optional)
+                      </label>
                       {editing ? (
                         <Input
-                          value={editData.shippingAddress?.state || order.shippingAddress.state}
-                          onChange={(e) => handleAddressChange('state', e.target.value)}
-                          className="mt-1"
+                          value={editData.shippingAddress?.nationalAddress || order.shippingAddress.nationalAddress || ''}
+                          onChange={(e) => handleAddressChange('nationalAddress', e.target.value.toUpperCase())}
+                          className="mt-1 font-mono tracking-wider"
+                          placeholder="JESA3591"
+                          maxLength={8}
+                          pattern="[A-Z]{4}[0-9]{4}"
                         />
                       ) : (
-                        <p className="text-sm">{order.shippingAddress.state}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Postal Code</label>
-                      {editing ? (
-                        <Input
-                          value={editData.shippingAddress?.postalCode || order.shippingAddress.postalCode}
-                          onChange={(e) => handleAddressChange('postalCode', e.target.value)}
-                          className="mt-1"
-                        />
-                      ) : (
-                        <p className="text-sm">{order.shippingAddress.postalCode}</p>
+                        order.shippingAddress.nationalAddress && <p className="text-sm font-mono tracking-wider">{order.shippingAddress.nationalAddress}</p>
                       )}
                     </div>
                   </div>
                   
                   <div>
                     <label className="text-sm font-medium text-gray-500">Country</label>
-                    {editing ? (
-                      <Input
-                        value={editData.shippingAddress?.country || order.shippingAddress.country}
-                        onChange={(e) => handleAddressChange('country', e.target.value)}
-                        className="mt-1"
-                      />
-                    ) : (
-                      <p className="text-sm">{order.shippingAddress.country}</p>
-                    )}
+                    <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 mt-1">
+                      Saudi Arabia
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -981,3 +930,4 @@ export default function OrderDetailsPage() {
     </AdminLayout>
   )
 }
+

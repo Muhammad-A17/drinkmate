@@ -28,6 +28,7 @@ interface AuthContextType extends AuthState {
   logout: () => void;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   resetPassword: (token: string, password: string) => Promise<{ success: boolean; message: string }>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -331,6 +332,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        console.log("No token found for refresh");
+        return;
+      }
+
+      console.log("Refreshing user data...");
+      const data = await authAPI.verifyToken();
+      console.log("User refresh response:", data);
+      
+      if (data && data.user) {
+        console.log("Updating user state with:", data.user);
+        setAuthState(prev => ({
+          ...prev,
+          user: data.user,
+        }));
+        console.log("User data refreshed successfully");
+      } else {
+        console.log("No user data in response");
+      }
+    } catch (error: any) {
+      console.error("Failed to refresh user data:", error);
+    }
+  };
+
   const value = {
     ...authState,
     login,
@@ -338,6 +366,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     forgotPassword,
     resetPassword,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Plus, Search, Edit, Trash2, Eye, Star, Clock, Users, Filter, Save, X, Image as ImageIcon, ChefHat, TrendingUp, CheckCircle, BarChart3, Download, MoreHorizontal, ChevronLeft, ChevronRight, Loader2, RefreshCw, Upload, Trash } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
+import { recipeAPI } from '@/lib/recipe-api'
 import { uploadImageWithProgress } from '@/lib/cloud-storage'
 
 interface Recipe {
@@ -102,6 +103,8 @@ export default function AdminRecipesPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [showForm, setShowForm] = useState(false)
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const [uploadingImages, setUploadingImages] = useState<boolean[]>([])
   const [imageUploadProgress, setImageUploadProgress] = useState<number[]>([])
   const [formData, setFormData] = useState<RecipeFormData>({
@@ -127,20 +130,23 @@ export default function AdminRecipesPage() {
   const fetchRecipes = async () => {
     try {
       setLoading(true)
-      const token = getAuthToken() || (typeof window !== 'undefined' ? localStorage.getItem('auth-token') || localStorage.getItem('token') : null)
-      const response = await fetch(`http://localhost:3000/recipes`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      console.log('Admin: Fetching recipes...')
+      
+      // For admin, we want to see all recipes (published and drafts)
+      const data = await recipeAPI.getRecipes({
+        page: 1,
+        limit: 100, // Get all recipes for admin
+        published: undefined // Don't filter by published status for admin
       })
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch recipes')
+      if (data.success) {
+        console.log('Admin: Recipes fetched successfully:', data.recipes?.length || 0)
+        setRecipes(data.recipes || [])
+      } else {
+        throw new Error(data.message || 'Failed to fetch recipes')
       }
-      
-      const data = await response.json()
-      setRecipes(data.recipes || [])
     } catch (err) {
+      console.error('Admin: Error fetching recipes:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch recipes')
       toast.error('Failed to fetch recipes')
     } finally {
@@ -169,6 +175,10 @@ export default function AdminRecipesPage() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (saving) return // Prevent double submission
+    
+    setSaving(true)
     try {
       // Check authentication first
       if (!isAuthenticated || !user) {
@@ -176,62 +186,100 @@ export default function AdminRecipesPage() {
         return
       }
 
+      // Validate required fields
+      if (!formData.title.trim()) {
+        toast.error('Recipe title is required')
+        return
+      }
+      
+      if (formData.title.trim().length < 3) {
+        toast.error('Recipe title must be at least 3 characters long')
+        return
+      }
+      
+      if (!formData.description.trim()) {
+        toast.error('Recipe description is required')
+        return
+      }
+      
+      if (formData.description.trim().length < 10) {
+        toast.error('Recipe description must be at least 10 characters long')
+        return
+      }
+
+      // Generate slug from title if not editing
+      const slug = editingRecipe ? editingRecipe.slug : formData.title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-') // Remove duplicate hyphens
+        .trim()
+
       // Clean up form data - remove empty ingredients and instructions
       const cleanedFormData = {
         ...formData,
+        slug,
         ingredients: formData.ingredients.filter(ing => ing.name.trim() !== ''),
         instructions: formData.instructions.filter(inst => inst.instruction.trim() !== '')
       }
       
-            const url = editingRecipe ? `http://localhost:3000/recipes/${editingRecipe._id}` : `http://localhost:3000/recipes`
-            const method = editingRecipe ? 'PUT' : 'POST'
-      
-      const token = getAuthToken() || (typeof window !== 'undefined' ? localStorage.getItem('auth-token') || localStorage.getItem('token') : null)
-      
-      console.log('Submitting recipe:', cleanedFormData) // Debug log
-      console.log('Token found:', !!token) // Debug log
-      console.log('Token value:', token ? token.substring(0, 20) + '...' : 'No token') // Debug log
-      console.log('User authenticated:', isAuthenticated) // Debug log
-      console.log('User is admin:', user?.isAdmin) // Debug log
-      
-      if (!token) {
-        toast.error('Authentication token not found. Please log in again.')
+      // Validate that we have at least one ingredient and instruction
+      if (cleanedFormData.ingredients.length === 0) {
+        toast.error('At least one ingredient is required')
         return
       }
       
-      const requestOptions = {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(cleanedFormData)
+      if (cleanedFormData.instructions.length === 0) {
+        toast.error('At least one instruction is required')
+        return
       }
       
-      console.log('Request URL:', url) // Debug log
-      console.log('Request options:', requestOptions) // Debug log
+      console.log('Submitting recipe:', cleanedFormData)
+      console.log('User authenticated:', isAuthenticated)
+      console.log('User is admin:', user?.isAdmin)
       
-      const response = await fetch(url, requestOptions)
-      
-      console.log('Response status:', response.status) // Debug log
-      console.log('Response headers:', Object.fromEntries(response.headers.entries())) // Debug log
-      
-      const responseData = await response.json()
-      console.log('Response:', responseData) // Debug log
-      
-      if (!response.ok) {
-        throw new Error(responseData.message || 'Failed to save recipe')
+      let result
+      if (editingRecipe) {
+        console.log('Updating recipe with ID:', editingRecipe._id)
+        result = await recipeAPI.updateRecipe(editingRecipe._id, cleanedFormData)
+      } else {
+        console.log('Creating new recipe')
+        result = await recipeAPI.createRecipe(cleanedFormData)
       }
       
-      await fetchRecipes()
-      setShowForm(false)
-      setEditingRecipe(null)
-      resetForm()
-      toast.success(editingRecipe ? 'Recipe updated successfully' : 'Recipe created successfully')
+      console.log('API result:', result)
+      
+      if (result.success) {
+        await fetchRecipes()
+        setShowForm(false)
+        setEditingRecipe(null)
+        resetForm()
+        toast.success(editingRecipe ? 'Recipe updated successfully' : 'Recipe created successfully')
+      } else {
+        throw new Error(result.message || 'Failed to save recipe')
+      }
     } catch (err) {
-      console.error('Recipe save error:', err) // Debug log
-      setError(err instanceof Error ? err.message : 'Failed to save recipe')
-      toast.error(err instanceof Error ? err.message : 'Failed to save recipe')
+      console.error('Recipe save error:', err)
+      let errorMessage = 'Failed to save recipe'
+      
+      if (err instanceof Error) {
+        errorMessage = err.message
+        // Handle specific error types
+        if (err.message.includes('Network Error') || err.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.'
+        } else if (err.message.includes('401')) {
+          errorMessage = 'Authentication expired. Please log in again.'
+        } else if (err.message.includes('403')) {
+          errorMessage = 'You do not have permission to perform this action.'
+        } else if (err.message.includes('409')) {
+          errorMessage = 'A recipe with this title already exists.'
+        }
+      }
+      
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -277,26 +325,45 @@ export default function AdminRecipesPage() {
 
   // Delete recipe
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this recipe?')) return
+    if (!confirm('Are you sure you want to delete this recipe? This action cannot be undone.')) return
     
+    if (deleting) return // Prevent multiple delete operations
+    
+    setDeleting(id)
     try {
-      const token = getAuthToken() || (typeof window !== 'undefined' ? localStorage.getItem('auth-token') || localStorage.getItem('token') : null)
-      const response = await fetch(`http://localhost:3000/recipes/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      console.log('Deleting recipe with ID:', id)
+      const result = await recipeAPI.deleteRecipe(id)
       
-      if (!response.ok) {
-        throw new Error('Failed to delete recipe')
+      console.log('Delete result:', result)
+      
+      if (result.success) {
+        await fetchRecipes()
+        toast.success('Recipe deleted successfully')
+      } else {
+        throw new Error(result.message || 'Failed to delete recipe')
+      }
+    } catch (err) {
+      console.error('Recipe delete error:', err)
+      let errorMessage = 'Failed to delete recipe'
+      
+      if (err instanceof Error) {
+        errorMessage = err.message
+        // Handle specific error types
+        if (err.message.includes('Network Error') || err.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.'
+        } else if (err.message.includes('401')) {
+          errorMessage = 'Authentication expired. Please log in again.'
+        } else if (err.message.includes('403')) {
+          errorMessage = 'You do not have permission to delete recipes.'
+        } else if (err.message.includes('404')) {
+          errorMessage = 'Recipe not found. It may have already been deleted.'
+        }
       }
       
-      await fetchRecipes()
-      toast.success('Recipe deleted successfully')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete recipe')
-      toast.error('Failed to delete recipe')
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
+      setDeleting(null)
     }
   }
 
@@ -1158,10 +1225,20 @@ export default function AdminRecipesPage() {
                   <Button 
                     type="submit" 
                     form="recipe-form"
-                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#0fb8d9] hover:to-blue-700 text-white px-8 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    disabled={saving}
+                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#0fb8d9] hover:to-blue-700 text-white px-8 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Save className="w-4 h-4 mr-2" />
-                    {editingRecipe ? 'Update Recipe' : 'Create Recipe'}
+                    {saving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {editingRecipe ? 'Updating...' : 'Creating...'}
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        {editingRecipe ? 'Update Recipe' : 'Create Recipe'}
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -1274,10 +1351,15 @@ export default function AdminRecipesPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="bg-white/90 hover:bg-white text-gray-900 border-white/50 shadow-lg"
+                            className="bg-white/90 hover:bg-white text-gray-900 border-white/50 shadow-lg disabled:opacity-50"
                             onClick={() => handleDelete(recipe._id)}
+                            disabled={deleting === recipe._id}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            {deleting === recipe._id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
                           </Button>
                         </div>
                       </div>

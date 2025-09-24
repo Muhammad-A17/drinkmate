@@ -14,10 +14,7 @@ PORT=3000
 # SECURITY CONFIGURATION
 # ===========================================
 # Generate strong JWT secret (minimum 32 characters)
-# Use: openssl rand -base64 32
-JWT_SECRET=your_super_secure_jwt_secret_here_minimum_32_characters_long
-
-# Session configuration
+JWT_SECRET=292991a5850e2a5819393a9b547f06b97ec40016c1ddf04ebf8c1e5618c71b67
 SESSION_SECRET=your_session_secret_here_minimum_32_characters
 JWT_EXPIRES_IN=24h
 REFRESH_TOKEN_EXPIRES_IN=7d
@@ -29,33 +26,29 @@ RATE_LIMIT_MAX_REQUESTS=100
 # ===========================================
 # DATABASE CONFIGURATION
 # ===========================================
-# Use MongoDB Atlas with proper authentication
-# Format: mongodb+srv://username:password@cluster.mongodb.net/database?options
-MONGODB_URI=mongodb+srv://your_username:your_password@your_cluster.mongodb.net/drinkmate?retryWrites=true&w=majority&authSource=admin
+# MongoDB Atlas
+MONGODB_URI=mongodb+srv://test1234:IhpDHsYWshrvtLQc@cluster0.y205sfi.mongodb.net/drinkmate?retryWrites=true&w=majority&appName=Cluster0
 
 # ===========================================
 # FRONTEND CONFIGURATION
 # ===========================================
-# Your production domain
-FRONTEND_URL=https://yourdomain.com
-CORS_ORIGIN=https://yourdomain.com
+FRONTEND_URL=https://drinkmates.vercel.app
+CORS_ORIGIN=https://drinkmates.vercel.app
 
 # ===========================================
 # CLOUDINARY CONFIGURATION
 # ===========================================
-# Get these from your Cloudinary dashboard
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
+CLOUDINARY_CLOUD_NAME=da6dzmflp
+CLOUDINARY_API_KEY=694537626126534
+CLOUDINARY_API_SECRET=elu06tzJWrK_Yb_M8H2bmGNfUL0
 
 # ===========================================
 # EMAIL CONFIGURATION
 # ===========================================
-# SMTP settings for email functionality
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your_app_password
+SMTP_USER=devops.drinkmate@gmail.com
+SMTP_PASS=ejfo bcdu fmmr wfwj
 
 # Alternative email variables (for backward compatibility)
 EMAIL_USER=${SMTP_USER}
@@ -79,14 +72,12 @@ TAP_ENVIRONMENT=production
 # ===========================================
 # ADMIN CREDENTIALS
 # ===========================================
-# Strong passwords for admin accounts
 ADMIN_PASSWORD=your_strong_admin_password_here
 TEST_PASSWORD=your_strong_test_password_here
 
 # ===========================================
 # SECURITY MONITORING
 # ===========================================
-# Enable security logging
 SECURITY_LOGGING=true
 LOG_LEVEL=warn
 
@@ -99,11 +90,9 @@ BACKUP_SCHEDULE=0 2 * * *
 # ===========================================
 # ADDITIONAL SECURITY SETTINGS
 # ===========================================
-# File upload limits
 MAX_FILE_SIZE=10485760
 MAX_FILES_PER_REQUEST=5
 
-# Session settings
 SESSION_COOKIE_SECURE=true
 SESSION_COOKIE_HTTPONLY=true
 SESSION_COOKIE_SAMESITE=strict
@@ -111,7 +100,6 @@ SESSION_COOKIE_SAMESITE=strict
 # ===========================================
 # DEVELOPMENT SETTINGS (for local development only)
 # ===========================================
-# Uncomment these for local development
 # NODE_ENV=development
 # FRONTEND_URL=http://localhost:3001
 # CORS_ORIGIN=http://localhost:3001

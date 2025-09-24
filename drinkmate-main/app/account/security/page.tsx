@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
-import { Shield, Key, Smartphone, Monitor, MapPin, Clock, Trash2, CheckCircle, AlertTriangle } from 'lucide-react'
+import { Shield, Key, Smartphone, Monitor, MapPin, Clock, Trash2, CheckCircle, AlertTriangle, ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 
 export default function SecurityPage() {
   const { language, isRTL } = useTranslation()
@@ -139,6 +140,16 @@ export default function SecurityPage() {
 
   return (
     <div className="space-y-8">
+      {/* Back Navigation */}
+      <div className="mb-4">
+        <Link href="/account">
+          <Button variant="outline" className="hover:bg-orange-50 hover:border-orange-200">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {language === 'AR' ? 'العودة إلى الحساب' : 'Back to Account'}
+          </Button>
+        </Link>
+      </div>
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">

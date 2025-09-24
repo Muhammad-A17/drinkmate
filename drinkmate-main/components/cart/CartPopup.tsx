@@ -11,6 +11,7 @@ import { Currency } from '@/utils/currency'
 import Link from 'next/link'
 import { useCartSettings } from '@/lib/cart-settings-context'
 import { getImageUrl } from '@/lib/image-utils'
+import { useAuth } from '@/lib/auth-context'
 
 interface CartPopupProps {
   isOpen: boolean
@@ -20,6 +21,7 @@ interface CartPopupProps {
 export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
   const { items, totalPrice, totalItems, updateQuantity, removeItem } = useCart()
   const { getText, settings } = useCartSettings()
+  const { isAuthenticated } = useAuth()
   const router = useRouter()
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
 
@@ -100,9 +102,26 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                     <div className="text-4xl mb-3">🛒</div>
                     <h4 className="text-lg font-medium text-gray-900 mb-2">{getText('general.emptyCartEn')}</h4>
                     <p className="text-gray-500 mb-4">Add some products to get started!</p>
-                    <Button onClick={onClose} className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-semibold">
-                      {getText('general.continueShoppingEn')}
-                    </Button>
+                    <div className="space-y-2">
+                      <Button onClick={onClose} className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-semibold w-full">
+                        {getText('general.continueShoppingEn')}
+                      </Button>
+                      <div className="text-sm text-gray-600">
+                        <Link 
+                          href="/login?redirect=/cart" 
+                          className="text-[#12d6fa] hover:text-[#0bc4e8] font-medium transition-colors"
+                        >
+                          Sign In
+                        </Link>
+                        {" or "}
+                        <Link 
+                          href="/register?redirect=/cart" 
+                          className="text-[#12d6fa] hover:text-[#0bc4e8] font-medium transition-colors"
+                        >
+                          Create Account
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="p-2 sm:p-3 md:p-4 space-y-2 sm:space-y-3">
@@ -243,6 +262,26 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                       {getText('general.secureCheckoutEn')}
                       <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1.5 sm:ml-2" />
                     </Button>
+                    
+                    {!isAuthenticated && (
+                      <div className="text-center text-sm text-gray-600 py-1">
+                        <Link 
+                          href="/login?redirect=/cart" 
+                          className="text-[#12d6fa] hover:text-[#0bc4e8] font-medium transition-colors"
+                        >
+                          Sign In
+                        </Link>
+                        {" or "}
+                        <Link 
+                          href="/register?redirect=/cart" 
+                          className="text-[#12d6fa] hover:text-[#0bc4e8] font-medium transition-colors"
+                        >
+                          Create Account
+                        </Link>
+                        {" for faster checkout"}
+                      </div>
+                    )}
+                    
                     <Button
                       onClick={handleViewCart}
                       variant="outline"

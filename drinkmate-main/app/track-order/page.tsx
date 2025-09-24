@@ -17,16 +17,13 @@ import {
   Clock, 
   AlertCircle,
   MapPin,
-  Phone,
-  Mail,
   RefreshCw,
-  Download,
-  MessageCircle,
   Copy,
   ExternalLink,
   Calendar,
   User,
-  Loader2
+  Loader2,
+  ArrowRight
 } from "lucide-react"
 import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
@@ -411,80 +408,49 @@ export default function TrackOrderPage() {
       <Banner />
       <Header />
       
-      {/* Enhanced Hero Section with Better Contrast */}
-      <section className="relative py-16 md:py-24 bg-gradient-to-br from-[#0a9bb8] via-[#0894a8] to-[#067a8a] overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-[url('/images/track-order-pattern.svg')] opacity-5"></div>
-          <div className="absolute top-10 right-10 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
-          <div className="absolute bottom-10 left-10 w-24 h-24 bg-white/5 rounded-full blur-lg"></div>
-        </div>
-        
-        <div className="relative z-10 max-w-6xl mx-auto px-4">
-          <div className="text-center space-y-6">
-            <div className="inline-flex items-center gap-2 bg-white/25 backdrop-blur-sm rounded-full px-4 py-2 text-white text-sm font-semibold shadow-lg">
+      {/* Streamlined Hero Section */}
+      <section className="relative py-12 md:py-16 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] overflow-hidden">
+        <div className="absolute inset-0 bg-black/5"></div>
+        <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-white text-sm font-semibold">
               <Package className="w-4 h-4" />
               Track Your Orders
             </div>
-            <h1
-              className={`text-4xl md:text-6xl font-bold text-white leading-tight ${isRTL ? "font-cairo" : "font-montserrat"} tracking-tight drop-shadow-lg`}
-            >
-              {t('trackOrder.hero.title')}
+            <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight">
+              Track Your Order
             </h1>
-            <p
-              className={`text-xl md:text-2xl text-white max-w-3xl mx-auto ${isRTL ? "font-noto-arabic" : "font-noto-sans"} leading-relaxed drop-shadow-md`}
-            >
-              Get real-time updates on your order status, delivery timeline, and tracking information
+            <p className="text-lg text-white/90 max-w-2xl mx-auto">
+              Enter your order number and email to get real-time tracking updates
             </p>
-            
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-4xl mx-auto">
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center shadow-xl border border-white/10">
-                <Truck className="w-8 h-8 text-white mx-auto mb-3 drop-shadow-md" />
-                <div className="text-2xl font-bold text-white drop-shadow-md">24/7</div>
-                <div className="text-white text-sm font-medium">Live Tracking</div>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center shadow-xl border border-white/10">
-                <CheckCircle className="w-8 h-8 text-white mx-auto mb-3 drop-shadow-md" />
-                <div className="text-2xl font-bold text-white drop-shadow-md">99.9%</div>
-                <div className="text-white text-sm font-medium">Delivery Success</div>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center shadow-xl border border-white/10">
-                <Clock className="w-8 h-8 text-white mx-auto mb-3 drop-shadow-md" />
-                <div className="text-2xl font-bold text-white drop-shadow-md">2-3</div>
-                <div className="text-white text-sm font-medium">Days Delivery</div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Enhanced Track Order Form */}
-        <Card className="mb-8 shadow-lg border-gray-200">
-          <CardHeader className="bg-gray-50 border-b border-gray-200">
-            <CardTitle className="flex items-center gap-2 text-gray-900">
-              <Search className="w-5 h-5 text-[#12d6fa]" />
-              Track Your Order
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Streamlined Track Order Form */}
+        <Card className="mb-8 shadow-lg">
+          <CardContent className="p-8">
             <form onSubmit={handleTrackOrder} className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Track Your Order</h2>
+                <p className="text-gray-600">Enter your order details to get real-time updates</p>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label htmlFor="orderNumber" className="block text-sm font-semibold text-gray-900">
+                  <label htmlFor="orderNumber" className="block text-sm font-medium text-gray-700">
                     Order Number
                   </label>
                   <OrderNumberInput
                     value={orderNumber}
                     onChange={setOrderNumber}
                     placeholder="ORD-2024-00000"
-                    className="w-full border-gray-300 focus:border-[#12d6fa] focus:ring-[#12d6fa]"
+                    className="w-full h-12 text-lg"
                   />
-                  <p className="text-xs text-gray-600 font-medium">Format: ORD-2024-00000</p>
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-900">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                     Email Address
                   </label>
                   <Input
@@ -494,10 +460,10 @@ export default function TrackOrderPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     required
-                    className="w-full border-gray-300 focus:border-[#12d6fa] focus:ring-[#12d6fa]"
+                    className="w-full h-12 text-lg"
                   />
                   {isAuthenticated && (
-                    <p className="text-xs text-green-700 flex items-center gap-1 font-medium">
+                    <p className="text-xs text-green-600 flex items-center gap-1">
                       <User className="w-3 h-3" />
                       Prefilled from your account
                     </p>
@@ -505,14 +471,14 @@ export default function TrackOrderPage() {
                 </div>
               </div>
 
-              {/* Recent Orders Dropdown for Logged-in Users */}
+              {/* Recent Orders for Logged-in Users */}
               {isAuthenticated && recentOrders.length > 0 && (
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
                     Or select from recent orders
                   </label>
                   <Select onValueChange={(value) => setOrderNumber(value)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-12">
                       <SelectValue placeholder="Choose a recent order" />
                     </SelectTrigger>
                     <SelectContent>
@@ -529,7 +495,7 @@ export default function TrackOrderPage() {
               <Button
                 type="submit"
                 disabled={isLoading || !orderNumber.trim() || !email.trim()}
-                className="w-full bg-[#12d6fa] hover:bg-[#0bc4e8] text-white h-12 text-base font-semibold"
+                className="w-full bg-[#12d6fa] hover:bg-[#0bc4e8] text-white h-14 text-lg font-semibold rounded-lg"
               >
                 {isLoading ? (
                   <>
@@ -540,6 +506,7 @@ export default function TrackOrderPage() {
                   <>
                     <Search className="w-5 h-5 mr-2" />
                     Track Order
+                    <ArrowRight className="w-5 h-5 ml-2" />
                   </>
                 )}
               </Button>
@@ -571,219 +538,49 @@ export default function TrackOrderPage() {
           </Card>
         )}
 
-        {/* Empty State - When no tracking data and no error */}
+        {/* Simple Empty State */}
         {!trackingData && !error && !isLoading && (
-          <div className="text-center py-20">
-            <div className="w-40 h-40 bg-gradient-to-br from-[#12d6fa]/30 to-[#0bc4e8]/30 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
-              <Package className="w-20 h-20 text-[#12d6fa]" />
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa]/20 to-[#0bc4e8]/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Package className="w-12 h-12 text-[#12d6fa]" />
             </div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-6">Ready to Track Your Order?</h3>
-            <p className="text-gray-700 max-w-lg mx-auto mb-10 text-lg font-medium">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Ready to Track Your Order?</h3>
+            <p className="text-gray-600 max-w-md mx-auto">
               Enter your order number and email address above to get started with real-time tracking updates.
             </p>
-            <div className="flex flex-wrap justify-center gap-6">
-              <div className="flex items-center gap-3 text-base text-gray-700 font-medium">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>Real-time updates</span>
-              </div>
-              <div className="flex items-center gap-3 text-base text-gray-700 font-medium">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>Delivery notifications</span>
-              </div>
-              <div className="flex items-center gap-3 text-base text-gray-700 font-medium">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>24/7 support</span>
-              </div>
-            </div>
           </div>
         )}
 
-        {/* Helpful Information Section */}
-        {!trackingData && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            {/* How to Track Guide */}
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300 shadow-lg">
-              <CardHeader className="bg-blue-600 text-white">
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Search className="w-5 h-5" />
-                  How to Track Your Order
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 p-6">
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5 shadow-md">1</div>
-                    <div>
-                      <p className="font-semibold text-gray-900 text-base">Find Your Order Number</p>
-                      <p className="text-sm text-gray-700 mt-1">Check your email confirmation or account orders page</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5 shadow-md">2</div>
-                    <div>
-                      <p className="font-semibold text-gray-900 text-base">Enter Your Details</p>
-                      <p className="text-sm text-gray-700 mt-1">Use the same email address you used when placing the order</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5 shadow-md">3</div>
-                    <div>
-                      <p className="font-semibold text-gray-900 text-base">Get Real-Time Updates</p>
-                      <p className="text-sm text-gray-700 mt-1">View live tracking, delivery status, and estimated arrival time</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Order Status Guide */}
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-300 shadow-lg">
-              <CardHeader className="bg-green-600 text-white">
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Package className="w-5 h-5" />
-                  Order Status Guide
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 p-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-gray-600 rounded-full shadow-sm"></div>
-                    <span className="text-sm font-semibold text-gray-900">Received</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-yellow-600 rounded-full shadow-sm"></div>
-                    <span className="text-sm font-semibold text-gray-900">Processing</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-blue-600 rounded-full shadow-sm"></div>
-                    <span className="text-sm font-semibold text-gray-900">Shipped</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-purple-600 rounded-full shadow-sm"></div>
-                    <span className="text-sm font-semibold text-gray-900">Out for Delivery</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-green-600 rounded-full shadow-sm"></div>
-                    <span className="text-sm font-semibold text-gray-900">Delivered</span>
-                  </div>
-                </div>
-                <div className="mt-4 p-4 bg-green-200 rounded-lg border border-green-300">
-                  <p className="text-sm text-green-900 font-medium">
-                    <strong>Tip:</strong> Orders typically ship within 1-2 business days and arrive in 2-3 days.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Contact Support Section */}
-        {!trackingData && (
-          <Card className="mb-8 bg-gradient-to-r from-[#12d6fa]/10 to-[#0bc4e8]/10 border-[#12d6fa]/30 shadow-lg">
-            <CardContent className="p-8">
-              <div className="text-center space-y-6">
-                <div className="w-20 h-20 bg-[#12d6fa] rounded-full flex items-center justify-center mx-auto shadow-lg">
-                  <MessageCircle className="w-10 h-10 text-white" />
-                </div>
-                <h3 className="text-3xl font-bold text-gray-900">Need Help?</h3>
-                <p className="text-gray-700 max-w-2xl mx-auto text-lg font-medium">
-                  Can't find your order or having trouble tracking? Our support team is here to help you 24/7.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-                  <Button className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-semibold px-6 py-3 shadow-lg">
-                    <Phone className="w-5 h-5 mr-2" />
-                    Call Support
-                  </Button>
-                  <Button variant="outline" className="border-2 border-[#12d6fa] text-[#12d6fa] hover:bg-[#12d6fa] hover:text-white font-semibold px-6 py-3">
-                    <Mail className="w-5 h-5 mr-2" />
-                    Email Support
-                  </Button>
-                  <Button variant="outline" className="border-2 border-[#12d6fa] text-[#12d6fa] hover:bg-[#12d6fa] hover:text-white font-semibold px-6 py-3">
-                    <MessageCircle className="w-5 h-5 mr-2" />
-                    Live Chat
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* FAQ Section */}
-        {!trackingData && (
-          <Card className="mb-8 shadow-lg border-gray-200">
-            <CardHeader className="bg-gray-50 border-b border-gray-200">
-              <CardTitle className="text-center text-3xl font-bold text-gray-900">Frequently Asked Questions</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="border-l-4 border-[#12d6fa] pl-6 py-2 bg-blue-50 rounded-r-lg">
-                    <h4 className="font-bold text-gray-900 text-lg">How long does delivery take?</h4>
-                    <p className="text-gray-700 mt-2 font-medium">Most orders are delivered within 2-3 business days after shipping.</p>
-                  </div>
-                  <div className="border-l-4 border-[#12d6fa] pl-6 py-2 bg-blue-50 rounded-r-lg">
-                    <h4 className="font-bold text-gray-900 text-lg">Can I change my delivery address?</h4>
-                    <p className="text-gray-700 mt-2 font-medium">Address changes can be made before the order ships. Contact support for assistance.</p>
-                  </div>
-                  <div className="border-l-4 border-[#12d6fa] pl-6 py-2 bg-blue-50 rounded-r-lg">
-                    <h4 className="font-bold text-gray-900 text-lg">What if I'm not home during delivery?</h4>
-                    <p className="text-gray-700 mt-2 font-medium">The courier will attempt delivery 3 times. After that, you can arrange pickup.</p>
-                  </div>
-                </div>
-                <div className="space-y-6">
-                  <div className="border-l-4 border-[#12d6fa] pl-6 py-2 bg-blue-50 rounded-r-lg">
-                    <h4 className="font-bold text-gray-900 text-lg">How do I get tracking updates?</h4>
-                    <p className="text-gray-700 mt-2 font-medium">You'll receive email notifications at each major milestone of your order.</p>
-                  </div>
-                  <div className="border-l-4 border-[#12d6fa] pl-6 py-2 bg-blue-50 rounded-r-lg">
-                    <h4 className="font-bold text-gray-900 text-lg">Can I track without an account?</h4>
-                    <p className="text-gray-700 mt-2 font-medium">Yes! Just enter your order number and email address to track any order.</p>
-                  </div>
-                  <div className="border-l-4 border-[#12d6fa] pl-6 py-2 bg-blue-50 rounded-r-lg">
-                    <h4 className="font-bold text-gray-900 text-lg">What if my order is delayed?</h4>
-                    <p className="text-gray-700 mt-2 font-medium">We'll notify you of any delays and work to resolve them quickly.</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Tracking Results */}
+        {/* Streamlined Tracking Results */}
         {trackingData && (
           <div className="space-y-6">
-            {/* Status Header with Progress */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
+            {/* Order Status Header */}
+            <Card className="bg-gradient-to-r from-[#12d6fa]/5 to-[#0bc4e8]/5 border-[#12d6fa]/20">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
                   <div>
-                    <CardTitle className="text-xl">Order {trackingData.orderId}</CardTitle>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Last updated {formatLastUpdated(trackingData.lastUpdated)}
-                    </p>
+                    <h2 className="text-2xl font-bold text-gray-900">Order {trackingData.orderId}</h2>
+                    <p className="text-gray-600">Last updated {formatLastUpdated(trackingData.lastUpdated)}</p>
                   </div>
-                  <Badge className="bg-blue-100 text-blue-800 text-sm px-3 py-1">
+                  <Badge className="bg-[#12d6fa] text-white text-sm px-4 py-2">
                     {trackingData.status.replace('_', ' ')}
                   </Badge>
                 </div>
-              </CardHeader>
-              <CardContent>
                 <ProgressBar status={trackingData.status} checkpoints={trackingData.checkpoints} />
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* ETA Card */}
+            {/* Key Information Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Delivery ETA */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Calendar className="w-5 h-5" />
-                    Delivery ETA
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Calendar className="w-6 h-6 text-[#12d6fa]" />
+                    <h3 className="text-lg font-semibold">Delivery ETA</h3>
+                  </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">
+                    <div className="text-2xl font-bold text-[#12d6fa] mb-2">
                       {formatETA(trackingData.eta)}
                     </div>
                     <p className="text-sm text-gray-500">
@@ -793,27 +590,25 @@ export default function TrackOrderPage() {
                 </CardContent>
               </Card>
 
-              {/* Courier Card */}
+              {/* Courier Info */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Truck className="w-5 h-5" />
-                    Courier Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{trackingData.carrier.name}</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => window.open(trackingData.carrier.trackingUrl, '_blank')}
-                    >
-                      <ExternalLink className="w-4 h-4 mr-1" />
-                      Track
-                    </Button>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Truck className="w-6 h-6 text-[#12d6fa]" />
+                    <h3 className="text-lg font-semibold">Courier Information</h3>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{trackingData.carrier.name}</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(trackingData.carrier.trackingUrl, '_blank')}
+                      >
+                        <ExternalLink className="w-4 h-4 mr-1" />
+                        Track
+                      </Button>
+                    </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-500">Tracking Number:</span>
                       <div className="flex items-center gap-2">
@@ -829,63 +624,58 @@ export default function TrackOrderPage() {
                         </Button>
                       </div>
                     </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="w-full"
-                    onClick={() => {
-                      // Refresh tracking data
-                      toast.success("Refreshing tracking information...")
-                    }}
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Refresh Status
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Order Summary Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Package className="w-5 h-5" />
-                    Order Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    {trackingData.summary.items.map((item, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0"></div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{item.name}</p>
-                          <p className="text-xs text-gray-500">Qty: {item.qty}</p>
-                        </div>
-                        <SaudiRiyal amount={item.price * item.qty} language={language} />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="border-t pt-3 space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span>Subtotal:</span>
-                      <SaudiRiyal amount={trackingData.summary.totals.subtotal} language={language} />
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Shipping:</span>
-                      <SaudiRiyal amount={trackingData.summary.totals.shipping} language={language} />
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Tax:</span>
-                      <SaudiRiyal amount={trackingData.summary.totals.tax} language={language} />
-                    </div>
-                    <div className="flex justify-between font-semibold border-t pt-1">
-                      <span>Total:</span>
-                      <SaudiRiyal amount={trackingData.summary.totals.total} language={language} />
-                    </div>
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => toast.success("Refreshing tracking information...")}
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Refresh Status
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             </div>
+
+            {/* Order Summary */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Package className="w-6 h-6 text-[#12d6fa]" />
+                  <h3 className="text-lg font-semibold">Order Summary</h3>
+                </div>
+                <div className="space-y-3">
+                  {trackingData.summary.items.map((item, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0"></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{item.name}</p>
+                        <p className="text-sm text-gray-500">Qty: {item.qty}</p>
+                      </div>
+                      <SaudiRiyal amount={item.price * item.qty} language={language} />
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t pt-4 mt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal:</span>
+                    <SaudiRiyal amount={trackingData.summary.totals.subtotal} language={language} />
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Shipping:</span>
+                    <SaudiRiyal amount={trackingData.summary.totals.shipping} language={language} />
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Tax:</span>
+                    <SaudiRiyal amount={trackingData.summary.totals.tax} language={language} />
+                  </div>
+                  <div className="flex justify-between font-semibold border-t pt-2">
+                    <span>Total:</span>
+                    <SaudiRiyal amount={trackingData.summary.totals.total} language={language} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Timeline */}
             <Card>
@@ -893,18 +683,6 @@ export default function TrackOrderPage() {
                 <Timeline checkpoints={trackingData.checkpoints} />
               </CardContent>
             </Card>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3 justify-center">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Download Invoice
-              </Button>
-              <Button variant="outline" className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4" />
-                Contact Support
-              </Button>
-            </div>
           </div>
         )}
       </div>

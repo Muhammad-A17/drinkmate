@@ -263,7 +263,7 @@ export default function Header({ currentPage }: HeaderProps) {
                     {isAuthenticated ? (
                       <>
                         <div className="px-5 py-3 text-sm text-slate-700 border-b border-slate-100 bg-slate-50/50">
-                          Signed in as <span className="font-semibold text-slate-900">{user?.username}</span>
+                          Signed in as <span className="font-semibold text-slate-900">{user?.name || user?.username}</span>
                         </div>
 
                         <Link
@@ -572,7 +572,7 @@ export default function Header({ currentPage }: HeaderProps) {
                   {isAuthenticated ? (
                     <>
                       <div className="px-5 py-3 text-sm text-slate-700 bg-slate-50">
-                        Signed in as <span className="font-bold text-slate-900">{user?.username}</span>
+                        Signed in as <span className="font-bold text-slate-900">{user?.name || user?.username}</span>
                       </div>
 
                       <Link

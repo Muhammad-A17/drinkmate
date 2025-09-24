@@ -40,13 +40,23 @@ export default function RegisterPage() {
   
   const router = useRouter();
   const { register, isAuthenticated } = useAuth();
+  const [redirectPath, setRedirectPath] = useState("/");
+
+  // Get redirect parameter from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirect = urlParams.get('redirect');
+    if (redirect) {
+      setRedirectPath(redirect);
+    }
+  }, []);
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/");
+      router.push(redirectPath);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, redirectPath]);
 
   // Calculate password strength
   useEffect(() => {
@@ -178,8 +188,9 @@ export default function RegisterPage() {
           icon: <CheckCircle2 className="h-5 w-5" />
         });
         setTimeout(() => {
-          // Redirect with success message
-          router.push(`/login?message=${encodeURIComponent("Account created successfully! Please sign in.")}`);
+          // Redirect to login with success message and preserve redirect path
+          const redirectParam = redirectPath !== "/" ? `&redirect=${encodeURIComponent(redirectPath)}` : "";
+          router.push(`/login?message=${encodeURIComponent("Account created successfully! Please sign in.")}${redirectParam}`);
         }, 1500);
       } else {
         toast.error(result.message, {

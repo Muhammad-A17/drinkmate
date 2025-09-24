@@ -49,11 +49,12 @@ export interface Invoice {
 
 export interface Address {
   id: string
-  firstName: string
-  lastName: string
+  fullName: string
+  phone: string
   district: string
   city: string
-  phone: string
+  country: string
+  nationalAddress?: string
   isDefault: boolean
   createdAt: string
   updatedAt: string

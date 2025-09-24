@@ -6,7 +6,18 @@ import { useState, useMemo } from "react"
 import { Price, PriceWithBadge } from "./Price"
 import { ColorSwatches } from "./ColorSwatches"
 import { QuickView } from "./CardFooter"
-import { ProductCardProps, Variant, Product } from "@/types/product"
+import { ProductCardProps, Product } from "@/lib/types"
+
+// Define Variant interface locally since it was removed
+interface Variant {
+  id: string
+  colorName?: string
+  colorHex?: string
+  image?: string
+  price: number
+  compareAtPrice?: number
+  inStock: boolean
+}
 import { cn } from "@/lib/utils"
 import { Heart, Eye, ShoppingCart, Star, Zap, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -106,7 +117,7 @@ export default function ProductCard({
   const onAdd = () => {
     if (!onAddToCart) return
     onAddToCart({
-      productId: product.id,
+      productId: String(product._id || product.id || ''),
       variantId: selected?.id,
       qty,
     })
@@ -160,7 +171,7 @@ export default function ProductCard({
               return (
                 <YouTubeThumbnail
                   url={imageUrl}
-                  alt={product.title}
+                  alt={product.title || product.name || 'Product image'}
                   fill
                   className="object-cover transition-transform duration-300 hover:scale-105"
                   showPlayButton={true}
@@ -325,7 +336,7 @@ export default function ProductCard({
         isOpen={showQuickView}
         onClose={() => setShowQuickView(false)}
         product={{
-          title: product.title,
+          title: product.title || product.name || '',
           description: product.description,
           price: finalPrice,
           compareAtPrice: comparePrice,

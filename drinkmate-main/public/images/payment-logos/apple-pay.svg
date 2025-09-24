@@ -1,0 +1,7 @@
+<svg width="40" height="16" viewBox="0 0 40 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="40" height="16" rx="2" fill="white" stroke="#E5E7EB"/>
+  <g transform="translate(4, 2)">
+    <path d="M8 1.5C7.5 1.5 7 1.8 6.5 2.2C6 1.8 5.5 1.5 5 1.5C4 1.5 3 2.2 3 3.5C3 4.2 3.2 4.8 3.8 5.5C4.2 5.8 4.5 6.2 4.8 6.5C5 6.8 5.2 7 5.5 7.2C5.8 7.4 6 7.5 6.2 7.5C6.5 7.5 6.8 7.4 7 7.2C7.2 7 7.5 6.8 7.8 6.5C8 6.2 8.2 5.8 8.5 5.5C9.2 4.8 9.5 4.2 9.5 3.5C9.5 2.2 8.5 1.5 8 1.5Z" fill="#000000"/>
+    <text x="6" y="10" text-anchor="middle" fill="#000000" font-family="Arial, sans-serif" font-size="4" font-weight="bold">Apple</text>
+  </g>
+</svg>

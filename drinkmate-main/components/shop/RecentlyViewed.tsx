@@ -15,7 +15,7 @@ import {
   ArrowRight
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Product } from '@/types/product'
+import { Product } from '@/lib/types'
 import Image from 'next/image'
 
 interface RecentlyViewedProps {
@@ -145,7 +145,7 @@ export default function RecentlyViewed({
                           <div className="aspect-square relative rounded-lg overflow-hidden mb-3">
                             <Image
                               src={product.image}
-                              alt={product.title}
+                              alt={product.title || product.name || 'Product image'}
                               fill
                               className="object-cover group-hover:scale-105 transition-transform duration-300"
                             />
