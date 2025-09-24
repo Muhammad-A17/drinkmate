@@ -608,40 +608,39 @@ export default function OrderDetailsPage() {
                     <p className="text-sm">{order.shippingAddress.fullName}</p>
                   )}
                 </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Email</label>
-                    {editing ? (
-                      <Input
-                        value={editData.shippingAddress?.email || order.shippingAddress.email}
-                        onChange={(e) => handleAddressChange('email', e.target.value)}
-                        className="mt-1"
-                      />
-                    ) : (
-                      <p className="text-sm flex items-center gap-1">
-                        <Mail className="w-3 h-3" />
-                        {order.shippingAddress.email}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Phone</label>
-                    {editing ? (
-                      <Input
-                        value={editData.shippingAddress?.phone || order.shippingAddress.phone}
-                        onChange={(e) => handleAddressChange('phone', e.target.value)}
-                        className="mt-1"
-                      />
-                    ) : (
-                      <p className="text-sm flex items-center gap-1">
-                        <Phone className="w-3 h-3" />
-                        {order.shippingAddress.phone}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Username</label>
-                    <p className="text-sm">{order.user.username}</p>
-                  </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Email</label>
+                  {editing ? (
+                    <Input
+                      value={editData.shippingAddress?.email || order.shippingAddress.email}
+                      onChange={(e) => handleAddressChange('email', e.target.value)}
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="text-sm flex items-center gap-1">
+                      <Mail className="w-3 h-3" />
+                      {order.shippingAddress.email}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Phone</label>
+                  {editing ? (
+                    <Input
+                      value={editData.shippingAddress?.phone || order.shippingAddress.phone}
+                      onChange={(e) => handleAddressChange('phone', e.target.value)}
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="text-sm flex items-center gap-1">
+                      <Phone className="w-3 h-3" />
+                      {order.shippingAddress.phone}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Username</label>
+                  <p className="text-sm">{order.user.username}</p>
                 </div>
               </CardContent>
             </Card>
