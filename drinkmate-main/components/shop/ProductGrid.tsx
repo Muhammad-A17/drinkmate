@@ -50,23 +50,6 @@ export default function ProductGrid({
 }) {
   const { addItem } = useCart()
   const { animationState, triggerAddAnimation, hideNotification } = useCartAnimations()
-  // Loading state
-  if (loading) {
-    return (
-      <div className={className}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <ProductCardSkeleton key={i} />
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  // Empty state
-  if (products.length === 0) {
-    return <EmptyState isRTL={dir === "rtl"} />
-  }
 
   // Convert old product format to new format if needed
   const convertProduct = (product: any): Product => {
@@ -143,6 +126,24 @@ export default function ProductGrid({
   const convertedProducts = useMemo(() => {
     return products.map(product => convertProduct(product))
   }, [products])
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={className}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Empty state
+  if (products.length === 0) {
+    return <EmptyState isRTL={dir === "rtl"} />
+  }
 
   const handleAddToCart = (payload: { productId: string; variantId?: string; qty: number }) => {
     console.log('handleAddToCart called with payload:', payload)
