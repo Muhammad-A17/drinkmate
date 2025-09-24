@@ -612,6 +612,7 @@ export default function CheckoutPage() {
                           onChange={(e) => handleCardDetailsChange("expiryMonth", e.target.value)}
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
                           required
+                          aria-label="Expiry month"
                         >
                           <option value="">MM</option>
                           {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
@@ -627,6 +628,7 @@ export default function CheckoutPage() {
                           value={cardDetails.expiryYear}
                           onChange={(e) => handleCardDetailsChange("expiryYear", e.target.value)}
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                          aria-label="Expiry year"
                           required
                         >
                           <option value="">YYYY</option>
