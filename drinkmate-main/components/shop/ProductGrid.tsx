@@ -50,6 +50,12 @@ export default function ProductGrid({
 }) {
   const { addItem } = useCart()
   const { animationState, triggerAddAnimation, hideNotification } = useCartAnimations()
+  
+  // Convert all products once for consistent data
+  const convertedProducts = useMemo(() => {
+    return products.map(product => convertProduct(product))
+  }, [products])
+  
   // Loading state
   if (loading) {
     return (
@@ -138,11 +144,6 @@ export default function ProductGrid({
     
     return convertedProduct
   }
-
-  // Convert all products once for consistent data
-  const convertedProducts = useMemo(() => {
-    return products.map(product => convertProduct(product))
-  }, [products])
 
   const handleAddToCart = (payload: { productId: string; variantId?: string; qty: number }) => {
     console.log('handleAddToCart called with payload:', payload)
