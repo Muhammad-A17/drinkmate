@@ -14,37 +14,41 @@ import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
 import { getImageUrl } from "@/lib/image-utils"
+import TabbyInfoDialog from "@/components/checkout/TabbyInfoDialog"
 
 export default function CheckoutPage() {
   const router = useRouter()
   const { state, clearCart, removeItem, updateQuantity } = useCart()
   const { user } = useAuth()
   
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("urways")
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("card")
   const [isProcessing, setIsProcessing] = useState(false)
   const [isPageLoading, setIsPageLoading] = useState(true)
-  
-  // Card details state
-  const [cardDetails, setCardDetails] = useState({
-    cardNumber: "",
-    cardholderName: "",
-    expiryMonth: "",
-    expiryYear: "",
-    cvv: ""
-  })
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const [showTabbyDialog, setShowTabbyDialog] = useState(false)
   
   // Delivery options state
   const [selectedDeliveryOption, setSelectedDeliveryOption] = useState("standard")
+  const [shipToDifferentAddress, setShipToDifferentAddress] = useState(false)
+  const [orderNotes, setOrderNotes] = useState("")
   const [deliveryAddress, setDeliveryAddress] = useState({
     firstName: (user as any)?.firstName || "",
     lastName: (user as any)?.lastName || "",
     email: user?.email || "",
     phone: (user as any)?.phone || "",
-    address1: "",
-    address2: "",
+    district: "",
     city: "",
-    state: "",
-    postalCode: "",
+    country: "Saudi Arabia"
+  })
+  
+  // Shipping address (if different from billing)
+  const [shippingAddress, setShippingAddress] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    district: "",
+    city: "",
     country: "Saudi Arabia"
   })
 
@@ -84,11 +88,49 @@ export default function CheckoutPage() {
     return () => clearTimeout(loadingTimer)
   }, [state.items.length, router])
 
-  const handleCardDetailsChange = (field: string, value: string) => {
-    setCardDetails(prev => ({
-      ...prev,
-      [field]: value
-    }))
+  // Auto-fetch user data when user is logged in
+  useEffect(() => {
+    if (user) {
+      console.log('User data for checkout:', user);
+      setDeliveryAddress(prev => ({
+        ...prev,
+        firstName: (user as any)?.firstName || user.name?.split(' ')[0] || "",
+        lastName: (user as any)?.lastName || user.name?.split(' ').slice(1).join(' ') || "",
+        email: user.email || "",
+        phone: (user as any)?.phone || "",
+        district: (user as any)?.district || "",
+        city: (user as any)?.city || ""
+      }))
+      
+      // Also set shipping address to same as delivery if user has address data
+      if ((user as any)?.firstName || user.name) {
+        setShippingAddress(prev => ({
+          ...prev,
+          firstName: (user as any)?.firstName || user.name?.split(' ')[0] || "",
+          lastName: (user as any)?.lastName || user.name?.split(' ').slice(1).join(' ') || "",
+          email: user.email || "",
+          phone: (user as any)?.phone || "",
+          district: (user as any)?.district || "",
+          city: (user as any)?.city || ""
+        }))
+      }
+    }
+  }, [user])
+
+  // Payment provider configuration (would come from admin panel)
+  const paymentProviders = {
+    card: {
+      name: "Pay",
+      description: "Pay securely by credit or debit card or online banking through secure online payment servers.",
+      logo: "/images/payment-logos/urways-payment.png",
+      gateway: "urways" // This would be configurable via admin
+    },
+    tabby: {
+      name: "tabby",
+      description: "Divide it by 4. Without any interest or fees.",
+      logo: "/images/payment-logos/tabby.png",
+      gateway: "tabby"
+    }
   }
 
   const handleAddressChange = (field: string, value: string) => {
@@ -98,20 +140,34 @@ export default function CheckoutPage() {
     }))
   }
 
+  const handleShippingAddressChange = (field: string, value: string) => {
+    setShippingAddress(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
   const validateForm = () => {
+    // Validate main address
     if (!deliveryAddress.firstName || !deliveryAddress.lastName || !deliveryAddress.email || 
-        !deliveryAddress.phone || !deliveryAddress.address1 || !deliveryAddress.city || 
-        !deliveryAddress.state || !deliveryAddress.postalCode) {
-      toast.error("Please fill in all required delivery address fields")
+        !deliveryAddress.phone || !deliveryAddress.district || !deliveryAddress.city) {
+      toast.error("Please fill in all required fields")
       return false
     }
 
-    if (selectedPaymentMethod === "urways" || selectedPaymentMethod === "tap") {
-      if (!cardDetails.cardNumber || !cardDetails.cardholderName || 
-          !cardDetails.expiryMonth || !cardDetails.expiryYear || !cardDetails.cvv) {
-        toast.error("Please fill in all card details")
+    // Validate shipping address if different
+    if (shipToDifferentAddress) {
+      if (!shippingAddress.firstName || !shippingAddress.lastName || !shippingAddress.email || 
+          !shippingAddress.phone || !shippingAddress.district || !shippingAddress.city) {
+        toast.error("Please fill in all required shipping address fields")
         return false
       }
+    }
+
+    // Validate terms agreement
+    if (!agreedToTerms) {
+      toast.error("Please agree to the terms and conditions")
+      return false
     }
 
     return true
@@ -131,10 +187,12 @@ export default function CheckoutPage() {
           quantity: item.quantity,
           image: item.image
         })),
-        shippingAddress: deliveryAddress,
-        paymentMethod: selectedPaymentMethod === "urways" ? "urways" : "tap_payment",
+        shippingAddress: shipToDifferentAddress ? shippingAddress : deliveryAddress,
+        billingAddress: deliveryAddress,
+        shipToDifferentAddress: shipToDifferentAddress,
+        orderNotes: orderNotes,
+        paymentMethod: paymentProviders[selectedPaymentMethod as keyof typeof paymentProviders].gateway,
         deliveryOption: selectedDeliveryOption,
-        cardDetails: selectedPaymentMethod === "urways" || selectedPaymentMethod === "tap" ? cardDetails : null,
         subtotal: subtotal,
         shippingCost: shippingCost,
         tax: tax,
@@ -161,9 +219,12 @@ export default function CheckoutPage() {
         cancelUrl: `${window.location.origin}/payment/cancel`
       }
 
+      // Get the selected payment gateway
+      const selectedGateway = paymentProviders[selectedPaymentMethod as keyof typeof paymentProviders].gateway
+      
       let paymentResponse: any
-      if (selectedPaymentMethod === "urways") {
-        // Call backend API directly
+      if (selectedGateway === "urways") {
+        // Call backend API directly for Urways
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
         paymentResponse = await fetch(`${backendUrl}/payments/urways`, {
           method: 'POST',
@@ -173,8 +234,19 @@ export default function CheckoutPage() {
           },
           body: JSON.stringify(paymentRequest)
         })
+      } else if (selectedGateway === "tabby") {
+        // Call backend API for Tabby
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+        paymentResponse = await fetch(`${backendUrl}/payments/tabby`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null}`
+          },
+          body: JSON.stringify(paymentRequest)
+        })
       } else {
-        // For Tap, use the payment service
+        // For other gateways (like Tap), use the payment service
         paymentResponse = await paymentService.processTapPayment(paymentRequest)
         // Convert to Response-like object for consistency
         paymentResponse = {
@@ -238,129 +310,199 @@ export default function CheckoutPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Delivery Address */}
+          {/* Streamlined Delivery Address Form */}
           <div className="lg:col-span-2 bg-white rounded-2xl px-6 pt-6 pb-6 shadow-lg self-start">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
               <MapPin className="w-6 h-6" />
-              Delivery Address
+              Delivery Information
             </h2>
             
-            <div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
-                   <input
-                     type="text"
-                     value={deliveryAddress.firstName}
-                     onChange={(e) => handleAddressChange("firstName", e.target.value)}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                     aria-label="First Name"
-                     placeholder="First Name"
-                     required
-                   />
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
-                   <input
-                     type="text"
-                     value={deliveryAddress.lastName}
-                     onChange={(e) => handleAddressChange("lastName", e.target.value)}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                     aria-label="Last Name"
-                     placeholder="Last Name"
-                     required
-                   />
-                 </div>
+            <div className="space-y-6">
+              {/* Name Fields */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                  <input
+                    type="text"
+                    value={deliveryAddress.firstName}
+                    onChange={(e) => handleAddressChange("firstName", e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
+                    placeholder="First Name"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                  <input
+                    type="text"
+                    value={deliveryAddress.lastName}
+                    onChange={(e) => handleAddressChange("lastName", e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
+                    placeholder="Last Name"
+                    required
+                  />
+                </div>
               </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                 <input
-                   type="email"
-                   value={deliveryAddress.email}
-                   onChange={(e) => handleAddressChange("email", e.target.value)}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                   aria-label="Email"
-                   placeholder="Email"
-                   required
-                 />
+
+              {/* Country (Read-only) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Country (optional)</label>
+                <div className="w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
+                  Saudi Arabia
+                </div>
               </div>
-              
-              <div className="mb-4">
+
+              {/* District and City */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">District *</label>
+                  <input
+                    type="text"
+                    value={deliveryAddress.district}
+                    onChange={(e) => handleAddressChange("district", e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
+                    placeholder="District"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                  <input
+                    type="text"
+                    value={deliveryAddress.city}
+                    onChange={(e) => handleAddressChange("city", e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
+                    placeholder="City"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
-                 <input
-                   type="tel"
-                   value={deliveryAddress.phone}
-                   onChange={(e) => handleAddressChange("phone", e.target.value)}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                   aria-label="Phone"
-                   placeholder="Phone"
-                   required
-                 />
+                <input
+                  type="tel"
+                  value={deliveryAddress.phone}
+                  onChange={(e) => handleAddressChange("phone", e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
+                  placeholder="Phone Number"
+                  required
+                />
               </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Address Line 1 *</label>
-                 <input
-                   type="text"
-                   value={deliveryAddress.address1}
-                   onChange={(e) => handleAddressChange("address1", e.target.value)}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                   aria-label="Address Line 1"
-                   placeholder="Address Line 1"
-                   required
-                 />
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email (optional)</label>
+                <input
+                  type="email"
+                  value={deliveryAddress.email}
+                  onChange={(e) => handleAddressChange("email", e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
+                  placeholder="Email Address"
+                />
               </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Address Line 2</label>
-                 <input
-                   type="text"
-                   value={deliveryAddress.address2}
-                   onChange={(e) => handleAddressChange("address2", e.target.value)}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                   aria-label="Address Line 2"
-                   placeholder="Address Line 2 (optional)"
-                 />
+
+              {/* Ship to Different Address Checkbox */}
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="shipToDifferentAddress"
+                  checked={shipToDifferentAddress}
+                  onChange={(e) => setShipToDifferentAddress(e.target.checked)}
+                  className="w-5 h-5 text-[#12d6fa] border-gray-300 rounded focus:ring-[#12d6fa]"
+                />
+                <label htmlFor="shipToDifferentAddress" className="text-sm font-medium text-gray-700">
+                  Ship to a different address?
+                </label>
               </div>
-              
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
-                   <input
-                     type="text"
-                     value={deliveryAddress.city}
-                     onChange={(e) => handleAddressChange("city", e.target.value)}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                     aria-label="City"
-                     placeholder="City"
-                     required
-                   />
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
-                   <input
-                     type="text"
-                     value={deliveryAddress.state}
-                     onChange={(e) => handleAddressChange("state", e.target.value)}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                     aria-label="State"
-                     placeholder="State"
-                     required
-                   />
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code *</label>
-                   <input
-                     type="text"
-                     value={deliveryAddress.postalCode}
-                     onChange={(e) => handleAddressChange("postalCode", e.target.value)}
-                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                     aria-label="Postal Code"
-                     placeholder="Postal Code"
-                     required
-                   />
-                 </div>
+
+              {/* Shipping Address Fields (Conditional) */}
+              {shipToDifferentAddress && (
+                <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">Shipping Address</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                      <input
+                        type="text"
+                        value={shippingAddress.firstName}
+                        onChange={(e) => handleShippingAddressChange("firstName", e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                        placeholder="First Name"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                      <input
+                        type="text"
+                        value={shippingAddress.lastName}
+                        onChange={(e) => handleShippingAddressChange("lastName", e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                        placeholder="Last Name"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">District *</label>
+                      <input
+                        type="text"
+                        value={shippingAddress.district}
+                        onChange={(e) => handleShippingAddressChange("district", e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                        placeholder="District"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                      <input
+                        type="text"
+                        value={shippingAddress.city}
+                        onChange={(e) => handleShippingAddressChange("city", e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                        placeholder="City"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                    <input
+                      type="tel"
+                      value={shippingAddress.phone}
+                      onChange={(e) => handleShippingAddressChange("phone", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                      placeholder="Phone Number"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email (optional)</label>
+                    <input
+                      type="email"
+                      value={shippingAddress.email}
+                      onChange={(e) => handleShippingAddressChange("email", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                      placeholder="Email Address"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Order Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Order notes (optional)</label>
+                <textarea
+                  value={orderNotes}
+                  onChange={(e) => setOrderNotes(e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
+                  placeholder="Notes about your order, e.g. special notes for delivery."
+                  rows={3}
+                />
               </div>
             </div>
           </div>
@@ -483,195 +625,144 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Payment Method Section */}
+            {/* Simplified Payment Method Section */}
             <div className="border-t border-gray-200 pt-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Payment Method</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Payment Method</h2>
               
-                {/* Urways - Priority */}
+              <div className="space-y-4">
+                {/* Card Payment Option */}
                 <div
-                className={`border-2 rounded-lg p-3 cursor-pointer transition-all duration-200 mb-3 ${
-                    selectedPaymentMethod === "urways"
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                    selectedPaymentMethod === "card"
                       ? "border-[#12d6fa] bg-[#12d6fa]/5"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
-                  onClick={() => setSelectedPaymentMethod("urways")}
+                  onClick={() => setSelectedPaymentMethod("card")}
                 >
                   <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-6 rounded flex items-center justify-center">
-                        <Image
-                          src="/images/payment-logos/urways-logo.svg"
-                          alt="Urways"
-                        width={40}
-                        height={24}
-                          className="object-contain"
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          name="payment"
+                          value="card"
+                          checked={selectedPaymentMethod === "card"}
+                          onChange={() => setSelectedPaymentMethod("card")}
+                          className="w-4 h-4 text-[#12d6fa] border-gray-300 focus:ring-[#12d6fa]"
                         />
+                        <span className="text-lg font-semibold text-gray-900">Pay</span>
                       </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                        <h3 className="font-semibold text-gray-900 text-sm">Urways</h3>
-                          <span className="bg-[#12d6fa] text-white text-xs px-2 py-1 rounded-full">
-                            Recommended
-                          </span>
+                      <div className="flex items-center">
+                        <div className="w-32 h-8 bg-white rounded flex items-center justify-center border border-gray-200">
+                          <Image
+                            src={paymentProviders.card.logo}
+                            alt="Payment methods"
+                            width={120}
+                            height={30}
+                            className="object-contain"
+                          />
+                        </div>
                       </div>
-                      <p className="text-xs text-gray-600">Secure payment gateway</p>
                     </div>
                   </div>
-                  <div className={`w-4 h-4 rounded-full border-2 ${
-                      selectedPaymentMethod === "urways"
-                        ? "border-[#12d6fa] bg-[#12d6fa]"
-                        : "border-gray-300"
-                    }`}>
-                      {selectedPaymentMethod === "urways" && (
-                        <div className="w-full h-full rounded-full bg-[#12d6fa] flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                        </div>
-                      )}
-                    </div>
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      {paymentProviders.card.description}
+                    </p>
                   </div>
                 </div>
 
-                {/* Tap Payment */}
+                {/* Tabby Payment Option */}
                 <div
-                className={`border-2 rounded-lg p-3 cursor-pointer transition-all duration-200 mb-4 ${
-                    selectedPaymentMethod === "tap"
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                    selectedPaymentMethod === "tabby"
                       ? "border-[#12d6fa] bg-[#12d6fa]/5"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
-                  onClick={() => setSelectedPaymentMethod("tap")}
+                  onClick={() => setSelectedPaymentMethod("tabby")}
                 >
                   <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-6 rounded flex items-center justify-center">
-                        <Image
-                          src="/images/payment-logos/tap-logo.svg"
-                          alt="Tap Payment"
-                        width={40}
-                        height={24}
-                          className="object-contain"
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          name="payment"
+                          value="tabby"
+                          checked={selectedPaymentMethod === "tabby"}
+                          onChange={() => setSelectedPaymentMethod("tabby")}
+                          className="w-4 h-4 text-[#12d6fa] border-gray-300 focus:ring-[#12d6fa]"
                         />
-                      </div>
-                      <div>
-                      <h3 className="font-semibold text-gray-900 text-sm">Tap Payment</h3>
-                      <p className="text-xs text-gray-600">Fast and secure digital payments</p>
-                    </div>
-                  </div>
-                  <div className={`w-4 h-4 rounded-full border-2 ${
-                      selectedPaymentMethod === "tap"
-                        ? "border-[#12d6fa] bg-[#12d6fa]"
-                        : "border-gray-300"
-                    }`}>
-                      {selectedPaymentMethod === "tap" && (
-                        <div className="w-full h-full rounded-full bg-[#12d6fa] flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                        <div className="w-20 h-8 bg-white rounded flex items-center justify-center border border-gray-200">
+                          <Image
+                            src={paymentProviders.tabby.logo}
+                            alt="tabby"
+                            width={60}
+                            height={24}
+                            className="object-contain"
+                          />
                         </div>
-                      )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">{paymentProviders.tabby.description}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setShowTabbyDialog(true)
+                          }}
+                          className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center hover:bg-gray-500 transition-colors"
+                        >
+                          <span className="text-white text-xs">i</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-              
-              {/* Card Details Form */}
-              {(selectedPaymentMethod === "urways" || selectedPaymentMethod === "tap") && (
-                <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                  <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
-                    Card Details
-                  </h3>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Card Number *</label>
-                      <input
-                        type="text"
-                        value={cardDetails.cardNumber}
-                        onChange={(e) => handleCardDetailsChange("cardNumber", e.target.value)}
-                        placeholder="1234 5678 9012 3456"
-                        maxLength={19}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Cardholder Name *</label>
-                      <input
-                        type="text"
-                        value={cardDetails.cardholderName}
-                        onChange={(e) => handleCardDetailsChange("cardholderName", e.target.value)}
-                        placeholder="John Doe"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                        required
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Month *</label>
-                        <select
-                          value={cardDetails.expiryMonth}
-                          onChange={(e) => handleCardDetailsChange("expiryMonth", e.target.value)}
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                          required
-                          aria-label="Expiry month"
-                        >
-                          <option value="">MM</option>
-                          {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                            <option key={month} value={month.toString().padStart(2, '0')}>
-                              {month.toString().padStart(2, '0')}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Year *</label>
-                        <select
-                          value={cardDetails.expiryYear}
-                          onChange={(e) => handleCardDetailsChange("expiryYear", e.target.value)}
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                          aria-label="Expiry year"
-                          required
-                        >
-                          <option value="">YYYY</option>
-                          {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map(year => (
-                              <option key={year} value={year}>
-                                {year}
-                              </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">CVV *</label>
-                        <input
-                          type="text"
-                          value={cardDetails.cvv}
-                          onChange={(e) => handleCardDetailsChange("cvv", e.target.value)}
-                          placeholder="123"
-                          maxLength={4}
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
+            </div>
+
+            {/* Terms and Conditions */}
+            <div className="border-t border-gray-200 pt-6">
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our{" "}
+                  <a href="/privacy-policy" className="text-[#12d6fa] hover:underline">
+                    privacy policy
+                  </a>
+                  .
+                </p>
+                
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    className="w-4 h-4 text-[#12d6fa] border-gray-300 rounded focus:ring-[#12d6fa] mt-1"
+                    required
+                  />
+                  <label htmlFor="terms" className="text-sm text-gray-700">
+                    I have read and agree to the website{" "}
+                    <a href="/terms-of-service" className="text-[#12d6fa] hover:underline">
+                      terms and conditions
+                    </a>{" "}
+                    *
+                  </label>
                 </div>
-              )}
+              </div>
             </div>
 
               <Button
                 onClick={handlePayment}
-                disabled={isProcessing}
-                className="w-full mt-4 bg-[#12d6fa] hover:bg-[#0bc4e8] text-white py-3 rounded-lg font-semibold disabled:opacity-50"
+                disabled={isProcessing || !agreedToTerms}
+                className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-semibold text-lg disabled:opacity-50"
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                    <Loader2 className="mr-2 w-5 h-5 animate-spin" />
                     Processing Payment...
                   </>
                 ) : (
-                  <>
-                    <LockIcon className="mr-2 w-4 h-4" />
-                    Pay <SaudiRiyal amount={total} />
-                  </>
+                  "Place Order"
                 )}
               </Button>
           </div>
@@ -679,6 +770,14 @@ export default function CheckoutPage() {
       </div>
       
       <Footer />
+      
+      {/* Tabby Info Dialog */}
+      <TabbyInfoDialog
+        isOpen={showTabbyDialog}
+        onClose={() => setShowTabbyDialog(false)}
+        orderTotal={total}
+      />
     </div>
   )
 }
+

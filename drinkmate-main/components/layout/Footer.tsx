@@ -420,6 +420,14 @@ export default function Footer() {
                 className="h-6 w-auto md:h-7"
                 loading="lazy"
               />
+              <Image
+                src="/images/payment-logos/tabby.png"
+                alt="Tabby"
+                width={80}
+                height={24}
+                className="h-6 w-auto md:h-7"
+                loading="lazy"
+              />
             </div>
             <span className="ml-6">Delivery partner:</span>
             <Image

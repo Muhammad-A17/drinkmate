@@ -42,6 +42,7 @@ export default function LoginPageContent() {
       const redirect = searchParams.get('redirect');
       if (redirect) {
         setRedirectPath(redirect);
+        console.log('Redirect path set to:', redirect);
       }
 
       const message = searchParams.get('message');
