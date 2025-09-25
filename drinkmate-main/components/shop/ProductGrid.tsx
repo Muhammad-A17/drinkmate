@@ -147,7 +147,7 @@ export default function ProductGrid({
     return <EmptyState isRTL={dir === "rtl"} />
   }
 
-  const handleAddToCart = (payload: { productId: string; variantId?: string; qty: number }) => {
+  const handleAddToCart = (payload: { productId: string; variantId?: string; qty: number; isBundle?: boolean }) => {
     console.log('handleAddToCart called with payload:', payload)
     console.log('Available converted products:', convertedProducts.map(p => ({ id: p.id, title: p.title })))
     
@@ -164,13 +164,18 @@ export default function ProductGrid({
     const displayImage = getProductImageUrl(product, '/placeholder-product.jpg')
     console.log('Display image (processed):', displayImage)
     
+    const isBundle = payload.isBundle || (product as any).isBundle || false
     const cartItem = {
       id: payload.productId,
       name: product.title || product.name || '',
       price: product.price,
       quantity: payload.qty,
       image: displayImage, // Use the processed image URL
-      category: typeof product.category === 'string' ? product.category : product.category?.name || 'Product'
+      category: typeof product.category === 'string' ? product.category : product.category?.name || 'Product',
+      productId: isBundle ? undefined : payload.productId, // Include product ID for regular products
+      bundleId: isBundle ? payload.productId : undefined, // Include bundle ID for bundles
+      productType: isBundle ? 'bundle' as const : 'product' as const,
+      isBundle: isBundle
     }
 
     console.log('Final cart item:', cartItem)

@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { getAuthToken } from './auth-context';
 import { fallbackCylinders, fallbackFlavors, fallbackProducts } from './fallback-data';
+import { ErrorHandler, createApiResponse } from './error-handler';
 
 // Re-export getAuthToken for other modules to use from this single import
 export { getAuthToken };
@@ -596,8 +597,20 @@ export const shopAPI = {
     const cacheKey = `bundle-${idOrSlug}`;
     
     return retryRequest(async () => {
-      const response = await api.get(`/shop/bundles/${idOrSlug}`);
-      return response.data;
+      try {
+        const response = await api.get(`/shop/bundles/${idOrSlug}`);
+        return response.data;
+      } catch (error: any) {
+        // Handle 404 errors gracefully
+        if (error.response?.status === 404) {
+          return {
+            success: false,
+            message: 'Bundle not found',
+            bundle: null
+          };
+        }
+        throw error;
+      }
     }, cacheKey);
   },
 
@@ -1324,70 +1337,182 @@ export const testimonialAPI = {
   }
 };
 
-// Admin API
+// Admin API - Standardized with automatic token handling
 export const adminAPI = {
   // Products
   getProducts: async (filters?: any) => {
-    const token = getAuthToken();
-    const response = await api.get('/admin/products', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      params: filters
-    });
-    return response.data;
+    try {
+      const response = await api.get('/admin/products', {
+        params: filters
+      });
+      return response.data;
+    } catch (error: any) {
+      const apiError = ErrorHandler.handle(error, 'Admin API - getProducts');
+      return createApiResponse(false, [], apiError.message, apiError.code);
+    }
   },
 
   getProduct: async (id: string) => {
-    const token = getAuthToken();
-    const response = await api.get(`/admin/products/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.get(`/admin/products/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getProduct:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch product',
+        product: null
+      };
+    }
   },
 
   createProduct: async (productData: any) => {
-    const token = getAuthToken();
-    const response = await api.post('/admin/products', productData, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.post('/admin/products', productData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - createProduct:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to create product',
+        product: null
+      };
+    }
   },
 
   updateProduct: async (id: string, productData: any) => {
-    const token = getAuthToken();
-    const response = await api.put(`/admin/products/${id}`, productData, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.put(`/admin/products/${id}`, productData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - updateProduct:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to update product',
+        product: null
+      };
+    }
   },
 
   deleteProduct: async (id: string) => {
-    const token = getAuthToken();
-    const response = await api.delete(`/admin/products/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.delete(`/admin/products/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - deleteProduct:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to delete product',
+        deleted: false
+      };
+    }
+  },
+
+  // Orders
+  getOrders: async (filters?: any) => {
+    try {
+      const response = await api.get('/admin/orders', {
+        params: filters
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getOrders:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch orders',
+        orders: []
+      };
+    }
+  },
+
+  getOrder: async (id: string) => {
+    try {
+      const response = await api.get(`/admin/orders/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getOrder:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch order',
+        order: null
+      };
+    }
+  },
+
+  updateOrderStatus: async (id: string, status: string) => {
+    try {
+      const response = await api.put(`/admin/orders/${id}/status`, { status });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - updateOrderStatus:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to update order status',
+        order: null
+      };
+    }
+  },
+
+  // Users
+  getUsers: async (filters?: any) => {
+    try {
+      const response = await api.get('/admin/users', {
+        params: filters
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getUsers:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch users',
+        users: []
+      };
+    }
+  },
+
+  getUser: async (id: string) => {
+    try {
+      const response = await api.get(`/admin/users/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getUser:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch user',
+        user: null
+      };
+    }
+  },
+
+  updateUser: async (id: string, userData: any) => {
+    try {
+      const response = await api.put(`/admin/users/${id}`, userData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - updateUser:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to update user',
+        user: null
+      };
+    }
   },
 
   // Bundles
   getBundles: async (filters?: any) => {
-    const token = getAuthToken();
-    const response = await api.get('/admin/bundles', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      params: filters
-    });
-    return response.data;
+    try {
+      const response = await api.get('/admin/bundles', {
+        params: filters
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getBundles:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch bundles',
+        bundles: []
+      };
+    }
   },
 
   getBundle: async (id: string) => {

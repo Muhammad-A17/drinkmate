@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
   phone: {
     type: String,
     trim: true,
-    match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
+    match: [/^(\+966|966|0)?[5-9][0-9]{8}$/, 'Please enter a valid Saudi phone number (e.g., 0507551812)']
   },
   
   // Address Information
@@ -216,7 +216,11 @@ userSchema.methods.generateAuthToken = function() {
       isAdmin: this.isAdmin 
     },
     process.env.JWT_SECRET || 'default_dev_secret',
-    { expiresIn: '2d' }
+    { 
+      expiresIn: '2d',
+      issuer: 'drinkmate-api',
+      audience: 'drinkmate-client'
+    }
   );
 };
 

@@ -526,11 +526,14 @@ export default function AdminRecipesPage() {
     }))
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user || !user.isAdmin) {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
-          <p className="text-gray-500">Please log in to access this page.</p>
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+            <p className="text-gray-500">You need admin privileges to access this page.</p>
+          </div>
         </div>
       </AdminLayout>
     )

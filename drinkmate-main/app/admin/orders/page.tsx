@@ -1,6 +1,9 @@
 "use client"
 
 import { useState, useEffect, useMemo, useCallback, ReactNode } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
+import { adminAPI } from "@/lib/api"
 import AdminLayout from "@/components/layout/AdminLayout"
 import AdminActionBar, { AdminActions } from "@/components/admin/AdminActionBar"
 import AdminTable, { CellRenderers, type TableColumn, type ContextTableAction } from "@/components/admin/AdminTable"
@@ -97,6 +100,9 @@ interface OrderFilters {
 }
 
 export default function OrdersPage() {
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
+  
   const [orders, setOrders] = useState<Order[]>([])
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -132,6 +138,19 @@ export default function OrdersPage() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+
+  // Authentication check
+  useEffect(() => {
+    // Wait for authentication to complete
+    if (isLoading) return
+    
+    // Check if user is authenticated and is admin
+    if (!isAuthenticated || !user || !user.isAdmin) {
+      console.log('User not authenticated or not admin:', { user, isAuthenticated, isAdmin: user?.isAdmin })
+      router.push('/admin/login')
+      return
+    }
+  }, [user, isAuthenticated, isLoading, router])
   
   // Memoized pagination calculations for performance
   const paginationData = useMemo(() => {
@@ -214,30 +233,26 @@ export default function OrdersPage() {
       setLoading(true);
       toast.info("Loading orders...");
       
-      // Try to fetch from API
-      try {
-        const { orderAPI } = await import('@/lib/api');
-        const response = await orderAPI.getAllOrders();
-        
-        if (response.success && response.orders) {
-          setOrders(response.orders);
-          // Update stats
-          setOrderStats({
-            total: response.orders.length,
-            pending: response.orders.filter((o: Order) => o.status === 'pending').length,
-            processing: response.orders.filter((o: Order) => o.status === 'processing').length,
-            delivered: response.orders.filter((o: Order) => o.status === 'delivered').length,
-            revenue: response.orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0),
-            avgOrderValue: response.orders.length ? 
-              response.orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0) / response.orders.length : 0
-          });
-          setLoading(false);
-          toast.success(`Loaded ${response.orders.length} orders successfully`);
-          return;
-        }
-      } catch (error) {
-        console.error('Error fetching from API:', error);
-        toast.error("Failed to load orders from API");
+      // Use standardized adminAPI
+      const response = await adminAPI.getOrders();
+      
+      if (response.success && response.orders) {
+        setOrders(response.orders);
+        // Update stats
+        setOrderStats({
+          total: response.orders.length,
+          pending: response.orders.filter((o: Order) => o.status === 'pending').length,
+          processing: response.orders.filter((o: Order) => o.status === 'processing').length,
+          delivered: response.orders.filter((o: Order) => o.status === 'delivered').length,
+          revenue: response.orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0),
+          avgOrderValue: response.orders.length ? 
+            response.orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0) / response.orders.length : 0
+        });
+        setLoading(false);
+        toast.success(`Loaded ${response.orders.length} orders successfully`);
+        return;
+      } else {
+        toast.error(response.message || "Failed to load orders from API");
         // Fall back to mock data
       }
       
@@ -944,6 +959,33 @@ export default function OrdersPage() {
       priority: 10
     }
   ]
+
+  // Authentication checks
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="w-6 h-6 animate-spin" />
+            <span>Authenticating...</span>
+          </div>
+        </div>
+      </AdminLayout>
+    )
+  }
+
+  if (!isAuthenticated || !user || !user.isAdmin) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+            <p className="text-gray-600">You need admin privileges to access this page.</p>
+          </div>
+        </div>
+      </AdminLayout>
+    )
+  }
 
   return (
     <AdminLayout>

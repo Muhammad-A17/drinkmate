@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/translation-context'
 import { useAuth, getAuthToken } from '@/lib/auth-context'
-import { useToast } from '@/lib/toast-context'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -72,7 +72,6 @@ interface Order {
 export default function AccountDashboard() {
   const { language, isRTL } = useTranslation()
   const { user, refreshUser } = useAuth()
-  const { showSuccess, showError } = useToast()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -196,9 +195,8 @@ export default function AccountDashboard() {
     try {
       // Basic validation
       if (!profile.name.trim()) {
-        showError(
-          language === 'AR' ? 'يرجى ملء الاسم الكامل' : 'Please fill in full name',
-          language === 'AR' ? 'الاسم الكامل مطلوب' : 'Full name is required'
+        toast.error(
+          language === 'AR' ? 'يرجى ملء الاسم الكامل' : 'Please fill in full name'
         )
         return
       }
@@ -206,8 +204,7 @@ export default function AccountDashboard() {
       // Make API call to save the profile
       const token = getAuthToken()
       if (!token) {
-        showError(
-          language === 'AR' ? 'غير مسجل الدخول' : 'Not authenticated',
+        toast.error(
           language === 'AR' ? 'يرجى تسجيل الدخول أولاً' : 'Please log in first'
         )
         return
@@ -251,15 +248,13 @@ export default function AccountDashboard() {
 
       setIsEditingProfile(false)
       
-      showSuccess(
-        language === 'AR' ? 'تم حفظ الملف الشخصي بنجاح!' : 'Profile saved successfully!',
-        language === 'AR' ? 'تم تحديث معلومات الملف الشخصي الخاصة بك' : 'Your profile information has been updated'
+      toast.success(
+        language === 'AR' ? 'تم حفظ الملف الشخصي بنجاح!' : 'Profile saved successfully!'
       )
     } catch (error) {
       console.error('Error saving profile:', error)
-      showError(
-        language === 'AR' ? 'حدث خطأ في حفظ الملف الشخصي' : 'Error saving profile',
-        language === 'AR' ? 'يرجى المحاولة مرة أخرى' : 'Please try again'
+      toast.error(
+        language === 'AR' ? 'حدث خطأ في حفظ الملف الشخصي' : 'Error saving profile'
       )
     }
   }
@@ -270,17 +265,15 @@ export default function AccountDashboard() {
       
       // Basic validation
       if (!profile.district.trim() || !profile.city.trim()) {
-        showError(
-          language === 'AR' ? 'يرجى ملء الحي والمدينة' : 'Please fill in district and city',
-          language === 'AR' ? 'جميع الحقول المطلوبة يجب أن تكون مملوءة' : 'All required fields must be filled'
+        toast.error(
+          language === 'AR' ? 'يرجى ملء الحي والمدينة' : 'Please fill in district and city'
         )
         return
       }
 
       // Validate national address format if provided
       if (profile.nationalAddress && !/^[A-Z]{4}[0-9]{4}$/.test(profile.nationalAddress)) {
-        showError(
-          language === 'AR' ? 'تنسيق العنوان الوطني غير صحيح' : 'Invalid national address format',
+        toast.error(
           language === 'AR' ? 'يجب أن يكون التنسيق: 4 أحرف متبوعة بـ 4 أرقام (مثال: JESA3591)' : 'Format must be: 4 letters followed by 4 numbers (e.g., JESA3591)'
         )
         return
@@ -289,8 +282,7 @@ export default function AccountDashboard() {
       // Make API call to save the address
       const token = getAuthToken()
       if (!token) {
-        showError(
-          language === 'AR' ? 'غير مسجل الدخول' : 'Not authenticated',
+        toast.error(
           language === 'AR' ? 'يرجى تسجيل الدخول أولاً' : 'Please log in first'
         )
         return
@@ -343,15 +335,13 @@ export default function AccountDashboard() {
       
       // Show success message
       console.log('Address saved successfully!')
-      showSuccess(
-        language === 'AR' ? 'تم حفظ العنوان بنجاح!' : 'Address saved successfully!',
-        language === 'AR' ? 'تم تحديث معلومات العنوان الخاصة بك' : 'Your address information has been updated'
+      toast.success(
+        language === 'AR' ? 'تم حفظ العنوان بنجاح!' : 'Address saved successfully!'
       )
     } catch (error) {
       console.error('Error saving address:', error)
-      showError(
-        language === 'AR' ? 'حدث خطأ في حفظ العنوان' : 'Error saving address',
-        language === 'AR' ? 'يرجى المحاولة مرة أخرى' : 'Please try again'
+      toast.error(
+        language === 'AR' ? 'حدث خطأ في حفظ العنوان' : 'Error saving address'
       )
     } finally {
       setIsSavingAddress(false)

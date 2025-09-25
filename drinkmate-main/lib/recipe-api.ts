@@ -112,7 +112,7 @@ export const recipeAPI = {
         if (filters.sortBy) params.append('sortBy', filters.sortBy);
         if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
         
-        const response = await api.get(`/recipes?${params}`, { 
+        const response = await api.get(`/api/recipes?${params}`, { 
           headers,
           timeout: 10000 // 10 second timeout
         });
@@ -166,10 +166,10 @@ export const recipeAPI = {
         const token = getAuthToken();
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
         
-        const response = await api.get(`/recipes/slug/${slug}`, { 
-          headers,
-          timeout: 10000
-        });
+      const response = await api.get(`/api/recipes/slug/${slug}`, { 
+        headers,
+        timeout: 10000
+      });
         
         return response.data;
       }, cacheKey, 2, 2000);
@@ -207,7 +207,7 @@ export const recipeAPI = {
         const token = getAuthToken();
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
         
-        const response = await api.get(`/recipes/admin/${id}`, { 
+        const response = await api.get(`/api/recipes/admin/${id}`, { 
           headers,
           timeout: 10000
         });
@@ -240,7 +240,7 @@ export const recipeAPI = {
     
     try {
       return await retryRequest(async () => {
-        const response = await api.get('/recipes/featured', { 
+        const response = await api.get('/api/recipes/featured', { 
           timeout: 10000
         });
         
@@ -277,7 +277,7 @@ export const recipeAPI = {
     
     try {
       return await retryRequest(async () => {
-        const response = await api.get(`/recipes/category/${category}`, { 
+        const response = await api.get(`/api/recipes/category/${category}`, { 
           timeout: 10000
         });
         
@@ -319,7 +319,7 @@ export const recipeAPI = {
 
       const headers = { 'Authorization': `Bearer ${token}` };
       
-      const response = await api.post('/recipes', 
+      const response = await api.post('/api/recipes', 
         recipeData, 
         { 
           headers, 
@@ -368,7 +368,7 @@ export const recipeAPI = {
 
       const headers = { 'Authorization': `Bearer ${token}` };
       
-      const response = await api.put(`/recipes/${recipeId}`, 
+      const response = await api.put(`/api/recipes/${recipeId}`, 
         recipeData, 
         { 
           headers, 
@@ -414,7 +414,7 @@ export const recipeAPI = {
 
       const headers = { 'Authorization': `Bearer ${token}` };
       
-      const response = await api.delete(`/recipes/${recipeId}`, { 
+      const response = await api.delete(`/api/recipes/${recipeId}`, { 
         headers, 
         timeout: 10000
       });
@@ -442,7 +442,7 @@ export const recipeAPI = {
     }
     
     try {
-      const response = await api.post(`/recipes/${recipeId}/rate`, 
+      const response = await api.post(`/api/recipes/${recipeId}/rate`, 
         { rating }, 
         { timeout: 10000 }
       );

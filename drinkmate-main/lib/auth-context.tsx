@@ -346,6 +346,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (data && data.user) {
         console.log("Updating user state with:", data.user);
+        console.log("Phone in response:", data.user.phone);
+        console.log("District in response:", data.user.district);
+        console.log("City in response:", data.user.city);
+        console.log("NationalAddress in response:", data.user.nationalAddress);
+        
         setAuthState(prev => ({
           ...prev,
           user: data.user,

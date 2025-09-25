@@ -52,7 +52,8 @@ export default function ProductCard({
              typeof product.images?.[0] === 'object' ? product.images[0]?.url || product.image || '/placeholder.svg' :
              product.image || '/placeholder.svg',
       quantity: 1,
-      productType: 'product' as const
+      productType: 'product' as const,
+      productId: product._id // Include product ID for checkout
     }
 
     addItem(cartItem)

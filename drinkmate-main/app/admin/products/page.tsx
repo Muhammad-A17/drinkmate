@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
 import { SafeImage } from "@/components/ui/safe-image"
 import AdminLayout from "@/components/layout/AdminLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -48,7 +49,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import ProductForm from "@/components/admin/ProductForm"
 import { adminAPI } from "@/lib/api"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 // Define types for better type safety
 interface Product {
@@ -90,6 +91,9 @@ interface ProductFormData {
 }
 
 export default function ProductsPage() {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const router = useRouter()
+  
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [categoryMap, setCategoryMap] = useState<{[key: string]: string}>({})
@@ -103,9 +107,19 @@ export default function ProductsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isViewProductOpen, setIsViewProductOpen] = useState(false)
-  
-  const router = useRouter()
-  const { toast } = useToast()
+
+  // Authentication check
+  useEffect(() => {
+    // Wait for authentication to complete
+    if (authLoading) return
+    
+    // Check if user is authenticated and is admin
+    if (!isAuthenticated || !user || !user.isAdmin) {
+      console.log('User not authenticated or not admin:', { user, isAuthenticated, isAdmin: user?.isAdmin })
+      router.push('/admin/login')
+      return
+    }
+  }, [user, isAuthenticated, authLoading, router])
 
   // Helper function to create category if it doesn't exist
   const createCategoryIfNotExists = async (categoryName: string): Promise<string> => {
@@ -169,21 +183,13 @@ export default function ProductsPage() {
         if (process.env.NODE_ENV === 'development') {
           console.error('Failed to fetch products:', response)
         }
-        toast({
-          title: "Failed to Load Products",
-          description: response.message || "Unable to retrieve products from the server. Please try again.",
-          variant: "destructive"
-        })
+        toast.error(response.message || "Unable to retrieve products from the server. Please try again.")
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.error('Error fetching products:', error)
       }
-      toast({
-        title: "Connection Error",
-        description: "Unable to connect to the server. Please check your internet connection and try again.",
-        variant: "destructive"
-      })
+      toast.error("Unable to connect to the server. Please check your internet connection and try again.")
     } finally {
       setIsLoading(false)
     }
@@ -280,21 +286,14 @@ export default function ProductsPage() {
         }
         setProducts(prevProducts => [newProduct, ...prevProducts])
         
-        toast({
-          title: "Success",
-          description: "Product created successfully"
-        })
+        toast.success("Product created successfully")
         setIsAddProductOpen(false)
       } else {
         throw new Error(response.message || 'Failed to create product')
       }
     } catch (error: any) {
       console.error('Error creating product:', error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create product",
-        variant: "destructive"
-      })
+      toast.error(error.message || "Failed to create product")
     } finally {
       setIsSubmitting(false)
     }
@@ -382,21 +381,14 @@ export default function ProductsPage() {
           prevProducts.map(p => p._id === editingProduct._id ? updatedProduct : p)
         )
         
-        toast({
-          title: "Success",
-          description: "Product updated successfully"
-        })
+        toast.success("Product updated successfully")
         setEditingProduct(null)
       } else {
         throw new Error(response.message || 'Failed to update product')
       }
     } catch (error: any) {
       console.error('Error updating product:', error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update product",
-        variant: "destructive"
-      })
+      toast.error(error.message || "Failed to update product")
     } finally {
       setIsSubmitting(false)
     }
@@ -414,20 +406,13 @@ export default function ProductsPage() {
         // Remove the product from the local state immediately
         setProducts(prevProducts => prevProducts.filter(p => p._id !== id))
         
-        toast({
-          title: "Success",
-          description: "Product deleted successfully"
-        })
+        toast.success("Product deleted successfully")
       } else {
         throw new Error(response.message || 'Failed to delete product')
       }
     } catch (error: any) {
       console.error('Error deleting product:', error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete product",
-        variant: "destructive"
-      })
+      toast.error(error.message || "Failed to delete product")
     }
   }
 
@@ -454,6 +439,33 @@ export default function ProductsPage() {
 
   // Handle page change
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber)
+
+  // Authentication checks
+  if (authLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="w-6 h-6 animate-spin" />
+            <span>Authenticating...</span>
+          </div>
+        </div>
+      </AdminLayout>
+    )
+  }
+
+  if (!isAuthenticated || !user || !user.isAdmin) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+            <p className="text-gray-600">You need admin privileges to access this page.</p>
+          </div>
+        </div>
+      </AdminLayout>
+    )
+  }
 
   return (
     <AdminLayout>

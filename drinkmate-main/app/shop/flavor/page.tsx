@@ -397,8 +397,21 @@ export default function FlavorPage() {
 
   // Function to render product cards using bundle-style ProductCard component
   function renderProductCard(product: Product) {
-    const handleAddToCart = (item: any) => {
-      addItem(item)
+    const handleAddToCart = (payload: { productId: string; variantId?: string; qty: number; isBundle?: boolean }) => {
+      // Convert payload to proper cart item format
+      const cartItem = {
+        id: payload.productId,
+        name: product.name,
+        price: product.price,
+        quantity: payload.qty,
+        image: product.image || (typeof product.images?.[0] === 'string' ? product.images[0] : product.images?.[0]?.url || '/placeholder.svg'),
+        category: typeof product.category === 'string' ? product.category : (product.category as any)?.name || 'Product',
+        productId: payload.isBundle ? undefined : payload.productId,
+        bundleId: payload.isBundle ? payload.productId : undefined,
+        productType: payload.isBundle ? 'bundle' as const : 'product' as const,
+        isBundle: payload.isBundle || false
+      }
+      addItem(cartItem)
     }
 
     const handleAddToWishlist = (product: any) => {
@@ -435,14 +448,17 @@ export default function FlavorPage() {
           images: product.images
         }}
         onAddToCart={({ productId, qty }: { productId: string; qty: number }) => {
-          handleAddToCart({
-            _id: productId,
+          const cartItem = {
+            id: productId,
             name: product.name,
             price: product.price,
             quantity: qty,
-            image: product.image,
-            category: product.category,
-          })
+            image: product.image || (typeof product.images?.[0] === 'string' ? product.images[0] : product.images?.[0]?.url || '/placeholder.svg'),
+            category: typeof product.category === 'string' ? product.category : (product.category as any)?.name || 'Product',
+            productId: productId,
+            productType: 'product' as const
+          }
+          addItem(cartItem)
         }}
         onAddToWishlist={handleAddToWishlist}
         onAddToComparison={handleAddToComparison}
@@ -532,19 +548,18 @@ export default function FlavorPage() {
                               badges: bundle.badge ? [bundle.badge] : undefined,
                             }}
                             onAddToCart={({ productId, qty }: { productId: string; qty: number }) => {
-                              handleAddToCart({
-                                _id: productId,
-                                id: bundle.id && typeof bundle.id === 'number' ? bundle.id : undefined,
-                                slug: bundle.slug || '',
+                              const cartItem = {
+                                id: productId,
                                 name: bundle.name,
                                 price: bundle.price,
-                                originalPrice: bundle.originalPrice,
+                                quantity: qty,
                                 image: bundle.image || '/placeholder.svg',
-                                category: "bundle",
-                                rating: bundle.rating || 5,
-                                reviews: bundle.reviews || 0,
-                                description: bundle.description || ''
-                              })
+                                category: typeof bundle.category === 'string' ? bundle.category : (bundle.category as any)?.name || 'Bundle',
+                                bundleId: productId,
+                                productType: 'bundle' as const,
+                                isBundle: true
+                              }
+                              addItem(cartItem)
                             }}
                             onAddToWishlist={() => {}}
                             onAddToComparison={() => {}}

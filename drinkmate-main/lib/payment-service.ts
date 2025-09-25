@@ -22,13 +22,23 @@ class PaymentService {
   // Urways Payment Integration - Now calls backend API
   async processUrwaysPayment(request: PaymentRequest): Promise<PaymentResponse> {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      
+      // Get token from localStorage with fallback
+      const token = localStorage.getItem('auth-token') || localStorage.getItem('token')
+      
+      if (!token) {
+        return {
+          success: false,
+          error: 'Authentication required for payment'
+        }
+      }
       
       const response = await fetch(`${backendUrl}/payments/urways`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(request)
       })
@@ -138,13 +148,23 @@ class PaymentService {
 
   private async verifyUrwaysPayment(transactionId: string): Promise<PaymentResponse> {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      
+      // Get token from localStorage with fallback
+      const token = localStorage.getItem('auth-token') || localStorage.getItem('token')
+      
+      if (!token) {
+        return {
+          success: false,
+          error: 'Authentication required for payment verification'
+        }
+      }
       
       const response = await fetch(`${backendUrl}/payments/urways/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ transactionId })
       })

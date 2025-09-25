@@ -4,7 +4,7 @@ interface ContactFormData {
   name: string
   email: string
   phone?: string
-  reason: string
+  topic: string  // Changed from 'reason' to 'topic' to match frontend
   orderNumber?: string
   message: string
   attachments?: Array<{
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const body: ContactFormData = await request.json()
     
     // Validate required fields
-    const requiredFields = ['name', 'email', 'reason', 'message']
+    const requiredFields = ['name', 'email', 'topic', 'message']
     const missingFields = requiredFields.filter(field => !body[field as keyof ContactFormData])
     
     if (missingFields.length > 0) {
@@ -66,9 +66,9 @@ export async function POST(request: NextRequest) {
             email: body.email,
             phone: body.phone || ''
           },
-          category: body.reason,
+          category: body.topic,
           orderNumber: body.orderNumber || '',
-          priority: body.reason === 'order' ? 'high' : 'medium'
+          priority: body.topic === 'order' ? 'high' : 'medium'
         })
       })
 
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         
         // Add the initial message directly to the chat using the model method
         // We'll need to add this message through the backend API that handles it properly
-        const messageContent = `Contact Form Submission:\n\nReason: ${body.reason}\nMessage: ${body.message}${body.attachments?.length ? `\n\nAttachments: ${body.attachments.length} file(s)` : ''}`
+        const messageContent = `Contact Form Submission:\n\nTopic: ${body.topic}\nMessage: ${body.message}${body.attachments?.length ? `\n\nAttachments: ${body.attachments.length} file(s)` : ''}`
         
         // Update the chat with the initial message using a direct database call
         const updateResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${chatData.data._id}`, {
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       ...body,
       submittedAt: new Date().toISOString(),
       status: 'new',
-      priority: body.reason === 'order' ? 'high' : 'normal'
+      priority: body.topic === 'order' ? 'high' : 'normal'
     }
 
     // Log the submission

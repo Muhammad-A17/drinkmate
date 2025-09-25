@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { useCart } from "@/lib/cart-context"
+import { useCart, CartItem } from "@/lib/cart-context"
 import { useAuth } from "@/lib/auth-context"
-import { orderAPI } from "@/lib/api"
+import { orderAPI, shopAPI, co2API } from "@/lib/api"
 import paymentService from "@/lib/payment-service"
 import { toast } from "sonner"
 import { CheckCircle, AlertCircle, LockIcon, CreditCard, Loader2, Truck, MapPin, X } from "lucide-react"
@@ -71,6 +71,55 @@ export default function CheckoutPage() {
   const tax = subtotal * 0.15
   const total = subtotal + shippingCost + tax
 
+  // Validate cart items and remove invalid ones
+  const validateCartItems = useCallback(async () => {
+    if (state.items.length === 0) return
+
+    const invalidItems: string[] = []
+    
+    for (const item of state.items) {
+      try {
+        let isValid = false
+        
+        if (item.productId && item.productType === 'product') {
+          const response = await shopAPI.getProduct(item.productId)
+          isValid = response.success && response.product
+        } else if (item.bundleId && item.productType === 'bundle') {
+          try {
+            const response = await shopAPI.getBundle(item.bundleId)
+            isValid = response.success && response.bundle
+          } catch (error) {
+            console.error(`Error validating bundle ${item.name}:`, error)
+            isValid = false
+          }
+        } else if (item.productType === 'cylinder') {
+          const response = await co2API.getCylinder(String(item.id))
+          isValid = response.success && response.cylinder
+        }
+        
+        if (!isValid) {
+          invalidItems.push(String(item.id))
+        }
+      } catch (error) {
+        console.error(`Error validating cart item ${item.name}:`, error)
+        invalidItems.push(String(item.id))
+      }
+    }
+    
+    // Remove invalid items from cart
+    if (invalidItems.length > 0) {
+      invalidItems.forEach(itemId => {
+        if (removeItem && typeof removeItem === 'function') {
+          removeItem(itemId)
+        }
+      })
+      
+      if (toast && typeof toast.error === 'function') {
+        toast.error(`${invalidItems.length} item(s) are no longer available and have been removed from your cart.`)
+      }
+    }
+  }, [state.items, removeItem])
+
   useEffect(() => {
     console.log("Checkout page loaded, cart items:", state.items.length)
     console.log("Cart state:", state)
@@ -83,10 +132,15 @@ export default function CheckoutPage() {
     if (state.items.length === 0) {
       toast.error("Your cart is empty")
       // Don't redirect - let user stay on checkout page
+    } else {
+      // Validate cart items on page load
+      validateCartItems().catch(error => {
+        console.error('Error validating cart items:', error)
+      })
     }
 
     return () => clearTimeout(loadingTimer)
-  }, [state.items.length, router])
+  }, [state.items.length, router, validateCartItems])
 
   // Auto-fetch user data when user is logged in
   useEffect(() => {
@@ -187,20 +241,98 @@ export default function CheckoutPage() {
     return true
   }
 
+  // Validate products before checkout
+  const validateProducts = useCallback(async (items: CartItem[]) => {
+    const validationErrors: string[] = []
+    
+    console.log('Validating cart items:', items.map(item => ({
+      id: item.id,
+      name: item.name,
+      productId: item.productId,
+      bundleId: item.bundleId,
+      productType: item.productType
+    })))
+    
+    for (const item of items) {
+      try {
+        // Check if it's a product
+        if (item.productId && item.productType === 'product') {
+          const response = await shopAPI.getProduct(item.productId)
+          if (!response.success || !response.product) {
+            validationErrors.push(`Product "${item.name}" is no longer available`)
+          }
+        }
+        // Check if it's a bundle
+        else if (item.bundleId && item.productType === 'bundle') {
+          try {
+            const response = await shopAPI.getBundle(item.bundleId)
+            if (!response.success || !response.bundle) {
+              validationErrors.push(`Bundle "${item.name}" is no longer available`)
+            }
+          } catch (error) {
+            console.error(`Error validating bundle ${item.name}:`, error)
+            validationErrors.push(`Bundle "${item.name}" is no longer available`)
+          }
+        }
+        // Check if it's a cylinder
+        else if (item.productType === 'cylinder') {
+          const response = await co2API.getCylinder(String(item.id))
+          if (!response.success || !response.cylinder) {
+            validationErrors.push(`Cylinder "${item.name}" is no longer available`)
+          }
+        }
+      } catch (error) {
+        console.error(`Error validating ${item.name}:`, error)
+        validationErrors.push(`Unable to verify availability of "${item.name}"`)
+      }
+    }
+    
+    return validationErrors
+  }, [])
+
   const handlePayment = async () => {
     if (!validateForm()) return
     
     setIsProcessing(true)
     
     try {
-      // First create the order
+      // First validate all products
+      console.log('Validating products before checkout...')
+      const validationErrors = await validateProducts(state.items)
+      
+      if (validationErrors.length > 0) {
+        if (toast && typeof toast.error === 'function') {
+          toast.error(`Some items are no longer available:\n${validationErrors.join('\n')}`)
+        }
+        setIsProcessing(false)
+        return
+      }
+
+      // Create the order
       const orderData = {
-        items: state.items.map(item => ({
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image
-        })),
+        items: state.items.map(item => {
+          // Map cart items to the format expected by the backend
+          const orderItem: any = {
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+            color: item.color,
+            sku: item.sku
+          }
+          
+          // Add either product or bundle ID based on item type
+          if (item.productId && item.productType === 'product') {
+            orderItem.product = item.productId
+          } else if (item.bundleId && item.productType === 'bundle') {
+            orderItem.bundle = item.bundleId
+          } else if (item.id) {
+            // Fallback: use the item ID as product ID if no specific type is set
+            orderItem.product = item.id
+          }
+          
+          return orderItem
+        }),
         shippingAddress: shipToDifferentAddress ? shippingAddress : deliveryAddress,
         billingAddress: deliveryAddress,
         shipToDifferentAddress: shipToDifferentAddress,
@@ -217,6 +349,23 @@ export default function CheckoutPage() {
       const orderResponse = await orderAPI.createOrder(orderData)
       
       if (!orderResponse.success) {
+        console.error('Order creation failed:', orderResponse)
+        
+        // Handle specific error cases
+        if (orderResponse.code === 'PRODUCT_NOT_FOUND') {
+          toast.error(`Product is no longer available. Please refresh your cart and try again.`)
+          // Refresh the page to reload cart data
+          window.location.reload()
+          return
+        }
+        
+        if (orderResponse.code === 'BUNDLE_NOT_FOUND') {
+          toast.error(`Bundle is no longer available. Please refresh your cart and try again.`)
+          // Refresh the page to reload cart data
+          window.location.reload()
+          return
+        }
+        
         toast.error(orderResponse.message || "Failed to create order")
         return
       }

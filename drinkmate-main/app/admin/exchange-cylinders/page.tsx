@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth, getAuthToken } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import AdminLayout from "@/components/layout/AdminLayout"
 import { Button } from "@/components/ui/button"
@@ -552,37 +552,28 @@ export default function ExchangeCylindersAdmin() {
     setIsDialogOpen(false)
   }
 
-  // Test API connection
+  // Test API connection using standardized approach
   const testApiConnection = async () => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('auth-token')
       const response = await fetch('/api/exchange-cylinders/cylinders', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${getAuthToken()}`,
+          'Content-Type': 'application/json'
         }
       })
       
       console.log('API connection test response:', response.status)
-      let data
       
-      try {
-        const text = await response.text()
-        console.log('API connection test raw text:', text.substring(0, 200) + '...')
-        data = JSON.parse(text)
-      } catch (parseError) {
-        console.error('Failed to parse API response:', parseError)
-        return {
-          success: false,
-          status: response.status,
-          error: 'Failed to parse response'
-        }
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
       
+      const data = await response.json()
       console.log('API connection data:', data)
       
       return {
-        success: response.ok,
+        success: true,
         status: response.status,
         data
       }
@@ -849,24 +840,12 @@ export default function ExchangeCylindersAdmin() {
               <Plus className="w-4 h-4" />
               Add Exchange Cylinder
             </Button>
-            <Button onClick={testCreateCylinder} variant="outline" className="flex items-center gap-2">
-              <RefreshCw className="w-4 h-4" />
-              Test Create
-            </Button>
-            <Button onClick={testApiConnection} variant="outline" className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4" />
-              Test API
-            </Button>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Package className="w-4 h-4" />
               <span>{filteredCylinders.length} Exchange Services</span>
             </div>
           </div>
           
-          {/* Debug info */}
-          <div className="text-xs text-gray-500 p-2 bg-yellow-100 rounded">
-            Debug: Total: {cylinders.length}, Filtered: {filteredCylinders.length}, Mounted: {mounted.toString()}, Loading: {loading.toString()}
-          </div>
         </div>
 
         {/* Controls */}

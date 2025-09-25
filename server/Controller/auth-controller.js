@@ -117,7 +117,11 @@ const register = async (req, res) => {
             const token = jwt.sign(
                 { id: userId, isAdmin: false },
                 process.env.JWT_SECRET,
-                { expiresIn: '2d' }
+                { 
+                    expiresIn: '2d',
+                    issuer: 'drinkmate-api',
+                    audience: 'drinkmate-client'
+                }
             );
             
             return res.status(201).json({ 
@@ -199,7 +203,11 @@ const login = async (req, res) => {
                 const token = jwt.sign(
                     { id: demoUser._id, isAdmin: demoUser.isAdmin },
                     process.env.JWT_SECRET,
-                    { expiresIn: '2d' }
+                    { 
+                        expiresIn: '2d',
+                        issuer: 'drinkmate-api',
+                        audience: 'drinkmate-client'
+                    }
                 );
 
                 return res.status(200).json({

@@ -64,7 +64,8 @@ export default function BundleStyleProductCard({
       const payload = {
         productId: String(product._id || product.id || ''),
         variantId: hasVariants ? product.variants?.[0]?.id : undefined,
-        qty: 1
+        qty: 1,
+        isBundle: true // Mark as bundle
       }
       console.log('Calling onAddToCart with payload:', payload)
       setIsAddingToCart(true)

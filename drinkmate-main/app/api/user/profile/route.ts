@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { withAuth } from '@/lib/auth-middleware'
 
-export async function PUT(request: NextRequest) {
+interface AuthenticatedRequest extends NextRequest {
+  user?: {
+    id: string
+    email: string
+    isAdmin: boolean
+  }
+}
+
+async function updateUserProfile(req: AuthenticatedRequest) {
   try {
-    const body = await request.json()
+    const body = await req.json()
     const { name, phone, district, city, nationalAddress } = body
 
     // Basic validation
@@ -28,37 +37,72 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // TODO: Replace with actual database update
-    // For now, we'll just return success
-    // In a real implementation, you would:
-    // 1. Verify the user is authenticated
-    // 2. Update the user record in the database
-    // 3. Return the updated user data
+    // Validate phone number format if provided (Saudi phone numbers)
+    if (phone && !/^(\+966|966|0)?[5-9][0-9]{8}$/.test(phone)) {
+      return NextResponse.json(
+        { error: 'Invalid phone number format. Please enter a valid Saudi phone number (e.g., 0507551812)' },
+        { status: 400 }
+      )
+    }
 
-    console.log('Updating user profile:', {
-      name,
-      phone,
-      district,
-      city,
-      nationalAddress
-    })
+    const userId = req.user?.id
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User not authenticated' },
+        { status: 401 }
+      )
+    }
 
-    // Simulate database update delay
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // Call backend API to update user profile
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    
+    try {
+      const response = await fetch(`${backendUrl}/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': req.headers.get('Authorization') || ''
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          phone: phone?.trim() || '',
+          district: district.trim(),
+          city: city.trim(),
+          nationalAddress: nationalAddress?.trim() || ''
+        })
+      })
 
-    // Return success response
-    return NextResponse.json({
-      success: true,
-      message: 'Profile updated successfully',
-      data: {
-        name,
-        phone,
-        district,
-        city,
-        country: 'Saudi Arabia',
-        nationalAddress
+      if (!response.ok) {
+        const errorData = await response.json()
+        return NextResponse.json(
+          { error: errorData.error || 'Failed to update profile' },
+          { status: response.status }
+        )
       }
-    })
+
+      const updatedUser = await response.json()
+
+      // Return success response with updated data
+      return NextResponse.json({
+        success: true,
+        message: 'Profile updated successfully',
+        data: {
+          name: updatedUser.user?.name || name,
+          phone: updatedUser.user?.phone || phone,
+          district: updatedUser.user?.district || district,
+          city: updatedUser.user?.city || city,
+          country: 'Saudi Arabia',
+          nationalAddress: updatedUser.user?.nationalAddress || nationalAddress
+        }
+      })
+
+    } catch (backendError) {
+      console.error('Backend API error:', backendError)
+      return NextResponse.json(
+        { error: 'Failed to connect to user service' },
+        { status: 503 }
+      )
+    }
 
   } catch (error) {
     console.error('Error updating user profile:', error)
@@ -68,3 +112,6 @@ export async function PUT(request: NextRequest) {
     )
   }
 }
+
+// Export the protected handler
+export const PUT = withAuth(updateUserProfile)
