@@ -8,6 +8,15 @@ export function getCustomerDisplayName(customer: Customer): string {
     return customer.displayName
   }
   
+  // Prioritize name field, then fullName, then construct from firstName/lastName
+  if (customer.name) {
+    return customer.name
+  }
+  
+  if (customer.fullName) {
+    return customer.fullName
+  }
+  
   const fullName = [customer.firstName, customer.lastName]
     .filter(Boolean)
     .join(' ')

@@ -26,4 +26,7 @@ router.put('/profile', authMiddleware, authController.updateUserProfile);
 router.post('/change-password', authMiddleware, authController.changePassword);
 router.post('/upload-avatar', authMiddleware, upload.single('avatar'), authController.uploadAvatar);
 
+// Development only - promote user to admin
+router.post('/promote-admin', authController.promoteToAdmin);
+
 module.exports = router;

@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { 
   User, 
   Mail, 
-  Phone, 
   Clock, 
   Tag, 
   Star, 
@@ -181,7 +180,7 @@ export default function CustomerPanel({
             )}
             {conversation.customer.phone && (
               <div className="flex items-center gap-2 text-sm">
-                <Phone className="w-4 h-4 text-gray-400" />
+                <User className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-600">{conversation.customer.phone}</span>
               </div>
             )}
@@ -332,10 +331,6 @@ export default function CustomerPanel({
           <Button variant="outline" size="sm" className="w-full justify-start">
             <Mail className="w-4 h-4 mr-2" />
             Send Email
-          </Button>
-          <Button variant="outline" size="sm" className="w-full justify-start">
-            <Phone className="w-4 h-4 mr-2" />
-            Call Customer
           </Button>
           <Button variant="outline" size="sm" className="w-full justify-start">
             <ShoppingBag className="w-4 h-4 mr-2" />

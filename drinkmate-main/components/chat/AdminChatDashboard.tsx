@@ -35,6 +35,8 @@ interface Chat {
   customer: {
     _id: string
     username: string
+    name?: string
+    fullName?: string
     firstName: string
     lastName: string
     email: string
@@ -43,6 +45,8 @@ interface Chat {
   admin?: {
     _id: string
     username: string
+    name?: string
+    fullName?: string
     firstName: string
     lastName: string
   }
@@ -654,7 +658,7 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
                     <div className="flex items-center gap-2 mb-2">
                       <User className="w-4 h-4 text-gray-500" />
                       <span className="font-medium text-sm">
-                        {activeChat.customer?.firstName || 'Unknown'} {activeChat.customer?.lastName || 'User'}
+                        {activeChat.customer?.name || activeChat.customer?.fullName || `${activeChat.customer?.firstName || ''} ${activeChat.customer?.lastName || ''}`.trim() || 'Unknown User'}
                       </span>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-gray-600">

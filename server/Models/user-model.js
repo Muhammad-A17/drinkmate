@@ -214,7 +214,8 @@ userSchema.methods.generateAuthToken = function() {
   return jwt.sign(
     { 
       id: this._id, 
-      isAdmin: this.isAdmin 
+      isAdmin: this.isAdmin,
+      role: this.role
     },
     process.env.JWT_SECRET || 'default_dev_secret',
     { 

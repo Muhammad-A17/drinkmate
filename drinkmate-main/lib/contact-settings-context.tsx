@@ -3,6 +3,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 interface ContactSettings {
+  businessHours: string
+  responseTime: string
+  autoReply: string
+  notificationEmail: string
+  maxConcurrentChats: number
   whatsapp: {
     enabled: boolean
     number: string
@@ -45,6 +50,11 @@ interface ContactSettings {
 }
 
 const defaultSettings: ContactSettings = {
+  businessHours: '9:00 AM - 5:00 PM (GMT+3)',
+  responseTime: 'Within 1 business day',
+  autoReply: 'Thank you for contacting us. We will get back to you soon.',
+  notificationEmail: 'admin@drinkmates.com',
+  maxConcurrentChats: 10,
   whatsapp: {
     enabled: true,
     number: '+966501234567',

@@ -3,10 +3,13 @@
 import React, { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
+import { LoadingLink } from "@/components/ui/LoadingLink"
 import Image from "next/image"
 import { useAuth } from "@/lib/auth-context"
 import { useTranslation } from "@/lib/translation-context"
 import { useAdminTranslation } from "@/lib/use-admin-translation"
+import { NavigationProvider } from "@/lib/navigation-context"
+import { NavigationLoader } from "@/components/ui/NavigationLoader"
 import { 
   LayoutDashboard, 
   Users, 
@@ -373,7 +376,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className={`flex h-screen bg-gray-100 ${isRTL ? 'rtl' : 'ltr'}`}>
+    <NavigationProvider>
+      <div className={`flex h-screen bg-gray-100 ${isRTL ? 'rtl' : 'ltr'}`}>
       {/* Sidebar for desktop - Premium Glassmorphism */}
       <aside 
         className={`fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto ${
@@ -385,7 +389,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="relative flex flex-col h-full">
           {/* Sidebar header */}
             <div className={`flex items-center ${isSidebarOpen ? "justify-between" : "justify-center"} h-16 px-4 border-b border-white/20`}>
-            <Link href="/admin" className={`flex items-center ${!isSidebarOpen && "justify-center"}`}>
+            <LoadingLink href="/admin" className={`flex items-center ${!isSidebarOpen && "justify-center"}`}>
               {isSidebarOpen ? (
                 <Image
                   src="/images/drinkmate-logo.png"
@@ -400,7 +404,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   D
                 </div>
               )}
-            </Link>
+            </LoadingLink>
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                 className="hidden lg:block text-gray-500 hover:text-gray-900 p-1 rounded-lg hover:bg-white/50 transition-all duration-200"
@@ -432,7 +436,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 const isActive = pathname === item.href
                 return (
                   <li key={item.name}>
-                    <Link
+                    <LoadingLink
                       href={item.href}
                       className={`flex items-center ${
                         isSidebarOpen ? "justify-start px-4" : "justify-center"
@@ -446,7 +450,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       {isSidebarOpen && (
                         <span className="ml-3 text-sm font-medium">{item.name}</span>
                       )}
-                    </Link>
+                    </LoadingLink>
                   </li>
                 )
               })}
@@ -461,7 +465,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 const isActive = pathname === item.href
                 return (
                   <li key={item.name}>
-                    <Link
+                    <LoadingLink
                       href={item.href}
                       className={`flex items-center ${
                         isSidebarOpen ? "justify-start px-4" : "justify-center"
@@ -475,7 +479,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       {isSidebarOpen && (
                         <span className="ml-3 text-sm font-medium">{item.name}</span>
                       )}
-                    </Link>
+                    </LoadingLink>
                   </li>
                 )
               })}
@@ -490,7 +494,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 const isActive = pathname === item.href
                 return (
                   <li key={item.name}>
-                    <Link
+                    <LoadingLink
                       href={item.href}
                       className={`flex items-center ${
                         isSidebarOpen ? "justify-start px-4" : "justify-center"
@@ -504,7 +508,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       {isSidebarOpen && (
                         <span className="ml-3 text-sm font-medium">{item.name}</span>
                       )}
-                    </Link>
+                    </LoadingLink>
                   </li>
                 )
               })}
@@ -519,7 +523,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 const isActive = pathname === item.href
                 return (
                   <li key={item.name}>
-                    <Link
+                    <LoadingLink
                       href={item.href}
                       className={`flex items-center ${
                         isSidebarOpen ? "justify-start px-4" : "justify-center"
@@ -533,7 +537,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       {isSidebarOpen && (
                         <span className="ml-3 text-sm font-medium">{item.name}</span>
                       )}
-                    </Link>
+                    </LoadingLink>
                   </li>
                 )
               })}
@@ -550,7 +554,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     const isActive = pathname === item.href
                     return (
                       <li key={item.name}>
-                        <Link
+                        <LoadingLink
                           href={item.href}
                           className={`flex items-center ${
                             isSidebarOpen ? "justify-start px-4" : "justify-center"
@@ -564,7 +568,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                           {isSidebarOpen && (
                             <span className="ml-3 text-sm font-medium">{item.name}</span>
                           )}
-                        </Link>
+                        </LoadingLink>
                       </li>
                     )
                   })}
@@ -579,10 +583,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <>
                   <div className="flex items-center mb-4 p-3 bg-gradient-to-r from-white/50 to-white/30 rounded-xl">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#12d6fa] to-blue-600 flex items-center justify-center text-white font-semibold shadow-lg">
-                    {user?.username?.charAt(0).toUpperCase() || "A"}
+                    {(user?.fullName || user?.name || user?.username)?.charAt(0).toUpperCase() || "A"}
                   </div>
                   <div className="ml-3 flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{user?.username}</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{user?.fullName || user?.name || user?.username}</p>
                       <p className="text-xs text-gray-600">Administrator</p>
                       <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                   </div>
@@ -612,7 +616,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             ) : (
               <div className="space-y-2">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#12d6fa] to-blue-600 flex items-center justify-center text-white font-semibold shadow-lg mx-auto">
-                  {user?.username?.charAt(0).toUpperCase() || "A"}
+                  {(user?.fullName || user?.name || user?.username)?.charAt(0).toUpperCase() || "A"}
                 </div>
                 <Button 
                   variant="outline" 
@@ -667,9 +671,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       </h1>
                 {getBreadcrumbs().length > 0 && (
                         <nav className="flex items-center text-sm text-gray-500 mt-1">
-                    <Link href="/admin" className="hover:text-[#12d6fa] transition-colors">
+                    <LoadingLink href="/admin" className="hover:text-[#12d6fa] transition-colors">
                       Admin
-                    </Link>
+                    </LoadingLink>
                     {getBreadcrumbs().map((breadcrumb, index) => (
                             <div key={index} className="flex items-center">
                               <span className="mx-2 text-gray-300">/</span>
@@ -678,12 +682,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             {breadcrumb.name.charAt(0).toUpperCase() + breadcrumb.name.slice(1)}
                           </span>
                         ) : (
-                          <Link 
+                          <LoadingLink 
                             href={breadcrumb.href} 
                             className="hover:text-[#12d6fa] transition-colors"
                           >
                             {breadcrumb.name.charAt(0).toUpperCase() + breadcrumb.name.slice(1)}
-                          </Link>
+                          </LoadingLink>
                         )}
                       </div>
                     ))}
@@ -741,10 +745,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               {/* User Info */}
                   <div className="hidden md:flex items-center gap-3">
                     <span className="text-sm text-gray-600">
-                  {t("common.welcome")}, {user?.username}
+                  {t("common.welcome")}, {user?.fullName || user?.username}
                 </span>
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#12d6fa] to-blue-600 flex items-center justify-center text-white font-semibold shadow">
-                  {user?.username?.charAt(0).toUpperCase() || "A"}
+                  {(user?.fullName || user?.username)?.charAt(0).toUpperCase() || "A"}
                     </div>
                   </div>
                 </div>
@@ -778,7 +782,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="relative flex flex-col h-full">
           {/* Mobile sidebar header */}
             <div className="flex items-center justify-between h-16 px-4 border-b border-white/20">
-            <Link href="/admin" className="flex items-center">
+            <LoadingLink href="/admin" className="flex items-center">
               <Image
                 src="/images/drinkmate-logo.png"
                 alt="Drinkmate"
@@ -787,7 +791,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 className="h-8 w-auto"
                 style={{ width: "auto", height: "auto" }}
               />
-            </Link>
+            </LoadingLink>
             <button 
               onClick={() => setIsMobileSidebarOpen(false)}
                 className="text-gray-500 hover:text-gray-900 p-2 rounded-lg hover:bg-white/50 transition-all duration-200"
@@ -810,7 +814,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 const isActive = pathname === item.href
                 return (
                   <li key={item.name}>
-                    <Link
+                    <LoadingLink
                       href={item.href}
                       onClick={() => setIsMobileSidebarOpen(false)}
                         className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
@@ -821,7 +825,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     >
                       <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
                       <span className="ml-3 text-sm font-medium">{item.name}</span>
-                    </Link>
+                    </LoadingLink>
                   </li>
                 )
               })}
@@ -836,7 +840,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 const isActive = pathname === item.href
                 return (
                   <li key={item.name}>
-                    <Link
+                    <LoadingLink
                       href={item.href}
                       onClick={() => setIsMobileSidebarOpen(false)}
                         className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
@@ -847,7 +851,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     >
                       <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
                       <span className="ml-3 text-sm font-medium">{item.name}</span>
-                    </Link>
+                    </LoadingLink>
                   </li>
                 )
               })}
@@ -862,7 +866,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 const isActive = pathname === item.href
                 return (
                   <li key={item.name}>
-                    <Link
+                    <LoadingLink
                       href={item.href}
                       onClick={() => setIsMobileSidebarOpen(false)}
                         className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
@@ -873,7 +877,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     >
                       <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
                       <span className="ml-3 text-sm font-medium">{item.name}</span>
-                    </Link>
+                    </LoadingLink>
                   </li>
                 )
               })}
@@ -888,7 +892,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 const isActive = pathname === item.href
                 return (
                   <li key={item.name}>
-                    <Link
+                    <LoadingLink
                       href={item.href}
                       onClick={() => setIsMobileSidebarOpen(false)}
                         className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
@@ -899,7 +903,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     >
                       <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
                       <span className="ml-3 text-sm font-medium">{item.name}</span>
-                    </Link>
+                    </LoadingLink>
                   </li>
                 )
               })}
@@ -916,7 +920,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     const isActive = pathname === item.href
                     return (
                       <li key={item.name}>
-                        <Link
+                        <LoadingLink
                           href={item.href}
                           onClick={() => setIsMobileSidebarOpen(false)}
                             className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
@@ -927,7 +931,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         >
                           <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
                           <span className="ml-3 text-sm font-medium">{item.name}</span>
-                        </Link>
+                        </LoadingLink>
                       </li>
                     )
                   })}
@@ -940,10 +944,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <div className="border-t border-white/20 p-4">
               <div className="flex items-center mb-4 p-3 bg-gradient-to-r from-white/50 to-white/30 rounded-xl">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#12d6fa] to-blue-600 flex items-center justify-center text-white font-semibold shadow-lg">
-                {user?.username?.charAt(0).toUpperCase() || "A"}
+                {(user?.fullName || user?.name || user?.username)?.charAt(0).toUpperCase() || "A"}
               </div>
               <div className="ml-3 flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{user?.username}</p>
+                <p className="text-sm font-medium text-gray-900 truncate">{user?.fullName || user?.name || user?.username}</p>
                   <p className="text-xs text-gray-600">Administrator</p>
                   <p className="text-xs text-gray-500 truncate">{user?.email}</p>
               </div>
@@ -973,6 +977,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
         </div>
       </aside>
+      
+      {/* Navigation Loader */}
+      <NavigationLoader />
     </div>
+    </NavigationProvider>
   )
 }

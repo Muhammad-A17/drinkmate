@@ -39,9 +39,35 @@ function ContactSettingsPageContent() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      // TODO: Save to backend
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      
+      if (!token) {
+        throw new Error('No authentication token found')
+      }
+
+      const response = await fetch('/api/admin/contact-settings', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          businessHours: settings.businessHours,
+          responseTime: settings.responseTime,
+          autoReply: settings.autoReply,
+          notificationEmail: settings.notificationEmail,
+          maxConcurrentChats: settings.maxConcurrentChats
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || 'Failed to save settings')
+      }
+
       toast.success('Settings saved successfully')
     } catch (error) {
+      console.error('Error saving contact settings:', error)
       toast.error('Failed to save settings')
     } finally {
       setIsSaving(false)

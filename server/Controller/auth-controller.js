@@ -843,6 +843,65 @@ const uploadAvatar = async (req, res) => {
     }
 };
 
+// Temporary endpoint to promote user to admin (for development only)
+const promoteToAdmin = async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        // Only allow in development mode
+        if (process.env.NODE_ENV === 'production') {
+            return res.status(403).json({ 
+                success: false,
+                message: 'This endpoint is only available in development mode' 
+            });
+        }
+        
+        if (!email) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Email is required' 
+            });
+        }
+        
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ 
+                success: false,
+                message: 'User not found' 
+            });
+        }
+        
+        // Update user role to admin
+        user.role = 'admin';
+        user.isAdmin = true;
+        await user.save();
+        
+        // Generate new token with updated role
+        const token = user.generateAuthToken();
+        
+        return res.status(200).json({
+            success: true,
+            message: 'User promoted to admin successfully',
+            token,
+            user: {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                isAdmin: user.isAdmin
+            }
+        });
+        
+    } catch (error) {
+        logError(error, 'Promote to admin failed');
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to promote user to admin',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     home,
     createAdminUser,
@@ -858,5 +917,6 @@ module.exports = {
     getUserProfile,
     updateUserProfile,
     changePassword,
-    uploadAvatar
+    uploadAvatar,
+    promoteToAdmin
 };

@@ -22,4 +22,6 @@ router.get('/order-history', authMiddleware, orderController.getAllUserOrders);
 router.get('/admin/orders', authMiddleware, adminMiddleware, orderController.getAllOrders);
 router.put('/admin/orders/:id/status', authMiddleware, adminMiddleware, orderController.updateOrderStatus);
 
+// URWAYS Payment routes are handled in payment-router.js
+
 module.exports = router;

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import AdminLayout from '@/components/layout/AdminLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button, type ButtonProps } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -17,13 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { 
   MessageSquare, 
   Search, 
@@ -52,7 +45,6 @@ import {
   Activity,
   RefreshCw,
   Loader2,
-  MoreHorizontal,
   Edit,
   X,
   ChevronDown,
@@ -162,6 +154,8 @@ export default function ChatManagementPage() {
   const [isDoNotDisturb, setIsDoNotDisturb] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedConversations, setSelectedConversations] = useState<string[]>([])
+  const [showMobileQueue, setShowMobileQueue] = useState(false)
+  const [showMobileContext, setShowMobileContext] = useState(false)
   
   // Conversation state
   const [newMessage, setNewMessage] = useState('')
@@ -203,7 +197,13 @@ export default function ChatManagementPage() {
           id: chat._id,
           customer: {
             id: chat.customer.userId?._id || chat.customer._id || 'anonymous',
-            name: chat.customer.name || (chat.customer.userId ? `${chat.customer.userId.firstName || ''} ${chat.customer.userId.lastName || ''}`.trim() : '') || 'Unknown Customer',
+            name: chat.customer.name || 
+                  (chat.customer.userId ? 
+                    (chat.customer.userId.name || 
+                     chat.customer.userId.fullName || 
+                     `${chat.customer.userId.firstName || ''} ${chat.customer.userId.lastName || ''}`.trim() || 
+                     chat.customer.userId.username) : '') || 
+                  'Unknown Customer',
             email: chat.customer.email || 'no-email@example.com',
             phone: chat.customer.phone,
             language: 'en', // Default, could be enhanced
@@ -216,7 +216,11 @@ export default function ChatManagementPage() {
           assigneeId: chat.assignedTo?._id,
           assignee: chat.assignedTo ? {
             id: chat.assignedTo._id,
-            name: `${chat.assignedTo.firstName} ${chat.assignedTo.lastName}`,
+            name: chat.assignedTo.name || 
+                  chat.assignedTo.fullName || 
+                  `${chat.assignedTo.firstName || ''} ${chat.assignedTo.lastName || ''}`.trim() || 
+                  chat.assignedTo.username || 
+                  'Unknown Agent',
             avatar: chat.assignedTo.avatar
           } : undefined,
           lastMessage: {
@@ -247,7 +251,7 @@ export default function ChatManagementPage() {
           }
         }))
         
-        // Always update conversations to ensure real-time display
+        // Set conversations directly without deduplication
         setConversations(transformedChats)
       } else {
         if (response.status === 401) {
@@ -463,6 +467,7 @@ export default function ChatManagementPage() {
       return new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime()
     })
   }, [conversations, activeQueueTab, searchTerm, user?._id])
+
 
   // Initialize with real data
   // Create fallback socket connection if context socket is not available
@@ -1056,12 +1061,12 @@ export default function ChatManagementPage() {
 
   return (
     <AdminLayout>
-      <div className="h-[calc(100vh-120px)] flex flex-col">
+      <div className="h-[calc(100vh-120px)] flex flex-col relative">
         {/* Header with Stats */}
-        <div className="flex-shrink-0 border-b bg-white">
+        <div className="flex-shrink-0 border-b bg-white relative z-30">
           <div className="px-6 py-4">
             <div className="flex items-center justify-between mb-4">
-              <div>
+              <div className="relative z-40">
                 <h1 className="text-2xl font-bold text-gray-900">Chat Console</h1>
                 <p className="text-sm text-gray-600">Real-time customer support management</p>
                 <div className="flex items-center gap-2 mt-1">
@@ -1071,13 +1076,21 @@ export default function ChatManagementPage() {
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 relative z-40">
                 <Button variant="outline" size="sm" onClick={() => {
                   fetchChats()
                   fetchStats()
                 }}>
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Refresh
+                </Button>
+                <Button variant="outline" size="sm" className="lg:hidden" onClick={() => setShowMobileQueue(!showMobileQueue)}>
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Queue
+                </Button>
+                <Button variant="outline" size="sm" className="xl:hidden" onClick={() => setShowMobileContext(!showMobileContext)}>
+                  <User className="w-4 h-4 mr-2" />
+                  Context
                 </Button>
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/admin/chat-management/settings">
@@ -1189,12 +1202,12 @@ export default function ChatManagementPage() {
           </div>
         </div>
 
-        {/* 3-Pane Console */}
-        <div className="flex-1 flex overflow-hidden min-h-0">
-          {/* Left Pane - Queue */}
-          <div className="w-80 border-r bg-white flex flex-col">
+        {/* 3-Pane Console - Redesigned */}
+        <div className="flex-1 flex overflow-hidden min-h-0 relative">
+          {/* Left Pane - Conversation List */}
+          <div className="w-80 border-r bg-white flex flex-col relative z-10 hidden lg:flex">
             {/* Queue Tabs */}
-            <div className="flex-shrink-0 border-b">
+            <div className="flex-shrink-0 border-b relative z-20">
               <Tabs value={activeQueueTab} onValueChange={(value: string) => setActiveQueueTab(value as any)}>
                 <TabsList className="grid grid-cols-3 w-full rounded-none">
                   <TabsTrigger value="my-inbox" className="text-xs">My Inbox</TabsTrigger>
@@ -1210,7 +1223,7 @@ export default function ChatManagementPage() {
             </div>
 
             {/* Search */}
-            <div className="flex-shrink-0 p-4 border-b">
+            <div className="flex-shrink-0 p-4 border-b relative z-20">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
@@ -1224,11 +1237,12 @@ export default function ChatManagementPage() {
 
             {/* Queue List */}
             <div className="flex-1 overflow-y-auto">
-              {filteredConversations.map((conversation) => {
+              {filteredConversations.map((conversation, index) => {
                 const ChannelIcon = getChannelIcon(conversation.channel)
                 const isSelected = selectedConversation?.id === conversation.id
                 const isUrgent = conversation.sla.firstResponse <= 30
                 const isWarning = conversation.sla.firstResponse <= 90 && conversation.sla.firstResponse > 30
+                
                 
                 const isDeleting = deletingConversation === conversation.id
                 
@@ -1261,6 +1275,19 @@ export default function ChatManagementPage() {
                         <span className="font-medium text-sm">{conversation.customer.name}</span>
                       </div>
                       <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (confirm('Are you sure you want to delete this conversation?')) {
+                              handleDeleteConversation(conversation.id)
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                         <Badge className={cn("text-xs", getStatusColor(conversation.status))}>
                           {conversation.status.replace('_', ' ')}
                         </Badge>
@@ -1315,86 +1342,29 @@ export default function ChatManagementPage() {
           </div>
 
           {/* Middle Pane - Conversation */}
-          <div className="flex-1 flex flex-col bg-white min-h-0">
+          <div className="flex-1 flex flex-col bg-white min-h-0 relative z-10">
             {selectedConversation ? (
               <>
-                {/* Enhanced Conversation Header */}
-                <div className="flex-shrink-0 p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="relative">
-                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg">
-                          <User className="h-6 w-6 text-white" />
-                        </div>
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
+                {/* Simplified Header - Just Customer Name and Status */}
+                <div className="flex-shrink-0 p-3 border-b bg-gray-50 relative z-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center shadow-sm">
+                        <MessageCircle className="h-4 w-4 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900">{selectedConversation.customer.name}</h3>
-                        <p className="text-sm text-gray-600">{selectedConversation.customer.email}</p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className="text-xs text-gray-500">Last seen: {selectedConversation.customer.lastSeen}</span>
-                          <span className="text-xs text-gray-400">•</span>
-                          <span className="text-xs text-gray-500">{selectedConversation.channel.toUpperCase()}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="text-right">
-                        <div className="text-sm font-medium text-gray-900">Response Time</div>
-                        <div className={cn("text-lg font-bold", getSLAColor(selectedConversation.sla.firstResponse))}>
-                          {formatTime(selectedConversation.sla.firstResponse)}
-                        </div>
-                      </div>
-                      <div className="flex flex-col space-y-2">
-                        <Badge className={cn("text-xs font-medium px-3 py-1", getStatusColor(selectedConversation.status))}>
-                          {selectedConversation.status.replace('_', ' ')}
-                        </Badge>
-                        <Badge className={cn("text-xs font-medium px-3 py-1", getPriorityColor(selectedConversation.priority))}>
-                          {selectedConversation.priority}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Quick Actions Bar */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Button variant="outline" size="sm" className="text-xs">
-                        <User className="h-3 w-3 mr-1" />
-                        Assign
-                      </Button>
-                      <Button variant="outline" size="sm" className="text-xs">
-                        <Flag className="h-3 w-3 mr-1" />
-                        Priority
-                      </Button>
-                      <Button variant="outline" size="sm" className="text-xs">
-                        <Tag className="h-3 w-3 mr-1" />
-                        Tags
-                      </Button>
-                      <Button variant="outline" size="sm" className="text-xs">
-                        <Archive className="h-3 w-3 mr-1" />
-                        Archive
-                      </Button>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="flex items-center space-x-1 text-sm text-gray-600">
-                        <Clock className="h-4 w-4" />
-                        <span>Started {formatRelativeTime(selectedConversation.createdAt)}</span>
-                      </div>
-                      {selectedConversation.rating && (
-                        <div className="flex items-center space-x-1 text-sm">
-                          <Star className={cn("h-4 w-4", 
-                            selectedConversation.rating.score >= 4 ? 'text-yellow-500 fill-current' : 
-                            selectedConversation.rating.score >= 3 ? 'text-yellow-400' : 'text-red-400'
-                          )} />
-                          <span className={cn("font-medium",
-                            selectedConversation.rating.score >= 4 ? 'text-green-600' : 
-                            selectedConversation.rating.score >= 3 ? 'text-yellow-600' : 'text-red-600'
-                          )}>
-                            {selectedConversation.rating.score}/5
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {selectedConversation.customer.name || 'Unknown Customer'}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            selectedConversation.status === 'active' ? 'bg-green-400' : 'bg-gray-400'
+                          }`}></div>
+                          <span className="text-sm text-gray-500 capitalize">
+                            {selectedConversation.status.replace('_', ' ')}
                           </span>
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1463,32 +1433,65 @@ export default function ChatManagementPage() {
           </div>
 
           {/* Right Pane - Context */}
-          <div className="w-80 border-l bg-white flex flex-col">
+          <div className="w-80 border-l bg-white flex flex-col relative z-10 hidden xl:flex">
             {selectedConversation ? (
               <>
-                {/* Customer Profile */}
-                <div className="flex-shrink-0 p-4 border-b">
-                  <h3 className="font-semibold mb-3">Customer Profile</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="text-sm font-medium text-gray-700">Name</div>
-                      <div className="text-sm text-gray-900">{selectedConversation.customer.name}</div>
+                {/* Customer Profile - Clean & Organized */}
+                <div className="flex-shrink-0 p-4 border-b relative z-20">
+                  <h3 className="font-semibold mb-4 text-gray-900">Customer Information</h3>
+                  
+                  {/* Contact Info */}
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{selectedConversation.customer.name}</div>
+                        <div className="text-xs text-gray-500">{selectedConversation.customer.email}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-700">Email</div>
-                      <div className="text-sm text-gray-900">{selectedConversation.customer.email}</div>
+                    
+                    {selectedConversation.customer.phone && (
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <Phone className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div className="text-sm text-gray-900">{selectedConversation.customer.phone}</div>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                        <MessageCircle className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-900">{selectedConversation.channel.toUpperCase()}</div>
+                        <div className="text-xs text-gray-500">Last seen: {selectedConversation.customer.lastSeen}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-700">Phone</div>
-                      <div className="text-sm text-gray-900">{selectedConversation.customer.phone || 'Not provided'}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-700">Language</div>
-                      <div className="text-sm text-gray-900">{selectedConversation.customer.language.toUpperCase()}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-700">Last Seen</div>
-                      <div className="text-sm text-gray-900">{selectedConversation.customer.lastSeen}</div>
+                  </div>
+
+                  {/* Quick Actions - Prioritized */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Quick Actions</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" size="sm" className="text-xs">
+                        <User className="h-3 w-3 mr-1" />
+                        Assign
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-xs">
+                        <Flag className="h-3 w-3 mr-1" />
+                        Priority
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-xs">
+                        <Tag className="h-3 w-3 mr-1" />
+                        Tags
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-xs">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Snooze
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -1526,79 +1529,6 @@ export default function ChatManagementPage() {
                   </div>
                 )}
 
-                {/* Quick Actions */}
-                <div className="flex-shrink-0 p-4">
-                  <h3 className="font-semibold mb-3">Quick Actions</h3>
-                  <div className="space-y-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full justify-start"
-                        onClick={() => {
-                          if (user?._id && selectedConversation) {
-                            handleAssignConversation(selectedConversation.id, user._id)
-                          }
-                        }}
-                      >
-                        <User className="h-4 w-4 mr-2" />
-                        Assign to Me
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full justify-start"
-                        onClick={() => setIsTagDialogOpen(true)}
-                      >
-                        <Tag className="h-4 w-4 mr-2" />
-                        Add Tags
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full justify-start"
-                        onClick={() => setIsSnoozeDialogOpen(true)}
-                      >
-                        <Clock className="h-4 w-4 mr-2" />
-                        Snooze
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full justify-start"
-                        onClick={() => {
-                          if (selectedConversation) {
-                            handleUpdateStatus(selectedConversation.id, 'closed')
-                          }
-                        }}
-                      >
-                        <Archive className="h-4 w-4 mr-2" />
-                        Close Conversation
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                        disabled={deletingConversation === selectedConversation?.id}
-                        onClick={() => {
-                          if (selectedConversation) {
-                            handleDeleteConversation(selectedConversation.id)
-                          }
-                        }}
-                      >
-                        {deletingConversation === selectedConversation?.id ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Deleting...
-                          </>
-                        ) : (
-                          <>
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Conversation
-                          </>
-                        )}
-                      </Button>
-                  </div>
-                </div>
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center">
@@ -1614,6 +1544,40 @@ export default function ChatManagementPage() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Queue Overlay */}
+      {showMobileQueue && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden">
+          <div className="absolute left-0 top-0 h-full w-80 bg-white shadow-xl">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">Conversation Queue</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowMobileQueue(false)}>
+                <XCircle className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="h-full overflow-y-auto">
+              {/* Queue content would go here - same as the left pane */}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Context Overlay */}
+      {showMobileContext && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 xl:hidden">
+          <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-xl">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">Customer Context</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowMobileContext(false)}>
+                <XCircle className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="h-full overflow-y-auto">
+              {/* Context content would go here - same as the right pane */}
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   )
 }

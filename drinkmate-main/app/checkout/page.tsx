@@ -176,10 +176,10 @@ export default function CheckoutPage() {
   // Payment provider configuration (would come from admin panel)
   const paymentProviders = {
     card: {
-      name: "Pay",
-      description: "Pay securely by credit or debit card or online banking through secure online payment servers.",
+      name: "Credit/Debit Card",
+      description: "Pay securely by credit or debit card through URWAYS payment gateway.",
       logo: "/images/payment-logos/urways-payment.png",
-      gateway: "urways" // This would be configurable via admin (urways, tap, etc.)
+      gateway: "urways"
     },
     tabby: {
       name: "tabby",
@@ -387,13 +387,13 @@ export default function CheckoutPage() {
 
       let paymentResponse: any
       if (selectedGateway === "urways") {
-        // Call backend API directly for Urways
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
-        paymentResponse = await fetch(`${backendUrl}/payments/urways`, {
+        // Call frontend API for URWAYS
+        const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
+        paymentResponse = await fetch('/api/payments/urways', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null}`
+            ...(token && { 'Authorization': `Bearer ${token}` })
           },
           body: JSON.stringify(paymentRequest)
         })
@@ -853,7 +853,7 @@ export default function CheckoutPage() {
                           onChange={() => setSelectedPaymentMethod("card")}
                           className="w-4 h-4 text-[#12d6fa] border-gray-300 focus:ring-[#12d6fa]"
                         />
-                        <span className="text-lg font-semibold text-gray-900">Pay</span>
+                        <span className="text-lg font-semibold text-gray-900">{paymentProviders.card.name}</span>
                       </div>
                       <div className="flex items-center">
                         <div className="w-32 h-8 bg-white rounded flex items-center justify-center border border-gray-200">

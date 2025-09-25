@@ -7,6 +7,7 @@ import { SafeImage } from "@/components/ui/safe-image"
 import AdminLayout from "@/components/layout/AdminLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { LoadingButton } from "@/components/ui/LoadingButton"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import { Input } from "@/components/ui/input"
 import { 

@@ -7,6 +7,7 @@ const { requireAdmin, requirePermission, auditLog } = require('../Middleware/aut
 const { getAllUsers, deleteUser } = require('../Controller/admin-controller');
 const categoryController = require('../Controller/category-controller');
 const orderController = require('../Controller/order-controller');
+const statsController = require('../Controller/stats-controller');
 const { storage, deleteImage } = require('../Utils/cloudinary');
 const User = require('../Models/user-model');
 
@@ -33,6 +34,10 @@ const upload = multer({
 // Protected routes (auth + admin)
 router.get('/users', authMiddleware, requirePermission('users.read'), auditLog('users.read', 'users'), getAllUsers);
 router.delete('/users/:id', authMiddleware, requirePermission('users.delete'), auditLog('users.delete', 'user'), deleteUser);
+
+// Stats routes
+router.get('/stats', authMiddleware, requirePermission('analytics.read'), auditLog('analytics.read', 'stats'), statsController.getAdminStats);
+router.get('/recent-data', authMiddleware, requirePermission('analytics.read'), auditLog('analytics.read', 'recent-data'), statsController.getRecentData);
 
 // Orders routes
 router.get('/orders', authMiddleware, requirePermission('orders.read'), auditLog('orders.read', 'orders'), orderController.getAllOrders);

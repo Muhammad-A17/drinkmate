@@ -137,6 +137,7 @@ export interface SLA {
 export interface Customer {
   id: string
   name: string
+  fullName?: string
   firstName?: string
   lastName?: string
   displayName?: string

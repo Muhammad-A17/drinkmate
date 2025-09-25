@@ -30,9 +30,9 @@ const getAllChats = async (req, res) => {
     filter.isDeleted = { $ne: true };
     
     const chats = await Chat.find(filter)
-      .populate('assignedTo', 'firstName lastName email')
-      .populate('customer.userId', 'firstName lastName email')
-      .populate('messages.senderId', 'firstName lastName email')
+      .populate('assignedTo', 'firstName lastName name fullName email')
+      .populate('customer.userId', 'firstName lastName name fullName email')
+      .populate('messages.senderId', 'firstName lastName name fullName email')
       .sort({ lastMessageAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -40,9 +40,12 @@ const getAllChats = async (req, res) => {
     // Fix customer names for existing chats with "undefined undefined"
     chats.forEach(chat => {
       if (chat.customer.name === 'undefined undefined' && chat.customer.userId) {
-        const firstName = chat.customer.userId.firstName || '';
-        const lastName = chat.customer.userId.lastName || '';
-        chat.customer.name = `${firstName} ${lastName}`.trim() || chat.customer.userId.username || chat.customer.userId.fullName || 'Unknown Customer';
+        // Prioritize name field, then fullName, then construct from firstName/lastName
+        chat.customer.name = chat.customer.userId.name || 
+                            chat.customer.userId.fullName || 
+                            `${chat.customer.userId.firstName || ''} ${chat.customer.userId.lastName || ''}`.trim() || 
+                            chat.customer.userId.username || 
+                            'Unknown Customer';
       }
     });
     
@@ -101,7 +104,7 @@ const getCustomerChats = async (req, res) => {
     const userId = req.user.id;
     
     const chats = await Chat.find({ 'customer.userId': userId })
-      .populate('assignedTo', 'firstName lastName email')
+      .populate('assignedTo', 'firstName lastName name fullName email')
       .sort({ lastMessageAt: -1 });
     
     res.json({
@@ -126,9 +129,9 @@ const getChatById = async (req, res) => {
     const { id } = req.params;
     
     const chat = await Chat.findById(id)
-      .populate('assignedTo', 'firstName lastName email')
-      .populate('customer.userId', 'firstName lastName email')
-      .populate('messages.senderId', 'firstName lastName email');
+      .populate('assignedTo', 'firstName lastName name fullName email')
+      .populate('customer.userId', 'firstName lastName name fullName email')
+      .populate('messages.senderId', 'firstName lastName name fullName email');
     
     if (!chat) {
       return res.status(404).json({
@@ -379,8 +382,8 @@ const updateChatStatus = async (req, res) => {
     
     // Populate the updated chat
     const updatedChat = await Chat.findById(chatId)
-      .populate('assignedTo', 'firstName lastName email')
-      .populate('customer.userId', 'firstName lastName email');
+      .populate('assignedTo', 'firstName lastName name fullName email')
+      .populate('customer.userId', 'firstName lastName name fullName email');
     
     res.json({
       success: true,
@@ -748,9 +751,9 @@ const getChatMessages = async (req, res) => {
     const { chatId } = req.params;
     
     const chat = await Chat.findById(chatId)
-      .populate('messages.sender', 'firstName lastName username email isAdmin')
-      .populate('assignedTo', 'firstName lastName email')
-      .populate('customer.userId', 'firstName lastName email');
+      .populate('messages.sender', 'firstName lastName name fullName username email isAdmin')
+      .populate('assignedTo', 'firstName lastName name fullName email')
+      .populate('customer.userId', 'firstName lastName name fullName email');
     
     if (!chat) {
       return res.status(404).json({
@@ -986,8 +989,8 @@ const getCustomerChatMessages = async (req, res) => {
     const userId = req.user.id;
     
     const chat = await Chat.findById(chatId)
-      .populate('assignedTo', 'firstName lastName email')
-      .populate('customer.userId', 'firstName lastName email');
+      .populate('assignedTo', 'firstName lastName name fullName email')
+      .populate('customer.userId', 'firstName lastName name fullName email');
     
     if (!chat) {
       return res.status(404).json({

@@ -8,6 +8,7 @@ import { useTranslation } from "@/lib/translation-context"
 import AdminLayout from "@/components/layout/AdminLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { LoadingButton } from "@/components/ui/LoadingButton"
 import { Badge } from "@/components/ui/badge"
 import { 
   Users, 
@@ -138,104 +139,74 @@ export default function AdminDashboard() {
     try {
       setIsDataLoading(true)
       
-      // TODO: Replace with real API calls when endpoints are ready
-      // For now, we'll use mock data but the structure is ready for real API calls
-      // const [usersRes, ordersRes, productsRes, testimonialsRes, blogRes, contactsRes] = await Promise.all([
-      //   fetch('/api/admin/users/count'),
-      //   fetch('/api/admin/orders/count'),
-      //   fetch('/api/admin/products/count'),
-      //   fetch('/api/admin/testimonials/count'),
-      //   fetch('/api/admin/blog/count'),
-      //   fetch('/api/admin/contacts/count')
-      // ])
+      // Fetch real stats from API
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
       
-      // Enhanced mock data with realistic values
-      setStats({
-        totalUsers: 1247,
-        totalOrders: 15432,
-        totalProducts: 156,
-        totalRevenue: 287500,
-        lowStockProducts: 18,
-        pendingOrders: 47,
-        totalTestimonials: 89,
-        totalBlogPosts: 23,
-        totalContacts: 156,
-        monthlyGrowth: 12.5,
-        orderGrowth: 8.3,
-        userGrowth: 15.7
+      if (!token) {
+        throw new Error('No authentication token found')
+      }
+
+      const response = await fetch('/api/admin/stats', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       })
 
-      // Mock recent orders with realistic data
-      setRecentOrders([
-        {
-          _id: "1",
-          orderNumber: "ORD-2024-001",
-          customerName: "Ahmed Al-Farsi",
-          total: 299.99,
-          status: "pending",
-          createdAt: new Date().toISOString()
-        },
-        {
-          _id: "2",
-          orderNumber: "ORD-2024-002",
-          customerName: "Sara Al-Qahtani",
-          total: 199.99,
-          status: "processing",
-          createdAt: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          _id: "3",
-          orderNumber: "ORD-2024-003",
-          customerName: "Mohammed Al-Otaibi",
-          total: 399.99,
-          status: "shipped",
-          createdAt: new Date(Date.now() - 7200000).toISOString()
-        },
-        {
-          _id: "4",
-          orderNumber: "ORD-2024-004",
-          customerName: "Fatima Al-Harbi",
-          total: 149.99,
-          status: "completed",
-          createdAt: new Date(Date.now() - 10800000).toISOString()
-        }
-      ])
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || 'Failed to fetch stats')
+      }
 
-      // Mock recent products with realistic data
-      setRecentProducts([
-        {
-          _id: "1",
-          name: "Artic Black Soda Maker",
-          price: 299.99,
-          stock: 15,
-          category: "sodamakers",
-          isBestSeller: true
-        },
-        {
-          _id: "2",
-          name: "Cola Flavor Pack",
-          price: 24.99,
-          stock: 45,
-          category: "flavors",
-          isBestSeller: true
-        },
-        {
-          _id: "3",
-          name: "CO2 Cylinder",
-          price: 19.99,
-          stock: 8,
-          category: "co2",
-          isBestSeller: false
-        },
-        {
-          _id: "4",
-          name: "Premium Bottle Set",
-          price: 49.99,
-          stock: 22,
-          category: "accessories",
-          isBestSeller: false
+      const data = await response.json()
+      
+      if (data.success && data.data) {
+        setStats(data.data)
+      } else {
+        throw new Error('Invalid response format')
+      }
+
+      // Fetch recent data from API
+      const recentResponse = await fetch('/api/admin/recent-data', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      ])
+      })
+
+      if (recentResponse.ok) {
+        const recentData = await recentResponse.json()
+        if (recentData.success && recentData.data) {
+          // Transform orders data to match expected format
+          const transformedOrders = (recentData.data.orders || []).map((order: any) => ({
+            _id: order._id,
+            orderNumber: `ORD-${order._id.slice(-6).toUpperCase()}`,
+            customerName: order.user ? (order.user.fullName || `${order.user.firstName || ''} ${order.user.lastName || ''}`.trim() || 'Unknown Customer') : 'Unknown Customer',
+            total: order.total,
+            status: order.status,
+            createdAt: order.createdAt
+          }))
+          setRecentOrders(transformedOrders)
+          
+          // Transform products data to match expected format
+          const transformedProducts = (recentData.data.products || []).map((product: any) => ({
+            _id: product._id,
+            name: product.name,
+            price: product.price,
+            stock: product.stock,
+            category: product.category,
+            isBestSeller: product.stock < 10 // Mark low stock as best seller for demo
+          }))
+          setRecentProducts(transformedProducts)
+        }
+      } else {
+        console.warn('Failed to fetch recent data, using empty arrays')
+        setRecentOrders([])
+        setRecentProducts([])
+      }
+
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
       // Fallback to basic stats if API fails
@@ -486,7 +457,7 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                      Welcome back, {user?.username || 'Admin'}! 👋
+                      Welcome back, {user?.fullName || user?.username || 'Admin'}! 👋
                     </h1>
                     <p className="text-gray-600 text-lg">
                       Here's what's happening with your store today.
@@ -508,15 +479,59 @@ export default function AdminDashboard() {
               </div>
             </div>
             
+            {/* Temporary Admin Promotion Button - Development Only */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-orange-800">Development Mode</h3>
+                    <p className="text-xs text-orange-600">Promote current user to admin to access dashboard data</p>
+                  </div>
+                  <Button 
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('http://localhost:3000/auth/promote-admin', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify({ email: user?.email })
+                        })
+                        
+                        if (response.ok) {
+                          const data = await response.json()
+                          if (data.success) {
+                            // Update the token in localStorage
+                            localStorage.setItem('auth-token', data.token)
+                            // Reload the page to refresh the auth state
+                            window.location.reload()
+                          }
+                        } else {
+                          console.error('Failed to promote to admin')
+                        }
+                      } catch (error) {
+                        console.error('Error promoting to admin:', error)
+                      }
+                    }}
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                    size="sm"
+                  >
+                    🔧 Promote to Admin
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Button
+                <LoadingButton
                   onClick={refreshDashboard}
                   className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  loadingText="Refreshing..."
                 >
                   <Activity className="h-5 w-5 mr-2" />
                   Refresh Data
-                </Button>
+                </LoadingButton>
                 
                 <Button
                   variant="outline"

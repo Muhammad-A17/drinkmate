@@ -6,8 +6,6 @@ import {
   Paperclip, 
   Smile,
   MoreVertical,
-  Phone,
-  Video,
   Search,
   Archive,
   Settings,
@@ -508,62 +506,20 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full bg-white min-h-0 overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={selectedConversation.customer.avatar} />
-              <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                {selectedConversation.customer.name?.charAt(0) || 'C'}
-              </AvatarFallback>
-            </Avatar>
-            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-              selectedConversation.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
-            }`} />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {selectedConversation.customer.name || 'Unknown Customer'}
-            </h3>
-            <p className="text-sm text-gray-500">
-              {selectedConversation.customer.email || 'No email provided'}
-            </p>
-          </div>
+    <div className="flex flex-col h-full bg-white min-h-0 overflow-hidden max-h-full">
+      {/* Simplified Header - Just Message Controls */}
+      <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50">
+        <div className="flex items-center space-x-2">
+          <MessageCircle className="h-5 w-5 text-gray-500" />
+          <span className="text-sm font-medium text-gray-700">Messages</span>
         </div>
         
         <div className="flex items-center space-x-2">
           <Badge className={getPriorityColor(conversationPriority)}>
             {conversationPriority}
           </Badge>
-          <Badge variant={selectedConversation.status === 'active' ? 'default' : 'secondary'}>
-            {selectedConversation.status}
-          </Badge>
           
           <div className="flex items-center space-x-1">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Call Customer</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <Video className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Video Call</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -592,7 +548,7 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 flex flex-col">
+      <div className="flex-1 overflow-y-auto p-4 min-h-0 flex flex-col bg-gray-50">
         {filteredMessages.length === 0 ? (
           <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-50 to-blue-50">
             <div className="text-center max-w-md">
@@ -631,53 +587,76 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
             </div>
           </div>
         ) : (
-          filteredMessages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`max-w-xs lg:max-w-md ${message.sender === 'agent' ? 'order-2' : 'order-1'}`}>
+          <div className="space-y-3">
+            {filteredMessages.map((message, index) => {
+              const isAgent = message.sender === 'agent'
+              const isConsecutive = index > 0 && filteredMessages[index - 1].sender === message.sender
+              
+              return (
                 <div
-                  className={`px-4 py-3 rounded-2xl shadow-sm ${
-                    message.sender === 'agent'
-                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
-                      : 'bg-gray-100 text-gray-900'
+                  key={message.id}
+                  className={`flex ${isAgent ? 'justify-end' : 'justify-start'} ${
+                    isConsecutive ? 'mt-1' : 'mt-3'
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{message.content}</p>
-                  
-                  <div className={`flex items-center justify-between mt-2 text-xs ${
-                    message.sender === 'agent' ? 'text-blue-100' : 'text-gray-500'
-                  }`}>
-                    <span>{formatTime(message.timestamp)}</span>
-                    <div className="flex items-center space-x-1">
-                      {message.sender === 'agent' && getMessageStatusIcon(message.status || 'sent')}
+                  <div className={`flex items-end space-x-2 max-w-[70%] ${isAgent ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                    {/* Avatar for customer messages */}
+                    {!isAgent && (
+                      <div className="w-6 h-6 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                        {selectedConversation.customer.name?.charAt(0) || 'C'}
+                      </div>
+                    )}
+                    
+                    {/* Message bubble */}
+                    <div className="group">
+                      <div
+                        className={`px-4 py-2 rounded-2xl ${
+                          isAgent
+                            ? 'bg-blue-500 text-white rounded-br-md'
+                            : 'bg-white text-gray-900 border border-gray-200 rounded-bl-md'
+                        } shadow-sm hover:shadow-md transition-shadow`}
+                      >
+                        <p className="text-sm leading-relaxed">{message.content}</p>
+                        
+                        <div className={`flex items-center justify-between mt-1 text-xs ${
+                          isAgent ? 'text-blue-100' : 'text-gray-500'
+                        }`}>
+                          <span>{formatTime(message.timestamp)}</span>
+                          {isAgent && (
+                            <div className="flex items-center space-x-1">
+                              {getMessageStatusIcon(message.status || 'sent')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Message Actions */}
+                      <div className={`flex items-center space-x-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity ${
+                        isAgent ? 'justify-end' : 'justify-start'
+                      }`}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleMessageAction('copy', message)}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleMessageAction('react', message)}
+                        >
+                          <Heart className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
-                
-                {/* Message Actions */}
-                <div className={`flex items-center space-x-1 mt-1 ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleMessageAction('copy', message)}
-                  >
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleMessageAction('react', message)}
-                  >
-                    <Heart className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))
+              )
+            })}
+          </div>
         )}
         
         {/* Typing Indicator */}
