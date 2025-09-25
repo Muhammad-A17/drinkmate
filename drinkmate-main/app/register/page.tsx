@@ -27,7 +27,7 @@ import PageLayout from "@/components/layout/PageLayout";
 import { toast } from "sonner";
 
 export default function RegisterPage() {
-  const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -116,7 +116,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     // Enhanced validation
-    if (!username || !email || !password || !confirmPassword) {
+    if (!fullName || !email || !password || !confirmPassword) {
       toast.error("Please fill in all fields", {
         duration: 5000,
         icon: <AlertCircle className="h-5 w-5" />
@@ -125,8 +125,8 @@ export default function RegisterPage() {
       return;
     }
 
-    if (username.length < 3) {
-      toast.error("Username must be at least 3 characters", {
+    if (fullName.length < 2) {
+      toast.error("Full name must be at least 2 characters", {
         duration: 5000,
         icon: <AlertCircle className="h-5 w-5" />
       });
@@ -180,7 +180,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const result = await register(username, email, password);
+      const result = await register(fullName, email, password);
       
       if (result.success) {
         toast.success("Registration successful!", {
@@ -239,22 +239,22 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="username" className="text-gray-700">Username</Label>
+                  <Label htmlFor="fullName" className="text-gray-700">Full Name</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-5 w-5" />
                     <Input
-                      id="username"
+                      id="fullName"
                       type="text"
-                      placeholder="johndoe"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="John Doe"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
                       disabled={isLoading}
                       required
                       className="pl-10 border-gray-300 focus:border-[#12d6fa] focus:ring-[#12d6fa] transition-colors"
                     />
                   </div>
-                  {username && username.length < 3 && (
-                    <p className="text-xs text-red-500 mt-1">Username must be at least 3 characters</p>
+                  {fullName && fullName.length < 2 && (
+                    <p className="text-xs text-red-500 mt-1">Full name must be at least 2 characters</p>
                   )}
                 </div>
                 <div className="space-y-2">

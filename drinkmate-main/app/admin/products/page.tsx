@@ -49,7 +49,10 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import ProductForm from "@/components/admin/ProductForm"
 import { adminAPI } from "@/lib/api"
+import { sanitizeInput, sanitizeHtml, validateProductName, validatePrice, validateStock, validateSKU, validateDescription } from "@/lib/protected-api"
 import { toast } from "sonner"
+import { AdminErrorBoundary } from "@/lib/admin-error-handler"
+import { useAdminErrorHandler, useAsyncOperation, useFormErrorHandler } from "@/hooks/use-admin-error-handler"
 
 // Define types for better type safety
 interface Product {
@@ -94,6 +97,21 @@ export default function ProductsPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const router = useRouter()
   
+  // Error handling
+  const errorHandler = useAdminErrorHandler({
+    context: 'ProductsPage',
+    defaultOptions: { category: 'server' }
+  })
+  
+  const formErrorHandler = useFormErrorHandler('ProductForm', {
+    onValidationError: (errors) => {
+      console.error('Validation errors:', errors)
+    },
+    onSubmitError: (error) => {
+      console.error('Submit error:', error)
+    }
+  })
+  
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [categoryMap, setCategoryMap] = useState<{[key: string]: string}>({})
@@ -124,8 +142,6 @@ export default function ProductsPage() {
   // Helper function to create category if it doesn't exist
   const createCategoryIfNotExists = async (categoryName: string): Promise<string> => {
     try {
-      // For now, we'll create a simple category object
-      // In a real app, you'd call an API endpoint to create categories
       const categoryData = {
         name: categoryName.charAt(0).toUpperCase() + categoryName.slice(1),
         slug: categoryName.toLowerCase(),
@@ -133,16 +149,19 @@ export default function ProductsPage() {
         image: `/images/${categoryName}.png`
       }
       
-      // Since we don't have a createCategory API yet, we'll use a mock ID
-      // This is a temporary solution for development
-      const mockCategoryId = `mock_${categoryName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      console.log('Created mock category ID:', mockCategoryId)
+      // Create category using adminAPI
+      const response = await adminAPI.createCategory(categoryData)
       
-      return mockCategoryId
+      if (response.success && response.category) {
+        console.log('Created category:', response.category)
+        return response.category._id
+      } else {
+        console.error('Failed to create category:', response.message)
+        throw new Error(response.message || 'Failed to create category')
+      }
     } catch (error) {
       console.error('Error creating category:', error)
-      // Return a fallback ID
-      return `fallback_${categoryName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      throw error
     }
   }
 
@@ -164,32 +183,39 @@ export default function ProductsPage() {
         })
         setCategoryMap(map)
         // Category map created successfully
+      } else {
+        errorHandler.handleError(
+          new Error(response.message || 'Failed to fetch categories'),
+          { category: 'server', retryable: true }
+        )
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching categories:', error)
-      }
+      errorHandler.handleError(error, { 
+        category: 'network', 
+        retryable: true 
+      })
     }
   }
 
   const fetchProducts = async () => {
     try {
       setIsLoading(true)
-      // Fetching products from admin API...
+      errorHandler.clearError()
+      
       const response = await adminAPI.getProducts({ limit: 100 })
       if (response.success) {
         setProducts(response.products || [])
       } else {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Failed to fetch products:', response)
-        }
-        toast.error(response.message || "Unable to retrieve products from the server. Please try again.")
+        errorHandler.handleError(
+          new Error(response.message || 'Failed to fetch products'),
+          { category: 'server', retryable: true }
+        )
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching products:', error)
-      }
-      toast.error("Unable to connect to the server. Please check your internet connection and try again.")
+      errorHandler.handleError(error, { 
+        category: 'network', 
+        retryable: true 
+      })
     } finally {
       setIsLoading(false)
     }
@@ -197,39 +223,72 @@ export default function ProductsPage() {
 
   // Create new product
   const handleCreateProduct = async (productData: ProductFormData) => {
-    try {
-      console.log('Frontend: Creating product with data:', productData)
-      console.log('Frontend: ProductFormData shortDescription:', productData.shortDescription)
-      console.log('Frontend: ProductFormData fullDescription:', productData.fullDescription)
-      console.log('Frontend: ProductFormData colors:', productData.colors)
-      setIsSubmitting(true)
+    return formErrorHandler.handleSubmit(async () => {
+      // Validate input data
+      const validationErrors: Record<string, string> = {}
       
-      // Prepare the product data for the API
+      const nameValidation = validateProductName(productData.name)
+      if (!nameValidation.valid && nameValidation.error) {
+        validationErrors.name = nameValidation.error
+      }
+
+      const priceValidation = validatePrice(productData.price)
+      if (!priceValidation.valid && priceValidation.error) {
+        validationErrors.price = priceValidation.error
+      }
+
+      const stockValidation = validateStock(productData.stock)
+      if (!stockValidation.valid && stockValidation.error) {
+        validationErrors.stock = stockValidation.error
+      }
+
+      if (productData.sku) {
+        const skuValidation = validateSKU(productData.sku)
+        if (!skuValidation.valid && skuValidation.error) {
+          validationErrors.sku = skuValidation.error
+        }
+      }
+
+      if (productData.fullDescription) {
+        const descValidation = validateDescription(productData.fullDescription)
+        if (!descValidation.valid && descValidation.error) {
+          validationErrors.fullDescription = descValidation.error
+        }
+      }
+
+      if (Object.keys(validationErrors).length > 0) {
+        Object.entries(validationErrors).forEach(([field, message]) => {
+          formErrorHandler.setFieldError(field, message)
+        })
+        throw new Error('Validation failed')
+      }
+      
+      // Prepare the product data for the API with proper sanitization
       const productPayload = {
-        name: productData.name,
-        slug: productData.name.toLowerCase().replace(/\s+/g, '-'),
-        description: productData.fullDescription || productData.shortDescription || productData.name, // Backend expects 'description'
-        shortDescription: productData.shortDescription, // Add short description
-        fullDescription: productData.fullDescription, // Add full description
+        name: sanitizeInput(productData.name),
+        slug: sanitizeInput(productData.name.toLowerCase().replace(/\s+/g, '-')),
+        description: sanitizeHtml(productData.fullDescription || productData.shortDescription || productData.name), // Backend expects 'description'
+        shortDescription: sanitizeInput(productData.shortDescription), // Add short description
+        fullDescription: sanitizeHtml(productData.fullDescription), // Add full description
         price: parseFloat(productData.price),
         originalPrice: productData.originalPrice ? parseFloat(productData.originalPrice) : undefined,
         stock: parseInt(productData.stock),
-        category: productData.category, // Use the category string directly
-        subcategory: productData.subcategory,
+        category: sanitizeInput(productData.category), // Use the category string directly
+        subcategory: sanitizeInput(productData.subcategory),
         images: productData.images.map((img: string, index: number) => ({
-          url: img,
-          alt: productData.name,
+          url: sanitizeInput(img),
+          alt: sanitizeInput(productData.name),
           isPrimary: index === 0
         })),
         colors: productData.colors.map((color: string) => ({
-          name: color,
+          name: sanitizeInput(color),
           hexCode: '#000000',
           inStock: true
         })),
         bestSeller: productData.isBestSeller,
         newArrival: productData.isNewProduct,
         featured: productData.isFeatured,
-        sku: productData.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        sku: sanitizeInput(productData.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`),
         weight: productData.weight ? {
           value: parseFloat(productData.weight),
           unit: 'g'
@@ -288,15 +347,11 @@ export default function ProductsPage() {
         
         toast.success("Product created successfully")
         setIsAddProductOpen(false)
+        formErrorHandler.clearAllValidationErrors()
       } else {
         throw new Error(response.message || 'Failed to create product')
       }
-    } catch (error: any) {
-      console.error('Error creating product:', error)
-      toast.error(error.message || "Failed to create product")
-    } finally {
-      setIsSubmitting(false)
-    }
+    })
   }
 
   // Update existing product
@@ -468,7 +523,8 @@ export default function ProductsPage() {
   }
 
   return (
-    <AdminLayout>
+    <AdminErrorBoundary>
+      <AdminLayout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
         {/* Premium Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -1137,6 +1193,7 @@ export default function ProductsPage() {
           </DialogContent>
         </Dialog>
       )}
-    </AdminLayout>
+      </AdminLayout>
+    </AdminErrorBoundary>
   )
 }

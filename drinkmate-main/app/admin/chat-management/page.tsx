@@ -919,15 +919,16 @@ export default function ChatManagementPage() {
     try {
       console.log('Attempting to delete conversation:', conversationId)
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-      console.log('Using token:', token ? 'present' : 'missing')
+      console.log('Authentication token available:', token ? 'yes' : 'no')
       
-      // Decode token to check admin status
+      // Decode token to check admin status (without logging sensitive data)
       if (token) {
         try {
           const payload = JSON.parse(atob(token.split('.')[1]))
-          console.log('Token payload:', { id: payload.id, isAdmin: payload.isAdmin, exp: payload.exp })
+          // Only log non-sensitive information
+          console.log('Token validation successful')
         } catch (e) {
-          console.error('Error decoding token:', e)
+          console.error('Error decoding token')
         }
       }
       

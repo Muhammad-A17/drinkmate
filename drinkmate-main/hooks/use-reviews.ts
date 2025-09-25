@@ -23,21 +23,20 @@ export const useReviews = () => {
     try {
       setIsLoading(true)
       const response = await adminAPI.getReviews()
-      if (response.success) {
-        const enhancedReviews = response.reviews.map((review: Review) => ({
-          ...review,
-          helpfulCount: Math.floor(Math.random() * 50),
-          flagged: Math.random() > 0.9,
-          qualityScore: Math.floor(Math.random() * 100) + 1,
-          adminResponse: Math.random() > 0.7 ? "Thank you for your feedback!" : undefined,
-        }))
-        setReviews(enhancedReviews)
+      if (response.success && response.reviews) {
+        setReviews(response.reviews)
+        toast.success(`Loaded ${response.reviews.length} reviews successfully`)
+      } else {
+        console.error("Failed to fetch reviews:", response.message)
+        toast.error(response.message || "Failed to load reviews from API")
+        setReviews([]) // Set to empty array on failure
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.error("Error fetching reviews:", error)
       }
       toast.error("Failed to fetch reviews")
+      setReviews([]) // Set to empty array on error
     } finally {
       setIsLoading(false)
     }
@@ -146,12 +145,15 @@ export const useReviews = () => {
       formData.append('file', file)
       
       toast.success(`Importing ${file.name}...`)
-      // In real implementation, you would call an API endpoint
-      setTimeout(() => {
+      const response = await adminAPI.bulkImportReviews(formData)
+      if (response.success) {
         toast.success("Bulk import completed successfully")
         fetchReviews()
-      }, 2000)
+      } else {
+        toast.error(response.message || "Failed to import reviews")
+      }
     } catch (error) {
+      console.error("Error importing reviews:", error)
       toast.error("Failed to import reviews")
     }
   }
@@ -159,20 +161,32 @@ export const useReviews = () => {
   const generateReport = async (type: "daily" | "weekly" | "monthly") => {
     try {
       toast.success(`Generating ${type} report...`)
-      // In real implementation, you would call an API endpoint
-      setTimeout(() => {
+      const response = await adminAPI.generateReviewReport(type)
+      if (response.success) {
         toast.success(`${type} report generated successfully`)
-      }, 1500)
+        // In a real implementation, you might want to trigger a download
+        if (response.downloadUrl) {
+          window.open(response.downloadUrl, '_blank')
+        }
+      } else {
+        toast.error(response.message || "Failed to generate report")
+      }
     } catch (error) {
+      console.error("Error generating report:", error)
       toast.error("Failed to generate report")
     }
   }
 
   const handleModerationSettings = async (settings: ModerationSettings) => {
     try {
-      // In real implementation, you would save settings to API
-      toast.success("Moderation settings updated successfully")
+      const response = await adminAPI.updateModerationSettings(settings)
+      if (response.success) {
+        toast.success("Moderation settings updated successfully")
+      } else {
+        toast.error(response.message || "Failed to update moderation settings")
+      }
     } catch (error) {
+      console.error("Error updating moderation settings:", error)
       toast.error("Failed to update moderation settings")
     }
   }

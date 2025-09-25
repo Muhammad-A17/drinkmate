@@ -31,7 +31,9 @@ import {
   Database,
   Bug,
   TestTube,
-  GitPullRequest
+  GitPullRequest,
+  Server,
+  Activity
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -253,6 +255,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       name: t("common.analytics"), 
       href: "/admin/analytics", 
       icon: <BarChart2 className="w-5 h-5" /> 
+    },
+    { 
+      name: "Audit Logs", 
+      href: "/admin/audit-logs", 
+      icon: <Activity className="w-5 h-5" /> 
+    },
+    { 
+      name: "System Health", 
+      href: "/admin/system-health", 
+      icon: <Server className="w-5 h-5" /> 
     },
     { 
       name: t("common.settings"), 

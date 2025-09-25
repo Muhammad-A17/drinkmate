@@ -1,7 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import AdminLayout from "@/components/layout/AdminLayout"
+import { adminAPI } from "@/lib/api"
+import { toast } from "sonner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
@@ -33,16 +35,264 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+interface Settings {
+  general: {
+    siteName: string
+    siteUrl: string
+    siteDescription: string
+    language: string
+    currency: string
+    timezone: string
+    dateFormat: string
+    isDarkMode: boolean
+    isMaintenanceMode: boolean
+    maintenanceMessage: string
+  }
+  store: {
+    storeName: string
+    storeEmail: string
+    storePhone: string
+    storeAddress: string
+    productsPerPage: number
+    lowStockThreshold: number
+    showOutOfStock: boolean
+    trackInventory: boolean
+    allowBackorders: boolean
+  }
+  payment: {
+    creditCard: boolean
+    applePay: boolean
+    cashOnDelivery: boolean
+    gatewayProvider: string
+    gatewayMode: string
+    apiKey: string
+    guestCheckout: boolean
+    requireTerms: boolean
+  }
+  notifications: {
+    emailFrom: string
+    emailName: string
+    smtpHost: string
+    smtpPort: number
+    smtpEncryption: string
+    smtpUsername: string
+    smtpPassword: string
+    orderConfirmation: boolean
+    shippingConfirmation: boolean
+    accountCreation: boolean
+    newOrder: boolean
+    lowStockNotification: boolean
+    contactForm: boolean
+  }
+  security: {
+    twoFactor: boolean
+    sessionTimeout: number
+    passwordComplexity: boolean
+    enableApi: boolean
+    privacyPolicyUrl: string
+    termsUrl: string
+    cookieConsent: boolean
+    dataRetention: boolean
+  }
+}
+
 export default function SettingsPage() {
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false)
-  const [currency, setCurrency] = useState("SAR")
-  const [language, setLanguage] = useState("en")
+  const [settings, setSettings] = useState<Settings>({
+    general: {
+      siteName: "Drinkmate",
+      siteUrl: "https://drinkmate.sa",
+      siteDescription: "Drinkmate - Premium soda makers and accessories for your home carbonation needs.",
+      language: "en",
+      currency: "SAR",
+      timezone: "Asia/Riyadh",
+      dateFormat: "dd/MM/yyyy",
+      isDarkMode: false,
+      isMaintenanceMode: false,
+      maintenanceMessage: "We're currently performing maintenance. Please check back soon."
+    },
+    store: {
+      storeName: "Drinkmate Saudi Arabia",
+      storeEmail: "info@drinkmate.sa",
+      storePhone: "+966 12 345 6789",
+      storeAddress: "123 King Fahd Road, Riyadh",
+      productsPerPage: 12,
+      lowStockThreshold: 10,
+      showOutOfStock: true,
+      trackInventory: true,
+      allowBackorders: false
+    },
+    payment: {
+      creditCard: true,
+      applePay: true,
+      cashOnDelivery: true,
+      gatewayProvider: "urways",
+      gatewayMode: "live",
+      apiKey: "",
+      guestCheckout: true,
+      requireTerms: true
+    },
+    notifications: {
+      emailFrom: "noreply@drinkmate.sa",
+      emailName: "Drinkmate Saudi Arabia",
+      smtpHost: "smtp.example.com",
+      smtpPort: 587,
+      smtpEncryption: "tls",
+      smtpUsername: "user@example.com",
+      smtpPassword: "",
+      orderConfirmation: true,
+      shippingConfirmation: true,
+      accountCreation: true,
+      newOrder: true,
+      lowStockNotification: true,
+      contactForm: true
+    },
+    security: {
+      twoFactor: false,
+      sessionTimeout: 60,
+      passwordComplexity: true,
+      enableApi: true,
+      privacyPolicyUrl: "https://drinkmate.sa/privacy-policy",
+      termsUrl: "https://drinkmate.sa/terms",
+      cookieConsent: true,
+      dataRetention: false
+    }
+  })
   
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [testingEmail, setTestingEmail] = useState(false)
+
+  // Load settings on component mount
+  useEffect(() => {
+    fetchSettings()
+  }, [])
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true)
+      const response = await adminAPI.getSettings()
+      
+      if (response.success && response.settings) {
+        setSettings(response.settings)
+      } else {
+        console.error("Failed to fetch settings:", response.message)
+        toast.error(response.message || "Failed to load settings")
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error)
+      toast.error("Failed to load settings")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Save settings logic would go here
-    console.log("Settings saved")
+    try {
+      setSaving(true)
+      const response = await adminAPI.updateSettings(settings)
+      
+      if (response.success) {
+        toast.success("Settings saved successfully!")
+      } else {
+        console.error("Failed to save settings:", response.message)
+        toast.error(response.message || "Failed to save settings")
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error)
+      toast.error("Failed to save settings")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleTestEmail = async () => {
+    try {
+      setTestingEmail(true)
+      const response = await adminAPI.testEmailConnection(settings.notifications)
+      
+      if (response.success) {
+        toast.success("Email connection test successful!")
+      } else {
+        console.error("Email test failed:", response.message)
+        toast.error(response.message || "Email connection test failed")
+      }
+    } catch (error) {
+      console.error("Error testing email:", error)
+      toast.error("Failed to test email connection")
+    } finally {
+      setTestingEmail(false)
+    }
+  }
+
+  const handleExportSettings = async () => {
+    try {
+      const response = await adminAPI.exportSettings()
+      
+      if (response.success) {
+        // Create and download the settings file
+        const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'drinkmate-settings.json'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        
+        toast.success("Settings exported successfully!")
+      } else {
+        console.error("Export failed:", response.message)
+        toast.error(response.message || "Failed to export settings")
+      }
+    } catch (error) {
+      console.error("Error exporting settings:", error)
+      toast.error("Failed to export settings")
+    }
+  }
+
+  const handleImportSettings = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      const response = await adminAPI.importSettings(file)
+      
+      if (response.success) {
+        setSettings(response.settings)
+        toast.success("Settings imported successfully!")
+      } else {
+        console.error("Import failed:", response.message)
+        toast.error(response.message || "Failed to import settings")
+      }
+    } catch (error) {
+      console.error("Error importing settings:", error)
+      toast.error("Failed to import settings")
+    }
+  }
+
+  const updateSetting = (category: keyof Settings, key: string, value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [key]: value
+      }
+    }))
+  }
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#12d6fa] mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading settings...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    )
   }
 
   return (
@@ -94,13 +344,15 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-4">
                   <Button 
                     onClick={handleSaveSettings}
-                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+                    disabled={saving}
+                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Save className="h-5 w-5" />
-                    Save All Settings
+                    {saving ? "Saving..." : "Save All Settings"}
                   </Button>
                   
                   <Button 
+                    onClick={handleExportSettings}
                     variant="outline"
                     className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2"
                   >
@@ -108,13 +360,16 @@ export default function SettingsPage() {
                     Export Config
                   </Button>
                   
-                  <Button 
-                    variant="outline"
-                    className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2"
-                  >
+                  <label className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2 cursor-pointer">
                     <FileJson className="h-5 w-5" />
                     Import Config
-                  </Button>
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={handleImportSettings}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
                 
                 <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -211,18 +466,27 @@ export default function SettingsPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="space-y-2">
                                 <Label htmlFor="site-name">Site Name</Label>
-                                <Input id="site-name" defaultValue="Drinkmate" />
+                                <Input 
+                                  id="site-name" 
+                                  value={settings.general.siteName}
+                                  onChange={(e) => updateSetting('general', 'siteName', e.target.value)}
+                                />
                               </div>
                               <div className="space-y-2">
                                 <Label htmlFor="site-url">Site URL</Label>
-                                <Input id="site-url" defaultValue="https://drinkmate.sa" />
+                                <Input 
+                                  id="site-url" 
+                                  value={settings.general.siteUrl}
+                                  onChange={(e) => updateSetting('general', 'siteUrl', e.target.value)}
+                                />
                               </div>
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="site-description">Site Description</Label>
                               <Textarea 
                                 id="site-description" 
-                                defaultValue="Drinkmate - Premium soda makers and accessories for your home carbonation needs."
+                                value={settings.general.siteDescription}
+                                onChange={(e) => updateSetting('general', 'siteDescription', e.target.value)}
                                 rows={3}
                               />
                             </div>
@@ -235,7 +499,10 @@ export default function SettingsPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="space-y-2">
                                 <Label htmlFor="language">Default Language</Label>
-                                <Select value={language} onValueChange={setLanguage}>
+                                <Select 
+                                  value={settings.general.language} 
+                                  onValueChange={(value) => updateSetting('general', 'language', value)}
+                                >
                                   <SelectTrigger id="language">
                                     <SelectValue placeholder="Select language" />
                                   </SelectTrigger>
@@ -247,7 +514,10 @@ export default function SettingsPage() {
                               </div>
                               <div className="space-y-2">
                                 <Label htmlFor="currency">Default Currency</Label>
-                                <Select value={currency} onValueChange={setCurrency}>
+                                <Select 
+                                  value={settings.general.currency} 
+                                  onValueChange={(value) => updateSetting('general', 'currency', value)}
+                                >
                                   <SelectTrigger id="currency">
                                     <SelectValue placeholder="Select currency" />
                                   </SelectTrigger>
@@ -259,7 +529,10 @@ export default function SettingsPage() {
                               </div>
                               <div className="space-y-2">
                                 <Label htmlFor="timezone">Timezone</Label>
-                                <Select defaultValue="Asia/Riyadh">
+                                <Select 
+                                  value={settings.general.timezone}
+                                  onValueChange={(value) => updateSetting('general', 'timezone', value)}
+                                >
                                   <SelectTrigger id="timezone">
                                     <SelectValue placeholder="Select timezone" />
                                   </SelectTrigger>
@@ -271,7 +544,10 @@ export default function SettingsPage() {
                               </div>
                               <div className="space-y-2">
                                 <Label htmlFor="date-format">Date Format</Label>
-                                <Select defaultValue="dd/MM/yyyy">
+                                <Select 
+                                  value={settings.general.dateFormat}
+                                  onValueChange={(value) => updateSetting('general', 'dateFormat', value)}
+                                >
                                   <SelectTrigger id="date-format">
                                     <SelectValue placeholder="Select date format" />
                                   </SelectTrigger>
@@ -298,8 +574,8 @@ export default function SettingsPage() {
                               </div>
                               <Switch 
                                 id="dark-mode" 
-                                checked={isDarkMode}
-                                onCheckedChange={setIsDarkMode}
+                                checked={settings.general.isDarkMode}
+                                onCheckedChange={(checked) => updateSetting('general', 'isDarkMode', checked)}
                               />
                             </div>
                           </div>
@@ -312,7 +588,7 @@ export default function SettingsPage() {
                               <div className="space-y-0.5">
                                 <div className="flex items-center gap-2">
                                   <Label htmlFor="maintenance-mode">Maintenance Mode</Label>
-                                  {isMaintenanceMode && (
+                                  {settings.general.isMaintenanceMode && (
                                     <Badge variant="destructive">Site Offline</Badge>
                                   )}
                                 </div>
@@ -322,16 +598,17 @@ export default function SettingsPage() {
                               </div>
                               <Switch 
                                 id="maintenance-mode" 
-                                checked={isMaintenanceMode}
-                                onCheckedChange={setIsMaintenanceMode}
+                                checked={settings.general.isMaintenanceMode}
+                                onCheckedChange={(checked) => updateSetting('general', 'isMaintenanceMode', checked)}
                               />
                             </div>
-                            {isMaintenanceMode && (
+                            {settings.general.isMaintenanceMode && (
                               <div className="space-y-2 mt-4">
                                 <Label htmlFor="maintenance-message">Maintenance Message</Label>
                                 <Textarea 
                                   id="maintenance-message" 
-                                  defaultValue="We're currently performing maintenance. Please check back soon."
+                                  value={settings.general.maintenanceMessage}
+                                  onChange={(e) => updateSetting('general', 'maintenanceMessage', e.target.value)}
                                   rows={3}
                                 />
                               </div>
@@ -600,8 +877,13 @@ export default function SettingsPage() {
                     <Input id="smtp-password" type="password" defaultValue="password" />
                   </div>
                 </div>
-                <Button variant="outline" className="mt-2">
-                  Test Email Connection
+                <Button 
+                  variant="outline" 
+                  className="mt-2"
+                  onClick={handleTestEmail}
+                  disabled={testingEmail}
+                >
+                  {testingEmail ? "Testing..." : "Test Email Connection"}
                 </Button>
               </div>
 

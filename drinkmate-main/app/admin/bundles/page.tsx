@@ -55,10 +55,11 @@ import {
 import { shopAPI, invalidateCache } from "@/lib/api"
 import { toast } from "sonner"
 import { adminAPI } from "@/lib/api"
+import { sanitizeInput, sanitizeHtml } from "@/lib/protected-api"
 import AdminActionBar, { AdminActions } from "@/components/admin/AdminActionBar"
 import CloudinaryImageUpload from "@/components/ui/cloudinary-image-upload"
 import { YouTubeVideo, isYouTubeUrl } from "@/components/ui/youtube-video"
-import { backendImageService, uploadImageWithProgress } from "@/lib/cloud-storage"
+import { backendImageService, uploadImageWithProgress, uploadVideoWithProgress, validateFile } from "@/lib/cloud-storage"
 
 interface Category {
   _id: string
@@ -277,63 +278,20 @@ export default function BundlesPage() {
   const fetchBundles = async (forceRefresh = false) => {
     try {
       setLoading(true)
-      const response = await shopAPI.getBundles({}, forceRefresh)
+      const response = await adminAPI.getBundles()
       
-      if (response.success) {
-        setBundles(response.bundles || [])
+      if (response.success && response.bundles) {
+        setBundles(response.bundles)
+        toast.success(`Loaded ${response.bundles.length} bundles successfully`)
       } else {
-        // For testing, add sample data if API fails
-        setBundles([
-          {
-            _id: "1",
-            name: "Starter Kit Bundle",
-            description: "Perfect starter kit for beginners including soda maker, CO2 cylinder, and flavor pack",
-            price: 399.99,
-            originalPrice: 499.99,
-            bundleDiscount: 20,
-            category: "starter",
-            images: ["/images/starter-kit.jpg"],
-            isActive: true,
-            isFeatured: true,
-            stock: 15,
-            createdAt: new Date().toISOString()
-          },
-          {
-            _id: "2",
-            name: "Premium Flavor Collection",
-            description: "Complete collection of premium Italian flavors with bonus accessories",
-            price: 149.99,
-            originalPrice: 199.99,
-            bundleDiscount: 25,
-            category: "premium",
-            images: ["/images/flavor-collection.jpg"],
-            isActive: true,
-            isFeatured: false,
-            stock: 8,
-            createdAt: new Date(Date.now() - 86400000).toISOString()
-          }
-        ])
+        console.error("Failed to fetch bundles:", response.message)
+        toast.error(response.message || "Failed to load bundles from API")
+        setBundles([]) // Set to empty array on failure
       }
     } catch (error) {
       console.error("Error fetching bundles:", error)
       toast.error("Failed to fetch bundles")
-      // Add sample data for testing
-        setBundles([
-          {
-            _id: "1",
-            name: "Starter Kit Bundle",
-            description: "Perfect starter kit for beginners including soda maker, CO2 cylinder, and flavor pack",
-            price: 399.99,
-            originalPrice: 499.99,
-            bundleDiscount: 20,
-            category: "starter",
-            images: ["/images/starter-kit.jpg"],
-            isActive: true,
-            isFeatured: true,
-            stock: 15,
-            createdAt: new Date().toISOString()
-          }
-        ])
+      setBundles([]) // Set to empty array on error
     } finally {
       setLoading(false)
     }
@@ -410,26 +368,30 @@ export default function BundlesPage() {
     try {
       const bundleData = {
         ...formData,
+        name: sanitizeInput(formData.name),
+        description: sanitizeHtml(formData.description),
+        shortDescription: sanitizeInput(formData.description),
+        category: sanitizeInput(formData.category),
+        subcategory: sanitizeInput(formData.subcategory || "default"),
         price: price,
         originalPrice: originalPrice > 0 ? originalPrice : undefined,
         bundleDiscount: calculatedDiscount, // Use calculated discount
-        subcategory: "default", // Temporary fix until backend is deployed
         stock: parseInt(formData.stock),
         // Process specifications and features properly - convert to strings for database
         specifications: JSON.stringify(parsedSpecifications),
-        features: featuresArray.join('\n'),
-        youtubeLinks: validYoutubeLinks
+        features: featuresArray.map(f => sanitizeInput(f)).join('\n'),
+        youtubeLinks: validYoutubeLinks.map(link => sanitizeInput(link))
       }
 
       if (editingBundle) {
-        const response = await shopAPI.updateBundle(editingBundle._id, bundleData)
+        const response = await adminAPI.updateBundle(editingBundle._id, bundleData)
         if (response.success) {
           toast.success("Bundle updated successfully")
         } else {
           throw new Error(response.message || "Failed to update bundle")
         }
       } else {
-        const response = await shopAPI.createBundle(bundleData)
+        const response = await adminAPI.createBundle(bundleData)
         if (response.success) {
           toast.success("Bundle created successfully")
         } else {
@@ -454,7 +416,7 @@ export default function BundlesPage() {
       invalidateCache(`bundle-${bundle._id}`)
       
       // Fetch fresh bundle data
-      const response = await shopAPI.getBundle(bundle._id)
+      const response = await adminAPI.getBundle(bundle._id)
       if (response.success) {
         setViewingBundle(response.bundle || bundle)
       } else {
@@ -489,7 +451,7 @@ export default function BundlesPage() {
       // Fetch fresh bundle data
       let freshBundle = bundle
       try {
-        const response = await shopAPI.getBundle(bundle._id)
+        const response = await adminAPI.getBundle(bundle._id)
         if (response.success && response.bundle) {
           freshBundle = response.bundle
         }
@@ -554,7 +516,7 @@ export default function BundlesPage() {
     }
 
     try {
-      const response = await shopAPI.deleteBundle(id)
+      const response = await adminAPI.deleteBundle(id)
       
       if (response.success) {
         toast.success("Bundle deleted successfully")
@@ -711,7 +673,14 @@ export default function BundlesPage() {
       setIsUploadingVideo(true)
       setUploadProgress(0)
       
-      const result = await uploadImageWithProgress(
+      // Validate video file
+      const validation = validateFile(file, 'video')
+      if (!validation.valid) {
+        toast.error(validation.error || "Invalid video file")
+        return
+      }
+      
+      const result = await uploadVideoWithProgress(
         file,
         (progress) => setUploadProgress(progress)
       )
@@ -738,15 +707,10 @@ export default function BundlesPage() {
   const handleVideoFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      // Check file type
-      if (!file.type.startsWith('video/')) {
-        toast.error("Please select a valid video file")
-        return
-      }
-      
-      // Check file size (max 100MB)
-      if (file.size > 100 * 1024 * 1024) {
-        toast.error("Video file size must be less than 100MB")
+      // Validate file using our secure validation
+      const validation = validateFile(file, 'video')
+      if (!validation.valid) {
+        toast.error(validation.error || "Invalid video file")
         return
       }
       

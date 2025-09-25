@@ -39,6 +39,7 @@ import CloudinaryImageUpload from "@/components/ui/cloudinary-image-upload"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import { toast } from "@/hooks/use-toast"
 import { exchangeCylinderAPI } from "@/lib/exchange-cylinder-api"
+import { sanitizeInput, sanitizeHtml } from "@/lib/protected-api"
 
 interface ExchangeCylinder {
   _id: string
@@ -371,7 +372,7 @@ export default function ExchangeCylindersAdmin() {
         return
       }
 
-      console.log('Authentication token found:', token.substring(0, 20) + '...')
+      console.log('Authentication token found')
       
       // Prepare images array
       let imagesArray: string[] = [];
@@ -387,19 +388,19 @@ export default function ExchangeCylindersAdmin() {
         console.log('No images provided, using placeholder');
       }
 
-      // Make sure image and images are consistent
+      // Make sure image and images are consistent and sanitize input
       const requestData = {
-        name: formData.name.trim(),
-        slug: formData.slug.trim(),
+        name: sanitizeInput(formData.name.trim()),
+        slug: sanitizeInput(formData.slug.trim()),
         price: Number(formData.price),
         originalPrice: Number(formData.originalPrice) || Number(formData.price),
         image: imagesArray[0],
         images: imagesArray,
-        description: formData.description.trim(),
+        description: sanitizeHtml(formData.description.trim()),
         capacity: Number(formData.capacity),
-        material: formData.material.trim(),
+        material: sanitizeInput(formData.material.trim()),
         weight: Number(formData.weight) || 10,
-        brand: formData.brand || "drinkmate",
+        brand: sanitizeInput(formData.brand || "drinkmate"),
         exchangeType: formData.exchangeType,
         estimatedTime: formData.estimatedTime || "Same Day",
         

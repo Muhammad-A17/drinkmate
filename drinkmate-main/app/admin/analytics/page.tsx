@@ -1,7 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import AdminLayout from "@/components/layout/AdminLayout"
+import { adminAPI } from "@/lib/api"
+import { toast } from "sonner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
@@ -53,98 +55,187 @@ ChartJS.register(
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState("30days")
-  
-  // Sample data for charts
-  const revenueData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
-      {
-        label: 'Revenue',
-        data: [12500, 15800, 14200, 16800, 19300, 22200, 25100, 26800, 29500, 32200, 35800, 39500],
-        borderColor: '#12d6fa',
-        backgroundColor: 'rgba(18, 214, 250, 0.1)',
-        fill: true,
-        tension: 0.4
+  const [loading, setLoading] = useState(true)
+  const [analytics, setAnalytics] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalUsers: 0,
+    conversionRate: 0,
+    revenueGrowth: 0,
+    ordersGrowth: 0,
+    usersGrowth: 0,
+    conversionGrowth: 0
+  })
+  const [revenueData, setRevenueData] = useState<any>({
+    labels: [],
+    datasets: []
+  })
+  const [ordersData, setOrdersData] = useState<any>({
+    labels: [],
+    datasets: []
+  })
+  const [usersData, setUsersData] = useState<any>({
+    labels: [],
+    datasets: []
+  })
+  const [categoryRevenueData, setCategoryRevenueData] = useState<any>({
+    labels: [],
+    datasets: []
+  })
+  const [topSellingProducts, setTopSellingProducts] = useState<any>({
+    labels: [],
+    datasets: []
+  })
+  const [regionData, setRegionData] = useState<any>({
+    labels: [],
+    datasets: []
+  })
+
+  // Fetch analytics data
+  useEffect(() => {
+    fetchAnalyticsData()
+  }, [timeRange])
+
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoading(true)
+      
+      // Fetch all analytics data in parallel
+      const [
+        analyticsResponse,
+        revenueResponse,
+        ordersResponse,
+        usersResponse,
+        categoryResponse,
+        productsResponse,
+        regionalResponse
+      ] = await Promise.all([
+        adminAPI.getAnalytics(timeRange),
+        adminAPI.getRevenueData(timeRange),
+        adminAPI.getOrdersData(timeRange),
+        adminAPI.getUsersData(timeRange),
+        adminAPI.getCategoryRevenue(timeRange),
+        adminAPI.getTopProducts(timeRange),
+        adminAPI.getRegionalData(timeRange)
+      ])
+
+      // Update analytics summary
+      if (analyticsResponse.success) {
+        setAnalytics(analyticsResponse.analytics)
       }
-    ]
+
+      // Update chart data
+      if (revenueResponse.success) {
+        setRevenueData({
+          labels: revenueResponse.data.labels || [],
+          datasets: [{
+            label: 'Revenue',
+            data: revenueResponse.data.data || [],
+            borderColor: '#12d6fa',
+            backgroundColor: 'rgba(18, 214, 250, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        })
+      }
+
+      if (ordersResponse.success) {
+        setOrdersData({
+          labels: ordersResponse.data.labels || [],
+          datasets: [{
+            label: 'Orders',
+            data: ordersResponse.data.data || [],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        })
+      }
+
+      if (usersResponse.success) {
+        setUsersData({
+          labels: usersResponse.data.labels || [],
+          datasets: [{
+            label: 'New Users',
+            data: usersResponse.data.data || [],
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        })
+      }
+
+      if (categoryResponse.success) {
+        setCategoryRevenueData({
+          labels: categoryResponse.data.labels || [],
+          datasets: [{
+            label: 'Revenue by Category',
+            data: categoryResponse.data.data || [],
+            backgroundColor: [
+              'rgba(18, 214, 250, 0.7)',
+              'rgba(16, 185, 129, 0.7)',
+              'rgba(139, 92, 246, 0.7)',
+              'rgba(249, 115, 22, 0.7)',
+              'rgba(236, 72, 153, 0.7)'
+            ],
+            borderWidth: 0
+          }]
+        })
+      }
+
+      if (productsResponse.success) {
+        setTopSellingProducts({
+          labels: productsResponse.data.labels || [],
+          datasets: [{
+            label: 'Units Sold',
+            data: productsResponse.data.data || [],
+            backgroundColor: 'rgba(18, 214, 250, 0.7)',
+            borderColor: 'rgba(18, 214, 250, 1)',
+            borderWidth: 1
+          }]
+        })
+      }
+
+      if (regionalResponse.success) {
+        setRegionData({
+          labels: regionalResponse.data.labels || [],
+          datasets: [{
+            label: 'Orders by Region',
+            data: regionalResponse.data.data || [],
+            backgroundColor: [
+              'rgba(18, 214, 250, 0.7)',
+              'rgba(16, 185, 129, 0.7)',
+              'rgba(139, 92, 246, 0.7)',
+              'rgba(249, 115, 22, 0.7)',
+              'rgba(236, 72, 153, 0.7)',
+              'rgba(148, 163, 184, 0.7)'
+            ],
+            borderWidth: 0
+          }]
+        })
+      }
+
+    } catch (error) {
+      console.error('Error fetching analytics data:', error)
+      toast.error('Failed to load analytics data')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const ordersData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
-      {
-        label: 'Orders',
-        data: [85, 102, 98, 110, 125, 145, 158, 168, 182, 195, 210, 225],
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-        fill: true,
-        tension: 0.4
-      }
-    ]
-  }
-
-  const usersData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
-      {
-        label: 'New Users',
-        data: [25, 32, 28, 35, 42, 48, 52, 58, 65, 72, 78, 85],
-        borderColor: '#8b5cf6',
-        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-        fill: true,
-        tension: 0.4
-      }
-    ]
-  }
-
-  const categoryRevenueData = {
-    labels: ['Soda Makers', 'Flavors', 'Accessories', 'CO2 Cylinders', 'Bundles'],
-    datasets: [
-      {
-        label: 'Revenue by Category',
-        data: [158000, 75000, 42000, 35000, 95000],
-        backgroundColor: [
-          'rgba(18, 214, 250, 0.7)',
-          'rgba(16, 185, 129, 0.7)',
-          'rgba(139, 92, 246, 0.7)',
-          'rgba(249, 115, 22, 0.7)',
-          'rgba(236, 72, 153, 0.7)'
-        ],
-        borderWidth: 0
-      }
-    ]
-  }
-
-  const topSellingProducts = {
-    labels: ['OmniFizz', 'Luxe', 'Arctic Blue', 'Strawberry Lemon', 'Cola Flavor'],
-    datasets: [
-      {
-        label: 'Units Sold',
-        data: [350, 280, 220, 420, 380],
-        backgroundColor: 'rgba(18, 214, 250, 0.7)',
-        borderColor: 'rgba(18, 214, 250, 1)',
-        borderWidth: 1
-      }
-    ]
-  }
-
-  const regionData = {
-    labels: ['Riyadh', 'Jeddah', 'Dammam', 'Mecca', 'Medina', 'Other'],
-    datasets: [
-      {
-        label: 'Orders by Region',
-        data: [42, 28, 15, 12, 10, 18],
-        backgroundColor: [
-          'rgba(18, 214, 250, 0.7)',
-          'rgba(16, 185, 129, 0.7)',
-          'rgba(139, 92, 246, 0.7)',
-          'rgba(249, 115, 22, 0.7)',
-          'rgba(236, 72, 153, 0.7)',
-          'rgba(148, 163, 184, 0.7)'
-        ],
-        borderWidth: 0
-      }
-    ]
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#12d6fa] mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading analytics data...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    )
   }
 
   return (
@@ -240,17 +331,19 @@ export default function AnalyticsPage() {
                   <div className="p-3 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl">
                     <CreditCard className="h-6 w-6 text-blue-600" />
                   </div>
-                  <span className="flex items-center text-sm font-medium text-green-600">
-                    <ArrowUpRight className="h-4 w-4 mr-1" />
-                    +12.5%
+                  <span className={`flex items-center text-sm font-medium ${analytics.revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {analytics.revenueGrowth >= 0 ? <ArrowUpRight className="h-4 w-4 mr-1" /> : <ArrowDownRight className="h-4 w-4 mr-1" />}
+                    {analytics.revenueGrowth > 0 ? '+' : ''}{analytics.revenueGrowth}%
                   </span>
                 </div>
                 <div className="mt-4">
                   <p className="text-sm font-medium text-gray-500">Total Revenue</p>
                   <h3 className="text-2xl font-bold text-gray-800">
-                    <SaudiRiyal amount={405250} size="xl" />
+                    <SaudiRiyal amount={analytics.totalRevenue} size="xl" />
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1">Compared to <SaudiRiyal amount={360000} size="sm" /> last year</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {analytics.revenueGrowth > 0 ? '+' : ''}{analytics.revenueGrowth}% from previous period
+                  </p>
                 </div>
               </div>
             </div>
@@ -262,15 +355,17 @@ export default function AnalyticsPage() {
                   <div className="p-3 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl">
                     <ShoppingBag className="h-6 w-6 text-green-600" />
                   </div>
-                  <span className="flex items-center text-sm font-medium text-green-600">
-                    <ArrowUpRight className="h-4 w-4 mr-1" />
-                    +8.2%
+                  <span className={`flex items-center text-sm font-medium ${analytics.ordersGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {analytics.ordersGrowth >= 0 ? <ArrowUpRight className="h-4 w-4 mr-1" /> : <ArrowDownRight className="h-4 w-4 mr-1" />}
+                    {analytics.ordersGrowth > 0 ? '+' : ''}{analytics.ordersGrowth}%
                   </span>
                 </div>
                 <div className="mt-4">
                   <p className="text-sm font-medium text-gray-500">Total Orders</p>
-                  <h3 className="text-2xl font-bold text-gray-800">1,648</h3>
-                  <p className="text-xs text-gray-500 mt-1">Compared to 1,523 last year</p>
+                  <h3 className="text-2xl font-bold text-gray-800">{analytics.totalOrders.toLocaleString()}</h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {analytics.ordersGrowth > 0 ? '+' : ''}{analytics.ordersGrowth}% from previous period
+                  </p>
                 </div>
               </div>
             </div>
@@ -282,15 +377,17 @@ export default function AnalyticsPage() {
                   <div className="p-3 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-xl">
                     <Users className="h-6 w-6 text-purple-600" />
                   </div>
-                  <span className="flex items-center text-sm font-medium text-green-600">
-                    <ArrowUpRight className="h-4 w-4 mr-1" />
-                    +15.3%
+                  <span className={`flex items-center text-sm font-medium ${analytics.usersGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {analytics.usersGrowth >= 0 ? <ArrowUpRight className="h-4 w-4 mr-1" /> : <ArrowDownRight className="h-4 w-4 mr-1" />}
+                    {analytics.usersGrowth > 0 ? '+' : ''}{analytics.usersGrowth}%
                   </span>
                 </div>
                 <div className="mt-4">
                   <p className="text-sm font-medium text-gray-500">Total Users</p>
-                  <h3 className="text-2xl font-bold text-gray-800">620</h3>
-                  <p className="text-xs text-gray-500 mt-1">Compared to 538 last year</p>
+                  <h3 className="text-2xl font-bold text-gray-800">{analytics.totalUsers.toLocaleString()}</h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {analytics.usersGrowth > 0 ? '+' : ''}{analytics.usersGrowth}% from previous period
+                  </p>
                 </div>
               </div>
             </div>
@@ -302,15 +399,17 @@ export default function AnalyticsPage() {
                   <div className="p-3 bg-gradient-to-br from-amber-500/20 to-amber-600/20 rounded-xl">
                     <TrendingUp className="h-6 w-6 text-amber-600" />
                   </div>
-                  <span className="flex items-center text-sm font-medium text-red-600">
-                    <ArrowDownRight className="h-4 w-4 mr-1" />
-                    -2.4%
+                  <span className={`flex items-center text-sm font-medium ${analytics.conversionGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {analytics.conversionGrowth >= 0 ? <ArrowUpRight className="h-4 w-4 mr-1" /> : <ArrowDownRight className="h-4 w-4 mr-1" />}
+                    {analytics.conversionGrowth > 0 ? '+' : ''}{analytics.conversionGrowth}%
                   </span>
                 </div>
                 <div className="mt-4">
                   <p className="text-sm font-medium text-gray-500">Conversion Rate</p>
-                  <h3 className="text-2xl font-bold text-gray-800">3.2%</h3>
-                  <p className="text-xs text-gray-500 mt-1">Compared to 3.3% last year</p>
+                  <h3 className="text-2xl font-bold text-gray-800">{analytics.conversionRate.toFixed(1)}%</h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {analytics.conversionGrowth > 0 ? '+' : ''}{analytics.conversionGrowth}% from previous period
+                  </p>
                 </div>
               </div>
             </div>

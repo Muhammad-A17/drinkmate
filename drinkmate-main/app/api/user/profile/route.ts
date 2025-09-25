@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/auth-middleware'
+import { addSecurityHeaders, logError, sanitizeErrorMessage } from '@/lib/protected-api'
 
 interface AuthenticatedRequest extends NextRequest {
   user?: {
@@ -16,41 +17,46 @@ async function updateUserProfile(req: AuthenticatedRequest) {
 
     // Basic validation
     if (!name || !name.trim()) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'Name is required' },
         { status: 400 }
       )
+      return addSecurityHeaders(response)
     }
 
     if (!district || !district.trim() || !city || !city.trim()) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'District and city are required' },
         { status: 400 }
       )
+      return addSecurityHeaders(response)
     }
 
     // Validate national address format if provided
     if (nationalAddress && !/^[A-Z]{4}[0-9]{4}$/.test(nationalAddress)) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'Invalid national address format. Must be 4 letters followed by 4 numbers (e.g., JESA3591)' },
         { status: 400 }
       )
+      return addSecurityHeaders(response)
     }
 
     // Validate phone number format if provided (Saudi phone numbers)
     if (phone && !/^(\+966|966|0)?[5-9][0-9]{8}$/.test(phone)) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'Invalid phone number format. Please enter a valid Saudi phone number (e.g., 0507551812)' },
         { status: 400 }
       )
+      return addSecurityHeaders(response)
     }
 
     const userId = req.user?.id
     if (!userId) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'User not authenticated' },
         { status: 401 }
       )
+      return addSecurityHeaders(response)
     }
 
     // Call backend API to update user profile
@@ -83,7 +89,7 @@ async function updateUserProfile(req: AuthenticatedRequest) {
       const updatedUser = await response.json()
 
       // Return success response with updated data
-      return NextResponse.json({
+      const successResponse = NextResponse.json({
         success: true,
         message: 'Profile updated successfully',
         data: {
@@ -95,21 +101,24 @@ async function updateUserProfile(req: AuthenticatedRequest) {
           nationalAddress: updatedUser.user?.nationalAddress || nationalAddress
         }
       })
+      return addSecurityHeaders(successResponse)
 
     } catch (backendError) {
-      console.error('Backend API error:', backendError)
-      return NextResponse.json(
-        { error: 'Failed to connect to user service' },
+      logError(backendError, 'Backend API error')
+      const response = NextResponse.json(
+        { error: 'Service temporarily unavailable' },
         { status: 503 }
       )
+      return addSecurityHeaders(response)
     }
 
   } catch (error) {
-    console.error('Error updating user profile:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
+    logError(error, 'Profile update error')
+    const response = NextResponse.json(
+      { error: sanitizeErrorMessage(error) },
       { status: 500 }
     )
+    return addSecurityHeaders(response)
   }
 }
 

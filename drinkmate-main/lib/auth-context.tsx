@@ -24,7 +24,7 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; message: string }>;
-  register: (username: string, email: string, password: string) => Promise<{ success: boolean; message: string }>;
+  register: (fullName: string, email: string, password: string) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   resetPassword: (token: string, password: string) => Promise<{ success: boolean; message: string }>;
@@ -92,34 +92,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               isLoading: false,
             });
           } else {
-            // For other errors (like 503), keep the token and try to use cached user data
-            console.warn("Token verification failed with non-401 error, using cached data");
-            
-            // Try to extract user data from token as fallback
-            let fallbackUser = null;
-            try {
-              const tokenData = JSON.parse(atob(token.split('.')[1]));
-              if (tokenData && tokenData.id) {
-                fallbackUser = {
-                  _id: tokenData.id,
-                  username: tokenData.username || 'User',
-                  name: tokenData.name || tokenData.username || 'User',
-                  email: tokenData.email || '',
-                  isAdmin: tokenData.isAdmin || tokenData.role === 'admin',
-                  phone: tokenData.phone || '',
-                  avatar: tokenData.avatar || '',
-                  createdAt: tokenData.createdAt || new Date().toISOString(),
-                  lastLogin: tokenData.lastLogin
-                };
-              }
-            } catch (tokenError) {
-              console.error("Failed to parse token data:", tokenError);
-            }
-            
+            // For other errors (like 503), clear token and require re-authentication
+            console.warn("Token verification failed with non-401 error, clearing token for security");
+            localStorage.removeItem(TOKEN_KEY);
+            sessionStorage.removeItem(TOKEN_KEY);
             setAuthState({
-              user: fallbackUser,
-              token,
-              isAuthenticated: !!fallbackUser, // Only authenticate if we have user data
+              user: null,
+              token: null,
+              isAuthenticated: false,
               isLoading: false,
             });
           }
@@ -242,10 +222,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (username: string, email: string, password: string) => {
+  const register = async (fullName: string, email: string, password: string) => {
     try {
-      console.log('Attempting registration with:', { username, email });
-      const data = await authAPI.register(username, email, password);
+      console.log('Attempting registration with:', { fullName, email });
+      const data = await authAPI.register(fullName, email, password);
       console.log('Registration response:', data);
       
       localStorage.setItem(TOKEN_KEY, data.token);
@@ -261,10 +241,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Try demo registration for testing if API is down
       if (!error.response) {
+        const username = fullName.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000);
         const demoUser = {
           _id: 'demo_user_' + Date.now(),
           username,
-          name: username,
+          name: fullName,
           email,
           isAdmin: false
         };

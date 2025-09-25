@@ -37,7 +37,16 @@ export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextRes
       const token = authHeader.replace('Bearer ', '')
       
       // Verify JWT token
-      const jwtSecret = process.env.JWT_SECRET || 'default_dev_secret'
+      const jwtSecret = process.env.JWT_SECRET
+      if (!jwtSecret) {
+        return NextResponse.json(
+          { 
+            error: 'JWT secret not configured',
+            code: 'JWT_SECRET_MISSING'
+          },
+          { status: 500 }
+        )
+      }
       let decoded: JWTPayload
       
       try {

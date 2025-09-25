@@ -3,6 +3,7 @@ import axios from 'axios';
 import { getAuthToken } from './auth-context';
 import { fallbackCylinders, fallbackFlavors, fallbackProducts } from './fallback-data';
 import { ErrorHandler, createApiResponse } from './error-handler';
+import { checkAdminRateLimit } from './protected-api';
 
 // Re-export getAuthToken for other modules to use from this single import
 export { getAuthToken };
@@ -334,9 +335,9 @@ export const authAPI = {
     }
   },
   
-  register: async (username: string, email: string, password: string) => {
+  register: async (fullName: string, email: string, password: string) => {
     try {
-      const response = await api.post('/auth/register', { username, email, password });
+      const response = await api.post('/auth/register', { fullName, email, password });
       return response.data;
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
@@ -1131,6 +1132,23 @@ export const contactAPI = {
   getUserContacts: async (email: string) => {
     const response = await api.get(`/contact/user/contacts?email=${encodeURIComponent(email)}`);
     return response.data;
+  },
+
+  // Bulk actions (admin only)
+  bulkUpdateContacts: async (contactIds: string[], updates: any) => {
+    const response = await api.put('/contact/admin/contacts/bulk', { contactIds, updates });
+    return response.data;
+  },
+
+  bulkDeleteContacts: async (contactIds: string[]) => {
+    const response = await api.delete('/contact/admin/contacts/bulk', { data: { contactIds } });
+    return response.data;
+  },
+
+  // Export contacts (admin only)
+  exportContacts: async (filters: any = {}) => {
+    const response = await api.get('/contact/admin/contacts/export', { params: filters });
+    return response.data;
   }
 };
 
@@ -1374,6 +1392,16 @@ export const adminAPI = {
 
   createProduct: async (productData: any) => {
     try {
+      // Check rate limiting for product management
+      const userId = getAuthToken() ? 'admin' : 'anonymous';
+      if (!checkAdminRateLimit(userId, 'product_management')) {
+        return {
+          success: false,
+          message: 'Rate limit exceeded. Please try again later.',
+          product: null
+        };
+      }
+
       const response = await api.post('/admin/products', productData);
       return response.data;
     } catch (error: any) {
@@ -1593,6 +1621,78 @@ export const adminAPI = {
     });
     return response.data;
   },
+
+  createUser: async (userData: any) => {
+    // Check rate limiting for user management
+    const userId = getAuthToken() ? 'admin' : 'anonymous';
+    if (!checkAdminRateLimit(userId, 'user_management')) {
+      return {
+        success: false,
+        message: 'Rate limit exceeded. Please try again later.',
+        user: null
+      };
+    }
+
+    // Get auth token using the correct key
+    const token = getAuthToken();
+    
+    const response = await api.post('/admin/users', userData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+
+  updateUserStatus: async (id: string, status: string) => {
+    // Get auth token using the correct key
+    const token = getAuthToken();
+    
+    const response = await api.patch(`/admin/users/${id}/status`, { status }, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  toggleUserRole: async (id: string, isAdmin: boolean) => {
+    // Get auth token using the correct key
+    const token = getAuthToken();
+    
+    const response = await api.patch(`/admin/users/${id}/role`, { isAdmin }, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  bulkUpdateUsers: async (userIds: string[], updates: any) => {
+    // Get auth token using the correct key
+    const token = getAuthToken();
+    
+    const response = await api.patch('/admin/users/bulk', { userIds, updates }, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  bulkDeleteUsers: async (userIds: string[]) => {
+    // Get auth token using the correct key
+    const token = getAuthToken();
+    
+    const response = await api.delete('/admin/users/bulk', {
+      data: { userIds },
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
   
   // Image management
   uploadImage: async (file: File) => {
@@ -1663,6 +1763,37 @@ export const adminAPI = {
       },
     });
     return apiResponse.data;
+  },
+
+  bulkImportReviews: async (formData: FormData) => {
+    const token = getAuthToken();
+    const response = await api.post('/admin/reviews/bulk-import', formData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  generateReviewReport: async (type: string) => {
+    const token = getAuthToken();
+    const response = await api.post('/admin/reviews/reports', { type }, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+
+  updateModerationSettings: async (settings: any) => {
+    const token = getAuthToken();
+    const response = await api.put('/admin/reviews/moderation-settings', settings, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
   },
 
   // Category management
@@ -1738,6 +1869,237 @@ export const adminAPI = {
       },
     });
     return response.data;
+  },
+
+  // Analytics
+  getAnalytics: async (timeRange: string = '30days') => {
+    try {
+      const token = getAuthToken();
+      const response = await api.get(`/admin/analytics?timeRange=${timeRange}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getAnalytics:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch analytics',
+        analytics: null
+      };
+    }
+  },
+
+  getRevenueData: async (timeRange: string = '30days') => {
+    try {
+      const token = getAuthToken();
+      const response = await api.get(`/admin/analytics/revenue?timeRange=${timeRange}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getRevenueData:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch revenue data',
+        data: null
+      };
+    }
+  },
+
+  getOrdersData: async (timeRange: string = '30days') => {
+    try {
+      const token = getAuthToken();
+      const response = await api.get(`/admin/analytics/orders?timeRange=${timeRange}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getOrdersData:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch orders data',
+        data: null
+      };
+    }
+  },
+
+  getUsersData: async (timeRange: string = '30days') => {
+    try {
+      const token = getAuthToken();
+      const response = await api.get(`/admin/analytics/users?timeRange=${timeRange}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getUsersData:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch users data',
+        data: null
+      };
+    }
+  },
+
+  getCategoryRevenue: async (timeRange: string = '30days') => {
+    try {
+      const token = getAuthToken();
+      const response = await api.get(`/admin/analytics/category-revenue?timeRange=${timeRange}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getCategoryRevenue:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch category revenue data',
+        data: null
+      };
+    }
+  },
+
+  getTopProducts: async (timeRange: string = '30days') => {
+    try {
+      const token = getAuthToken();
+      const response = await api.get(`/admin/analytics/top-products?timeRange=${timeRange}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getTopProducts:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch top products data',
+        data: null
+      };
+    }
+  },
+
+  getRegionalData: async (timeRange: string = '30days') => {
+    try {
+      const token = getAuthToken();
+      const response = await api.get(`/admin/analytics/regional?timeRange=${timeRange}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getRegionalData:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch regional data',
+        data: null
+      };
+    }
+  },
+
+  // Settings Management
+  getSettings: async () => {
+    try {
+      const token = getAuthToken();
+      const response = await api.get('/admin/settings', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - getSettings:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch settings',
+        settings: null
+      };
+    }
+  },
+
+  updateSettings: async (settings: any) => {
+    try {
+      const token = getAuthToken();
+      const response = await api.put('/admin/settings', settings, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - updateSettings:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to update settings',
+        settings: null
+      };
+    }
+  },
+
+  testEmailConnection: async (emailSettings: any) => {
+    try {
+      const token = getAuthToken();
+      const response = await api.post('/admin/settings/test-email', emailSettings, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - testEmailConnection:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to test email connection',
+      };
+    }
+  },
+
+  exportSettings: async () => {
+    try {
+      const token = getAuthToken();
+      const response = await api.get('/admin/settings/export', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - exportSettings:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to export settings',
+      };
+    }
+  },
+
+  importSettings: async (settingsFile: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('settings', settingsFile);
+      
+      const token = getAuthToken();
+      const response = await api.post('/admin/settings/import', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Admin API Error - importSettings:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to import settings',
+      };
+    }
   },
 
   createSubcategory: async (subcategoryData: any) => {

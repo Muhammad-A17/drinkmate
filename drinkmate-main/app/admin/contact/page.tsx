@@ -62,6 +62,7 @@ import {
   ExternalLink
 } from "lucide-react"
 import { contactAPI } from "@/lib/api"
+import { sanitizeInput, sanitizeHtml } from "@/lib/protected-api"
 import { toast } from "sonner"
 
 interface ContactMessage {
@@ -289,19 +290,18 @@ export default function ContactPage() {
     try {
       setLoading(true)
       const response = await contactAPI.getAllContacts({ limit: 100 })
-      if (response.success) {
-        const enhancedContacts = (response.contacts || []).map((contact: ContactMessage) => ({
-          ...contact,
-          source: contact.source || ["website", "email", "phone", "social", "referral"][Math.floor(Math.random() * 5)],
-          tags: contact.tags || [],
-          starred: contact.starred || false,
-          responseTime: contact.responseTime || Math.floor(Math.random() * 48) + 1,
-        }))
-        setContacts(enhancedContacts)
+      if (response.success && response.contacts) {
+        setContacts(response.contacts)
+        toast.success(`Loaded ${response.contacts.length} contact messages successfully`)
+      } else {
+        console.error("Failed to fetch contacts:", response.message)
+        toast.error(response.message || "Failed to load contact messages from API")
+        setContacts([]) // Set to empty array on failure
       }
     } catch (error) {
       console.error("Error fetching contacts:", error)
       toast.error("Failed to fetch contact messages")
+      setContacts([]) // Set to empty array on error
     } finally {
       setLoading(false)
     }
@@ -314,26 +314,50 @@ export default function ContactPage() {
     }
 
     try {
+      let response
       switch (action) {
         case "mark_resolved":
-          // Simulate bulk status update
-          toast.success(`Marked ${selectedContacts.length} contacts as resolved`)
+          response = await contactAPI.bulkUpdateContacts(selectedContacts, { status: "resolved" })
+          if (response.success) {
+            toast.success(`Marked ${selectedContacts.length} contacts as resolved`)
+          } else {
+            toast.error(response.message || "Failed to update contacts")
+            return
+          }
           break
         case "assign":
           if (!assignTo) {
             toast.error("Please select an assignee")
             return
           }
-          toast.success(
-            `Assigned ${selectedContacts.length} contacts to ${teamMembers.find((m) => m.id === assignTo)?.name}`,
-          )
+          response = await contactAPI.bulkUpdateContacts(selectedContacts, { assignedTo: assignTo })
+          if (response.success) {
+            toast.success(
+              `Assigned ${selectedContacts.length} contacts to ${teamMembers.find((m) => m.id === assignTo)?.name}`,
+            )
+          } else {
+            toast.error(response.message || "Failed to assign contacts")
+            return
+          }
           break
         case "archive":
-          toast.success(`Archived ${selectedContacts.length} contacts`)
+          response = await contactAPI.bulkUpdateContacts(selectedContacts, { status: "closed" })
+          if (response.success) {
+            toast.success(`Archived ${selectedContacts.length} contacts`)
+          } else {
+            toast.error(response.message || "Failed to archive contacts")
+            return
+          }
           break
         case "delete":
           if (confirm(`Are you sure you want to delete ${selectedContacts.length} contacts?`)) {
-            toast.success(`Deleted ${selectedContacts.length} contacts`)
+            response = await contactAPI.bulkDeleteContacts(selectedContacts)
+            if (response.success) {
+              toast.success(`Deleted ${selectedContacts.length} contacts`)
+            } else {
+              toast.error(response.message || "Failed to delete contacts")
+              return
+            }
           }
           break
       }
@@ -341,36 +365,69 @@ export default function ContactPage() {
       setShowBulkActions(false)
       fetchContacts()
     } catch (error) {
+      console.error("Error performing bulk action:", error)
       toast.error("Failed to perform bulk action")
     }
   }
 
-  const handleExport = () => {
-    const csvContent = [
-      ["Name", "Email", "Phone", "Company", "Subject", "Status", "Priority", "Source", "Created Date"],
-      ...filteredContacts.map((contact) => [
-        contact.name,
-        contact.email,
-        contact.phone || "",
-        contact.company || "",
-        contact.subject,
-        contact.status,
-        contact.priority,
-        contact.source || "",
-        new Date(contact.createdAt).toLocaleDateString(),
-      ]),
-    ]
-      .map((row) => row.join(","))
-      .join("\n")
+  const handleExport = async () => {
+    try {
+      const response = await contactAPI.exportContacts({
+        status: selectedStatus,
+        priority: selectedPriority,
+        source: selectedSource,
+        company: companyFilter,
+        responseTime: responseTimeFilter,
+        tags: selectedTags,
+        dateRange: dateRange
+      })
+      if (response.success && response.downloadUrl) {
+        // If the API provides a download URL, use it
+        window.open(response.downloadUrl, '_blank')
+        toast.success("Contacts exported successfully")
+      } else if (response.success && response.data) {
+        // If the API returns the data directly, create a download
+        const csvContent = response.data
+        const blob = new Blob([csvContent], { type: "text/csv" })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `contacts-${new Date().toISOString().split("T")[0]}.csv`
+        a.click()
+        window.URL.revokeObjectURL(url)
+        toast.success("Contacts exported successfully")
+      } else {
+        // Fallback to client-side export
+        const csvContent = [
+          ["Name", "Email", "Phone", "Company", "Subject", "Status", "Priority", "Source", "Created Date"],
+          ...filteredContacts.map((contact) => [
+            contact.name,
+            contact.email,
+            contact.phone || "",
+            contact.company || "",
+            contact.subject,
+            contact.status,
+            contact.priority,
+            contact.source || "",
+            new Date(contact.createdAt).toLocaleDateString(),
+          ]),
+        ]
+          .map((row) => row.join(","))
+          .join("\n")
 
-    const blob = new Blob([csvContent], { type: "text/csv" })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `contacts-${new Date().toISOString().split("T")[0]}.csv`
-    a.click()
-    window.URL.revokeObjectURL(url)
-    toast.success("Contact data exported successfully")
+        const blob = new Blob([csvContent], { type: "text/csv" })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `contacts-${new Date().toISOString().split("T")[0]}.csv`
+        a.click()
+        window.URL.revokeObjectURL(url)
+        toast.success("Contact data exported successfully")
+      }
+    } catch (error) {
+      console.error("Error exporting contacts:", error)
+      toast.error("Failed to export contacts")
+    }
   }
 
   const handleQuickAction = (actionId: string, contact: ContactMessage) => {

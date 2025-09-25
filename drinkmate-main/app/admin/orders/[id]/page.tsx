@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useAdminTranslation } from "@/lib/use-admin-translation"
+import { adminAPI } from "@/lib/api"
 import AdminLayout from "@/components/layout/AdminLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -125,151 +126,16 @@ export default function OrderDetailsPage() {
     try {
       setLoading(true)
       
-      // For now, use mock data while backend is being set up
-      const mockOrders: Order[] = [
-        {
-          _id: "1",
-          orderNumber: "ORD-001",
-          user: {
-            _id: "user1",
-            username: "ahmed_alfarsi",
-            email: "ahmed@example.com"
-          },
-          items: [
-            { name: "OmniFizz Soda Maker", quantity: 1, price: 399 },
-            { name: "Strawberry Lemon Flavor", quantity: 2, price: 49 },
-            { name: "CO2 Cylinder", quantity: 1, price: 89 }
-          ],
-          shippingAddress: {
-            fullName: "Ahmed Al-Farsi",
-            email: "ahmed@example.com",
-            phone: "+966501234567",
-            district: "Al-Riyadh",
-            city: "Riyadh",
-            country: "Saudi Arabia",
-            nationalAddress: "JESA3591"
-          },
-          paymentMethod: "urways",
-          deliveryOption: "standard",
-          cardDetails: {
-            cardNumber: "4111111111111111",
-            cardholderName: "Ahmed Al-Farsi",
-            expiryMonth: "12",
-            expiryYear: "2025",
-            cvv: "123"
-          },
-          subtotal: 586,
-          shippingCost: 50,
-          tax: 58.6,
-          total: 694.6,
-          status: "processing",
-          paymentStatus: "paid",
-          createdAt: "2024-01-15T10:30:00Z",
-          updatedAt: "2024-01-15T10:30:00Z",
-          trackingNumber: "TRK123456789",
-          estimatedDeliveryDate: "2024-01-20T10:30:00Z"
-        },
-        {
-          _id: "2",
-          orderNumber: "ORD-002",
-          user: {
-            _id: "user2",
-            username: "sara_alqahtani",
-            email: "sara@example.com"
-          },
-          items: [
-            { name: "Drinkmate Luxe", quantity: 1, price: 599 }
-          ],
-          shippingAddress: {
-            fullName: "Sara Al-Qahtani",
-            email: "sara@example.com",
-            phone: "+966507654321",
-            district: "Al-Balad",
-            city: "Jeddah",
-            country: "Saudi Arabia",
-            nationalAddress: "KHRT2847"
-          },
-          paymentMethod: "tap_payment",
-          deliveryOption: "express",
-          subtotal: 599,
-          shippingCost: 75,
-          tax: 59.9,
-          total: 733.9,
-          status: "shipped",
-          paymentStatus: "paid",
-          createdAt: "2024-01-14T15:45:00Z",
-          updatedAt: "2024-01-15T09:20:00Z",
-          trackingNumber: "TRK987654321",
-          estimatedDeliveryDate: "2024-01-16T15:45:00Z"
-        },
-        {
-          _id: "3",
-          orderNumber: "ORD-003",
-          user: {
-            _id: "user3",
-            username: "mohammed_otaibi",
-            email: "mohammed@example.com"
-          },
-          items: [
-            { name: "Cola Flavor", quantity: 2, price: 39 },
-            { name: "Black Bottle 500ml", quantity: 1, price: 79 }
-          ],
-          shippingAddress: {
-            fullName: "Mohammed Al-Otaibi",
-            email: "mohammed@example.com",
-            phone: "+966509876543",
-            district: "Al-Faisaliyah",
-            city: "Dammam",
-            country: "Saudi Arabia",
-            nationalAddress: "DMMN1234"
-          },
-          paymentMethod: "cash_on_delivery",
-          deliveryOption: "economy",
-          subtotal: 157,
-          shippingCost: 25,
-          tax: 15.7,
-          total: 197.7,
-          status: "pending",
-          paymentStatus: "pending",
-          createdAt: "2024-01-16T08:15:00Z",
-          updatedAt: "2024-01-16T08:15:00Z"
-        }
-      ]
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      // Find the order by ID
-      const foundOrder = mockOrders.find(o => o._id === orderId)
+      // Fetch order details from API
+      const response = await adminAPI.getOrder(orderId)
       
-      if (foundOrder) {
-        setOrder(foundOrder)
+      if (response.success && response.order) {
+        setOrder(response.order)
       } else {
-        toast.error('Order not found')
+        console.error("Failed to fetch order:", response.message);
+        toast.error(response.message || 'Order not found')
         router.push('/admin/orders')
       }
-
-      // Uncomment this when backend is ready:
-      /*
-      const response = await fetch(`/api/checkout/orders/${orderId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch order details')
-      }
-
-      const data = await response.json()
-      
-      if (data.success) {
-        setOrder(data.order)
-      } else {
-        toast.error(data.message || 'Failed to fetch order details')
-        router.push('/admin/orders')
-      }
-      */
     } catch (error) {
       console.error('Error fetching order details:', error)
       toast.error('Failed to fetch order details')

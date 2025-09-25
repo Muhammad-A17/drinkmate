@@ -70,6 +70,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { adminAPI } from "@/lib/api"
+import { sanitizeInput, validateUsername, validatePassword, validateEmail } from "@/lib/protected-api"
+import { AdminErrorBoundary } from "@/lib/admin-error-handler"
+import { useAdminErrorHandler, useFormErrorHandler } from "@/hooks/use-admin-error-handler"
 import { toast } from "sonner"
 
 // Define User interface
@@ -130,102 +133,19 @@ export default function UsersPage() {
       console.log("Fetching users...")
       const response = await adminAPI.getAllUsers()
       console.log("API Response:", response)
-      if (response.success) {
+      if (response.success && response.users) {
         console.log("Users data:", response.users)
-        setUsers(response.users || [])
+        setUsers(response.users)
+        toast.success(`Loaded ${response.users.length} users successfully`)
       } else {
-        console.error("API returned success: false")
-        // Add sample users for testing if API fails
-        const sampleUsers: User[] = [
-          {
-            _id: "1",
-            username: "admin",
-            email: "admin@drinkmate.com",
-            firstName: "Admin",
-            lastName: "User",
-            phone: "+966-50-123-4567",
-            isAdmin: true,
-            status: "active",
-            avatar: "/images/default-avatar.png",
-            createdAt: new Date().toISOString(),
-            lastLogin: new Date().toISOString()
-          },
-          {
-            _id: "2",
-            username: "testuser",
-            email: "test@example.com",
-            firstName: "Test",
-            lastName: "User",
-            phone: "+966-50-987-6543",
-            isAdmin: false,
-            status: "active",
-            avatar: "/images/default-avatar.png",
-            createdAt: new Date().toISOString(),
-            lastLogin: new Date().toISOString()
-          },
-          {
-            _id: "3",
-            username: "ahmed",
-            email: "ahmed@example.com",
-            firstName: "Ahmed",
-            lastName: "Al-Farsi",
-            phone: "+966-50-555-1234",
-            isAdmin: false,
-            status: "inactive",
-            avatar: "/images/default-avatar.png",
-            createdAt: new Date().toISOString(),
-            lastLogin: new Date().toISOString()
-          }
-        ]
-        setUsers(sampleUsers)
-        toast.error("Failed to fetch users, showing sample data")
+        console.error("Failed to fetch users:", response.message)
+        toast.error(response.message || "Failed to load users from API")
+        setUsers([]) // Set to empty array on failure
       }
     } catch (error) {
       console.error("Error fetching users:", error)
-      // Add sample users for testing if API fails
-      const sampleUsers: User[] = [
-        {
-          _id: "1",
-          username: "admin",
-          email: "admin@drinkmate.com",
-          firstName: "Admin",
-          lastName: "User",
-          phone: "+966-50-123-4567",
-          isAdmin: true,
-          status: "active",
-          avatar: "/images/default-avatar.png",
-          createdAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString()
-        },
-        {
-          _id: "2",
-          username: "testuser",
-          email: "test@example.com",
-          firstName: "Test",
-          lastName: "User",
-          phone: "+966-50-987-6543",
-          isAdmin: false,
-          status: "active",
-          avatar: "/images/default-avatar.png",
-          createdAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString()
-        },
-        {
-          _id: "3",
-          username: "ahmed",
-          email: "ahmed@example.com",
-          firstName: "Ahmed",
-          lastName: "Al-Farsi",
-          phone: "+966-50-555-1234",
-          isAdmin: false,
-          status: "inactive",
-          avatar: "/images/default-avatar.png",
-          createdAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString()
-        }
-      ]
-      setUsers(sampleUsers)
-      toast.error("Failed to fetch users, showing sample data")
+      toast.error("Failed to fetch users")
+      setUsers([]) // Set to empty array on error
     } finally {
       setLoading(false)
     }
@@ -256,12 +176,15 @@ export default function UsersPage() {
   // Handle user status change
   const updateUserStatus = async (userId: string, newStatus: 'active' | 'inactive' | 'blocked') => {
     try {
-      // This would call an API endpoint to update user status
-      // For now, we'll update locally
-      setUsers(users.map(user => 
-        user._id === userId ? { ...user, status: newStatus } : user
-      ))
-      toast.success(`User status updated to ${newStatus}`)
+      const response = await adminAPI.updateUserStatus(userId, newStatus)
+      if (response.success) {
+        setUsers(users.map(user => 
+          user._id === userId ? { ...user, status: newStatus } : user
+        ))
+        toast.success(`User status updated to ${newStatus}`)
+      } else {
+        toast.error(response.message || "Failed to update user status")
+      }
     } catch (error) {
       console.error("Error updating user status:", error)
       toast.error("Failed to update user status")
@@ -271,12 +194,18 @@ export default function UsersPage() {
   // Handle admin role toggle
   const toggleAdminRole = async (userId: string) => {
     try {
-      // This would call an API endpoint to toggle admin role
-      // For now, we'll update locally
-      setUsers(users.map(user => 
-        user._id === userId ? { ...user, isAdmin: !user.isAdmin } : user
-      ))
-      toast.success("User role updated successfully")
+      const user = users.find(u => u._id === userId)
+      if (!user) return
+      
+      const response = await adminAPI.toggleUserRole(userId, !user.isAdmin)
+      if (response.success) {
+        setUsers(users.map(user => 
+          user._id === userId ? { ...user, isAdmin: !user.isAdmin } : user
+        ))
+        toast.success("User role updated successfully")
+      } else {
+        toast.error(response.message || "Failed to update user role")
+      }
     } catch (error) {
       console.error("Error updating user role:", error)
       toast.error("Failed to update user role")
@@ -313,17 +242,44 @@ export default function UsersPage() {
   const handleAddUser = async (formData: UserFormData) => {
     try {
       setIsSubmitting(true)
-      // This would call an API endpoint to create user
-      // For now, we'll add locally
-      const newUser: User = {
-        _id: Date.now().toString(),
-        ...formData,
-        createdAt: new Date().toISOString(),
-        lastLogin: undefined
+      
+      // Validate input data
+      const usernameValidation = validateUsername(formData.username)
+      if (!usernameValidation.valid) {
+        toast.error(usernameValidation.error)
+        return
       }
-      setUsers([...users, newUser])
-      setIsAddUserOpen(false)
-      toast.success("User created successfully")
+
+      const emailValidation = validateEmail(formData.email)
+      if (!emailValidation) {
+        toast.error('Invalid email format')
+        return
+      }
+
+      const passwordValidation = validatePassword(formData.password)
+      if (!passwordValidation.valid) {
+        toast.error(passwordValidation.error)
+        return
+      }
+      
+      // Sanitize user input
+      const sanitizedFormData = {
+        ...formData,
+        username: sanitizeInput(formData.username),
+        email: sanitizeInput(formData.email),
+        firstName: sanitizeInput(formData.firstName),
+        lastName: sanitizeInput(formData.lastName),
+        phone: sanitizeInput(formData.phone)
+      }
+      
+      const response = await adminAPI.createUser(sanitizedFormData)
+      if (response.success && response.user) {
+        setUsers([...users, response.user])
+        setIsAddUserOpen(false)
+        toast.success("User created successfully")
+      } else {
+        toast.error(response.message || "Failed to create user")
+      }
     } catch (error: any) {
       console.error("Error creating user:", error)
       toast.error(error.response?.data?.message || "Failed to create user")
@@ -338,14 +294,28 @@ export default function UsersPage() {
 
     try {
       setIsSubmitting(true)
-      // This would call an API endpoint to update user
-      // For now, we'll update locally
-      setUsers(users.map(user => 
-        user._id === selectedUser._id ? { ...user, ...formData } : user
-      ))
-      setIsEditUserOpen(false)
-      setSelectedUser(null)
-      toast.success("User updated successfully")
+      
+      // Sanitize user input
+      const sanitizedFormData = {
+        ...formData,
+        username: formData.username ? sanitizeInput(formData.username) : undefined,
+        email: formData.email ? sanitizeInput(formData.email) : undefined,
+        firstName: formData.firstName ? sanitizeInput(formData.firstName) : undefined,
+        lastName: formData.lastName ? sanitizeInput(formData.lastName) : undefined,
+        phone: formData.phone ? sanitizeInput(formData.phone) : undefined
+      }
+      
+      const response = await adminAPI.updateUser(selectedUser._id, sanitizedFormData)
+      if (response.success && response.user) {
+        setUsers(users.map(user => 
+          user._id === selectedUser._id ? response.user : user
+        ))
+        setIsEditUserOpen(false)
+        setSelectedUser(null)
+        toast.success("User updated successfully")
+      } else {
+        toast.error(response.message || "Failed to update user")
+      }
     } catch (error: any) {
       console.error("Error updating user:", error)
       toast.error(error.response?.data?.message || "Failed to update user")
@@ -508,11 +478,14 @@ export default function UsersPage() {
 
     try {
       setIsSubmitting(true)
-      // This would call API endpoints to delete multiple users
-      // For now, we'll delete locally
-      setUsers(users.filter(user => !selectedUsers.includes(user._id)))
-      setSelectedUsers([])
-      toast.success(`${selectedUsers.length} users deleted successfully`)
+      const response = await adminAPI.bulkDeleteUsers(selectedUsers)
+      if (response.success) {
+        setUsers(users.filter(user => !selectedUsers.includes(user._id)))
+        setSelectedUsers([])
+        toast.success(`${selectedUsers.length} users deleted successfully`)
+      } else {
+        toast.error(response.message || "Failed to delete users")
+      }
     } catch (error: any) {
       console.error("Error deleting users:", error)
       toast.error("Failed to delete users")
@@ -525,13 +498,16 @@ export default function UsersPage() {
   const handleBulkStatusUpdate = async (ids: string[], newStatus: 'active' | 'inactive' | 'blocked') => {
     try {
       setIsSubmitting(true)
-      // This would call API endpoints to update multiple users
-      // For now, we'll update locally
-      setUsers(users.map(user => 
-        ids.includes(user._id) ? { ...user, status: newStatus } : user
-      ))
-      setSelectedUsers([])
-      toast.success(`${ids.length} users status updated to ${newStatus}`)
+      const response = await adminAPI.bulkUpdateUsers(ids, { status: newStatus })
+      if (response.success) {
+        setUsers(users.map(user => 
+          ids.includes(user._id) ? { ...user, status: newStatus } : user
+        ))
+        setSelectedUsers([])
+        toast.success(`${ids.length} users status updated to ${newStatus}`)
+      } else {
+        toast.error(response.message || "Failed to update users status")
+      }
     } catch (error: any) {
       console.error("Error updating users status:", error)
       toast.error("Failed to update users status")
@@ -556,22 +532,14 @@ export default function UsersPage() {
 
   const handleActivateUser = async (userId: string) => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'
-      const response = await fetch(`${API_URL}/api/users/${userId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'active' })
-      })
-      
-      if (response.ok) {
+      const response = await adminAPI.updateUserStatus(userId, 'active')
+      if (response.success) {
         setUsers(users.map(user => 
           user._id === userId ? { ...user, status: 'active' } : user
         ))
         toast.success("User activated successfully")
       } else {
-        throw new Error('Failed to activate user')
+        toast.error(response.message || "Failed to activate user")
       }
     } catch (error) {
       console.error('Error activating user:', error)
@@ -581,22 +549,14 @@ export default function UsersPage() {
 
   const handleDeactivateUser = async (userId: string) => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'
-      const response = await fetch(`${API_URL}/api/users/${userId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'inactive' })
-      })
-      
-      if (response.ok) {
+      const response = await adminAPI.updateUserStatus(userId, 'inactive')
+      if (response.success) {
         setUsers(users.map(user => 
           user._id === userId ? { ...user, status: 'inactive' } : user
         ))
         toast.success("User deactivated successfully")
       } else {
-        throw new Error('Failed to deactivate user')
+        toast.error(response.message || "Failed to deactivate user")
       }
     } catch (error) {
       console.error('Error deactivating user:', error)
@@ -609,33 +569,31 @@ export default function UsersPage() {
     if (!confirm(`Are you sure you want to block ${user?.firstName || user?.username}?`)) return
     
     try {
-      setUsers(users.map(user => 
-        user._id === userId ? { ...user, status: 'blocked' } : user
-      ))
-      toast.success("User blocked successfully")
+      const response = await adminAPI.updateUserStatus(userId, 'blocked')
+      if (response.success) {
+        setUsers(users.map(user => 
+          user._id === userId ? { ...user, status: 'blocked' } : user
+        ))
+        toast.success("User blocked successfully")
+      } else {
+        toast.error(response.message || "Failed to block user")
+      }
     } catch (error) {
+      console.error('Error blocking user:', error)
       toast.error("Failed to block user")
     }
   }
 
   const handleUnblockUser = async (userId: string) => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'
-      const response = await fetch(`${API_URL}/api/users/${userId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'active' })
-      })
-      
-      if (response.ok) {
+      const response = await adminAPI.updateUserStatus(userId, 'active')
+      if (response.success) {
         setUsers(users.map(user => 
           user._id === userId ? { ...user, status: 'active' } : user
         ))
         toast.success("User unblocked successfully")
       } else {
-        throw new Error('Failed to unblock user')
+        toast.error(response.message || "Failed to unblock user")
       }
     } catch (error) {
       console.error('Error unblocking user:', error)

@@ -17,6 +17,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
+import { AdminErrorBoundary } from "@/lib/admin-error-handler"
+import { useAdminErrorHandler, useAsyncOperation } from "@/hooks/use-admin-error-handler"
 import { 
   Package,
   DollarSign,
@@ -102,6 +104,12 @@ interface OrderFilters {
 export default function OrdersPage() {
   const { user, isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
+  
+  // Error handling
+  const errorHandler = useAdminErrorHandler({
+    context: 'OrdersPage',
+    defaultOptions: { category: 'server' }
+  })
   
   const [orders, setOrders] = useState<Order[]>([])
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
@@ -252,135 +260,18 @@ export default function OrdersPage() {
         toast.success(`Loaded ${response.orders.length} orders successfully`);
         return;
       } else {
+        console.error("Failed to fetch orders:", response.message);
         toast.error(response.message || "Failed to load orders from API");
-        // Fall back to mock data
+        setOrders([]);
+        setOrderStats({
+          total: 0,
+          pending: 0,
+          processing: 0,
+          delivered: 0,
+          revenue: 0,
+          avgOrderValue: 0,
+        });
       }
-      
-      // Mock data as fallback
-      toast.info("Using demo data since API is unavailable");
-      const mockOrders: Order[] = [
-        {
-          _id: "1",
-          orderNumber: "ORD-001",
-          customerName: "Ahmed Al-Farsi",
-          customerEmail: "ahmed@example.com",
-          customerPhone: "+966501234567",
-          orderDate: "2024-01-15",
-          items: 3,
-          totalAmount: 694.6,
-          status: "processing",
-          paymentStatus: "paid",
-          paymentMethod: "Urways",
-          shippingMethod: "Standard (Aramex)",
-          shippingStatus: "processing",
-          trackingNumber: "ARX123456789",
-          shippingAddress: {
-            street: "123 King Fahd Road",
-            city: "Riyadh",
-            state: "Riyadh Province",
-            zipCode: "11564",
-            country: "Saudi Arabia",
-          },
-          notes: "Customer requested expedited processing",
-        },
-        {
-          _id: "2",
-          orderNumber: "ORD-002",
-          customerName: "Sara Al-Qahtani",
-          customerEmail: "sara@example.com",
-          customerPhone: "+966507654321",
-          orderDate: "2024-01-14",
-          items: 1,
-          totalAmount: 733.9,
-          status: "shipped",
-          paymentStatus: "paid",
-          paymentMethod: "Tap Payment",
-          shippingMethod: "Express (Aramex)",
-          shippingStatus: "shipped",
-          trackingNumber: "ARX987654321",
-          shippingAddress: {
-            street: "456 Prince Mohammed Bin Abdulaziz Road",
-            city: "Jeddah",
-            state: "Makkah Province",
-            zipCode: "21589",
-            country: "Saudi Arabia",
-          },
-        },
-        {
-          _id: "3",
-          orderNumber: "ORD-003",
-          customerName: "Mohammed Al-Otaibi",
-          customerEmail: "mohammed@example.com",
-          customerPhone: "+966551234567",
-          orderDate: "2024-01-16",
-          items: 2,
-          totalAmount: 197.7,
-          status: "pending",
-          paymentStatus: "paid",
-          paymentMethod: "Cash on Delivery",
-          shippingMethod: "Economy (Aramex)",
-          shippingStatus: "pending",
-          shippingAddress: {
-            street: "789 Al-Madinah Road",
-            city: "Dammam",
-            state: "Eastern Province",
-            zipCode: "31952",
-            country: "Saudi Arabia",
-          },
-        },
-        {
-          _id: "4",
-          orderNumber: "ORD-004",
-          customerName: "Fatima Al-Zahra",
-          customerEmail: "fatima@example.com",
-          customerPhone: "+966509876543",
-          orderDate: "2024-01-17",
-          items: 4,
-          totalAmount: 1299.99,
-          status: "delivered",
-          paymentStatus: "paid",
-          paymentMethod: "Credit Card",
-          shippingMethod: "Express (Aramex)",
-          shippingStatus: "delivered",
-          trackingNumber: "ARX456789123",
-          shippingAddress: {
-            street: "321 Olaya Street",
-            city: "Riyadh",
-            state: "Riyadh Province",
-            zipCode: "11433",
-            country: "Saudi Arabia",
-          },
-        },
-        {
-          _id: "5",
-          orderNumber: "ORD-005",
-          customerName: "Omar Al-Hassan",
-          customerEmail: "omar@example.com",
-          customerPhone: "+966556789012",
-          orderDate: "2024-01-13",
-          items: 1,
-          totalAmount: 299.99,
-          status: "cancelled",
-          paymentStatus: "refunded",
-          paymentMethod: "PayPal",
-          shippingMethod: "Standard (Aramex)",
-          shippingStatus: "pending",
-          notes: "Customer requested cancellation due to change of mind",
-        },
-      ]
-
-      setOrders(mockOrders)
-
-      const stats = {
-        total: mockOrders.length,
-        pending: mockOrders.filter((o) => o.status === "pending").length,
-        processing: mockOrders.filter((o) => o.status === "processing").length,
-        delivered: mockOrders.filter((o) => o.status === "delivered").length,
-        revenue: mockOrders.reduce((sum, o) => sum + (o.paymentStatus === "paid" ? o.totalAmount : 0), 0),
-        avgOrderValue:
-          mockOrders.length > 0 ? mockOrders.reduce((sum, o) => sum + o.totalAmount, 0) / mockOrders.length : 0,
-      }
-      setOrderStats(stats)
     } catch (error) {
       console.error("Error fetching orders:", error)
       toast.error("Failed to fetch orders")

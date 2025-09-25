@@ -260,11 +260,19 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
       const data = await response.json()
       console.log('Stats API response data:', data)
       
-      if (data.success) {
+      if (data.success && data.stats) {
         console.log('Setting stats:', data.stats)
         setStats(data.stats)
       } else {
         console.error('Stats API returned error:', data)
+        // Keep existing stats or reset to default values
+        setStats(prevStats => prevStats || {
+          total: 0,
+          open: 0,
+          inProgress: 0,
+          resolved: 0,
+          closed: 0
+        })
       }
     } catch (error) {
       console.error('Error loading stats:', error)
@@ -502,19 +510,19 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
             {/* Stats */}
             <div className="grid grid-cols-2 gap-2 mb-4">
               <div className="bg-blue-50 p-3 rounded-lg text-center">
-                <div className="text-2xl font-bold text-blue-600">{stats.open}</div>
+                <div className="text-2xl font-bold text-blue-600">{stats?.open || 0}</div>
                 <div className="text-xs text-blue-600">Open</div>
               </div>
               <div className="bg-yellow-50 p-3 rounded-lg text-center">
-                <div className="text-2xl font-bold text-yellow-600">{stats.inProgress}</div>
+                <div className="text-2xl font-bold text-yellow-600">{stats?.inProgress || 0}</div>
                 <div className="text-xs text-yellow-600">In Progress</div>
               </div>
               <div className="bg-green-50 p-3 rounded-lg text-center">
-                <div className="text-2xl font-bold text-green-600">{stats.resolved}</div>
+                <div className="text-2xl font-bold text-green-600">{stats?.resolved || 0}</div>
                 <div className="text-xs text-green-600">Resolved</div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg text-center">
-                <div className="text-2xl font-bold text-gray-600">{stats.closed}</div>
+                <div className="text-2xl font-bold text-gray-600">{stats?.closed || 0}</div>
                 <div className="text-xs text-gray-600">Closed</div>
               </div>
             </div>

@@ -179,7 +179,7 @@ export default function CheckoutPage() {
       name: "Pay",
       description: "Pay securely by credit or debit card or online banking through secure online payment servers.",
       logo: "/images/payment-logos/urways-payment.png",
-      gateway: "urways" // This would be configurable via admin
+      gateway: "urways" // This would be configurable via admin (urways, tap, etc.)
     },
     tabby: {
       name: "tabby",
@@ -408,8 +408,19 @@ export default function CheckoutPage() {
           },
           body: JSON.stringify(paymentRequest)
         })
+      } else if (selectedGateway === "tap") {
+        // Call backend API for Tap
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+        paymentResponse = await fetch(`${backendUrl}/payments/tap`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null}`
+          },
+          body: JSON.stringify(paymentRequest)
+        })
       } else {
-        // For other gateways (like Tap), use the payment service
+        // Fallback to payment service for other gateways
         paymentResponse = await paymentService.processTapPayment(paymentRequest)
         // Convert to Response-like object for consistency
         paymentResponse = {

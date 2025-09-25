@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { getAuthToken } from '@/lib/auth-context'
 import { useTranslation } from '@/lib/translation-context'
@@ -18,7 +19,8 @@ import { Plus, Search, Edit, Trash2, Eye, Star, Clock, Users, Filter, Save, X, I
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { recipeAPI } from '@/lib/recipe-api'
-import { uploadImageWithProgress } from '@/lib/cloud-storage'
+import { sanitizeInput, sanitizeHtml } from '@/lib/protected-api'
+import { uploadImageWithProgress, validateFile } from '@/lib/cloud-storage'
 
 interface Recipe {
   _id: string
@@ -93,8 +95,9 @@ interface RecipeFormData {
 }
 
 export default function AdminRecipesPage() {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, isLoading } = useAuth()
   const { t, isRTL } = useTranslation()
+  const router = useRouter()
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -104,6 +107,19 @@ export default function AdminRecipesPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
   const [saving, setSaving] = useState(false)
+  
+  // Authentication check
+  useEffect(() => {
+    // Wait for authentication to complete
+    if (isLoading) return
+    
+    // Check if user is authenticated and is admin
+    if (!isAuthenticated || !user || !user.isAdmin) {
+      console.log('User not authenticated or not admin:', { user, isAuthenticated, isAdmin: user?.isAdmin })
+      router.push('/admin/login')
+      return
+    }
+  }, [user, isAuthenticated, isLoading, router])
   const [deleting, setDeleting] = useState<string | null>(null)
   const [uploadingImages, setUploadingImages] = useState<boolean[]>([])
   const [imageUploadProgress, setImageUploadProgress] = useState<number[]>([])
@@ -215,12 +231,27 @@ export default function AdminRecipesPage() {
         .replace(/-+/g, '-') // Remove duplicate hyphens
         .trim()
 
-      // Clean up form data - remove empty ingredients and instructions
+      // Clean up form data - remove empty ingredients and instructions and sanitize input
       const cleanedFormData = {
         ...formData,
+        title: sanitizeInput(formData.title),
+        description: sanitizeHtml(formData.description),
         slug,
-        ingredients: formData.ingredients.filter(ing => ing.name.trim() !== ''),
-        instructions: formData.instructions.filter(inst => inst.instruction.trim() !== '')
+        ingredients: formData.ingredients
+          .filter(ing => ing.name.trim() !== '')
+          .map(ing => ({
+            ...ing,
+            name: sanitizeInput(ing.name),
+            amount: sanitizeInput(ing.amount),
+            unit: sanitizeInput(ing.unit)
+          })),
+        instructions: formData.instructions
+          .filter(inst => inst.instruction.trim() !== '')
+          .map(inst => ({
+            ...inst,
+            instruction: sanitizeHtml(inst.instruction)
+          })),
+        tags: formData.tags.map(tag => sanitizeInput(tag))
       }
       
       // Validate that we have at least one ingredient and instruction
@@ -234,20 +265,20 @@ export default function AdminRecipesPage() {
         return
       }
       
-      console.log('Submitting recipe:', cleanedFormData)
+      console.log('Submitting recipe with sanitized data')
       console.log('User authenticated:', isAuthenticated)
       console.log('User is admin:', user?.isAdmin)
       
       let result
       if (editingRecipe) {
-        console.log('Updating recipe with ID:', editingRecipe._id)
+        console.log('Updating recipe')
         result = await recipeAPI.updateRecipe(editingRecipe._id, cleanedFormData)
       } else {
         console.log('Creating new recipe')
         result = await recipeAPI.createRecipe(cleanedFormData)
       }
       
-      console.log('API result:', result)
+      console.log('API operation completed')
       
       if (result.success) {
         await fetchRecipes()
@@ -433,15 +464,10 @@ export default function AdminRecipesPage() {
   const handleImageUpload = async (file: File, index: number) => {
     if (!file) return
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select a valid image file')
-      return
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size must be less than 5MB')
+    // Validate file using our secure validation
+    const validation = validateFile(file, 'image')
+    if (!validation.valid) {
+      toast.error(validation.error || 'Invalid image file')
       return
     }
 
@@ -526,13 +552,27 @@ export default function AdminRecipesPage() {
     }))
   }
 
+  // Authentication checks
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="w-6 h-6 animate-spin" />
+            <span>Authenticating...</span>
+          </div>
+        </div>
+      </AdminLayout>
+    )
+  }
+
   if (!isAuthenticated || !user || !user.isAdmin) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-64">
+        <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-            <p className="text-gray-500">You need admin privileges to access this page.</p>
+            <p className="text-gray-600">You need admin privileges to access this page.</p>
           </div>
         </div>
       </AdminLayout>
