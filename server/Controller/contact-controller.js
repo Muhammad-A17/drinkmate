@@ -7,38 +7,42 @@ exports.getAllContacts = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
         
-        // Build filter object
+        // Build filter object with input validation to prevent NoSQL injection
         const filter = {};
         
-        // Status filter
-        if (req.query.status) {
+        // Status filter - validate against allowed values
+        const allowedStatuses = ['new', 'open', 'pending', 'resolved', 'closed'];
+        if (req.query.status && allowedStatuses.includes(req.query.status)) {
             filter.status = req.query.status;
         }
         
-        // Priority filter
-        if (req.query.priority) {
+        // Priority filter - validate against allowed values
+        const allowedPriorities = ['low', 'medium', 'high', 'urgent'];
+        if (req.query.priority && allowedPriorities.includes(req.query.priority)) {
             filter.priority = req.query.priority;
         }
         
-        // Subject filter
-        if (req.query.subject) {
-            filter.subject = req.query.subject;
+        // Subject filter - sanitize string input
+        if (req.query.subject && typeof req.query.subject === 'string') {
+            const sanitizedSubject = req.query.subject.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            filter.subject = { $regex: sanitizedSubject, $options: 'i' };
         }
         
-        // Date range filter
+        // Date range filter - validate date format
         if (req.query.startDate || req.query.endDate) {
             filter.createdAt = {};
-            if (req.query.startDate) {
+            if (req.query.startDate && !isNaN(Date.parse(req.query.startDate))) {
                 filter.createdAt.$gte = new Date(req.query.startDate);
             }
-            if (req.query.endDate) {
+            if (req.query.endDate && !isNaN(Date.parse(req.query.endDate))) {
                 filter.createdAt.$lte = new Date(req.query.endDate);
             }
         }
         
-        // Search query
-        if (req.query.search) {
-            filter.$text = { $search: req.query.search };
+        // Search query - sanitize text search input
+        if (req.query.search && typeof req.query.search === 'string') {
+            const sanitizedSearch = req.query.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            filter.$text = { $search: sanitizedSearch };
         }
         
         const contacts = await Contact.find(filter)

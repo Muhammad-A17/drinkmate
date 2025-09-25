@@ -14,7 +14,7 @@ PORT=3000
 # SECURITY CONFIGURATION
 # ===========================================
 # Generate strong JWT secret (minimum 32 characters)
-JWT_SECRET=292991a5850e2a5819393a9b547f06b97ec40016c1ddf04ebf8c1e5618c71b67
+JWT_SECRET=your_super_secure_jwt_secret_here_minimum_32_characters
 SESSION_SECRET=your_session_secret_here_minimum_32_characters
 JWT_EXPIRES_IN=24h
 REFRESH_TOKEN_EXPIRES_IN=7d
@@ -27,7 +27,7 @@ RATE_LIMIT_MAX_REQUESTS=100
 # DATABASE CONFIGURATION
 # ===========================================
 # MongoDB Atlas
-MONGODB_URI=mongodb+srv://test1234:IhpDHsYWshrvtLQc@cluster0.y205sfi.mongodb.net/drinkmate?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/drinkmate?retryWrites=true&w=majority&authSource=admin
 
 # ===========================================
 # FRONTEND CONFIGURATION

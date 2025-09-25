@@ -613,28 +613,30 @@ exports.getAllOrders = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
         
-        // Build filter object
+        // Build filter object with input validation to prevent NoSQL injection
         const filter = {};
         
-        // Status filter
-        if (req.query.status) {
+        // Status filter - validate against allowed values
+        const allowedStatuses = ['pending', 'processing', 'confirmed', 'shipped', 'delivered', 'cancelled', 'refunded'];
+        if (req.query.status && allowedStatuses.includes(req.query.status)) {
             filter.status = req.query.status;
         }
         
-        // Date range filter
+        // Date range filter - validate date format
         if (req.query.startDate || req.query.endDate) {
             filter.createdAt = {};
-            if (req.query.startDate) {
+            if (req.query.startDate && !isNaN(Date.parse(req.query.startDate))) {
                 filter.createdAt.$gte = new Date(req.query.startDate);
             }
-            if (req.query.endDate) {
+            if (req.query.endDate && !isNaN(Date.parse(req.query.endDate))) {
                 filter.createdAt.$lte = new Date(req.query.endDate);
             }
         }
         
-        // Search by order number
-        if (req.query.search) {
-            filter.orderNumber = { $regex: req.query.search, $options: 'i' };
+        // Search by order number - sanitize regex input
+        if (req.query.search && typeof req.query.search === 'string') {
+            const sanitizedSearch = req.query.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            filter.orderNumber = { $regex: sanitizedSearch, $options: 'i' };
         }
         
         const orders = await Order.find(filter)

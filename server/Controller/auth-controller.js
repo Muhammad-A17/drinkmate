@@ -5,6 +5,8 @@ const crypto = require('crypto');
 const multer = require('multer');
 const { sendPasswordResetEmail, sendPasswordResetSuccessEmail, sendWelcomeEmail, sendEmail } = require('../Utils/email-service');
 const { cloudinary, storage } = require('../Utils/cloudinary');
+const { createErrorResponse, logError, sanitizeErrorMessage } = require('../Utils/error-handler');
+const auditLogger = require('../Services/audit-logger');
 
 const home = (req, res) => {
     res.send('Hello World');
@@ -58,15 +60,16 @@ const createAdminUser = async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error creating admin user:', error);
-        return res.status(500).json({ error: 'Failed to create admin user' });
+        logError(error, 'Admin user creation failed');
+        const errorResponse = createErrorResponse(error, req);
+        return res.status(errorResponse.status).json(errorResponse.data);
     }
 };
 
 // REGISTER new user
 const register = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { fullName, email, password } = req.body;
 
         try {
             // Check if user already exists
@@ -75,19 +78,27 @@ const register = async (req, res) => {
                 return res.status(400).json({ error: 'User already exists' });
             }
 
+            // Generate username from fullName (email will be unique identifier)
+            const username = fullName.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000);
+            
+            // Split fullName into firstName and lastName
+            const nameParts = fullName.trim().split(' ');
+            const firstName = nameParts[0];
+            const lastName = nameParts.slice(1).join(' ') || 'User';
+            
             // Create new user with required fields
             const user = new User({ 
                 username, 
                 email, 
                 password,
-                firstName: username, // Use username as firstName if not provided
-                lastName: 'User'     // Default lastName
+                firstName,
+                lastName
             });
             await user.save();
 
             // Send welcome email
             try {
-                await sendWelcomeEmail(email, username);
+                await sendWelcomeEmail(email, fullName);
                 console.log('✅ Welcome email sent to:', email);
             } catch (emailError) {
                 console.error('⚠️ Failed to send welcome email, but user was registered:', emailError);
@@ -131,13 +142,16 @@ const register = async (req, res) => {
                     _id: userId,
                     username,
                     email,
+                    firstName: fullName.split(' ')[0],
+                    lastName: fullName.split(' ').slice(1).join(' ') || 'User',
                     isAdmin: false,
                 }
             });
         }
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Server error during registration' });
+        logError(err, 'User registration failed');
+        const errorResponse = createErrorResponse(err, req);
+        res.status(errorResponse.status).json(errorResponse.data);
     }
 };
 
@@ -173,11 +187,32 @@ const login = async (req, res) => {
                 // Compare password
                 const isMatch = await user.comparePassword(password);
                 if (!isMatch) {
+                    // Log failed login attempt
+                    auditLogger.logAuthEvent(
+                        'LOGIN_FAILED',
+                        user._id,
+                        user.email,
+                        req.ip,
+                        req.get('User-Agent'),
+                        false,
+                        { reason: 'Invalid password' }
+                    );
                     return res.status(401).json({ error: 'Invalid email or password' });
                 }
 
                 // Generate token
                 const token = user.generateAuthToken();
+
+                // Log successful login
+                auditLogger.logAuthEvent(
+                    'LOGIN_SUCCESS',
+                    user._id,
+                    user.email,
+                    req.ip,
+                    req.get('User-Agent'),
+                    true,
+                    { isAdmin: user.isAdmin }
+                );
 
                 return res.status(200).json({
                     message: 'Login successful',

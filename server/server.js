@@ -356,29 +356,11 @@ connect().catch((error) => {
   console.error('Error connecting to MongoDB, but server will still start:', error);
 });
 
+// Import enhanced error handler
+const { globalErrorHandler, handleUncaughtException, handleUnhandledRejection } = require('./Utils/error-handler');
+
 // Global error handler
-app.use((err, req, res, next) => {
-  console.error('❌ Global Error Handler:', err);
-  
-  // Handle CORS errors
-  if (err.message && err.message.includes('CORS')) {
-    return res.status(403).json({
-      success: false,
-      error: 'CORS Error',
-      message: 'Cross-origin request not allowed',
-      origin: req.headers.origin,
-      details: err.message
-    });
-  }
-  
-  // Handle other errors
-  res.status(500).json({
-    success: false,
-    error: 'Internal Server Error',
-    message: err.message || 'Something went wrong',
-    timestamp: new Date().toISOString()
-  });
-});
+app.use(globalErrorHandler);
 
 // 404 handler for undefined routes (catch-all middleware)
 app.use((req, res) => {
@@ -481,3 +463,7 @@ setTimeout(() => {
     }
   });
 }, 2000);
+
+// Set up uncaught exception handlers
+handleUncaughtException();
+handleUnhandledRejection();

@@ -7,11 +7,24 @@ const getAllChats = async (req, res) => {
   try {
     const { status, assignedTo, category, priority, page = 1, limit = 20 } = req.query;
     
+    // Validate and sanitize input to prevent NoSQL injection
+    const allowedStatuses = ['open', 'closed', 'pending', 'resolved'];
+    const allowedPriorities = ['low', 'medium', 'high', 'urgent'];
+    const allowedCategories = ['general', 'technical', 'billing', 'support'];
+    
     const filter = {};
-    if (status) filter.status = status;
-    if (assignedTo) filter.assignedTo = assignedTo;
-    if (category) filter.category = category;
-    if (priority) filter.priority = priority;
+    if (status && allowedStatuses.includes(status)) {
+      filter.status = status;
+    }
+    if (assignedTo && typeof assignedTo === 'string' && assignedTo.match(/^[a-f\d]{24}$/i)) {
+      filter.assignedTo = assignedTo;
+    }
+    if (category && allowedCategories.includes(category)) {
+      filter.category = category;
+    }
+    if (priority && allowedPriorities.includes(priority)) {
+      filter.priority = priority;
+    }
     
     // Always exclude deleted chats
     filter.isDeleted = { $ne: true };

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { validatePassword } = require('../Utils/password-policy');
 
 const userSchema = new mongoose.Schema({
   // Basic Information
@@ -223,5 +224,29 @@ userSchema.methods.generateAuthToken = function() {
     }
   );
 };
+
+// Pre-save hook to validate password
+userSchema.pre('save', function(next) {
+  // Only validate password if it's being modified
+  if (!this.isModified('password')) {
+    return next();
+  }
+
+  // Validate password against policy
+  const validation = validatePassword(this.password);
+  if (!validation.isValid) {
+    const error = new Error('Password does not meet security requirements');
+    error.errors = validation.errors;
+    error.warnings = validation.warnings;
+    return next(error);
+  }
+
+  // Log warnings if any
+  if (validation.warnings.length > 0) {
+    console.warn(`Password warnings for user ${this.email}:`, validation.warnings);
+  }
+
+  next();
+});
 
 module.exports = mongoose.model('User', userSchema);
