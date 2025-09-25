@@ -11,8 +11,12 @@ export interface CartItem {
   category?: string
   color?: string
   size?: string
+  sku?: string
   isBundle?: boolean
   isFree?: boolean
+  productId?: string  // For regular products
+  bundleId?: string   // For bundles
+  productType?: 'product' | 'bundle' | 'cylinder'
 }
 
 interface CartState {
@@ -45,6 +49,13 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     case 'ADD_ITEM': {
       console.log('Cart reducer - ADD_ITEM:', action.payload)
       console.log('Cart reducer - payload image:', action.payload.image)
+      
+      // Validate that the item has a valid ID
+      if (!action.payload.id) {
+        console.error('Cart reducer - Cannot add item without ID:', action.payload)
+        return state
+      }
+      
       const existingItem = state.items.find(item => item.id === action.payload.id)
       
       if (existingItem) {
@@ -83,6 +94,12 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     }
     
     case 'REMOVE_ITEM': {
+      // Validate that we have a valid ID to remove
+      if (!action.payload) {
+        console.error('Cart reducer - Cannot remove item without ID:', action.payload)
+        return state
+      }
+      
       const newItems = state.items.filter(item => item.id !== action.payload)
       const newTotal = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
       const newItemCount = newItems.reduce((sum, item) => sum + item.quantity, 0)
@@ -96,6 +113,12 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     }
     
     case 'UPDATE_QUANTITY': {
+      // Validate that we have a valid ID to update
+      if (!action.payload.id) {
+        console.error('Cart reducer - Cannot update quantity without ID:', action.payload)
+        return state
+      }
+      
       const newItems = state.items.map(item =>
         item.id === action.payload.id
           ? { ...item, quantity: Math.max(1, action.payload.quantity) }
@@ -154,13 +177,31 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (savedCart) {
         try {
           const parsedCart = JSON.parse(savedCart)
-          dispatch({ type: 'LOAD_CART', payload: parsedCart })
+          // Filter out any items with undefined or null IDs
+          const validItems = parsedCart.filter((item: any) => item.id !== undefined && item.id !== null)
+          if (validItems.length !== parsedCart.length) {
+            console.warn('Cart cleanup: Removed items with undefined IDs', {
+              original: parsedCart.length,
+              cleaned: validItems.length
+            })
+          }
+          dispatch({ type: 'LOAD_CART', payload: validItems })
         } catch (error) {
           console.error('Error loading cart from localStorage:', error)
         }
       }
     }
   }, [])
+
+  // Clean up any items with undefined IDs in the current state
+  useEffect(() => {
+    const invalidItems = state.items.filter(item => !item.id)
+    if (invalidItems.length > 0) {
+      console.warn('Cart cleanup: Removing items with undefined IDs from current state', invalidItems)
+      const validItems = state.items.filter(item => item.id)
+      dispatch({ type: 'LOAD_CART', payload: validItems })
+    }
+  }, [state.items])
 
   // Save cart to localStorage whenever it changes
   // Using a debounced effect to avoid frequent localStorage writes

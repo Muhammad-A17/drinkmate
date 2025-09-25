@@ -113,7 +113,7 @@ export default function OrderDetailsPage() {
     // Check if user is authenticated and is admin
     if (!user || !user.isAdmin) {
       console.log('User not authenticated or not admin:', { user, isAdmin: user?.isAdmin })
-      router.push('/login')
+      router.push('/admin/login')
       return
     }
     

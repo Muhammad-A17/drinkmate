@@ -31,9 +31,13 @@ exports.createOrder = async (req, res) => {
                 const product = await Product.findById(item.product);
                 
                 if (!product) {
+                    console.error(`Product validation failed: Product with ID ${item.product} not found in database`);
+                    console.error(`Available products in database:`, await Product.find({}, '_id name').limit(5));
                     return res.status(404).json({
                         success: false,
-                        message: `Product with ID ${item.product} not found`
+                        message: `Product "${item.name || 'Unknown'}" is no longer available. Please remove it from your cart and try again.`,
+                        code: 'PRODUCT_NOT_FOUND',
+                        productId: item.product
                     });
                 }
                 
@@ -66,9 +70,13 @@ exports.createOrder = async (req, res) => {
                 const bundle = await Bundle.findById(item.bundle);
                 
                 if (!bundle) {
+                    console.error(`Bundle validation failed: Bundle with ID ${item.bundle} not found in database`);
+                    console.error(`Available bundles in database:`, await Bundle.find({}, '_id name').limit(5));
                     return res.status(404).json({
                         success: false,
-                        message: `Bundle with ID ${item.bundle} not found`
+                        message: `Bundle "${item.name || 'Unknown'}" is no longer available. Please remove it from your cart and try again.`,
+                        code: 'BUNDLE_NOT_FOUND',
+                        bundleId: item.bundle
                     });
                 }
                 

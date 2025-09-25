@@ -10,7 +10,7 @@ export async function GET(
     const { id } = await params
 
     // Make request to backend
-    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/recipes/${id}`
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/recipes/${id}`
     
     const response = await fetch(backendUrl, {
       headers: {
@@ -48,7 +48,7 @@ export async function PUT(
     const body = await request.json()
 
     // Make request to backend
-    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/recipes/${id}`
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/recipes/${id}`
     
     const response = await fetch(backendUrl, {
       method: 'PUT',
@@ -87,7 +87,7 @@ export async function DELETE(
     const { id } = await params
 
     // Make request to backend
-    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/recipes/${id}`
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/recipes/${id}`
     
     const response = await fetch(backendUrl, {
       method: 'DELETE',

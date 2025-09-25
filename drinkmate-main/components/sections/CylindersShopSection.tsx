@@ -134,7 +134,7 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [type])
 
   // Manual refresh function with useCallback for performance
   const handleManualRefresh = useCallback(() => {
@@ -153,7 +153,7 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
     return () => {
       clearInterval(refreshInterval)
     }
-  }, [fetchCylinders])
+  }, [type])
 
   const getServiceType = (type: string) => {
     switch (type) {

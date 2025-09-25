@@ -50,29 +50,6 @@ export default function ProductGrid({
 }) {
   const { addItem } = useCart()
   const { animationState, triggerAddAnimation, hideNotification } = useCartAnimations()
-  
-  // Convert all products once for consistent data
-  const convertedProducts = useMemo(() => {
-    return products.map(product => convertProduct(product))
-  }, [products])
-  
-  // Loading state
-  if (loading) {
-    return (
-      <div className={className}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <ProductCardSkeleton key={i} />
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  // Empty state
-  if (products.length === 0) {
-    return <EmptyState isRTL={dir === "rtl"} />
-  }
 
   // Convert old product format to new format if needed
   const convertProduct = (product: any): Product => {
@@ -147,7 +124,30 @@ export default function ProductGrid({
     return convertedProduct
   }
 
-  const handleAddToCart = (payload: { productId: string; variantId?: string; qty: number }) => {
+  // Convert all products once for consistent data
+  const convertedProducts = useMemo(() => {
+    return products.map(product => convertProduct(product))
+  }, [products])
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={className}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Empty state
+  if (products.length === 0) {
+    return <EmptyState isRTL={dir === "rtl"} />
+  }
+
+  const handleAddToCart = (payload: { productId: string; variantId?: string; qty: number; isBundle?: boolean }) => {
     console.log('handleAddToCart called with payload:', payload)
     console.log('Available converted products:', convertedProducts.map(p => ({ id: p.id, title: p.title })))
     
@@ -164,13 +164,18 @@ export default function ProductGrid({
     const displayImage = getProductImageUrl(product, '/placeholder-product.jpg')
     console.log('Display image (processed):', displayImage)
     
+    const isBundle = payload.isBundle || (product as any).isBundle || false
     const cartItem = {
       id: payload.productId,
       name: product.title || product.name || '',
       price: product.price,
       quantity: payload.qty,
       image: displayImage, // Use the processed image URL
-      category: typeof product.category === 'string' ? product.category : product.category?.name || 'Product'
+      category: typeof product.category === 'string' ? product.category : product.category?.name || 'Product',
+      productId: isBundle ? undefined : payload.productId, // Include product ID for regular products
+      bundleId: isBundle ? payload.productId : undefined, // Include bundle ID for bundles
+      productType: isBundle ? 'bundle' as const : 'product' as const,
+      isBundle: isBundle
     }
 
     console.log('Final cart item:', cartItem)

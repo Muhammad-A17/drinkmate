@@ -151,7 +151,6 @@ export default function ContactForm({ user, isAuthenticated, selectedTopic, onTo
 
     setIsSubmitting(true)
     try {
-      // TODO: Implement actual form submission
       const response = await fetch('/api/contact/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

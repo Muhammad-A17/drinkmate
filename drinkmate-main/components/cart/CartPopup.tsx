@@ -34,6 +34,12 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
   const total = subtotal + shipping + tax
 
   const handleQuantityChange = async (id: string | number, newQuantity: number) => {
+    // Safety check for undefined or null id
+    if (!id) {
+      console.error('Cannot update quantity: item id is undefined or null')
+      return
+    }
+
     if (newQuantity < 1) {
       removeItem(id)
       return
@@ -163,8 +169,8 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                                  disabled={isUpdating === (item.id?.toString() || '')}
+                                  onClick={() => item.id && handleQuantityChange(item.id, item.quantity - 1)}
+                                  disabled={isUpdating === (item.id?.toString() || '') || !item.id}
                                   className="h-5 w-5 sm:h-6 sm:w-6 p-0 hover:bg-[#12d6fa]/10 text-gray-600 hover:text-[#12d6fa]"
                                 >
                                   <Minus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -175,8 +181,8 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                                  disabled={isUpdating === (item.id?.toString() || '')}
+                                  onClick={() => item.id && handleQuantityChange(item.id, item.quantity + 1)}
+                                  disabled={isUpdating === (item.id?.toString() || '') || !item.id}
                                   className="h-5 w-5 sm:h-6 sm:w-6 p-0 hover:bg-[#12d6fa]/10 text-gray-600 hover:text-[#12d6fa]"
                                 >
                                   <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -185,7 +191,8 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => removeItem(item.id)}
+                                onClick={() => item.id && removeItem(item.id)}
+                                disabled={!item.id}
                                 className="h-5 w-5 sm:h-6 sm:w-6 p-0 text-red-500 hover:bg-red-50 rounded-lg"
                               >
                                 <Trash2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />

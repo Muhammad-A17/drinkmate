@@ -61,10 +61,17 @@ export default function WishlistManager({
   }
 
   const handleAddToCart = (product: Product) => {
-    onAddToCart({
-      productId: product.id,
-      qty: 1,
-    })
+    const cartItem = {
+      id: product.id || product._id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.image || (typeof product.images?.[0] === 'string' ? product.images[0] : product.images?.[0]?.url || '/placeholder.svg'),
+      category: typeof product.category === 'string' ? product.category : product.category?.name || 'Product',
+      productId: product.id || product._id,
+      productType: 'product' as const
+    }
+    onAddToCart(cartItem)
   }
 
   return (
