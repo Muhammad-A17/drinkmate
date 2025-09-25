@@ -14,8 +14,19 @@ import { ChatStatusProvider } from "@/lib/chat-status-context"
 import { Providers } from "@/components/providers"
 import { suppressHydrationWarnings } from "@/lib/suppress-hydration-warnings"
 import FloatingCartButton from "@/components/cart/FloatingCartButton"
-// Suppress hydration warnings caused by browser extensions
-typeof window !== 'undefined' && suppressHydrationWarnings()
+
+// Suppress hydration warnings caused by browser extensions - run immediately
+if (typeof window !== 'undefined') {
+  // Run before any React hydration
+  suppressHydrationWarnings()
+  
+  // Also run on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', suppressHydrationWarnings)
+  } else {
+    suppressHydrationWarnings()
+  }
+}
 
 export const viewport = {
   width: 'device-width',
@@ -200,6 +211,83 @@ export default function RootLayout({
             'query-input': 'required name=search_term_string'
           }
         }) }} />
+        
+        {/* Immediate hydration fix script - loads before React hydration */}
+        <script 
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                'use strict';
+                const EXTENSION_ATTRS = [
+                  'bis_skin_checked', 'bis_register', 'data-bit', 'data-adblock',
+                  'data-avast', 'data-bitdefender', 'data-bitwarden', 'data-lastpass',
+                  'data-grammarly', 'data-honey', '__processed_'
+                ];
+                
+                function cleanExtensionAttributes() {
+                  try {
+                    document.querySelectorAll('*').forEach(element => {
+                      if (element && element.hasAttributes && element.hasAttributes()) {
+                        Array.from(element.attributes).forEach(attr => {
+                          if (attr && attr.name) {
+                            const attrName = attr.name.toLowerCase();
+                            const isExtensionAttr = EXTENSION_ATTRS.some(extAttr => 
+                              attrName === extAttr.toLowerCase() || attrName.startsWith(extAttr.toLowerCase())
+                            );
+                            if (isExtensionAttr) {
+                              try { element.removeAttribute(attr.name); } catch (e) {}
+                            }
+                          }
+                        });
+                      }
+                    });
+                  } catch (e) {}
+                }
+
+                // Override console.error to suppress hydration warnings from extensions
+                const originalConsoleError = console.error;
+                console.error = function(...args) {
+                  const errorMessage = args.join(' ').toLowerCase();
+                  const isHydrationError = [
+                    'hydration failed', 'a tree hydrated but some attributes',
+                    'server rendered html', "didn't match the client", 'warning: prop'
+                  ].some(pattern => errorMessage.includes(pattern));
+                  const isExtensionError = EXTENSION_ATTRS.some(attr => 
+                    errorMessage.includes(attr.toLowerCase())
+                  );
+                  if (isHydrationError && isExtensionError) return;
+                  originalConsoleError.apply(console, args);
+                };
+
+                // Run cleanup immediately
+                cleanExtensionAttributes();
+                
+                // Continue cleaning up
+                [0, 1, 10, 50, 100, 250, 500, 1000].forEach(delay => {
+                  setTimeout(cleanExtensionAttributes, delay);
+                });
+                
+                if (typeof MutationObserver !== 'undefined') {
+                  const observer = new MutationObserver(() => {
+                    if (typeof requestAnimationFrame !== 'undefined') {
+                      requestAnimationFrame(cleanExtensionAttributes);
+                    } else {
+                      setTimeout(cleanExtensionAttributes, 0);
+                    }
+                  });
+                  
+                  setTimeout(() => {
+                    if (document.body) {
+                      observer.observe(document.body, {
+                        attributes: true, childList: true, subtree: true
+                      });
+                    }
+                  }, 10);
+                }
+              })();
+            `
+          }}
+        />
       </head>
       <body className={`${montserrat.variable} ${cairo.variable} ${notoSans.variable} ${notoArabic.variable} font-primary`} suppressHydrationWarning>
         <SecurityMiddleware>

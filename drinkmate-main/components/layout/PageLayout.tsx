@@ -35,10 +35,11 @@ export default function PageLayout({ children, currentPage }: PageLayoutProps) {
     <div 
       className={`min-h-screen bg-white ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}
       dir={isHydrated && isRTL ? 'rtl' : 'ltr'}
+      suppressHydrationWarning
     >
       <Banner />
       <Header currentPage={currentPage} />
-      <main className={`max-w-[1920px] mx-auto`}>
+      <main className={`max-w-[1920px] mx-auto`} suppressHydrationWarning>
         {children}
       </main>
       <Footer />

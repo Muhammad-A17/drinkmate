@@ -179,8 +179,8 @@ export default function RecipeDetail() {
   if (loading) {
     return (
       <PageLayout currentPage="recipes">
-        <div className="min-h-screen bg-gray-50 py-8">
-          <div className="max-w-[1100px] mx-auto px-4 md:px-6">
+        <div className="min-h-screen bg-gray-50 py-8" suppressHydrationWarning>
+          <div className="max-w-[1100px] mx-auto px-4 md:px-6" suppressHydrationWarning>
             <div className="animate-pulse">
               <div className="h-12 bg-gray-200 rounded mb-4"></div>
               <div className="h-6 bg-gray-200 rounded w-2/3 mb-8"></div>
@@ -217,8 +217,8 @@ export default function RecipeDetail() {
   if (!recipe) {
     return (
       <PageLayout currentPage="recipes">
-        <div className="min-h-screen bg-gray-50 py-8">
-          <div className="max-w-[1100px] mx-auto px-4 md:px-6 text-center">
+        <div className="min-h-screen bg-gray-50 py-8" suppressHydrationWarning>
+          <div className="max-w-[1100px] mx-auto px-4 md:px-6 text-center" suppressHydrationWarning>
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Recipe not found</h1>
             <Link href="/recipes" className="text-sky-500 hover:text-sky-600">
               ← Back to recipes
@@ -270,8 +270,8 @@ export default function RecipeDetail() {
         }}
       />
 
-      <div className="min-h-screen bg-gray-50 py-8">
-        <article className="max-w-[1100px] mx-auto px-4 md:px-6">
+      <div className="min-h-screen bg-gray-50 py-8" suppressHydrationWarning>
+        <article className="max-w-[1100px] mx-auto px-4 md:px-6" suppressHydrationWarning>
           <header className="mb-8">
             <h1 className={`text-[clamp(26px,4.2vw,40px)] font-extrabold tracking-tight ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
               {recipe.title}
