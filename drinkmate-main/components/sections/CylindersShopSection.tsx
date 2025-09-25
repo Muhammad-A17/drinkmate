@@ -8,6 +8,8 @@ import { exchangeCylinderAPI } from "@/lib/exchange-cylinder-api"
 import { logger } from "@/lib/logger"
 import BundleStyleProductCard from "@/components/shop/BundleStyleProductCard"
 import ExchangeCylinderCard from "@/components/shop/ExchangeCylinderCard"
+import { useCart } from "@/lib/cart-context"
+import { toast } from "sonner"
 import styles from "./CylindersShopSection.module.css"
 
 interface CO2Cylinder {
@@ -46,9 +48,27 @@ interface CylindersShopSectionProps {
 }
 
 export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps) {
+  const { addItem } = useCart()
   const [cylinders, setCylinders] = useState<CO2Cylinder[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const handleAddToCart = useCallback((cylinder: CO2Cylinder, qty: number = 1) => {
+    const cartItem = {
+      id: cylinder._id,
+      name: cylinder.name,
+      price: cylinder.price,
+      quantity: qty,
+      image: cylinder.image || '/placeholder.svg',
+      category: 'co2-cylinder',
+      productId: cylinder._id,
+      productType: 'cylinder' as const,
+      sku: cylinder.slug
+    }
+    
+    addItem(cartItem)
+    toast.success(`${cylinder.name} added to cart!`)
+  }, [addItem])
 
   const fetchCylinders = useCallback(async () => {
     try {
@@ -294,7 +314,10 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
                   estimatedTime: type === "exchange" ? (cylinder.estimatedTime || "Same Day") : "1-2 Days"
                 }}
                 onAddToCart={({ productId, qty }: { productId: string; qty: number }) => {
-                  console.log('Add CO2 cylinder to cart:', productId, qty);
+                  const cylinder = cylinders.find(c => c._id === productId)
+                  if (cylinder) {
+                    handleAddToCart(cylinder, qty)
+                  }
                 }}
                 onAddToWishlist={() => {}}
                 onAddToComparison={() => {}}
@@ -325,7 +348,10 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
                 badges: cylinder.isBestSeller ? ["BESTSELLER"] : cylinder.isFeatured ? ["FEATURED"] : undefined,
               }}
               onAddToCart={({ productId, qty }: { productId: string; qty: number }) => {
-                console.log('Add CO2 cylinder to cart:', productId, qty);
+                const cylinder = cylinders.find(c => c._id === productId)
+                if (cylinder) {
+                  handleAddToCart(cylinder, qty)
+                }
               }}
               onAddToWishlist={() => {}}
               onAddToComparison={() => {}}
