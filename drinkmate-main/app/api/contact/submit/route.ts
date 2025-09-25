@@ -109,6 +109,34 @@ export async function POST(request: NextRequest) {
       priority: body.reason === 'order' ? 'high' : 'normal'
     }
 
+    // Submit to backend Express server
+    try {
+      const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/contact/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: body.name,
+          email: body.email,
+          message: body.message,
+          phone: body.phone || '',
+          subject: body.reason,
+          userId: body.userId || null
+        })
+      })
+
+      if (backendResponse.ok) {
+        const backendData = await backendResponse.json()
+        console.log('Contact form submitted to backend successfully:', backendData)
+      } else {
+        console.error('Failed to submit to backend:', await backendResponse.text())
+      }
+    } catch (backendError) {
+      console.error('Error submitting to backend:', backendError)
+      // Continue with the response even if backend submission fails
+    }
+
     // Log the submission
     console.log('Contact form submission:', contactSubmission)
 

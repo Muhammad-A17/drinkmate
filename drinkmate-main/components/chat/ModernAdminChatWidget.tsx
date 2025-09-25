@@ -234,11 +234,22 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
       if (data.chatId === selectedConversation.id) {
         setMessages(prev => {
           // Check for duplicates
-          const messageExists = prev.some(msg => 
-            msg.id === data.message._id || 
-            msg.id === data.message.id ||
-            (msg.content === data.message.content && msg.timestamp === data.message.timestamp)
-          )
+          const messageExists = prev.some(msg => {
+            // Check by real ID
+            if (msg.id === data.message._id || msg.id === data.message.id) {
+              return true
+            }
+            
+            // Check by content and timestamp (for temporary messages)
+            if (msg.content === data.message.content) {
+              const msgTime = new Date(msg.timestamp).getTime()
+              const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
+              // If timestamps are within 5 seconds, consider it a duplicate
+              return Math.abs(msgTime - dataTime) < 5000
+            }
+            
+            return false
+          })
 
           if (messageExists) {
             console.log('🔥 ModernAdminChatWidget: Duplicate message detected, skipping')
@@ -331,28 +342,30 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
     setIsSending(true)
     setMessageInput('')
 
-    // Create optimistic message
-    const tempMessage: Message = {
-      id: `temp_${Date.now()}`,
-      content: messageContent,
-      sender: 'agent',
-      timestamp: new Date().toISOString(),
-      isNote: false,
-      attachments: [],
-      status: 'sending'
-    }
-
-    // Add to messages immediately
-    setMessages(prev => [...prev, tempMessage])
-    scrollToBottom()
-
     try {
       if (socketSendMessage && isConnected) {
-        // Send via socket
+        // Send via socket - don't add optimistic update as socket will provide real-time feedback
+        console.log('🔥 ModernAdminChatWidget: Sending via socket')
         await socketSendMessage(selectedConversation.id, messageContent, 'text')
-        console.log('🔥 ModernAdminChatWidget: Message sent via socket')
       } else {
-        // Fallback to API
+        // Fallback to API - add optimistic update since no real-time feedback
+        console.log('🔥 ModernAdminChatWidget: Sending via API fallback')
+        
+        // Create optimistic message
+        const tempMessage: Message = {
+          id: `temp_${Date.now()}`,
+          content: messageContent,
+          sender: 'agent',
+          timestamp: new Date().toISOString(),
+          isNote: false,
+          attachments: [],
+          status: 'sending'
+        }
+
+        // Add to messages immediately
+        setMessages(prev => [...prev, tempMessage])
+        scrollToBottom()
+
         const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
         if (!token) throw new Error('No authentication token')
 
@@ -389,10 +402,14 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
     } catch (error) {
       console.error('🔥 ModernAdminChatWidget: Error sending message:', error)
       
-      // Update message status to failed
-      setMessages(prev => prev.map(msg => 
-        msg.id === tempMessage.id ? { ...msg, status: 'failed' } : msg
-      ))
+      // Only update message status to failed if we added an optimistic message
+      if (!socketSendMessage || !isConnected) {
+        setMessages(prev => prev.map(msg => 
+          msg.content === messageContent && msg.sender === 'agent' && msg.status === 'sending'
+            ? { ...msg, status: 'failed' }
+            : msg
+        ))
+      }
     } finally {
       setIsSending(false)
     }

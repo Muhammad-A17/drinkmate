@@ -9,6 +9,7 @@ import { ContactProvider, useContactSettings } from '@/lib/contact-settings-cont
 import { useAuth } from '@/lib/auth-context'
 import { useTranslation } from '@/lib/translation-context'
 import { useChatStatus } from '@/lib/chat-status-context'
+import { contactAPI } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -173,9 +174,34 @@ function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [ticketId, setTicketId] = useState('')
+  const [contactResponses, setContactResponses] = useState<any[]>([])
+  const [loadingResponses, setLoadingResponses] = useState(false)
+  const [showResponses, setShowResponses] = useState(false)
 
   // Form validation
   const isFormValid = formData.name && formData.email && formData.message && formData.consent && formData.message.length >= 10
+
+  // Fetch contact responses
+  const fetchContactResponses = async () => {
+    if (!formData.email) return
+    
+    setLoadingResponses(true)
+    try {
+      const response = await contactAPI.getUserContacts(formData.email)
+      setContactResponses(response.contacts || [])
+    } catch (error) {
+      console.error('Error fetching contact responses:', error)
+    } finally {
+      setLoadingResponses(false)
+    }
+  }
+
+  // Fetch responses when email changes
+  useEffect(() => {
+    if (formData.email && formData.email.includes('@')) {
+      fetchContactResponses()
+    }
+  }, [formData.email])
 
   const reasons = [
     { value: 'general', label: 'General Inquiry' },
@@ -490,6 +516,65 @@ function ContactForm() {
             )}
           </Button>
         </form>
+
+        {/* Contact Responses Section */}
+        {contactResponses.length > 0 && (
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Your Previous Messages & Responses</h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowResponses(!showResponses)}
+                className="text-sm"
+              >
+                {showResponses ? 'Hide' : 'Show'} ({contactResponses.length})
+              </Button>
+            </div>
+            
+            {showResponses && (
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {contactResponses.map((contact, index) => (
+                  <div key={contact._id || index} className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <Badge variant={contact.status === 'resolved' ? 'default' : 'secondary'}>
+                          {contact.status}
+                        </Badge>
+                        <span className="text-sm text-gray-500">
+                          {new Date(contact.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <span className="text-sm font-medium text-gray-700 capitalize">
+                        {contact.subject}
+                      </span>
+                    </div>
+                    
+                    <div className="mb-3">
+                      <p className="text-sm text-gray-600 mb-1">Your message:</p>
+                      <p className="text-sm text-gray-800 bg-white p-2 rounded border">
+                        {contact.message}
+                      </p>
+                    </div>
+                    
+                    {contact.response && (
+                      <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+                        <p className="text-sm font-medium text-blue-800 mb-1">Our response:</p>
+                        <p className="text-sm text-blue-700">
+                          {contact.response.text}
+                        </p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          {new Date(contact.response.sentAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   )

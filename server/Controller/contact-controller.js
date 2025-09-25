@@ -193,6 +193,37 @@ exports.addContactResponse = async (req, res) => {
     }
 };
 
+// Get contact messages for a specific user (customer)
+exports.getUserContacts = async (req, res) => {
+    try {
+        const { email } = req.query;
+        
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is required'
+            });
+        }
+        
+        const contacts = await Contact.find({ email })
+            .sort({ createdAt: -1 })
+            .select('name email message subject status response createdAt updatedAt');
+            
+        res.status(200).json({
+            success: true,
+            count: contacts.length,
+            contacts
+        });
+    } catch (error) {
+        console.error('Error in getUserContacts:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
 // Delete contact message (admin only)
 exports.deleteContact = async (req, res) => {
     try {

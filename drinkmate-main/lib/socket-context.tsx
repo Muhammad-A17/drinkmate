@@ -163,31 +163,31 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
   const sendMessage = (chatId: string, content: string, type: string = 'text') => {
     if (socket) {
-      socket.emit('chat:message:send', { chatId, content, type })
+      socket.emit('send_message', { chatId, content, type })
     }
   }
 
   const startTyping = (chatId: string) => {
     if (socket) {
-      socket.emit('chat:typing:start', { chatId })
+      socket.emit('typing_start', { chatId })
     }
   }
 
   const stopTyping = (chatId: string) => {
     if (socket) {
-      socket.emit('chat:typing:stop', { chatId })
+      socket.emit('typing_stop', { chatId })
     }
   }
 
   const assignChat = (chatId: string) => {
     if (socket) {
-      socket.emit('chat:assign', { chatId })
+      socket.emit('assign_chat', { chatId })
     }
   }
 
   const updateChatStatus = (chatId: string, status: string, resolutionNotes?: string) => {
     if (socket) {
-      socket.emit('chat:status:update', { chatId, status, resolutionNotes })
+      socket.emit('update_chat_status', { chatId, status, resolutionNotes })
     }
   }
 

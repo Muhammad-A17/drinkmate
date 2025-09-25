@@ -206,11 +206,41 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
     if (!socket) return
 
     const handleNewMessage = (data: { chatId: string; message: Message }) => {
+      console.log('🔥 FloatingChatWidget: New message received:', data)
+      
       if (chatSession && data.chatId === chatSession._id) {
-        setChatSession(prev => prev ? {
-          ...prev,
-          messages: [...prev.messages, data.message]
-        } : null)
+        setChatSession(prev => {
+          if (!prev) return null
+          
+          // Check for duplicates
+          const messageExists = prev.messages.some(msg => {
+            // Check by real ID
+            if (msg.id === data.message.id || msg.id === data.message._id) {
+              return true
+            }
+            
+            // Check by content and timestamp (for temporary messages)
+            if (msg.content === data.message.content) {
+              const msgTime = new Date(msg.timestamp).getTime()
+              const dataTime = new Date(data.message.timestamp).getTime()
+              // If timestamps are within 5 seconds, consider it a duplicate
+              return Math.abs(msgTime - dataTime) < 5000
+            }
+            
+            return false
+          })
+
+          if (messageExists) {
+            console.log('🔥 FloatingChatWidget: Duplicate message detected, skipping')
+            return prev
+          }
+
+          console.log('🔥 FloatingChatWidget: Adding new message to chat')
+          return {
+            ...prev,
+            messages: [...prev.messages, data.message]
+          }
+        })
         
         // Increment unread count if chat is minimized or closed
         if (!isOpen) {
@@ -252,18 +282,18 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
       }
     }
 
-    socket.on('chat:message:new', handleNewMessage)
-    socket.on('chat:typing:status', handleTyping)
-    socket.on('chat:status:updated', handleChatUpdate)
-    socket.on('chat:created', handleChatCreated)
-    socket.on('chat:closed', handleChatClosed)
+    socket.on('new_message', handleNewMessage)
+    socket.on('user_typing', handleTyping)
+    socket.on('chat_updated', handleChatUpdate)
+    socket.on('chat_created', handleChatCreated)
+    socket.on('chat_closed', handleChatClosed)
 
     return () => {
-      socket.off('chat:message:new', handleNewMessage)
-      socket.off('chat:typing:status', handleTyping)
-      socket.off('chat:status:updated', handleChatUpdate)
-      socket.off('chat:created', handleChatCreated)
-      socket.off('chat:closed', handleChatClosed)
+      socket.off('new_message', handleNewMessage)
+      socket.off('user_typing', handleTyping)
+      socket.off('chat_updated', handleChatUpdate)
+      socket.off('chat_created', handleChatCreated)
+      socket.off('chat_closed', handleChatClosed)
     }
   }, [socket, chatSession, isOpen])
 

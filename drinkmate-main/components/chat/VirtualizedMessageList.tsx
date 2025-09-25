@@ -117,15 +117,15 @@ const MessageItem: React.FC<MessageItemProps> = ({ index, style, data }) => {
   return (
     <div style={style}>
       <div
-        className={`flex ${message.sender === 'agent' ? 'justify-end' : 'justify-start'} group`}
+        className={`flex ${message.sender === 'customer' ? 'justify-end' : 'justify-start'} group`}
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
-        <div className={`max-w-xs lg:max-w-md ${message.sender === 'agent' ? 'order-2' : 'order-1'}`}>
+        <div className={`max-w-xs lg:max-w-md ${message.sender === 'customer' ? 'order-2' : 'order-1'}`}>
           <div
             className={`px-4 py-3 rounded-2xl shadow-sm ${
-              message.sender === 'agent'
-                ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+              message.sender === 'customer'
+                ? 'bg-gradient-to-r from-[#04C4DB] to-[#03a9c4] text-white'
                 : 'bg-gray-100 text-gray-900'
             }`}
           >
@@ -134,18 +134,18 @@ const MessageItem: React.FC<MessageItemProps> = ({ index, style, data }) => {
             </div>
             
             <div className={`flex items-center justify-between mt-2 text-xs ${
-              message.sender === 'agent' ? 'text-blue-100' : 'text-gray-500'
+              message.sender === 'customer' ? 'text-blue-100' : 'text-gray-500'
             }`}>
               <span>{formatTime(message.timestamp)}</span>
               <div className="flex items-center space-x-1">
-                {message.sender === 'agent' && getStatusIcon(message.status || 'sent')}
+                {message.sender === 'customer' && getStatusIcon(message.status || 'sent')}
               </div>
             </div>
           </div>
           
           {/* Message Actions */}
           <div className={`flex items-center space-x-1 mt-1 transition-opacity duration-200 ${
-            message.sender === 'agent' ? 'justify-end' : 'justify-start'
+            message.sender === 'customer' ? 'justify-end' : 'justify-start'
           } ${showActions ? 'opacity-100' : 'opacity-0'}`}>
             <TooltipProvider>
               <Tooltip>
@@ -195,7 +195,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ index, style, data }) => {
               </Tooltip>
             </TooltipProvider>
 
-            {message.sender === 'agent' && (
+            {message.sender === 'customer' && (
               <>
                 <TooltipProvider>
                   <Tooltip>

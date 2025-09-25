@@ -17,6 +17,7 @@ router.use((req, res, next) => {
 
 // Public routes
 router.post('/submit', authController.submitContact);
+router.get('/user/contacts', contactController.getUserContacts);
 
 // Test endpoint to verify contact API is working
 router.get('/test', (req, res) => {

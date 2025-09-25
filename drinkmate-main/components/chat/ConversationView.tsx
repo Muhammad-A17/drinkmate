@@ -104,16 +104,21 @@ export default function ConversationView({
       })
 
       if (response.ok) {
-        // Add message to local state
-        const newMessage: Message = {
-          id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          content: content,
-          sender: 'agent',
-          timestamp: new Date().toISOString(),
-          isNote: isNote,
-          attachments: []
+        const responseData = await response.json()
+        console.log('🔥 ConversationView: Message sent via API:', responseData)
+        
+        // Use the real message from the response instead of creating a temporary one
+        if (responseData.data?.message) {
+          const realMessage: Message = {
+            id: responseData.data.message._id || responseData.data.message.id,
+            content: responseData.data.message.content,
+            sender: 'agent',
+            timestamp: responseData.data.message.createdAt || responseData.data.message.timestamp || new Date().toISOString(),
+            isNote: responseData.data.message.isNote || isNote,
+            attachments: responseData.data.message.attachments || []
+          }
+          setMessages(prev => [...prev, realMessage])
         }
-        setMessages(prev => [...prev, newMessage])
       }
     } catch (err) {
       console.error('Error sending message:', err)

@@ -143,7 +143,8 @@ const authenticateToken = async (req, res, next) => {
           id: decoded.id, 
           username: decoded.username, 
           email: decoded.email,
-          role: decoded.role || 'user'
+          role: decoded.role || 'user',
+          isAdmin: decoded.isAdmin || false
         };
         return next();
       }

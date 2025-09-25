@@ -1112,6 +1112,12 @@ export const contactAPI = {
   getContactStats: async () => {
     const response = await api.get('/contact/admin/stats');
     return response.data;
+  },
+  
+  // Get user's contact messages (customer)
+  getUserContacts: async (email: string) => {
+    const response = await api.get(`/contact/user/contacts?email=${encodeURIComponent(email)}`);
+    return response.data;
   }
 };
 

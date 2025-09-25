@@ -219,50 +219,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       
       console.log('🔥 ChatProvider: Found chat:', chat)
 
-      // Fetch messages using customer endpoint
+      // Process messages from the chat object (they're already included in the response)
       let messages: Message[] = []
-      try {
-        const messagesResponse = await fetch(`http://localhost:3000/chat/${chatId}/customer-messages`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        })
-
-        if (messagesResponse.ok) {
-          const messagesData = await messagesResponse.json()
-          console.log('🔥 ChatProvider: Customer messages data received:', messagesData)
-          
-          if (messagesData.success && messagesData.data?.chat?.messages) {
-            messages = messagesData.data.chat.messages.map((msg: any): Message => ({
-              id: msg._id || msg.id || `msg_${Date.now()}`,
-              content: msg.content || '',
-              sender: msg.sender === 'admin' || msg.sender === 'agent' ? 'agent' : 'customer',
-              timestamp: msg.createdAt || msg.timestamp || new Date().toISOString(),
-              isNote: msg.isNote || false,
-              attachments: msg.attachments || [],
-              readAt: msg.readAt,
-              status: msg.status || 'sent'
-            }))
-          } else if (messagesData.data?.messages) {
-            // Fallback for different API response structure
-            messages = messagesData.data.messages.map((msg: any): Message => ({
-              id: msg._id || msg.id || `msg_${Date.now()}`,
-              content: msg.content || '',
-              sender: msg.sender === 'admin' || msg.sender === 'agent' ? 'agent' : 'customer',
-              timestamp: msg.createdAt || msg.timestamp || new Date().toISOString(),
-              isNote: msg.isNote || false,
-              attachments: msg.attachments || [],
-              readAt: msg.readAt,
-              status: msg.status || 'sent'
-            }))
-          }
-        } else {
-          console.warn('🔥 ChatProvider: Failed to fetch customer messages, status:', messagesResponse.status)
-        }
-      } catch (error) {
-        console.warn('🔥 ChatProvider: Error fetching customer messages:', error)
-        // Continue without messages if fetch fails
+      if (chat.messages && Array.isArray(chat.messages)) {
+        console.log('🔥 ChatProvider: Processing messages from chat object:', chat.messages.length)
+        messages = chat.messages.map((msg: any): Message => ({
+          id: msg._id || msg.id || `msg_${Date.now()}`,
+          content: msg.content || '',
+          sender: msg.sender === 'admin' || msg.sender === 'agent' ? 'agent' : 'customer',
+          timestamp: msg.timestamp || msg.createdAt || new Date().toISOString(),
+          isNote: msg.isNote || false,
+          attachments: msg.attachments || [],
+          readAt: msg.readAt,
+          status: msg.status || 'sent'
+        }))
+        console.log('🔥 ChatProvider: Processed messages from chat object:', messages.length)
+      } else {
+        console.log('🔥 ChatProvider: No messages found in chat object')
       }
 
       const chatSession: ChatSession = {
@@ -355,26 +328,29 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const sendMessage = useCallback(async (content: string, type: string = 'text') => {
     if (!content.trim() || !state.currentChat) return
 
-    const messageId = `temp_${Date.now()}`
-    const newMessage: Message = {
-      id: messageId,
-      content: content.trim(),
-      sender: 'customer',
-      timestamp: new Date().toISOString(),
-      isNote: false,
-      attachments: [],
-      status: 'sending'
-    }
-
-    // Add message optimistically
-    dispatch({ type: 'ADD_MESSAGE', payload: newMessage })
-
     try {
       if (socket && isConnected) {
+        // Use socket - don't add optimistic update as socket will provide real-time feedback
+        console.log('🔥 ChatProvider: Sending via socket')
         await socketSendMessage(state.currentChat._id, content.trim(), type)
-        dispatch({ type: 'UPDATE_MESSAGE', payload: { id: messageId, updates: { status: 'sent' } } })
       } else {
-        // API fallback
+        // API fallback - add optimistic update since no real-time feedback
+        console.log('🔥 ChatProvider: Sending via API fallback')
+        
+        const messageId = `temp_${Date.now()}`
+        const newMessage: Message = {
+          id: messageId,
+          content: content.trim(),
+          sender: 'customer',
+          timestamp: new Date().toISOString(),
+          isNote: false,
+          attachments: [],
+          status: 'sending'
+        }
+
+        // Add message optimistically
+        dispatch({ type: 'ADD_MESSAGE', payload: newMessage })
+
         const token = getAuthToken()
         const response = await fetch(`http://localhost:3000/chat/${state.currentChat._id}/message`, {
           method: 'POST',
@@ -390,20 +366,34 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
         if (response.ok) {
           const responseData = await response.json()
-          dispatch({ 
-            type: 'UPDATE_MESSAGE', 
-            payload: { 
-              id: messageId, 
-              updates: { 
-                id: responseData.data.message._id,
-                status: 'sent' 
+          console.log('🔥 ChatProvider: Message sent via API:', responseData)
+          
+          // Replace temporary message with real message
+          if (responseData.data?.message) {
+            const realMessage: Message = {
+              id: responseData.data.message._id,
+              content: responseData.data.message.content,
+              sender: 'customer',
+              timestamp: responseData.data.message.createdAt || responseData.data.message.timestamp,
+              isNote: false,
+              attachments: [],
+              status: 'sent'
+            }
+
+            dispatch({ 
+              type: 'UPDATE_MESSAGE', 
+              payload: { 
+                id: messageId, 
+                updates: realMessage
               } 
-            } 
-          })
+            })
+          }
           
           // Auto-update to delivered after a short delay
           setTimeout(() => {
-            updateMessageStatus(responseData.data.message._id, 'delivered')
+            if (responseData.data?.message?._id) {
+              updateMessageStatus(responseData.data.message._id, 'delivered')
+            }
           }, 1000)
         } else {
           throw new Error('Failed to send message')
@@ -411,7 +401,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Error sending message:', error)
-      dispatch({ type: 'UPDATE_MESSAGE', payload: { id: messageId, updates: { status: 'failed' } } })
       dispatch({ type: 'SET_ERROR', payload: 'Failed to send message' })
     }
   }, [state.currentChat, socket, isConnected, socketSendMessage, getAuthToken])
@@ -557,6 +546,29 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
     const handleNewMessage = (data: { chatId: string; message: any }) => {
       if (state.currentChat && data.chatId === state.currentChat._id) {
+        // Check if message already exists to prevent duplicates
+        const messageExists = state.messages.some(msg => {
+          // Check by real ID
+          if (msg.id === data.message._id || msg.id === data.message.id) {
+            return true
+          }
+          
+          // Check by content and timestamp (for temporary messages)
+          if (msg.content === data.message.content) {
+            const msgTime = new Date(msg.timestamp).getTime()
+            const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
+            // If timestamps are within 5 seconds, consider it a duplicate
+            return Math.abs(msgTime - dataTime) < 5000
+          }
+          
+          return false
+        })
+        
+        if (messageExists) {
+          console.log('🔥 ChatProvider: Message already exists, skipping duplicate')
+          return
+        }
+        
         const message: Message = {
           id: data.message._id || data.message.id,
           content: data.message.content,
@@ -603,20 +615,25 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       socket.off('typing_start', handleTypingStart)
       socket.off('typing_stop', handleTypingStop)
     }
-  }, [socket, state.currentChat, state.unreadCount])
+  }, [socket, state.currentChat, state.messages, state.unreadCount])
 
   // Check for existing chat on mount
   useEffect(() => {
     if (user && isAuthenticated && !state.currentChat) {
+      console.log('🔥 ChatProvider: Checking for existing chat on mount')
       checkForExistingChat().then(chatId => {
         if (chatId) {
+          console.log('🔥 ChatProvider: Found existing chat, loading:', chatId)
           loadChat(chatId)
           
           // Auto-open if was open before refresh
           const wasOpen = localStorage.getItem('chat-widget-open') === 'true'
           if (wasOpen) {
+            console.log('🔥 ChatProvider: Auto-opening chat widget')
             openChat()
           }
+        } else {
+          console.log('🔥 ChatProvider: No existing chat found')
         }
       })
     }

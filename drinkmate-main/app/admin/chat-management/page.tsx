@@ -514,16 +514,16 @@ export default function ChatManagementPage() {
   // Set up polling for real-time updates (reduced frequency since we have sockets)
   useEffect(() => {
     const interval = setInterval(() => {
-      // Don't poll if we're currently deleting a conversation
-      if (!deletingConversation) {
+      // Don't poll if we're currently deleting a conversation or if we have an active conversation selected
+      if (!deletingConversation && !selectedConversation) {
         fetchChats()
         fetchStats()
         // fetchSessionsNearExpiry will be added after the function is declared
       }
-    }, 10000) // Poll every 10 seconds for backup updates
+    }, 30000) // Poll every 30 seconds for backup updates (reduced from 10s)
 
     return () => clearInterval(interval)
-  }, [fetchChats, fetchStats, deletingConversation])
+  }, [fetchChats, fetchStats, deletingConversation, selectedConversation])
 
   // Poll for sessions near expiry will be added after function declaration
 
@@ -712,6 +712,9 @@ export default function ChatManagementPage() {
       console.log('Admin joining chat room:', conversation.id)
       socket.emit('join_chat', conversation.id)
     }
+    
+    // Load messages for the selected conversation
+    console.log('🔥 Chat Management: Loading messages for conversation:', conversation.id)
   }
 
   // Handle conversation assignment

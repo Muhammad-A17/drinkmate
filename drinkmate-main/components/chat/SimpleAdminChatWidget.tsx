@@ -108,30 +108,33 @@ const SimpleAdminChatWidget: React.FC<SimpleAdminChatWidgetProps> = ({
     const messageContent = newMessage.trim()
     setNewMessage('')
 
-    // Add message to local state immediately
-    const messageToAdd = {
-      id: `temp_${Date.now()}`,
-      content: messageContent,
-      sender: 'agent' as 'customer' | 'agent',
-      timestamp: new Date().toISOString(),
-      isNote: false,
-      attachments: [],
-      readAt: undefined
-    }
-
-    setMessages(prev => [...prev, messageToAdd])
-
-    // Notify parent component
-    if (onMessageSent) {
-      onMessageSent(messageToAdd)
-    }
-
     // Send via socket or API
     try {
       if (socket && isConnected) {
+        // Use socket - don't add optimistic update as socket will provide real-time feedback
+        console.log('🔥 SimpleAdminChatWidget: Sending via socket')
         sendMessage(selectedConversation.id, messageContent, 'text')
       } else {
-        // API fallback
+        // API fallback - add optimistic update since no real-time feedback
+        console.log('🔥 SimpleAdminChatWidget: Sending via API fallback')
+        
+        const messageToAdd = {
+          id: `temp_${Date.now()}`,
+          content: messageContent,
+          sender: 'agent' as 'customer' | 'agent',
+          timestamp: new Date().toISOString(),
+          isNote: false,
+          attachments: [],
+          readAt: undefined
+        }
+
+        setMessages(prev => [...prev, messageToAdd])
+
+        // Notify parent component
+        if (onMessageSent) {
+          onMessageSent(messageToAdd)
+        }
+
         const token = getAuthToken()
         const response = await fetch(`http://localhost:3000/chat/${selectedConversation.id}/message`, {
           method: 'POST',
@@ -148,6 +151,23 @@ const SimpleAdminChatWidget: React.FC<SimpleAdminChatWidgetProps> = ({
         if (response.ok) {
           const responseData = await response.json()
           console.log('🔥 SimpleAdminChatWidget: Message sent via API:', responseData)
+          
+          // Replace temporary message with real message
+          if (responseData.data?.message) {
+            const realMessage = {
+              id: responseData.data.message._id,
+              content: responseData.data.message.content,
+              sender: 'agent' as 'customer' | 'agent',
+              timestamp: responseData.data.message.createdAt || responseData.data.message.timestamp,
+              isNote: false,
+              attachments: [],
+              readAt: undefined
+            }
+
+            setMessages(prev => prev.map(msg => 
+              msg.id === messageToAdd.id ? realMessage : msg
+            ))
+          }
         }
       }
     } catch (error) {
@@ -164,11 +184,22 @@ const SimpleAdminChatWidget: React.FC<SimpleAdminChatWidgetProps> = ({
       
       if (selectedConversation && data.chatId === selectedConversation.id) {
         // Check if message already exists to prevent duplicates
-        const messageExists = messages.some(msg => 
-          msg.id === data.message._id || 
-          msg.id === data.message.id ||
-          (msg.content === data.message.content && msg.timestamp === data.message.timestamp)
-        )
+        const messageExists = messages.some(msg => {
+          // Check by real ID
+          if (msg.id === data.message._id || msg.id === data.message.id) {
+            return true
+          }
+          
+          // Check by content and timestamp (for temporary messages)
+          if (msg.content === data.message.content) {
+            const msgTime = new Date(msg.timestamp).getTime()
+            const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
+            // If timestamps are within 5 seconds, consider it a duplicate
+            return Math.abs(msgTime - dataTime) < 5000
+          }
+          
+          return false
+        })
         
         if (messageExists) {
           console.log('🔥 SimpleAdminChatWidget: Message already exists, skipping duplicate')

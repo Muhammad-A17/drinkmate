@@ -139,65 +139,71 @@ const SimpleChatWidget: React.FC = () => {
     try {
       const token = getAuthToken()
       
-      // Fetch chat details
-      const chatResponse = await fetch(`http://localhost:3000/chat/${chatId}`, {
+      // Fetch customer chats to get the chat with messages
+      const customerChatsResponse = await fetch('http://localhost:3000/chat/customer', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
 
-      if (chatResponse.ok) {
-        const chatData = await chatResponse.json()
-        const chat = chatData.data
-
-        // Fetch messages
-        const messagesResponse = await fetch(`http://localhost:3000/chat/${chatId}/messages`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        })
-
-        let messages = []
-        if (messagesResponse.ok) {
-          const messagesData = await messagesResponse.json()
-          messages = messagesData.data.messages || []
-        }
-
-        // Process messages
-        const processedMessages = messages.map((msg: any): Message => {
-          return {
-            id: msg._id || msg.id,
-            content: msg.content,
-            sender: msg.sender === 'admin' || msg.sender === 'agent' ? 'agent' : 'customer',
-            timestamp: msg.createdAt || msg.timestamp,
-            isNote: msg.isNote || false,
-            attachments: msg.attachments || [],
-            readAt: msg.readAt
-          }
-        })
-
-        const completeChatSession = {
-          _id: chat._id,
-          status: chat.status,
-          customer: chat.customer,
-          assignedTo: chat.assignedTo,
-          createdAt: chat.createdAt,
-          updatedAt: chat.updatedAt,
-          lastMessageAt: new Date(chat.lastMessageAt || chat.updatedAt || chat.createdAt),
-          messages: processedMessages
-        }
+      if (customerChatsResponse.ok) {
+        const customerChatsData = await customerChatsResponse.json()
+        console.log('🔥 SimpleChatWidget: Customer chats data received:', customerChatsData)
         
-        setChatSession(completeChatSession)
-        
-        // Join the chat room
-        joinChat(chatId)
+        if (customerChatsData.success && customerChatsData.data?.chats) {
+          // Find the specific chat by ID
+          const chat = customerChatsData.data.chats.find((c: any) => c._id === chatId)
+          
+          if (chat) {
+            console.log('🔥 SimpleChatWidget: Found chat:', chat)
 
-        console.log('🔥 SimpleChatWidget: Successfully loaded chat data:', {
-          chatId,
-          messageCount: processedMessages.length
-        })
+            // Process messages from the chat object (they're already included in the response)
+            let processedMessages: Message[] = []
+            if (chat.messages && Array.isArray(chat.messages)) {
+              console.log('🔥 SimpleChatWidget: Processing messages from chat object:', chat.messages.length)
+              processedMessages = chat.messages.map((msg: any): Message => ({
+                id: msg._id || msg.id || `msg_${Date.now()}`,
+                content: msg.content || '',
+                sender: msg.sender === 'admin' || msg.sender === 'agent' ? 'agent' : 'customer',
+                timestamp: msg.timestamp || msg.createdAt || new Date().toISOString(),
+                isNote: msg.isNote || false,
+                attachments: msg.attachments || [],
+                readAt: msg.readAt
+              }))
+              console.log('🔥 SimpleChatWidget: Processed messages from chat object:', processedMessages.length)
+            } else {
+              console.log('🔥 SimpleChatWidget: No messages found in chat object')
+            }
+
+            const completeChatSession = {
+              _id: chat._id,
+              status: chat.status,
+              customer: chat.customer,
+              assignedTo: chat.assignedTo,
+              createdAt: chat.createdAt,
+              updatedAt: chat.updatedAt,
+              lastMessageAt: new Date(chat.lastMessageAt || chat.updatedAt || chat.createdAt),
+              messages: processedMessages
+            }
+            
+            setChatSession(completeChatSession)
+            
+            // Join the chat room
+            joinChat(chatId)
+
+            console.log('🔥 SimpleChatWidget: Successfully loaded chat data:', {
+              chatId,
+              messageCount: processedMessages.length
+            })
+          } else {
+            console.error('🔥 SimpleChatWidget: Chat not found in customer chats:', chatId)
+          }
+        } else {
+          console.error('🔥 SimpleChatWidget: Invalid customer chats data structure:', customerChatsData)
+        }
+      } else {
+        console.error('🔥 SimpleChatWidget: Failed to fetch customer chats, status:', customerChatsResponse.status)
       }
     } catch (error) {
       console.error('🔥 SimpleChatWidget: Error loading chat data:', error)
@@ -324,28 +330,31 @@ const SimpleChatWidget: React.FC = () => {
       }
     }
 
-    // Add message to local state immediately
-    const messageToAdd: Message = {
-      id: `temp_${Date.now()}`,
-      content: messageContent,
-      sender: 'customer',
-      timestamp: new Date().toISOString(),
-      isNote: false,
-      attachments: [],
-      readAt: undefined
-    }
-
-    setChatSession(prev => prev ? {
-      ...prev,
-      messages: [...prev.messages, messageToAdd]
-    } : null)
-
     // Send via socket or API
     try {
       if (socket && isConnected) {
+        // Use socket - don't add optimistic update as socket will provide real-time feedback
+        console.log('🔥 SimpleChatWidget: Sending via socket')
         sendMessage(chatSession._id, messageContent, 'text')
       } else {
-        // API fallback
+        // API fallback - add optimistic update since no real-time feedback
+        console.log('🔥 SimpleChatWidget: Sending via API fallback')
+        
+        const messageToAdd: Message = {
+          id: `temp_${Date.now()}`,
+          content: messageContent,
+          sender: 'customer',
+          timestamp: new Date().toISOString(),
+          isNote: false,
+          attachments: [],
+          readAt: undefined
+        }
+
+        setChatSession(prev => prev ? {
+          ...prev,
+          messages: [...prev.messages, messageToAdd]
+        } : null)
+
         const token = getAuthToken()
         const response = await fetch(`http://localhost:3000/chat/${chatSession._id}/message`, {
           method: 'POST',
@@ -362,6 +371,26 @@ const SimpleChatWidget: React.FC = () => {
         if (response.ok) {
           const responseData = await response.json()
           console.log('🔥 SimpleChatWidget: Message sent via API:', responseData)
+          
+          // Replace temporary message with real message
+          if (responseData.data?.message) {
+            const realMessage: Message = {
+              id: responseData.data.message._id,
+              content: responseData.data.message.content,
+              sender: 'customer',
+              timestamp: responseData.data.message.createdAt || responseData.data.message.timestamp,
+              isNote: false,
+              attachments: [],
+              readAt: undefined
+            }
+
+            setChatSession(prev => prev ? {
+              ...prev,
+              messages: prev.messages.map(msg => 
+                msg.id === messageToAdd.id ? realMessage : msg
+              )
+            } : null)
+          }
         }
       }
     } catch (error) {
@@ -427,11 +456,22 @@ const SimpleChatWidget: React.FC = () => {
       
       if (chatSession && data.chatId === chatSession._id) {
         // Check if message already exists to prevent duplicates
-        const messageExists = chatSession.messages.some(msg => 
-          msg.id === data.message._id || 
-          msg.id === data.message.id ||
-          (msg.content === data.message.content && msg.timestamp === data.message.timestamp)
-        )
+        const messageExists = chatSession.messages.some(msg => {
+          // Check by real ID
+          if (msg.id === data.message._id || msg.id === data.message.id) {
+            return true
+          }
+          
+          // Check by content and timestamp (for temporary messages)
+          if (msg.content === data.message.content) {
+            const msgTime = new Date(msg.timestamp).getTime()
+            const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
+            // If timestamps are within 5 seconds, consider it a duplicate
+            return Math.abs(msgTime - dataTime) < 5000
+          }
+          
+          return false
+        })
         
         if (messageExists) {
           console.log('🔥 SimpleChatWidget: Message already exists, skipping duplicate')
@@ -624,18 +664,18 @@ const SimpleChatWidget: React.FC = () => {
                   chatSession.messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex ${message.sender === 'agent' ? 'justify-start' : 'justify-end'}`}
+                      className={`flex ${message.sender === 'customer' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
                         className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
-                          message.sender === 'agent'
-                            ? 'bg-gray-100 text-gray-900'
-                            : 'bg-[#04C4DB] text-white'
+                          message.sender === 'customer'
+                            ? 'bg-[#04C4DB] text-white'
+                            : 'bg-gray-100 text-gray-900'
                         }`}
                       >
                         <div>{message.content}</div>
                         <div className={`text-xs mt-1 ${
-                          message.sender === 'agent' ? 'text-gray-500' : 'text-blue-100'
+                          message.sender === 'customer' ? 'text-blue-100' : 'text-gray-500'
                         }`}>
                           {new Date(message.timestamp).toLocaleTimeString('en-US', {
                             hour: '2-digit',

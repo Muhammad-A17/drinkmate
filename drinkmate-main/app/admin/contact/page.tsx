@@ -653,7 +653,7 @@ export default function ContactPage() {
     try {
       setIsAddingResponse(true)
       await contactAPI.addContactResponse(selectedContact._id, {
-        text: responseText,
+        responseText: responseText,
         sentBy: "Admin",
       })
       toast.success("Response added successfully")

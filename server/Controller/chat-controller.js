@@ -13,6 +13,9 @@ const getAllChats = async (req, res) => {
     if (category) filter.category = category;
     if (priority) filter.priority = priority;
     
+    // Always exclude deleted chats
+    filter.isDeleted = { $ne: true };
+    
     const chats = await Chat.find(filter)
       .populate('assignedTo', 'firstName lastName email')
       .populate('customer.userId', 'firstName lastName email')
@@ -30,12 +33,38 @@ const getAllChats = async (req, res) => {
       }
     });
     
+    // Deduplicate chats by customer email - keep only the most recent active chat per customer
+    const uniqueChats = [];
+    const customerChatMap = new Map();
+    
+    chats.forEach(chat => {
+      const customerEmail = chat.customer.email;
+      if (!customerEmail) {
+        // If no email, include the chat (anonymous chats)
+        uniqueChats.push(chat);
+        return;
+      }
+      
+      if (!customerChatMap.has(customerEmail)) {
+        customerChatMap.set(customerEmail, chat);
+      } else {
+        // Compare timestamps and keep the more recent one
+        const existingChat = customerChatMap.get(customerEmail);
+        if (new Date(chat.lastMessageAt || chat.updatedAt) > new Date(existingChat.lastMessageAt || existingChat.updatedAt)) {
+          customerChatMap.set(customerEmail, chat);
+        }
+      }
+    });
+    
+    // Add unique chats to the result
+    customerChatMap.forEach(chat => uniqueChats.push(chat));
+    
     const total = await Chat.countDocuments(filter);
     
     res.json({
       success: true,
       data: {
-        chats,
+        chats: uniqueChats,
         pagination: {
           current: parseInt(page),
           pages: Math.ceil(total / limit),
@@ -114,6 +143,24 @@ const createChat = async (req, res) => {
   try {
     const { customer, category, orderNumber, priority = 'medium' } = req.body;
     
+    // Check if there's already an active chat for this customer
+    if (customer.userId) {
+      const existingChat = await Chat.findOne({
+        'customer.userId': customer.userId,
+        status: 'active',
+        isDeleted: { $ne: true }
+      });
+      
+      if (existingChat) {
+        console.log('🔥 Found existing active chat for customer:', customer.userId, 'Chat ID:', existingChat._id);
+        return res.status(200).json({
+          success: true,
+          data: existingChat,
+          message: 'Existing active chat session found'
+        });
+      }
+    }
+    
     // Get client IP address
     const clientIP = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 
                      (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
@@ -135,6 +182,8 @@ const createChat = async (req, res) => {
     });
     
     await chat.save();
+    
+    console.log('🔥 Created new chat session:', chat._id, 'for customer:', customer.userId);
     
     res.status(201).json({
       success: true,

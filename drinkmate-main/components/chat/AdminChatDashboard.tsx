@@ -95,7 +95,8 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (isOpen && user?.isAdmin) {
+    if (isOpen && user) {
+      console.log('AdminChatDashboard: Loading chats and stats for user:', user)
       loadOpenChats()
       loadChatStats()
     }
@@ -106,8 +107,36 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
     if (!socket) return
 
     const handleNewMessage = (data: { message: Message }) => {
+      console.log('🔥 AdminChatDashboard: New message received:', data)
+      
       if (activeChat && data.message.chat === activeChat._id) {
-        setMessages(prev => [...prev, data.message])
+        setMessages(prev => {
+          // Check for duplicates
+          const messageExists = prev.some(msg => {
+            // Check by real ID
+            if (msg.id === data.message.id || msg.id === data.message._id) {
+              return true
+            }
+            
+            // Check by content and timestamp (for temporary messages)
+            if (msg.content === data.message.content) {
+              const msgTime = new Date(msg.timestamp).getTime()
+              const dataTime = new Date(data.message.timestamp).getTime()
+              // If timestamps are within 5 seconds, consider it a duplicate
+              return Math.abs(msgTime - dataTime) < 5000
+            }
+            
+            return false
+          })
+
+          if (messageExists) {
+            console.log('🔥 AdminChatDashboard: Duplicate message detected, skipping')
+            return prev
+          }
+
+          console.log('🔥 AdminChatDashboard: Adding new message to chat')
+          return [...prev, data.message]
+        })
       }
     }
 
@@ -164,20 +193,20 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
       }
     }
 
-    socket.on('chat:message:new', handleNewMessage)
-    socket.on('chat:assigned', handleChatAssigned)
-    socket.on('chat:status:updated', handleChatStatusUpdated)
-    socket.on('chat:admin:notification', handleAdminNotification)
-    socket.on('chat:error', handleError)
-    socket.on('chat:list:updated', handleChatListUpdate)
+    socket.on('new_message', handleNewMessage)
+    socket.on('chat_assigned', handleChatAssigned)
+    socket.on('chat_status_updated', handleChatStatusUpdated)
+    socket.on('admin_notification', handleAdminNotification)
+    socket.on('error', handleError)
+    socket.on('chat_list_updated', handleChatListUpdate)
 
     return () => {
-      socket.off('chat:message:new', handleNewMessage)
-      socket.off('chat:assigned', handleChatAssigned)
-      socket.off('chat:status:updated', handleChatStatusUpdated)
-      socket.off('chat:admin:notification', handleAdminNotification)
-      socket.off('chat:error', handleError)
-      socket.off('chat:list:updated', handleChatListUpdate)
+      socket.off('new_message', handleNewMessage)
+      socket.off('chat_assigned', handleChatAssigned)
+      socket.off('chat_status_updated', handleChatStatusUpdated)
+      socket.off('admin_notification', handleAdminNotification)
+      socket.off('error', handleError)
+      socket.off('chat_list_updated', handleChatListUpdate)
     }
   }, [socket, activeChat])
 
@@ -194,10 +223,10 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
       setIsLoading(true)
       // Use token from auth context instead of localStorage
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-      console.log('Loading chats with token:', token ? 'Present' : 'Missing')
+      console.log('AdminChatDashboard: Loading chats with token:', token ? 'Present' : 'Missing')
       
       if (!token) {
-        console.error('No token available for chat API call')
+        console.error('AdminChatDashboard: No token available for chat API call')
         toast.error('Please log in again')
         return
       }
@@ -231,10 +260,10 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
     try {
       // Use token from auth context instead of localStorage
       const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-      console.log('Loading chat stats with token:', token ? 'Present' : 'Missing')
+      console.log('AdminChatDashboard: Loading chat stats with token:', token ? 'Present' : 'Missing')
       
       if (!token) {
-        console.error('No token available for stats API call')
+        console.error('AdminChatDashboard: No token available for stats API call')
         return
       }
       
@@ -342,7 +371,7 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
       console.log('Using API fallback for messaging')
       try {
         const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${activeChat._id}/messages`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${activeChat._id}/message`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -350,7 +379,7 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
           },
           body: JSON.stringify({
             content: newMessage,
-            type: 'text'
+            messageType: 'text'
           })
         })
         
@@ -452,6 +481,24 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
   })
 
   if (!isOpen) return null
+
+  // Safety check for user authentication
+  if (!user) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Authentication Required</h3>
+            <p className="text-gray-600 mb-4">Please log in to access the chat dashboard.</p>
+            <Button onClick={onClose} variant="outline">
+              Close
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
