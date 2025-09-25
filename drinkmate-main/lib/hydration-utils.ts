@@ -18,7 +18,13 @@ export const BROWSER_EXTENSION_ATTRIBUTES = [
   'data-extension',
   'data-translated',
   'data-last',
-  'data-gl'
+  'data-gl',
+  // Additional attributes that can cause hydration issues
+  'data-darkreader-inline-bgcolor',
+  'data-darkreader-inline-color',
+  'style-darkreader',
+  'data-styled',
+  'data-emotion'
 ]
 
 /**

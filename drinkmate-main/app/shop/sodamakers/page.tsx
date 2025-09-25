@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import PageLayout from "@/components/layout/PageLayout"
-import { Star, Loader2, ShoppingCart, ChevronDown, Filter, X, Search } from "lucide-react"
+import { Star, Loader2, ShoppingCart } from "lucide-react"
 import { shopAPI } from "@/lib/api"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import BundleStyleProductCard from "@/components/shop/BundleStyleProductCard"
@@ -62,27 +62,6 @@ export default function SodamakersPage() {
   const [allSodaMakers, setAllSodaMakers] = useState<Product[]>([])
   const [subcategorySections, setSubcategorySections] = useState<Array<{ _id: string; name: string; products: Product[] }>>([])
 
-  // Filter and sort state
-  const [selectedFilter, setSelectedFilter] = useState("all")
-  const [selectedSort, setSelectedSort] = useState("popularity")
-  const [showFilters, setShowFilters] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-
-  // Filter and sort options based on subcategories
-  const filterOptions = [
-    { value: "all", label: "All Sodamakers" },
-    ...subcategorySections.map(section => ({
-      value: section._id,
-      label: section.name
-    }))
-  ]
-
-  const sortOptions = [
-    { value: "popularity", label: "Popularity" },
-    { value: "price-high-low", label: "Price High to Low" },
-    { value: "price-low-high", label: "Price Low to High" },
-    { value: "latest", label: "Latest Arrivals" },
-  ]
 
   // Define fetch function
   async function fetchProducts() {
@@ -287,57 +266,6 @@ export default function SodamakersPage() {
     })
   }
 
-  // Filter and sort products
-  const getFilteredAndSortedProducts = () => {
-    let filteredProducts = [...allSodaMakers]
-
-    // Apply filter based on subcategories
-    if (selectedFilter !== "all") {
-      // Find the selected subcategory section
-      const selectedSection = subcategorySections.find(section => section._id === selectedFilter)
-      if (selectedSection) {
-        // Filter products that belong to this subcategory
-        filteredProducts = filteredProducts.filter(product => 
-          product.subcategory === selectedSection.name
-        )
-      }
-    }
-
-    // Apply search
-    if (searchQuery.trim()) {
-      const query = searchQuery.trim().toLowerCase()
-      filteredProducts = filteredProducts.filter(product =>
-        product.name.toLowerCase().includes(query) ||
-        product.description?.toLowerCase().includes(query)
-      )
-    }
-
-    // Apply sort
-    switch (selectedSort) {
-      case "popularity":
-        filteredProducts.sort((a, b) => b.rating - a.rating)
-        break
-      case "price-high-low":
-        filteredProducts.sort((a, b) => b.price - a.price)
-        break
-      case "price-low-high":
-        filteredProducts.sort((a, b) => a.price - b.price)
-        break
-      case "latest":
-        filteredProducts.sort((a, b) => new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime())
-        break
-      default:
-        filteredProducts.sort((a, b) => b.rating - a.rating)
-    }
-
-    return filteredProducts
-  }
-
-  const clearFilters = () => {
-    setSelectedFilter("all")
-    setSelectedSort("popularity")
-    setSearchQuery("")
-  }
 
   // Function to render star ratings
   function renderStars(rating: number) {
@@ -490,11 +418,10 @@ export default function SodamakersPage() {
         ) : (
           <>
             {/* Bundles & Promotions Section */}
-            <div className="mb-12 sm:mb-16">
-             
-              {bundleSubcategorySections.length > 0 ? (
+            {bundleSubcategorySections.filter(section => section.bundles.length > 0).length > 0 && (
+              <div className="mb-12 sm:mb-16">
                 <div className="space-y-8 sm:space-y-12">
-                  {bundleSubcategorySections.map((section) => (
+                  {bundleSubcategorySections.filter(section => section.bundles.length > 0).map((section) => (
                     <div key={section._id} className="space-y-4 sm:space-y-6">
                       <h3 className="text-base sm:text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
                         {section.name}
@@ -543,209 +470,19 @@ export default function SodamakersPage() {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="text-center py-6 sm:py-8 bg-gray-50 rounded-2xl">
-                  <p className="text-sm sm:text-base text-gray-600">No bundles available for soda makers at the moment.</p>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-2">Check back soon for exciting bundle deals!</p>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Filter Bar */}
-            <div className="bg-white rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
-                {/* Mobile filter toggle */}
-                <div className="lg:hidden">
-                  <Button
-                    onClick={() => setShowFilters(!showFilters)}
-                    variant="outline"
-                    className="w-full flex items-center justify-between py-2.5 sm:py-3 rounded-xl border-gray-200 hover:bg-gray-50 text-sm"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Filter className="w-4 h-4" />
-                      Filters
-                    </span>
-                    <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
-                  </Button>
-                </div>
 
-                {/* Desktop filters */}
-                <div className={`${showFilters ? "block" : "hidden"} lg:flex space-y-3 sm:space-y-4 lg:space-y-0 lg:items-center lg:gap-6 xl:gap-8`}>
-                  {/* Search */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                    <div className="relative flex-1">
-                      <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search sodamakers..."
-                        className="w-full pl-9 pr-3 py-2.5 sm:py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] focus:bg-white text-sm transition-all duration-200"
-                      />
-                    </div>
-                    {(selectedFilter !== "all" || searchQuery) && (
-                      <button
-                        onClick={clearFilters}
-                        className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 transition-colors duration-200"
-                      >
-                        <X className="w-3.5 h-3.5" /> Clear
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Filter Dropdown */}
-                  <div className="flex flex-col space-y-1 sm:space-y-2">
-                    <label className="text-xs sm:text-sm font-medium text-gray-700">Filters</label>
-                    <select
-                      value={selectedFilter}
-                      onChange={(e) => setSelectedFilter(e.target.value)}
-                      className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
-                      aria-label="Filter options"
-                    >
-                      {filterOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Sort Filter */}
-                  <div className="flex flex-col space-y-1 sm:space-y-2">
-                    <label className="text-xs sm:text-sm font-medium text-gray-700">Sort By</label>
-                    <select
-                      value={selectedSort}
-                      onChange={(e) => setSelectedSort(e.target.value)}
-                      className="px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#12d6fa]/20 focus:border-[#12d6fa] bg-gray-50 focus:bg-white transition-all duration-200"
-                      aria-label="Sort options"
-                    >
-                      {sortOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Results count */}
-                <div className="text-xs sm:text-sm text-gray-600 font-medium bg-gray-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg">
-                  {(() => {
-                    if (selectedFilter === "all") {
-                      return `${allSodaMakers.length} ${allSodaMakers.length === 1 ? "product" : "products"} found`
-                    } else {
-                      const selectedSection = subcategorySections.find(section => section._id === selectedFilter)
-                      if (!selectedSection) return "0 products found"
-                      
-                      let filteredProducts = [...selectedSection.products]
-                      if (searchQuery.trim()) {
-                        const query = searchQuery.trim().toLowerCase()
-                        filteredProducts = filteredProducts.filter(product =>
-                          product.name.toLowerCase().includes(query) ||
-                          product.description?.toLowerCase().includes(query)
-                        )
-                      }
-                      return `${filteredProducts.length} ${filteredProducts.length === 1 ? "product" : "products"} found`
-                    }
-                  })()}
+            {/* Product Sections */}
+            {subcategorySections.filter(section => section.products.length > 0).map((section) => (
+              <div key={section._id} className="mb-12 sm:mb-16">
+                <h2 className="text-lg sm:text-xl font-medium mb-4 sm:mb-6 text-gray-900">{section.name}</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                  {section.products.map((product) => renderProductCard(product))}
                 </div>
               </div>
-            </div>
-
-            {/* Conditional Rendering based on filter selection */}
-            {selectedFilter === "all" ? (
-              /* Show all subcategories with headlines when "All Sodamakers" is selected */
-              subcategorySections.length > 0 && subcategorySections.map((section) => (
-                <div key={section._id} className="mb-12 sm:mb-16">
-                  <h2 className="text-lg sm:text-xl font-medium mb-4 sm:mb-6 text-gray-900">{section.name}</h2>
-                  {section.products.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                      {section.products.map((product) => renderProductCard(product))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 sm:py-16 bg-gray-50 rounded-2xl shadow-inner">
-                      <div className="text-gray-400 mb-4 sm:mb-6">
-                        <svg className="mx-auto h-12 w-12 sm:h-16 sm:w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                        </svg>
-                      </div>
-                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-2 sm:mb-3">No products in this subcategory</h3>
-                      <Button onClick={() => router.push("/admin/products")} className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 text-sm">
-                        Add Products (Admin)
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              /* Show filtered products with subcategory headline when specific subcategory is selected */
-              (() => {
-                const selectedSection = subcategorySections.find(section => section._id === selectedFilter)
-                if (!selectedSection) return null
-                
-                // Apply search and sort to the selected section's products
-                let filteredProducts = [...selectedSection.products]
-                
-                // Apply search
-                if (searchQuery.trim()) {
-                  const query = searchQuery.trim().toLowerCase()
-                  filteredProducts = filteredProducts.filter(product =>
-                    product.name.toLowerCase().includes(query) ||
-                    product.description?.toLowerCase().includes(query)
-                  )
-                }
-                
-                // Apply sort
-                switch (selectedSort) {
-                  case "popularity":
-                    filteredProducts.sort((a, b) => b.rating - a.rating)
-                    break
-                  case "price-high-low":
-                    filteredProducts.sort((a, b) => b.price - a.price)
-                    break
-                  case "price-low-high":
-                    filteredProducts.sort((a, b) => a.price - b.price)
-                    break
-                  case "latest":
-                    filteredProducts.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-                    break
-                }
-                
-                return filteredProducts.length > 0 ? (
-                  <div>
-                    {/* Show the selected subcategory headline */}
-                    <h2 className="text-lg sm:text-xl font-medium mb-4 sm:mb-6 text-gray-900">
-                      {selectedSection.name}
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                      {filteredProducts.map((product) => renderProductCard(product))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 sm:py-12 bg-gray-50 rounded-lg">
-                    <div className="text-gray-400 mb-3 sm:mb-4">
-                      <svg className="mx-auto h-10 w-10 sm:h-12 sm:w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                        />
-                      </svg>
-                    </div>
-                    <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No Products Found</h3>
-                    <p className="text-sm sm:text-base text-gray-500 mb-3 sm:mb-4">
-                      No products match your current filters. Try adjusting your selection.
-                    </p>
-                    <Button
-                      onClick={clearFilters}
-                      className="bg-[#12d6fa] hover:bg-[#0fb8d9] text-white px-4 sm:px-6 py-2 sm:py-3 text-sm"
-                    >
-                      Clear Filters
-                    </Button>
-                  </div>
-                )
-              })()
-            )}
+            ))}
           </>
         )}
       </div>

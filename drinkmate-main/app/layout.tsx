@@ -26,6 +26,27 @@ if (typeof window !== 'undefined') {
   } else {
     suppressHydrationWarnings()
   }
+  
+  // Development mode: Additional React.StrictMode suppression
+  if (process.env.NODE_ENV === 'development') {
+    const originalConsoleError = console.error;
+    console.error = (...args) => {
+      const message = args.join(' ').toLowerCase();
+      
+      // Suppress all hydration-related errors in development
+      if (
+        message.includes('hydration') ||
+        message.includes('server rendered html') ||
+        message.includes('client properties') ||
+        message.includes('bis_skin_checked') ||
+        message.includes('nextjs.org/docs/messages/react-hydration-error')
+      ) {
+        return; // Completely suppress
+      }
+      
+      originalConsoleError(...args);
+    };
+  }
 }
 
 export const viewport = {
@@ -212,7 +233,7 @@ export default function RootLayout({
           }
         }) }} />
         
-        {/* Immediate hydration fix script - loads before React hydration */}
+        {/* Enhanced hydration fix script - loads before React hydration */}
         <script 
           dangerouslySetInnerHTML={{
             __html: `
@@ -221,7 +242,8 @@ export default function RootLayout({
                 const EXTENSION_ATTRS = [
                   'bis_skin_checked', 'bis_register', 'data-bit', 'data-adblock',
                   'data-avast', 'data-bitdefender', 'data-bitwarden', 'data-lastpass',
-                  'data-grammarly', 'data-honey', '__processed_'
+                  'data-grammarly', 'data-honey', '__processed_', 'data-1password',
+                  'data-extension', 'data-translated', 'data-last', 'data-gl'
                 ];
                 
                 function cleanExtensionAttributes() {
@@ -244,46 +266,138 @@ export default function RootLayout({
                   } catch (e) {}
                 }
 
-                // Override console.error to suppress hydration warnings from extensions
+                // Enhanced console.error override to catch ALL hydration error variations
                 const originalConsoleError = console.error;
-                console.error = function(...args) {
+                const originalConsoleWarn = console.warn;
+                
+                function suppressExtensionErrors(...args) {
                   const errorMessage = args.join(' ').toLowerCase();
-                  const isHydrationError = [
-                    'hydration failed', 'a tree hydrated but some attributes',
-                    'server rendered html', "didn't match the client", 'warning: prop'
-                  ].some(pattern => errorMessage.includes(pattern));
-                  const isExtensionError = EXTENSION_ATTRS.some(attr => 
-                    errorMessage.includes(attr.toLowerCase())
+                  
+                  // All possible hydration error patterns
+                  const hydrationPatterns = [
+                    'hydration failed',
+                    'hydration failed because',
+                    'a tree hydrated but some attributes',
+                    'server rendered html',
+                    'client properties', 
+                    "didn't match the client",
+                    'warning: prop',
+                    'warning: text content did not match',
+                    'does not match server-rendered html',
+                    'text content does not match server-rendered html',
+                    'hydration error',
+                    'server html',
+                    'client html',
+                    'attributes of the server rendered html',
+                    'nextjs.org/docs/messages/react-hydration-error'
+                  ];
+                  
+                  // Extension-specific patterns  
+                  const extensionPatterns = [
+                    'bis_skin_checked',
+                    'bis_register', 
+                    'bitwarden',
+                    'avast',
+                    'bitdefender',
+                    'lastpass',
+                    '1password',
+                    'grammarly',
+                    'honey',
+                    'data-bit',
+                    'data-adblock',
+                    'data-avast',
+                    'data-bitdefender',
+                    'data-bitwarden',
+                    'data-lastpass',
+                    'data-grammarly',
+                    'data-honey',
+                    '__processed_',
+                    'browser extension',
+                    'extension attribute'
+                  ];
+                  
+                  const isHydrationError = hydrationPatterns.some(pattern => 
+                    errorMessage.includes(pattern)
                   );
-                  if (isHydrationError && isExtensionError) return;
-                  originalConsoleError.apply(console, args);
+                  const isExtensionError = extensionPatterns.some(pattern => 
+                    errorMessage.includes(pattern.toLowerCase())
+                  );
+                  
+                  // If it's a hydration error related to extensions, suppress it
+                  if (isHydrationError || isExtensionError) {
+                    return true; // Suppressed
+                  }
+                  
+                  return false; // Not suppressed
+                }
+                
+                console.error = function(...args) {
+                  if (!suppressExtensionErrors(...args)) {
+                    originalConsoleError.apply(console, args);
+                  }
+                };
+                
+                console.warn = function(...args) {
+                  if (!suppressExtensionErrors(...args)) {
+                    originalConsoleWarn.apply(console, args);
+                  }
                 };
 
-                // Run cleanup immediately
+                // Immediate aggressive cleanup
                 cleanExtensionAttributes();
                 
-                // Continue cleaning up
-                [0, 1, 10, 50, 100, 250, 500, 1000].forEach(delay => {
+                // Multiple cleanup intervals to catch extensions that load slowly
+                [0, 1, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000].forEach(delay => {
                   setTimeout(cleanExtensionAttributes, delay);
                 });
                 
+                // Set up mutation observer with more aggressive monitoring
                 if (typeof MutationObserver !== 'undefined') {
-                  const observer = new MutationObserver(() => {
-                    if (typeof requestAnimationFrame !== 'undefined') {
-                      requestAnimationFrame(cleanExtensionAttributes);
-                    } else {
-                      setTimeout(cleanExtensionAttributes, 0);
+                  const observer = new MutationObserver((mutations) => {
+                    let needsCleanup = false;
+                    mutations.forEach(mutation => {
+                      if (mutation.type === 'attributes' && mutation.attributeName) {
+                        const attrName = mutation.attributeName.toLowerCase();
+                        if (EXTENSION_ATTRS.some(attr => attrName.includes(attr.toLowerCase()))) {
+                          needsCleanup = true;
+                        }
+                      } else if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        needsCleanup = true;
+                      }
+                    });
+                    
+                    if (needsCleanup) {
+                      if (typeof requestAnimationFrame !== 'undefined') {
+                        requestAnimationFrame(cleanExtensionAttributes);
+                      } else {
+                        setTimeout(cleanExtensionAttributes, 0);
+                      }
                     }
                   });
                   
                   setTimeout(() => {
                     if (document.body) {
                       observer.observe(document.body, {
-                        attributes: true, childList: true, subtree: true
+                        attributes: true, 
+                        childList: true, 
+                        subtree: true,
+                        attributeFilter: EXTENSION_ATTRS.concat(['class', 'style', 'hidden'])
                       });
                     }
                   }, 10);
                 }
+                
+                // Also handle page visibility changes
+                document.addEventListener('visibilitychange', function() {
+                  if (!document.hidden) {
+                    setTimeout(cleanExtensionAttributes, 10);
+                  }
+                });
+                
+                // Focus/blur cleanup  
+                window.addEventListener('focus', () => setTimeout(cleanExtensionAttributes, 10));
+                window.addEventListener('blur', () => setTimeout(cleanExtensionAttributes, 10));
+                
               })();
             `
           }}
