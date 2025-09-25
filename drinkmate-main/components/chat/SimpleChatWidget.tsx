@@ -165,37 +165,37 @@ const SimpleChatWidget: React.FC = () => {
               processedMessages = chat.messages.map((msg: any): Message => ({
                 id: msg._id || msg.id || `msg_${Date.now()}`,
                 content: msg.content || '',
-                sender: msg.sender === 'admin' || msg.sender === 'agent' ? 'agent' : 'customer',
+            sender: msg.sender === 'admin' || msg.sender === 'agent' ? 'agent' : 'customer',
                 timestamp: msg.timestamp || msg.createdAt || new Date().toISOString(),
-                isNote: msg.isNote || false,
-                attachments: msg.attachments || [],
-                readAt: msg.readAt
+            isNote: msg.isNote || false,
+            attachments: msg.attachments || [],
+            readAt: msg.readAt
               }))
               console.log('🔥 SimpleChatWidget: Processed messages from chat object:', processedMessages.length)
             } else {
               console.log('🔥 SimpleChatWidget: No messages found in chat object')
-            }
+          }
 
-            const completeChatSession = {
-              _id: chat._id,
-              status: chat.status,
-              customer: chat.customer,
-              assignedTo: chat.assignedTo,
-              createdAt: chat.createdAt,
-              updatedAt: chat.updatedAt,
-              lastMessageAt: new Date(chat.lastMessageAt || chat.updatedAt || chat.createdAt),
-              messages: processedMessages
-            }
-            
-            setChatSession(completeChatSession)
-            
-            // Join the chat room
-            joinChat(chatId)
+        const completeChatSession = {
+          _id: chat._id,
+          status: chat.status,
+          customer: chat.customer,
+          assignedTo: chat.assignedTo,
+          createdAt: chat.createdAt,
+          updatedAt: chat.updatedAt,
+          lastMessageAt: new Date(chat.lastMessageAt || chat.updatedAt || chat.createdAt),
+          messages: processedMessages
+        }
+        
+        setChatSession(completeChatSession)
+        
+        // Join the chat room
+        joinChat(chatId)
 
-            console.log('🔥 SimpleChatWidget: Successfully loaded chat data:', {
-              chatId,
-              messageCount: processedMessages.length
-            })
+        console.log('🔥 SimpleChatWidget: Successfully loaded chat data:', {
+          chatId,
+          messageCount: processedMessages.length
+        })
           } else {
             console.error('🔥 SimpleChatWidget: Chat not found in customer chats:', chatId)
           }
@@ -340,20 +340,20 @@ const SimpleChatWidget: React.FC = () => {
         // API fallback - add optimistic update since no real-time feedback
         console.log('🔥 SimpleChatWidget: Sending via API fallback')
         
-        const messageToAdd: Message = {
-          id: `temp_${Date.now()}`,
-          content: messageContent,
-          sender: 'customer',
-          timestamp: new Date().toISOString(),
-          isNote: false,
-          attachments: [],
-          readAt: undefined
-        }
+    const messageToAdd: Message = {
+      id: `temp_${Date.now()}`,
+      content: messageContent,
+      sender: 'customer',
+      timestamp: new Date().toISOString(),
+      isNote: false,
+      attachments: [],
+      readAt: undefined
+    }
 
-        setChatSession(prev => prev ? {
-          ...prev,
-          messages: [...prev.messages, messageToAdd]
-        } : null)
+    setChatSession(prev => prev ? {
+      ...prev,
+      messages: [...prev.messages, messageToAdd]
+    } : null)
 
         const token = getAuthToken()
         const response = await fetch(`http://localhost:3000/chat/${chatSession._id}/message`, {
@@ -378,7 +378,7 @@ const SimpleChatWidget: React.FC = () => {
               id: responseData.data.message._id,
               content: responseData.data.message.content,
               sender: 'customer',
-              timestamp: responseData.data.message.createdAt || responseData.data.message.timestamp,
+              timestamp: (responseData.data.message as any).createdAt || responseData.data.message.timestamp,
               isNote: false,
               attachments: [],
               readAt: undefined
@@ -458,14 +458,14 @@ const SimpleChatWidget: React.FC = () => {
         // Check if message already exists to prevent duplicates
         const messageExists = chatSession.messages.some(msg => {
           // Check by real ID
-          if (msg.id === data.message._id || msg.id === data.message.id) {
+          if (msg.id === data.message.id || msg.id === (data.message as any)._id) {
             return true
           }
           
           // Check by content and timestamp (for temporary messages)
           if (msg.content === data.message.content) {
             const msgTime = new Date(msg.timestamp).getTime()
-            const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
+            const dataTime = new Date((data.message as any).createdAt || data.message.timestamp).getTime()
             // If timestamps are within 5 seconds, consider it a duplicate
             return Math.abs(msgTime - dataTime) < 5000
           }
@@ -482,7 +482,7 @@ const SimpleChatWidget: React.FC = () => {
           id: data.message._id || data.message.id || `temp_${Date.now()}`,
           content: data.message.content,
           sender: data.message.sender === 'admin' || data.message.sender === 'agent' ? 'agent' : 'customer',
-          timestamp: data.message.createdAt || data.message.timestamp || new Date().toISOString(),
+          timestamp: (data.message as any).createdAt || data.message.timestamp || new Date().toISOString(),
           isNote: data.message.isNote || false,
           attachments: data.message.attachments || [],
           readAt: data.message.readAt

@@ -5,16 +5,7 @@ import { MessageCircle, X, Send, Minimize2, Maximize2, User, Clock, CheckCircle 
 import { useSocket } from '@/lib/socket-context'
 import { useAuth, getAuthToken } from '@/lib/auth-context'
 import { useChatStatus } from '@/lib/chat-status-context'
-
-interface Message {
-  _id: string
-  content: string
-  senderType: 'customer' | 'admin'
-  senderId: string
-  timestamp: Date
-  messageType: string
-  attachments?: any[]
-}
+import { Message } from '@/types/chat'
 
 interface ChatSession {
   _id: string
@@ -215,7 +206,7 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
           // Check for duplicates
           const messageExists = prev.messages.some(msg => {
             // Check by real ID
-            if (msg.id === data.message.id || msg.id === data.message._id) {
+            if (msg.id === data.message.id || msg.id === (data.message as any)._id) {
               return true
             }
             
@@ -625,21 +616,21 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
               <>
                 {chatSession?.messages.map((message) => (
                   <div
-                    key={message._id}
-                    className={`flex ${message.senderType === 'customer' ? 'justify-end' : 'justify-start'} mb-3`}
+                    key={message.id}
+                    className={`flex ${message.sender === 'customer' ? 'justify-end' : 'justify-start'} mb-3`}
                   >
                     <div
                       className={`max-w-xs px-3 py-2 rounded-2xl text-sm ${
-                        message.senderType === 'customer'
+                        message.sender === 'customer'
                           ? 'bg-[#04C4DB] text-white'
                           : 'bg-gray-100 text-gray-900'
                       }`}
                     >
                       <p>{message.content}</p>
                       <p className={`text-xs mt-1 ${
-                        message.senderType === 'customer' ? 'text-blue-100' : 'text-gray-500'
+                        message.sender === 'customer' ? 'text-blue-100' : 'text-gray-500'
                       }`}>
-                        {formatTime(message.timestamp)}
+                        {formatTime(new Date(message.timestamp))}
                       </p>
                     </div>
                   </div>

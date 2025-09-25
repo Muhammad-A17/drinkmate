@@ -121,8 +121,8 @@ export async function POST(request: NextRequest) {
           email: body.email,
           message: body.message,
           phone: body.phone || '',
-          subject: body.reason,
-          userId: body.userId || null
+          subject: body.topic,
+          userId: null
         })
       })
 

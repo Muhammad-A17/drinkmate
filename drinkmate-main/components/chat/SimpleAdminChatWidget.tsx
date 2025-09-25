@@ -75,7 +75,7 @@ const SimpleAdminChatWidget: React.FC<SimpleAdminChatWidgetProps> = ({
             id: message._id || message.id || `msg_${Date.now()}_${Math.random()}`,
             content: message.content || message.body || 'No content',
             sender: message.sender === 'admin' || message.sender === 'agent' ? 'agent' : 'customer',
-            timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
+            timestamp: (message as any).createdAt || message.timestamp || new Date().toISOString(),
             isNote: message.isNote || message.messageType === 'system' || false,
             attachments: message.attachments || [],
             readAt: message.readAt
@@ -158,7 +158,7 @@ const SimpleAdminChatWidget: React.FC<SimpleAdminChatWidgetProps> = ({
               id: responseData.data.message._id,
               content: responseData.data.message.content,
               sender: 'agent' as 'customer' | 'agent',
-              timestamp: responseData.data.message.createdAt || responseData.data.message.timestamp,
+              timestamp: (responseData.data.message as any).createdAt || responseData.data.message.timestamp,
               isNote: false,
               attachments: [],
               readAt: undefined
@@ -186,14 +186,14 @@ const SimpleAdminChatWidget: React.FC<SimpleAdminChatWidgetProps> = ({
         // Check if message already exists to prevent duplicates
         const messageExists = messages.some(msg => {
           // Check by real ID
-          if (msg.id === data.message._id || msg.id === data.message.id) {
+          if (msg.id === data.message.id || msg.id === (data.message as any)._id) {
             return true
           }
           
           // Check by content and timestamp (for temporary messages)
           if (msg.content === data.message.content) {
             const msgTime = new Date(msg.timestamp).getTime()
-            const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
+            const dataTime = new Date((data.message as any).createdAt || data.message.timestamp).getTime()
             // If timestamps are within 5 seconds, consider it a duplicate
             return Math.abs(msgTime - dataTime) < 5000
           }
@@ -210,7 +210,7 @@ const SimpleAdminChatWidget: React.FC<SimpleAdminChatWidgetProps> = ({
           id: data.message._id || data.message.id || `temp_${Date.now()}`,
           content: data.message.content,
           sender: (data.message.sender === 'admin' || data.message.sender === 'agent' ? 'agent' : 'customer') as 'customer' | 'agent',
-          timestamp: data.message.createdAt || data.message.timestamp || new Date().toISOString(),
+          timestamp: (data.message as any).createdAt || data.message.timestamp || new Date().toISOString(),
           isNote: data.message.isNote || false,
           attachments: data.message.attachments || [],
           readAt: data.message.readAt

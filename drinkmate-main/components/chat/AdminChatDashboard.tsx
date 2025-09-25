@@ -24,24 +24,7 @@ import {
 import { useAuth } from '@/lib/auth-context'
 import { useSocket } from '@/lib/socket-context'
 import { toast } from 'sonner'
-
-interface Message {
-  _id: string
-  content: string
-  sender: {
-    _id: string
-    username: string
-    firstName: string
-    lastName: string
-    isAdmin: boolean
-  }
-  type?: string
-  chat?: string
-  isSystem: boolean
-  isFromAdmin: boolean
-  createdAt: string
-  formattedTime: string
-}
+import { Message } from '@/types/chat'
 
 interface Chat {
   _id: string
@@ -106,22 +89,22 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
   useEffect(() => {
     if (!socket) return
 
-    const handleNewMessage = (data: { message: Message }) => {
+    const handleNewMessage = (data: { chatId: string; message: any }) => {
       console.log('🔥 AdminChatDashboard: New message received:', data)
       
-      if (activeChat && data.message.chat === activeChat._id) {
+      if (activeChat && data.chatId === activeChat._id) {
         setMessages(prev => {
           // Check for duplicates
           const messageExists = prev.some(msg => {
             // Check by real ID
-            if (msg.id === data.message.id || msg.id === data.message._id) {
+            if (msg.id === data.message.id || msg.id === (data.message as any)._id) {
               return true
             }
             
             // Check by content and timestamp (for temporary messages)
             if (msg.content === data.message.content) {
               const msgTime = new Date(msg.timestamp).getTime()
-              const dataTime = new Date(data.message.timestamp).getTime()
+              const dataTime = new Date((data.message as any).createdAt || data.message.timestamp).getTime()
               // If timestamps are within 5 seconds, consider it a duplicate
               return Math.abs(msgTime - dataTime) < 5000
             }
@@ -676,27 +659,22 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
                 <div className="flex-1 overflow-y-auto space-y-3 mb-4">
                   {messages.map((message) => (
                     <div
-                      key={message._id}
-                      className={`flex ${message.isFromAdmin ? 'justify-end' : 'justify-start'}`}
+                      key={message.id}
+                      className={`flex ${message.sender === 'agent' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
                         className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                          message.isSystem
-                            ? 'bg-gray-100 text-gray-600 text-center mx-auto'
-                            : message.isFromAdmin
+                          message.sender === 'agent'
                             ? 'bg-[#12d6fa] text-white'
                             : 'bg-gray-200 text-gray-800'
                         }`}
                       >
-                        {!message.isSystem && (
-                          <div className="text-xs opacity-75 mb-1">
-                            {message.sender.firstName} {message.sender.lastName}
-                            {message.isFromAdmin && ' (Admin)'}
-                          </div>
-                        )}
+                        <div className="text-xs opacity-75 mb-1">
+                          {message.sender === 'agent' ? 'Admin' : 'Customer'}
+                        </div>
                         <div className="text-sm">{message.content}</div>
                         <div className="text-xs opacity-75 mt-1">
-                          {message.formattedTime}
+                          {new Date(message.timestamp).toLocaleTimeString()}
                         </div>
                       </div>
                     </div>

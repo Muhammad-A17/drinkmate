@@ -176,7 +176,7 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
             id: message._id || message.id,
             content: message.content,
             sender: message.sender === 'admin' || message.sender === 'agent' ? 'agent' : 'customer',
-            timestamp: message.createdAt || message.timestamp,
+            timestamp: (message as any).createdAt || message.timestamp,
             isNote: message.isNote || false,
             attachments: message.attachments || [],
             readAt: message.readAt,
@@ -236,14 +236,14 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
           // Check for duplicates
           const messageExists = prev.some(msg => {
             // Check by real ID
-            if (msg.id === data.message._id || msg.id === data.message.id) {
+            if (msg.id === data.message.id || msg.id === (data.message as any)._id) {
               return true
             }
             
             // Check by content and timestamp (for temporary messages)
             if (msg.content === data.message.content) {
               const msgTime = new Date(msg.timestamp).getTime()
-              const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
+              const dataTime = new Date((data.message as any).createdAt || data.message.timestamp).getTime()
               // If timestamps are within 5 seconds, consider it a duplicate
               return Math.abs(msgTime - dataTime) < 5000
             }
@@ -260,7 +260,7 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
             id: data.message._id || data.message.id || `temp_${Date.now()}`,
             content: data.message.content || '',
             sender: data.message.sender === 'admin' || data.message.sender === 'agent' ? 'agent' : 'customer',
-            timestamp: data.message.createdAt || data.message.timestamp || new Date().toISOString(),
+            timestamp: (data.message as any).createdAt || data.message.timestamp || new Date().toISOString(),
             isNote: data.message.isNote || false,
             attachments: data.message.attachments || [],
             readAt: data.message.readAt,

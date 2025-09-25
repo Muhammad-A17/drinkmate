@@ -147,7 +147,7 @@ export default function CheckoutPage() {
     if (user) {
       console.log('User data for checkout:', user);
       setDeliveryAddress(prev => ({
-        ...prev,
+      ...prev,
         fullName: user.name || "",
         email: user.email || "",
         phone: (user as any)?.phone || "",
@@ -214,8 +214,8 @@ export default function CheckoutPage() {
     // For guest users, also validate email
     if (!user && !deliveryAddress.email) {
       toast.error("Please provide your email address")
-      return false
-    }
+        return false
+      }
 
     // Validate shipping address if different
     if (shipToDifferentAddress) {
@@ -313,9 +313,9 @@ export default function CheckoutPage() {
         items: state.items.map(item => {
           // Map cart items to the format expected by the backend
           const orderItem: any = {
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
             image: item.image,
             color: item.color,
             sku: item.sku
@@ -384,7 +384,7 @@ export default function CheckoutPage() {
 
       // Get the selected payment gateway
       const selectedGateway = paymentProviders[selectedPaymentMethod as keyof typeof paymentProviders].gateway
-      
+
       let paymentResponse: any
       if (selectedGateway === "urways") {
         // Call backend API directly for Urways
@@ -482,7 +482,7 @@ export default function CheckoutPage() {
             
             <div className="space-y-6">
               {/* Full Name Field */}
-              <div>
+            <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                 <input
                   type="text"
@@ -495,7 +495,7 @@ export default function CheckoutPage() {
               </div>
 
               {/* Country (Read-only) */}
-              <div>
+                 <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
                 <div className="w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
                   Saudi Arabia
@@ -506,34 +506,34 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">District *</label>
-                  <input
-                    type="text"
+                   <input
+                     type="text"
                     value={deliveryAddress.district}
                     onChange={(e) => handleAddressChange("district", e.target.value)}
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
                     placeholder="District"
-                    required
-                  />
-                </div>
-                <div>
+                     required
+                   />
+                 </div>
+                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
-                  <input
-                    type="text"
+                   <input
+                     type="text"
                     value={deliveryAddress.city}
                     onChange={(e) => handleAddressChange("city", e.target.value)}
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
                     placeholder="City"
-                    required
-                  />
-                </div>
+                     required
+                   />
+                 </div>
               </div>
-
+              
               {/* National Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Short Address (<a href="https://splonline.com.sa/en/national-address-1/" target="_blank" rel="noopener noreferrer" className="text-[#12d6fa] hover:text-[#0bc4e8] underline">National Address</a>) (optional)
                 </label>
-                <input
+                 <input
                   type="text"
                   value={deliveryAddress.nationalAddress}
                   onChange={(e) => handleAddressChange("nationalAddress", e.target.value.toUpperCase())}
@@ -544,20 +544,20 @@ export default function CheckoutPage() {
                 />
                 <p className="text-xs text-gray-500 mt-1">Format: 4 letters followed by 4 numbers (e.g., JESA3591)</p>
               </div>
-
+              
               {/* Phone */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
-                <input
-                  type="tel"
-                  value={deliveryAddress.phone}
-                  onChange={(e) => handleAddressChange("phone", e.target.value)}
+                 <input
+                   type="tel"
+                   value={deliveryAddress.phone}
+                   onChange={(e) => handleAddressChange("phone", e.target.value)}
                   className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
                   placeholder="Phone Number"
-                  required
-                />
+                   required
+                 />
               </div>
-
+              
               {/* Email - Only for guest users */}
               {!user ? (
                 <div>
@@ -601,45 +601,45 @@ export default function CheckoutPage() {
                   <h3 className="text-lg font-semibold text-gray-900">Shipping Address</h3>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                    <input
-                      type="text"
+                 <input
+                   type="text"
                       value={shippingAddress.fullName}
                       onChange={(e) => handleShippingAddressChange("fullName", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
                       placeholder="Full Name"
-                      required
-                    />
-                  </div>
+                   required
+                 />
+              </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">District *</label>
-                      <input
-                        type="text"
+                 <input
+                   type="text"
                         value={shippingAddress.district}
                         onChange={(e) => handleShippingAddressChange("district", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
                         placeholder="District"
                         required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
-                      <input
-                        type="text"
+                 />
+              </div>
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                   <input
+                     type="text"
                         value={shippingAddress.city}
                         onChange={(e) => handleShippingAddressChange("city", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                        placeholder="City"
-                        required
-                      />
+                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                     placeholder="City"
+                     required
+                   />
                     </div>
-                  </div>
-                  <div>
+                 </div>
+                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Short Address (<a href="https://splonline.com.sa/en/national-address-1/" target="_blank" rel="noopener noreferrer" className="text-[#12d6fa] hover:text-[#0bc4e8] underline">National Address</a>) (optional)
                     </label>
-                    <input
-                      type="text"
+                   <input
+                     type="text"
                       value={shippingAddress.nationalAddress}
                       onChange={(e) => handleShippingAddressChange("nationalAddress", e.target.value.toUpperCase())}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] font-mono tracking-wider"
@@ -655,32 +655,32 @@ export default function CheckoutPage() {
                       type="tel"
                       value={shippingAddress.phone}
                       onChange={(e) => handleShippingAddressChange("phone", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
                       placeholder="Phone Number"
-                      required
-                    />
-                  </div>
+                     required
+                   />
+                 </div>
                   {/* Email - Only for guest users */}
                   {!user ? (
-                    <div>
+                 <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                      <input
+                   <input
                         type="email"
                         value={shippingAddress.email}
                         onChange={(e) => handleShippingAddressChange("email", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
+                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
                         placeholder="Email Address"
-                        required
-                      />
-                    </div>
+                     required
+                   />
+                 </div>
                   ) : (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                       <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 flex items-center">
                         <span>{shippingAddress.email}</span>
                         <span className="ml-2 text-xs text-gray-500">(from your account)</span>
-                      </div>
-                    </div>
+              </div>
+            </div>
                   )}
                 </div>
               )}
@@ -789,8 +789,8 @@ export default function CheckoutPage() {
                 <span className="text-sm font-medium text-gray-900">
                   <SaudiRiyal amount={subtotal} />
                 </span>
-              </div>
-              
+            </div>
+
               {/* Shipping Cost */}
               <div className="flex justify-between items-center mb-3">
                 <span className="text-sm text-gray-600">Shipping Cost</span>
@@ -846,17 +846,17 @@ export default function CheckoutPage() {
                       </div>
                       <div className="flex items-center">
                         <div className="w-32 h-8 bg-white rounded flex items-center justify-center border border-gray-200">
-                          <Image
+                        <Image
                             src={paymentProviders.card.logo}
                             alt="Payment methods"
                             width={120}
                             height={30}
-                            className="object-contain"
-                          />
+                          className="object-contain"
+                        />
+                      </div>
                         </div>
                       </div>
                     </div>
-                  </div>
                   <div className="mt-3 p-3 bg-gray-50 rounded-lg">
                     <p className="text-sm text-gray-600">
                       {paymentProviders.card.description}
@@ -891,17 +891,17 @@ export default function CheckoutPage() {
                         />
                         <div className="flex items-center space-x-2">
                           <div className="w-24 h-8 bg-white rounded flex items-center justify-center border border-gray-200">
-                            <Image
+                        <Image
                               src={paymentProviders.tabby.logo}
                               alt="Tabby"
                               width={70}
                               height={28}
-                              className="object-contain"
-                            />
-                          </div>
-                          <span className="text-lg font-semibold text-gray-900">Tabby</span>
-                        </div>
+                          className="object-contain"
+                        />
                       </div>
+                          <span className="text-lg font-semibold text-gray-900">Tabby</span>
+                      </div>
+                    </div>
                       <div className="flex items-center space-x-2">
                         <span className="text-sm text-gray-600 font-medium">Divide it by 4. Without any interest or fees.</span>
                         <button
@@ -913,29 +913,29 @@ export default function CheckoutPage() {
                         >
                           <span className="text-white text-xs font-bold">i</span>
                         </button>
-                      </div>
-                    </div>
                   </div>
-                  
+                </div>
+              </div>
+              
                   {/* Tabby Benefits */}
                   <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
                     <div className="flex items-center space-x-4 text-sm">
                       <div className="flex items-center space-x-1">
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         <span className="text-green-700 font-medium">No interest</span>
-                      </div>
+                    </div>
                       <div className="flex items-center space-x-1">
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         <span className="text-green-700 font-medium">No fees</span>
-                      </div>
+                    </div>
                       <div className="flex items-center space-x-1">
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         <span className="text-green-700 font-medium">Pay later</span>
                       </div>
+                      </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
             </div>
 
             {/* Terms and Conditions */}
@@ -950,7 +950,7 @@ export default function CheckoutPage() {
                 </p>
                 
                 <div className="flex items-start space-x-3">
-                  <input
+                      <input
                     type="checkbox"
                     id="terms"
                     checked={agreedToTerms}
@@ -965,10 +965,10 @@ export default function CheckoutPage() {
                     </a>{" "}
                     *
                   </label>
+                      </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-
+                
               <Button
                 onClick={handlePayment}
                 disabled={isProcessing || !agreedToTerms}
