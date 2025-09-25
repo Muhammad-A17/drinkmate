@@ -318,7 +318,7 @@ export default function ShopProductDetail() {
     setCartAnimation(true)
     setIsInCart(true)
 
-    // Add item to cart context
+    // Add item to cart context with all required fields
     addItem({
       id: product._id || product.id || productSlug,
       name: product.name,
@@ -330,7 +330,10 @@ export default function ShopProductDetail() {
       quantity: quantity,
       category: 'shop-product',
       color: selectedColor,
-      size: selectedSize
+      size: selectedSize,
+      productId: String(product._id || product.id || productSlug),
+      productType: 'product' as const,
+      sku: product.sku
     })
 
     // Simulate cart API call
