@@ -165,21 +165,33 @@ export default function Recipes() {
         // Build filters for the direct backend API
         const filters: any = {
           page: currentPage,
-          limit: 9, // Load 3 rows at a time (3 columns x 3 rows = 9)
+          limit: 12, // Load 4 rows at a time (3 columns x 4 rows = 12) for better UX
           published: true, // Only show published recipes for public
         }
         
-        if (searchQuery) {
-          // Use starts-with server search by sending a caret-anchored regex
-          const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-          filters.search = `^${escaped}`
+        // Add search filter (server handles the filtering logic)
+        if (searchQuery && searchQuery.trim()) {
+          filters.search = searchQuery.trim()
         }
-        if (selectedCategory !== 'all') {
+        
+        // Add category filter
+        if (selectedCategory && selectedCategory !== 'all') {
           filters.category = selectedCategory
         }
+        
+        // Add sort filter (let server handle primary sorting)
+        if (sortBy && sortBy !== 'popular') {
+          filters.sortBy = sortBy === 'new' ? 'createdAt' : 
+                           sortBy === 'time' ? 'prepTime' : 
+                           sortBy === 'rating' ? 'rating.average' : 'createdAt'
+          filters.sortOrder = sortBy === 'time' ? 'asc' : 'desc'
+        }
 
-        console.log('Fetching recipes with filters:', filters)
-        console.log('API base URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Fetching recipes with filters:', filters)
+          console.log('Search query being sent:', filters.search)
+          console.log('API base URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
+        }
         const data = await recipeAPI.getRecipes(filters)
         console.log('API response:', data)
         
@@ -240,42 +252,34 @@ export default function Recipes() {
     }
     
     fetchRecipes()
-  }, [currentPage, searchQuery, selectedCategory])
+  }, [currentPage, searchQuery, selectedCategory, sortBy])
 
-  // Filter and sort recipes
-  const filteredAndSortedRecipes = useMemo(() => {
-    console.log('useMemo triggered - recipes length:', recipes.length)
-    let filtered = recipes.filter(recipe => {
-      const matchesSearch = recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           recipe.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           recipe.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      
-      const matchesCategory = selectedCategory === "all" || recipe.category.toLowerCase() === selectedCategory.toLowerCase()
-      
-      return matchesSearch && matchesCategory
-    })
+  // Since we're doing server-side filtering, we can use recipes directly
+  // Only apply client-side sorting for better UX while waiting for new data
+  const sortedRecipes = useMemo(() => {
+    console.log('Applying client-side sorting - recipes length:', recipes.length)
+    let sorted = [...recipes]
 
-    // Sort recipes
+    // Apply sorting (server handles filtering, we handle sorting for responsiveness)
     switch (sortBy) {
       case "new":
-        filtered.sort((a, b) => b.id.localeCompare(a.id))
+        sorted.sort((a, b) => b.id.localeCompare(a.id))
         break
       case "time":
-        filtered.sort((a, b) => a.prepTime - b.prepTime)
+        sorted.sort((a, b) => a.prepTime - b.prepTime)
         break
       case "rating":
-        filtered.sort((a, b) => b.rating - a.rating)
+        sorted.sort((a, b) => b.rating - a.rating)
         break
       case "popular":
       default:
-        // Keep original order for popular
+        // Keep original server order for popular
         break
     }
 
-    console.log('Filtered recipes result:', filtered.length, 'from', recipes.length, 'total recipes')
-    console.log('Search query:', searchQuery, 'Category:', selectedCategory, 'Sort:', sortBy)
-    return filtered
-  }, [recipes, searchQuery, selectedCategory, sortBy])
+    console.log('Client-side sorted recipes:', sorted.length)
+    return sorted
+  }, [recipes, sortBy])
 
   const handleSearchChange = useCallback((query: string) => {
     console.log('handleSearchChange called with:', query)
@@ -378,23 +382,20 @@ export default function Recipes() {
           </section>
         )} */}
             
-            {/* Filter Bar */}
-        <section className="py-8 bg-white">
-          <div className="max-w-[1100px] mx-auto px-4 md:px-6">
-            <FilterBar
-              onSearchChange={handleSearchChange}
-              onSortChange={handleSortChange}
-              onCategoryChange={handleCategoryChange}
-              searchQuery={searchQuery}
-              selectedCategory={selectedCategory}
-              sortBy={sortBy}
-                  />
-                </div>
-        </section>
-
-        {/* Recipes Grid */}
+        {/* Filter Bar & Recipes Grid */}
         <section className="py-8 bg-gray-50">
           <div className="max-w-[1100px] mx-auto px-4 md:px-6">
+            {/* Filter Bar aligned with grid */}
+            <div className="mb-8">
+              <FilterBar
+                onSearchChange={handleSearchChange}
+                onSortChange={handleSortChange}
+                onCategoryChange={handleCategoryChange}
+                searchQuery={searchQuery}
+                selectedCategory={selectedCategory}
+                sortBy={sortBy}
+              />
+            </div>
             {loading ? (
               <ul className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, index) => (
@@ -406,14 +407,14 @@ export default function Recipes() {
             ) : (
               <>
                 <ul className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                  {filteredAndSortedRecipes.map(recipe => (
+                  {sortedRecipes.map(recipe => (
                     <li key={recipe.id}>
                       <RecipeCard recipe={recipe} />
                     </li>
                               ))}
                             </ul>
 
-                {filteredAndSortedRecipes.length === 0 && (
+                {sortedRecipes.length === 0 && (
                   <div className="text-center py-12">
                     <h3 className={`text-xl font-semibold text-gray-900 mb-2 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`}>
                       {isRTL ? "لم يتم العثور على وصفات" : "No recipes found"}
@@ -424,7 +425,7 @@ export default function Recipes() {
               </div>
                 )}
 
-                {hasMore && filteredAndSortedRecipes.length > 0 && (
+                {hasMore && sortedRecipes.length > 0 && (
             <div className="text-center mt-8">
                   <button
                       onClick={loadMore}
@@ -434,14 +435,14 @@ export default function Recipes() {
                   </button>
                   {process.env.NODE_ENV === 'development' && (
                     <div className="text-xs text-gray-500 mt-2">
-                      Debug: hasMore={hasMore.toString()}, recipes={filteredAndSortedRecipes.length}, page={currentPage}
+                      Debug: hasMore={hasMore.toString()}, recipes={sortedRecipes.length}, page={currentPage}
                     </div>
                   )}
                 </div>
                 )}
               </>
-                        )}
-                      </div>
+            )}
+          </div>
         </section>
       </div>
     </PageLayout>

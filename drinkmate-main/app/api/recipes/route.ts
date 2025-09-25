@@ -12,6 +12,10 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
     const featured = searchParams.get('featured')
 
+    if (process.env.NODE_ENV === 'development') {
+      console.log('API Route - Received search parameters:', { page, limit, category, search, status, featured })
+    }
+
     // Build query parameters for the backend
     const params = new URLSearchParams({
       page: page.toString(),
@@ -23,8 +27,13 @@ export async function GET(request: NextRequest) {
     if (status) params.append('status', status)
     if (featured) params.append('featured', featured)
 
-    // Make request to backend
+    // Make request to backend [[memory:8738512]]
     const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/recipes?${params}`
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('API Route - Making request to backend:', backendUrl)
+      console.log('API Route - Search parameter being sent:', search)
+    }
     
     const response = await fetch(backendUrl, {
       headers: {
