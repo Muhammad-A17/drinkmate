@@ -659,6 +659,29 @@ const deleteChat = async (req, res) => {
     console.log('🔥 Chat found, proceeding with deletion:', { chatId, status: chat.status });
     await Chat.findByIdAndDelete(chatId);
     
+    // Emit socket event for real-time updates
+    try {
+      const io = req.app.get('io');
+      if (io) {
+        // Broadcast to all admin sockets that a chat was deleted
+        io.emit('chat_list_updated', {
+          chat: { _id: chatId },
+          action: 'deleted'
+        });
+        
+        // Also broadcast to the specific chat room to notify any connected users
+        io.to(`chat_${chatId}`).emit('chat_deleted', {
+          chatId: chatId,
+          message: 'This chat has been deleted'
+        });
+        
+        console.log('🔥 Chat deletion socket events emitted for chat:', chatId);
+      }
+    } catch (socketError) {
+      console.error('Error emitting socket events for chat deletion:', socketError);
+      // Don't fail the deletion if socket emission fails
+    }
+    
     console.log('🔥 Chat deleted successfully:', chatId);
     res.json({
       success: true,

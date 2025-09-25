@@ -173,7 +173,18 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
           setActiveChat(null)
           setMessages([])
         }
+        toast.info('Chat deleted successfully')
       }
+    }
+
+    const handleChatDeleted = (data: { chatId: string, message: string }) => {
+      console.log('🔥 Chat deleted event received:', data)
+      setChats(prev => prev.filter(chat => chat._id !== data.chatId))
+      if (activeChat && activeChat._id === data.chatId) {
+        setActiveChat(null)
+        setMessages([])
+      }
+      toast.info(data.message || 'Chat has been deleted')
     }
 
     socket.on('new_message', handleNewMessage)
@@ -182,6 +193,7 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
     socket.on('admin_notification', handleAdminNotification)
     socket.on('error', handleError)
     socket.on('chat_list_updated', handleChatListUpdate)
+    socket.on('chat_deleted', handleChatDeleted)
 
     return () => {
       socket.off('new_message', handleNewMessage)
@@ -190,6 +202,7 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
       socket.off('admin_notification', handleAdminNotification)
       socket.off('error', handleError)
       socket.off('chat_list_updated', handleChatListUpdate)
+      socket.off('chat_deleted', handleChatDeleted)
     }
   }, [socket, activeChat])
 

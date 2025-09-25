@@ -440,6 +440,9 @@ setTimeout(() => {
   // Initialize Socket service
   const SocketService = require('./Services/socket-service');
   new SocketService(io);
+  
+  // Make io available to routes
+  app.set('io', io);
 
   // Initialize Session Timeout service
   const sessionTimeoutService = require('./Services/session-timeout-service');

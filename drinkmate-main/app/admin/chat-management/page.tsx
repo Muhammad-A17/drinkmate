@@ -909,12 +909,12 @@ export default function ChatManagementPage() {
     // Don't immediately remove from UI - keep it visible with loading state
     // The conversation will be marked as deleting and blurred
     
-    // Set a timeout to prevent infinite deleting state (30 seconds)
+    // Set a timeout to prevent infinite deleting state (10 seconds)
     const deletionTimeout = setTimeout(() => {
       console.log('🔥 Deletion timeout reached, clearing deleting state')
       setDeletingConversation(null)
       toast.error('Deletion timed out. Please try again.')
-    }, 30000)
+    }, 10000)
     
     try {
       console.log('Attempting to delete conversation:', conversationId)
@@ -947,6 +947,9 @@ export default function ChatManagementPage() {
       
       if (response.ok) {
         console.log('🔥 Deletion successful, now removing from UI')
+        
+        // Clear timeout immediately on success
+        clearTimeout(deletionTimeout)
         
         // Only remove from UI after successful server confirmation
         setConversations(prev => prev.filter(conv => conv.id !== conversationId))
@@ -999,6 +1002,8 @@ export default function ChatManagementPage() {
       console.error('🔥 Error deleting conversation:', error)
       toast.error('Failed to delete conversation')
     } finally {
+      // Clear timeout and deleting state
+      clearTimeout(deletionTimeout)
       setDeletingConversation(null)
     }
   }

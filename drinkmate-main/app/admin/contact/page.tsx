@@ -603,7 +603,7 @@ export default function ContactPage() {
       totalContacts: 1,
       lastContact: contact.createdAt,
       status: "active" as const,
-      tags: contact.tags,
+      tags: contact.tags || [],
       notes: ""
     }
     setCustomerProfiles([...customerProfiles, newProfile])
@@ -787,8 +787,8 @@ export default function ContactPage() {
       (contact.company && contact.company.toLowerCase().includes(searchTerm.toLowerCase()))
     
     const matchesStatus = selectedStatus === "all" || contact.status === selectedStatus
-    const matchesPriority = selectedPriority === "all" || contact.priority === selectedPriority
-    const matchesSource = selectedSource === "all" || contact.source === selectedSource
+    const matchesPriority = selectedPriority === "all" || (contact.priority || "low") === selectedPriority
+    const matchesSource = selectedSource === "all" || (contact.source || "website") === selectedSource
     const matchesAssignee = selectedAssignee === "all" || contact.assignedTo === selectedAssignee
     
     // Advanced filters
@@ -800,7 +800,7 @@ export default function ContactPage() {
       (contact.company && contact.company.toLowerCase().includes(companyFilter.toLowerCase()))
     
     const matchesTags = selectedTags.length === 0 || 
-      selectedTags.some(tag => contact.tags.includes(tag))
+      selectedTags.some(tag => (contact.tags || []).includes(tag))
     
     const matchesResponseTime = responseTimeFilter === "all" || 
       (responseTimeFilter === "fast" && (contact.responseTime || 0) <= 2) ||
@@ -2159,7 +2159,7 @@ export default function ContactPage() {
                                   {contact.company}
                                 </div>
                               )}
-                              {contact.tags.length > 0 && (
+                              {contact.tags && contact.tags.length > 0 && (
                                 <div className="flex gap-1 mt-2">
                                   {contact.tags.slice(0, 2).map((tag) => (
                                     <Badge key={tag} variant="outline" className="text-xs border-blue-200 text-blue-700">
@@ -2197,13 +2197,13 @@ export default function ContactPage() {
                         </TableCell>
                         <TableCell className="py-4">
                           <Badge 
-                            variant={getPriorityColor(contact.priority)}
-                            className={contact.priority === "urgent" ? "bg-red-100 text-red-700 hover:bg-red-200" :
-                                     contact.priority === "high" ? "bg-orange-100 text-orange-700 hover:bg-orange-200" :
-                                     contact.priority === "medium" ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200" :
+                            variant={getPriorityColor(contact.priority || "low")}
+                            className={(contact.priority || "low") === "urgent" ? "bg-red-100 text-red-700 hover:bg-red-200" :
+                                     (contact.priority || "low") === "high" ? "bg-orange-100 text-orange-700 hover:bg-orange-200" :
+                                     (contact.priority || "low") === "medium" ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200" :
                                      "bg-gray-100 text-gray-700 hover:bg-gray-200"}
                           >
-                            {contact.priority.charAt(0).toUpperCase() + contact.priority.slice(1)}
+                            {(contact.priority || "low").charAt(0).toUpperCase() + (contact.priority || "low").slice(1)}
                           </Badge>
                         </TableCell>
                         <TableCell className="py-4">

@@ -355,6 +355,39 @@ class SocketService {
         }
       });
 
+      // Handle chat_deleted event (broadcast to all admins)
+      socket.on('chat_deleted', (data) => {
+        try {
+          const { chatId } = data;
+          
+          if (!socket.user.isAdmin) {
+            socket.emit('error', { message: 'Admin access required' });
+            return;
+          }
+
+          console.log(`🔥 Chat deleted event received for chat ${chatId}`);
+
+          // Broadcast to all admin sockets that a chat was deleted
+          this.adminSockets.forEach(socketId => {
+            this.io.to(socketId).emit('chat_list_updated', {
+              chat: { _id: chatId },
+              action: 'deleted'
+            });
+          });
+
+          // Also broadcast to the specific chat room to notify any connected users
+          this.io.to(`chat_${chatId}`).emit('chat_deleted', {
+            chatId: chatId,
+            message: 'This chat has been deleted'
+          });
+
+          console.log(`🔥 Chat deleted event broadcasted for chat ${chatId}`);
+        } catch (error) {
+          console.error('Error handling chat_deleted event:', error);
+          socket.emit('error', { message: 'Failed to handle chat deletion' });
+        }
+      });
+
       // Handle disconnect
       socket.on('disconnect', () => {
         console.log(`User disconnected: ${socket.user.username} (${socket.userId || 'guest'})`);
