@@ -9,6 +9,7 @@ import { motion } from "framer-motion"
 import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/translation-context"
 import { useRouter } from "next/navigation"
+import HydrationBoundary from "@/components/HydrationBoundary"
 import { generateStructuredData } from "@/lib/seo"
 import Balancer from "react-wrap-balancer"
 import { useAutoPlayOnView } from "@/hooks/use-auto-play-on-view"
@@ -396,9 +397,10 @@ export default function Home() {
       )}
       
       <PageLayout currentPage="home">
+      <HydrationBoundary>
       {/* Hero Section - Carousel Banner */}
-      <section className="py-6 md:py-16 px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40 relative z-30">
-        <div className="w-full rounded-b-3xl relative overflow-hidden shadow-2xl shadow-gray-200/50">
+      <section className="py-6 md:py-16 px-8 md:px-20 lg:px-24 xl:px-32 2xl:px-40 relative z-30" suppressHydrationWarning>
+        <div className="w-full rounded-b-3xl relative overflow-hidden shadow-2xl shadow-gray-200/50" suppressHydrationWarning>
           <CarouselBanner 
             items={carouselItems}
             autoPlay={true}
@@ -1432,6 +1434,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      </HydrationBoundary>
       </PageLayout>
     </>
   )

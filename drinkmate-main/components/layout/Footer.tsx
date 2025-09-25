@@ -49,8 +49,8 @@ export default function Footer() {
      // Don't render translated content until hydration is complete
    if (!isHydrated) {
      return (
-       <footer className="bg-gray-100 text-gray-800 py-20">
-        <div className="max-w-7xl mx-auto px-6">
+       <footer className="bg-gray-100 text-gray-800 py-20" suppressHydrationWarning>
+        <div className="max-w-7xl mx-auto px-6" suppressHydrationWarning>
           {/* Main Footer Content Skeleton */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
             {/* Company Info & Logo Skeleton */}
@@ -113,8 +113,8 @@ export default function Footer() {
   }
 
   return (
-    <footer className={`border-t border-black/10 bg-white py-8 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`} dir={isHydrated && isRTL ? 'rtl' : 'ltr'}>
-      <div className="max-w-[1100px] mx-auto px-4 md:px-6">
+    <footer className={`border-t border-black/10 bg-white py-8 ${isHydrated && isRTL ? 'font-cairo' : 'font-montserrat'}`} dir={isHydrated && isRTL ? 'rtl' : 'ltr'} suppressHydrationWarning>
+      <div className="max-w-[1100px] mx-auto px-4 md:px-6" suppressHydrationWarning>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Brand + contact */}
           <section className="md:col-span-4" itemScope itemType="https://schema.org/Organization">
