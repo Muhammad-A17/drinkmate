@@ -8,6 +8,7 @@ import { useState, useEffect } from "react"
 import { useCart } from "@/lib/cart-context"
 import { useAuth } from "@/lib/auth-context"
 import Link from "next/link"
+import { LoadingLink } from "@/components/ui/LoadingLink"
 import { useRouter, usePathname } from "next/navigation"
 import ShopMegaMenu from "./ShopMegaMenu"
 
@@ -451,7 +452,7 @@ export default function Header({ currentPage }: HeaderProps) {
                   </Link>
 
                   {/* Accessories */}
-                  <Link
+                  <LoadingLink
                     href="/shop/accessories"
                     className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl p-6 hover:from-slate-200 hover:to-slate-300 transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center aspect-square shadow-lg hover:shadow-xl hover:scale-105 border border-slate-200"
                     onClick={() => {
@@ -472,7 +473,7 @@ export default function Header({ currentPage }: HeaderProps) {
                       <h3 className={`text-sm font-bold text-slate-800 ${isRTL ? "font-cairo" : "font-montserrat"}`}>{t("header.accessories")}</h3>
                       <p className="text-xs text-slate-600 mt-1">Essential Items</p>
                     </div>
-                  </Link>
+                  </LoadingLink>
 
                   {/* CO2 Cylinders */}
                   <Link

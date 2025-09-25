@@ -156,7 +156,12 @@ export default function AdminDashboard() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || 'Failed to fetch stats')
+        console.error('❌ Stats API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        })
+        throw new Error(errorData.message || `Failed to fetch stats (${response.status})`)
       }
 
       const data = await response.json()
@@ -479,48 +484,78 @@ export default function AdminDashboard() {
               </div>
             </div>
             
-            {/* Temporary Admin Promotion Button - Development Only */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-medium text-orange-800">Development Mode</h3>
-                    <p className="text-xs text-orange-600">Promote current user to admin to access dashboard data</p>
-                  </div>
-                  <Button 
-                    onClick={async () => {
-                      try {
-                        const response = await fetch('http://localhost:3000/auth/promote-admin', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json'
-                          },
-                          body: JSON.stringify({ email: user?.email })
-                        })
-                        
-                        if (response.ok) {
-                          const data = await response.json()
-                          if (data.success) {
-                            // Update the token in localStorage
-                            localStorage.setItem('auth-token', data.token)
-                            // Reload the page to refresh the auth state
-                            window.location.reload()
-                          }
-                        } else {
-                          console.error('Failed to promote to admin')
-                        }
-                      } catch (error) {
-                        console.error('Error promoting to admin:', error)
-                      }
-                    }}
-                    className="bg-orange-500 hover:bg-orange-600 text-white"
-                    size="sm"
-                  >
-                    🔧 Promote to Admin
-                  </Button>
-                </div>
+        {/* Temporary Admin Promotion Button - Development Only */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-orange-800">Development Mode</h3>
+                <p className="text-xs text-orange-600">Promote current user to admin to access dashboard data</p>
               </div>
-            )}
+              <div className="flex gap-2">
+                <Button 
+                  onClick={async () => {
+                    try {
+                      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+                      const response = await fetch('/api/admin/debug/user', {
+                        method: 'GET',
+                        headers: {
+                          'Authorization': `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                        }
+                      })
+                      
+                      if (response.ok) {
+                        const data = await response.json()
+                        console.log('🔍 User Debug Info:', data)
+                        alert(`User Info:\nRole: ${data.data.user.role}\nIsAdmin: ${data.data.user.isAdmin}\nFullName: ${data.data.user.fullName}`)
+                      } else {
+                        console.error('Failed to fetch user debug info')
+                      }
+                    } catch (error) {
+                      console.error('Error fetching user debug info:', error)
+                    }
+                  }}
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                  size="sm"
+                >
+                  🔍 Debug User
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    try {
+                      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/auth/promote-admin`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email: user?.email })
+                      })
+                      
+                      if (response.ok) {
+                        const data = await response.json()
+                        if (data.success) {
+                          // Update the token in localStorage
+                          localStorage.setItem('auth-token', data.token)
+                          // Reload the page to refresh the auth state
+                          window.location.reload()
+                        }
+                      } else {
+                        console.error('Failed to promote to admin')
+                      }
+                    } catch (error) {
+                      console.error('Error promoting to admin:', error)
+                    }
+                  }}
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                  size="sm"
+                >
+                  🔧 Promote to Admin
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">

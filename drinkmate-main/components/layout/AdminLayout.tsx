@@ -274,32 +274,43 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       href: "/admin/settings", 
       icon: <Settings className="w-5 h-5" /> 
     },
-    // Debug/Test pages (only show in development)
+    // Test & Debug section (only show in development)
     ...(process.env.NODE_ENV === 'development' ? [
       { 
-        name: "Debug", 
+        name: "Test & Debug", 
+        href: "/admin/test-debug", 
+        icon: <Bug className="w-5 h-5" />,
+        isCategory: true
+      },
+      { 
+        name: "Debug Console", 
         href: "/admin/debug", 
-        icon: <Bug className="w-5 h-5" /> 
+        icon: <Bug className="w-5 h-5" />,
+        parent: "Test & Debug"
       },
       { 
         name: "Test Dashboard", 
         href: "/admin/test-dashboard", 
-        icon: <TestTube className="w-5 h-5" /> 
+        icon: <TestTube className="w-5 h-5" />,
+        parent: "Test & Debug"
       },
       { 
         name: "Auth Debug", 
         href: "/admin/auth-debug", 
-        icon: <Database className="w-5 h-5" /> 
+        icon: <Database className="w-5 h-5" />,
+        parent: "Test & Debug"
       },
       { 
-        name: "Test", 
+        name: "API Testing", 
         href: "/admin/test", 
-        icon: <TestTube className="w-5 h-5" /> 
+        icon: <TestTube className="w-5 h-5" />,
+        parent: "Test & Debug"
       },
       { 
-        name: "Test Exchange", 
+        name: "Exchange Testing", 
         href: "/admin/test-exchange", 
-        icon: <TestTube className="w-5 h-5" /> 
+        icon: <TestTube className="w-5 h-5" />,
+        parent: "Test & Debug"
       },
     ] : []),
   ]
@@ -542,29 +553,29 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 )
               })}
               
-              {/* Debug Group (only in development) */}
+              {/* Test & Debug Group (only in development) */}
               {process.env.NODE_ENV === 'development' && (
                 <>
                   <li className="mb-4 mt-6">
-                      <div className={`px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider ${!isSidebarOpen && 'text-center'} bg-gradient-to-r from-white/50 to-white/30 rounded-lg`}>
-                      {isSidebarOpen ? "Debug" : "•"}
+                      <div className={`px-3 py-2 text-xs font-semibold text-orange-600 uppercase tracking-wider ${!isSidebarOpen && 'text-center'} bg-gradient-to-r from-orange-100/50 to-orange-200/30 rounded-lg`}>
+                      {isSidebarOpen ? "Test & Debug" : "•"}
                     </div>
                   </li>
-                  {navItems.slice(-6).map((item) => {
+                  {navItems.filter(item => item.parent === "Test & Debug").map((item) => {
                     const isActive = pathname === item.href
                     return (
-                      <li key={item.name}>
+                      <li key={item.name} className="ml-4">
                         <LoadingLink
                           href={item.href}
                           className={`flex items-center ${
                             isSidebarOpen ? "justify-start px-4" : "justify-center"
                             } py-3 rounded-xl transition-all duration-300 ${
                             isActive
-                                ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
-                                : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
+                                ? "bg-gradient-to-r from-orange-500/20 to-orange-600/20 text-orange-600 shadow-lg border border-orange-500/30"
+                                : "text-gray-700 hover:bg-orange-50 hover:text-orange-700 hover:shadow-md"
                           }`}
                         >
-                          <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                          <span className={`flex-shrink-0 ${isActive ? 'text-orange-600' : ''}`}>{item.icon}</span>
                           {isSidebarOpen && (
                             <span className="ml-3 text-sm font-medium">{item.name}</span>
                           )}
@@ -908,28 +919,28 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 )
               })}
               
-              {/* Debug Group (only in development) */}
+              {/* Test & Debug Group (only in development) */}
               {process.env.NODE_ENV === 'development' && (
                 <>
                   <li className="mb-4 mt-6">
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gradient-to-r from-white/50 to-white/30 rounded-lg">
-                      Debug
+                      <div className="px-3 py-2 text-xs font-semibold text-orange-600 uppercase tracking-wider bg-gradient-to-r from-orange-100/50 to-orange-200/30 rounded-lg">
+                      Test & Debug
                     </div>
                   </li>
-                  {navItems.slice(-6).map((item) => {
+                  {navItems.filter(item => item.parent === "Test & Debug").map((item) => {
                     const isActive = pathname === item.href
                     return (
-                      <li key={item.name}>
+                      <li key={item.name} className="ml-4">
                         <LoadingLink
                           href={item.href}
                           onClick={() => setIsMobileSidebarOpen(false)}
                             className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
                             isActive
-                                ? "bg-gradient-to-r from-[#12d6fa]/20 to-blue-600/20 text-[#12d6fa] shadow-lg border border-[#12d6fa]/30"
-                                : "text-gray-700 hover:bg-white/50 hover:text-gray-900 hover:shadow-md"
+                                ? "bg-gradient-to-r from-orange-500/20 to-orange-600/20 text-orange-600 shadow-lg border border-orange-500/30"
+                                : "text-gray-700 hover:bg-orange-50 hover:text-orange-700 hover:shadow-md"
                           }`}
                         >
-                          <span className={`flex-shrink-0 ${isActive ? 'text-[#12d6fa]' : ''}`}>{item.icon}</span>
+                          <span className={`flex-shrink-0 ${isActive ? 'text-orange-600' : ''}`}>{item.icon}</span>
                           <span className="ml-3 text-sm font-medium">{item.name}</span>
                         </LoadingLink>
                       </li>

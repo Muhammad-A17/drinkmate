@@ -52,7 +52,7 @@ const SimpleAdminChatWidget: React.FC<SimpleAdminChatWidgetProps> = ({
         return
       }
       
-      const messagesResponse = await fetch(`http://localhost:3000/chat/${chatId}/messages`, {
+      const messagesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${chatId}/messages`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -136,7 +136,7 @@ const SimpleAdminChatWidget: React.FC<SimpleAdminChatWidgetProps> = ({
         }
 
         const token = getAuthToken()
-        const response = await fetch(`http://localhost:3000/chat/${selectedConversation.id}/message`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${selectedConversation.id}/message`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -408,8 +408,15 @@ export default function AccessoriesPage() {
         {/* Loading state */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 sm:py-16">
-            <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-[#12d6fa] mb-3 sm:mb-4" />
-            <p className="text-sm sm:text-base text-gray-600 font-medium">Loading premium accessories...</p>
+            <div className="relative">
+              <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-[#12d6fa] mb-3 sm:mb-4" />
+              <div className="absolute inset-0 rounded-full border-2 border-[#12d6fa]/20"></div>
+            </div>
+            <p className="text-sm sm:text-base text-gray-600 font-medium mb-2">Loading premium accessories...</p>
+            <div className="w-64 bg-gray-200 rounded-full h-2">
+              <div className="bg-gradient-to-r from-[#12d6fa] to-blue-500 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">Please wait while we fetch the latest products</p>
           </div>
         ) : (
           <>

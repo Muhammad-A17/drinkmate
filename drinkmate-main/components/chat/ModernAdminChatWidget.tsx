@@ -152,7 +152,7 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
 
         console.log(`🔥 ModernAdminChatWidget: Loading messages for chat: ${selectedConversation.id}`)
         
-        const response = await fetch(`http://localhost:3000/chat/${selectedConversation.id}/messages`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${selectedConversation.id}/messages`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -367,7 +367,7 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
         const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
         if (!token) throw new Error('No authentication token')
 
-        const response = await fetch(`http://localhost:3000/chat/${selectedConversation.id}/message`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${selectedConversation.id}/message`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

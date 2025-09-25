@@ -5,6 +5,7 @@ import { TranslationProvider } from "@/lib/translation-context"
 import { CartProvider } from "@/lib/cart-context"
 import { AuthProvider } from "@/lib/auth-context"
 import { SocketProvider } from "@/lib/socket-context"
+import { NavigationProvider } from "@/lib/navigation-context"
 import SWRProvider from "@/lib/swr-provider"
 import SecurityMiddleware from "./security-middleware"
 import FontProvider from "@/components/layout/FontProvider"
@@ -14,6 +15,7 @@ import { ChatStatusProvider } from "@/lib/chat-status-context"
 import { Providers } from "@/components/providers"
 import { suppressHydrationWarnings } from "@/lib/suppress-hydration-warnings"
 import FloatingCartButton from "@/components/cart/FloatingCartButton"
+import { NavigationLoader } from "@/components/ui/NavigationLoader"
 
 // Suppress hydration warnings caused by browser extensions - run immediately
 if (typeof window !== 'undefined') {
@@ -407,23 +409,26 @@ export default function RootLayout({
         <SecurityMiddleware>
           <TranslationProvider>
             <FontProvider />
-            <CartProvider>
-              <AuthProvider>
-                <SocketProvider>
-                  <SWRProvider>
-                    <ChatStatusProvider>
-                      <ChatContextProvider>
-                        <Providers>
-                          <div suppressHydrationWarning>{children}</div>
-                          <FloatingCartButton />
-                        </Providers>
-                        <ChatProvider />
-                      </ChatContextProvider>
-                    </ChatStatusProvider>
-                  </SWRProvider>
-                </SocketProvider>
-              </AuthProvider>
-            </CartProvider>
+            <NavigationProvider>
+              <NavigationLoader />
+              <CartProvider>
+                <AuthProvider>
+                  <SocketProvider>
+                    <SWRProvider>
+                      <ChatStatusProvider>
+                        <ChatContextProvider>
+                          <Providers>
+                            <div suppressHydrationWarning>{children}</div>
+                            <FloatingCartButton />
+                          </Providers>
+                          <ChatProvider />
+                        </ChatContextProvider>
+                      </ChatStatusProvider>
+                    </SWRProvider>
+                  </SocketProvider>
+                </AuthProvider>
+              </CartProvider>
+            </NavigationProvider>
           </TranslationProvider>
         </SecurityMiddleware>
       </body>

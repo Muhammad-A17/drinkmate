@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { LoadingLink } from "@/components/ui/LoadingLink"
 import { useTranslation } from "@/lib/translation-context"
 import { FaFacebook, FaTwitter, FaInstagram, FaWhatsapp } from "react-icons/fa"
 
@@ -178,9 +179,9 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/shop/accessories" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                <LoadingLink href="/shop/accessories" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                   {t("footer.products.accessories")}
-                </Link>
+                </LoadingLink>
               </li>
               <li>
                 <Link href="/shop/bundles" className={`text-black/70 hover:text-black transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
@@ -311,9 +312,9 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/shop/accessories" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
+                  <LoadingLink href="/shop/accessories" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>
                     {t("footer.products.accessories")}
-                  </Link>
+                  </LoadingLink>
                 </li>
                 <li>
                   <Link href="/shop/bundles" className={`text-black/70 hover:text-black transition-colors duration-200 ${isHydrated && isRTL ? 'font-cairo text-end' : 'font-montserrat text-start'}`}>

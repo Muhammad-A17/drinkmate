@@ -13,6 +13,7 @@ interface LoadingLinkProps {
   onClick?: () => void
   disabled?: boolean
   prefetch?: boolean
+  dir?: string
 }
 
 export function LoadingLink({ 
@@ -21,7 +22,8 @@ export function LoadingLink({
   className, 
   onClick, 
   disabled = false,
-  prefetch = true 
+  prefetch = true,
+  dir
 }: LoadingLinkProps) {
   const router = useRouter()
   const { startNavigation, isNavigating } = useNavigation()
@@ -55,6 +57,7 @@ export function LoadingLink({
         className
       )}
       prefetch={prefetch}
+      dir={dir}
     >
       {children}
     </Link>

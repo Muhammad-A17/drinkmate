@@ -10,6 +10,8 @@ const { createErrorResponse, logError } = require('../Utils/error-handler');
 const getAdminStats = async (req, res) => {
   try {
     console.log('📊 Fetching admin stats...');
+    console.log('📊 Request headers:', req.headers);
+    console.log('📊 User from token:', req.user);
     
     // Get current date for calculations
     const now = new Date();

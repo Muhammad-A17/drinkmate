@@ -59,7 +59,7 @@ class SocketService {
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
           console.log('Token decoded successfully:', decoded);
           
-          const user = await User.findById(decoded.id).select('_id username email firstName lastName isAdmin');
+          const user = await User.findById(decoded.id).select('_id username email firstName lastName fullName name isAdmin');
           
           if (!user) {
             console.log('User not found for token:', decoded.id);
@@ -71,12 +71,14 @@ class SocketService {
               email: null,
               firstName: 'Guest',
               lastName: 'User',
+              fullName: 'Guest User',
+              name: 'Guest User',
               isAdmin: false
             };
             return next();
           }
 
-          console.log('User found for socket connection:', user.username);
+          console.log('User found for socket connection:', user.email);
           socket.userId = user._id.toString();
           socket.user = user;
           next();
@@ -94,6 +96,8 @@ class SocketService {
             email: null,
             firstName: 'Guest',
             lastName: 'User',
+            fullName: 'Guest User',
+            name: 'Guest User',
             isAdmin: false
           };
           next();
@@ -119,7 +123,7 @@ class SocketService {
   // Setup event handlers
   setupEventHandlers() {
     this.io.on('connection', (socket) => {
-      console.log(`User connected: ${socket.user.username} (${socket.userId || 'guest'})`);
+      console.log(`User connected: ${socket.user.email || socket.user.username} (${socket.userId || 'guest'})`);
       
       // Store user connection only if authenticated
       if (socket.userId) {
@@ -138,7 +142,7 @@ class SocketService {
       // Handle joining chat room
       socket.on('join_chat', (chatId) => {
         socket.join(`chat_${chatId}`);
-        console.log(`User ${socket.user.username} joined chat ${chatId}`);
+        console.log(`User ${socket.user.email || socket.user.username} joined chat ${chatId}`);
         
         // Mark messages as read when joining
         this.markMessagesAsRead(chatId, socket.userId);
@@ -147,7 +151,7 @@ class SocketService {
       // Handle leaving chat room
       socket.on('leave_chat', (chatId) => {
         socket.leave(`chat_${chatId}`);
-        console.log(`User ${socket.user.username} left chat ${chatId}`);
+        console.log(`User ${socket.user.email || socket.user.username} left chat ${chatId}`);
       });
 
       // Handle sending message
@@ -226,7 +230,7 @@ class SocketService {
         const { chatId } = data;
         socket.to(`chat_${chatId}`).emit('user_typing', {
           userId: socket.userId,
-          username: socket.user.username,
+          username: socket.user.email || socket.user.username,
           isAdmin: socket.user.isAdmin
         });
       });
@@ -268,7 +272,7 @@ class SocketService {
               _id: chat._id,
               admin: {
                 _id: socket.user._id,
-                username: socket.user.username,
+                username: socket.user.email || socket.user.username,
                 firstName: socket.user.firstName,
                 lastName: socket.user.lastName
               }
@@ -281,7 +285,7 @@ class SocketService {
               _id: chat._id,
               admin: {
                 _id: socket.user._id,
-                username: socket.user.username,
+                username: socket.user.email || socket.user.username,
                 firstName: socket.user.firstName,
                 lastName: socket.user.lastName
               }
@@ -390,7 +394,7 @@ class SocketService {
 
       // Handle disconnect
       socket.on('disconnect', () => {
-        console.log(`User disconnected: ${socket.user.username} (${socket.userId || 'guest'})`);
+        console.log(`User disconnected: ${socket.user.email || socket.user.username} (${socket.userId || 'guest'})`);
         
         // Remove user connection only if authenticated
         if (socket.userId) {

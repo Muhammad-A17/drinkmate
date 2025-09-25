@@ -118,7 +118,15 @@ function requireAdmin(req, res, next) {
 function requirePermission(permission) {
   return (req, res, next) => {
     try {
+      console.log('🔐 Permission check:', {
+        permission,
+        user: req.user,
+        userRole: req.user?.role,
+        isAdmin: req.user?.isAdmin
+      });
+
       if (!req.user) {
+        console.log('❌ No user in request');
         return res.status(401).json({
           success: false,
           message: 'Authentication required'
@@ -129,10 +137,22 @@ function requirePermission(permission) {
       
       // Super admin bypass
       if (userRole === 'super_admin') {
+        console.log('✅ Super admin bypass');
+        return next();
+      }
+
+      // Check if user has admin role or isAdmin flag
+      if (userRole === 'admin' || req.user.isAdmin) {
+        console.log('✅ Admin access granted');
         return next();
       }
 
       if (!hasPermission(userRole, permission)) {
+        console.log('❌ Insufficient permissions:', {
+          userRole,
+          permission,
+          allowedRoles: PERMISSIONS[permission]
+        });
         return res.status(403).json({
           success: false,
           message: 'Insufficient privileges for this action'

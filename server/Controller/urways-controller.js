@@ -5,19 +5,41 @@ const crypto = require('crypto');
 // Based on the provided credentials
 
 const URWAYS_CONFIG = {
-  terminalId: 'aqualinesa',
-  terminalPassword: 'urway@123',
-  merchantKey: '57346489046e409862696090e9ed52dc06192f6ab714178d22f49a93277df34f',
-  apiUrl: 'https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest'
+  terminalId: process.env.URWAYS_TERMINAL_ID || 'aqualinesa',
+  terminalPassword: process.env.URWAYS_TERMINAL_PASSWORD || 'urway@123',
+  merchantKey: process.env.URWAYS_MERCHANT_KEY || '57346489046e409862696090e9ed52dc06192f6ab714178d22f49a93277df34f',
+  apiUrl: process.env.URWAYS_API_URL || 'https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest'
+};
+
+/**
+ * Get error message based on URWAY response code
+ * Based on official URWAY documentation error codes
+ */
+const getErrorMessage = (responseCode) => {
+  const errorMessages = {
+    '000': 'Transaction Successful',
+    '601': 'System Error, Please contact System Admin',
+    '659': 'Request authentication failed',
+    '701': 'Error while processing ApplePay payment Token request',
+    '906': 'Invalid Card Token'
+  };
+  
+  // Handle 5XX bank rejections
+  if (responseCode && responseCode.startsWith('5')) {
+    return 'Bank Rejection';
+  }
+  
+  return errorMessages[responseCode] || `Unknown error (Code: ${responseCode})`;
 };
 
 /**
  * Generate hash for URWAYS API authentication
- * Based on URWAYS documentation: SHA256(terminalId|password|trackId|amount|currency|merchantKey)
+ * Based on URWAY documentation: SHA256(terminalId|password|trackid|amount|currency|merchantKey)
+ * Note: trackid should be lowercase as per documentation
  */
-const generateHash = (trackId, amount, currency) => {
-  // Based on URWAYS documentation: SHA256(terminalId|password|trackId|amount|currency|merchantKey)
-  const hashString = `${URWAYS_CONFIG.terminalId}|${URWAYS_CONFIG.terminalPassword}|${trackId}|${amount}|${currency}|${URWAYS_CONFIG.merchantKey}`;
+const generateHash = (trackid, amount, currency) => {
+  // Based on URWAY documentation: SHA256(terminalId|password|trackid|amount|currency|merchantKey)
+  const hashString = `${URWAYS_CONFIG.terminalId}|${URWAYS_CONFIG.terminalPassword}|${trackid}|${amount}|${currency}|${URWAYS_CONFIG.merchantKey}`;
   console.log('🔐 Hash String:', hashString);
   const hash = crypto.createHash('sha256').update(hashString).digest('hex');
   console.log('🔐 Generated Hash:', hash);
@@ -64,43 +86,48 @@ const createPayment = async (req, res) => {
       ));
     }
 
-    // Generate unique transaction ID
-    const transactionId = `TXN_${orderId}_${Date.now()}`;
+    // Generate unique transaction ID (trackid as per documentation)
+    const trackid = `TXN_${orderId}_${Date.now()}`;
 
-    // Prepare URWAYS request payload according to their API specification
+    // Get merchant IP (required by URWAY)
+    const merchantIp = req.ip || req.connection.remoteAddress || '127.0.0.1';
+
+    // Prepare URWAYS request payload according to official documentation
     const urwaysRequest = {
+      trackid: trackid, // Order ID (lowercase as per docs)
       terminalId: URWAYS_CONFIG.terminalId,
-      password: URWAYS_CONFIG.terminalPassword,
-      action: '1', // 1 for payment
-      currency: currency,
-      country: 'SA',
-      amount: amount.toFixed(2),
-      trackId: transactionId,
-      customerName: customerName,
+      action: '1', // 1 for Purchase (Automatic Capture)
       customerEmail: customerEmail,
-      customerPhone: customerPhone || '',
-      customerAddress: '',
-      customerCity: '',
-      customerState: '',
-      customerCountry: 'SA',
-      customerZipCode: '',
-      udf1: orderId,
-      udf2: description,
-      udf3: JSON.stringify(items),
-      udf4: '',
-      udf5: '',
-      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3002'}/payment/success`,
-      hash: generateHash(transactionId, amount, currency)
+      merchantIp: merchantIp, // Required by URWAY
+      country: 'SA',
+      password: URWAYS_CONFIG.terminalPassword,
+      currency: currency,
+      amount: amount.toFixed(2),
+      requestHash: generateHash(trackid, amount, currency), // Changed from 'hash' to 'requestHash'
+      // Optional customer details
+      firstName: customerName.split(' ')[0] || '',
+      lastName: customerName.split(' ').slice(1).join(' ') || '',
+      address: '',
+      city: '',
+      state: '',
+      zip: '',
+      phoneno: customerPhone || '',
+      // User defined fields
+      udf1: orderId, // Order reference
+      udf2: `${process.env.FRONTEND_URL || 'http://localhost:3002'}/payment/success`, // Callback URL
+      udf3: 'EN', // Language (EN/AR)
+      udf4: description, // Payment description
+      udf5: JSON.stringify(items) // Items as JSON string
     };
 
     console.log('🚀 URWAYS Payment Request:', {
       terminalId: URWAYS_CONFIG.terminalId,
       amount: urwaysRequest.amount,
       currency: urwaysRequest.currency,
-      trackId: urwaysRequest.trackId,
-      customerName: urwaysRequest.customerName,
+      trackid: urwaysRequest.trackid,
       customerEmail: urwaysRequest.customerEmail,
-      hash: urwaysRequest.hash
+      merchantIp: urwaysRequest.merchantIp,
+      requestHash: urwaysRequest.requestHash
     });
     
     console.log('🚀 Full URWAYS Request:', JSON.stringify(urwaysRequest, null, 2));
@@ -123,19 +150,28 @@ const createPayment = async (req, res) => {
 
     console.log('🚀 URWAYS Payment Response:', result);
 
-    if (result.responseCode === '000') {
+    // Check response according to official documentation
+    if (result.responseCode === '000' && result.result === 'Successful') {
       res.json({
         success: true,
         data: {
-          paymentUrl: result.targetUrl,
-          transactionId: transactionId,
-          message: 'Payment URL generated successfully'
+          paymentUrl: result.targetUrl || result.intUrl, // Payment URL
+          transactionId: result.tranid, // URWAY transaction ID
+          trackId: result.trackid, // Our order ID
+          message: 'Payment URL generated successfully',
+          // Additional response data
+          authCode: result.authcode,
+          cardBrand: result.cardBrand,
+          maskedPAN: result.maskedPAN,
+          amount: result.amount
         }
       });
     } else {
+      // Handle error codes according to documentation
+      const errorMessage = getErrorMessage(result.responseCode);
       res.status(400).json(createErrorResponse(
         'Payment request failed',
-        result.responseMessage || 'Failed to create payment request'
+        errorMessage || result.result || 'Failed to create payment request'
       ));
     }
 
@@ -164,12 +200,24 @@ const verifyPayment = async (req, res) => {
       ));
     }
 
+    // Get merchant IP (required by URWAY)
+    const merchantIp = req.ip || req.connection.remoteAddress || '127.0.0.1';
+
     const verifyRequest = {
+      trackid: transactionId, // Order ID (lowercase as per docs)
       terminalId: URWAYS_CONFIG.terminalId,
+      action: '10', // 10 for Transaction inquiry
+      merchantIp: merchantIp, // Required by URWAY
       password: URWAYS_CONFIG.terminalPassword,
-      action: '10', // 10 for payment status inquiry
-      trackId: transactionId,
-      requestHash: generateHash(transactionId, 0, 'SAR')
+      currency: 'SAR',
+      country: 'SA',
+      amount: '0.00', // For inquiry, amount can be 0
+      requestHash: generateHash(transactionId, 0, 'SAR'),
+      udf1: '1', // Purchase transaction type for inquiry
+      udf2: '', // Callback URL
+      udf3: 'EN', // Language
+      udf4: '', // Additional info
+      udf5: '' // Additional info
     };
 
     const response = await fetch(URWAYS_CONFIG.apiUrl, {
@@ -189,19 +237,30 @@ const verifyPayment = async (req, res) => {
 
     console.log('🚀 URWAYS Verification Response:', result);
 
-    if (result.responseCode === '000' && result.result === 'CAPTURED') {
+    // Check response according to official documentation
+    if (result.responseCode === '000' && result.result === 'Successful') {
       res.json({
         success: true,
         data: {
-          transactionId: transactionId,
-          status: 'verified',
-          message: 'Payment verified successfully'
+          transactionId: result.tranid, // URWAY transaction ID
+          trackId: result.trackid, // Our order ID
+          status: 'completed',
+          message: 'Payment verified successfully',
+          // Additional response data
+          authCode: result.authcode,
+          cardBrand: result.cardBrand,
+          maskedPAN: result.maskedPAN,
+          amount: result.amount,
+          tranDate: result.trandate,
+          rrn: result.rrn,
+          eci: result.eci
         }
       });
     } else {
+      const errorMessage = getErrorMessage(result.responseCode);
       res.status(400).json(createErrorResponse(
         'Payment verification failed',
-        result.responseMessage || 'Payment not found or failed'
+        errorMessage || result.result || 'Payment not found or failed'
       ));
     }
 

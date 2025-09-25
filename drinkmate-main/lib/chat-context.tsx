@@ -190,7 +190,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       console.log('🔥 ChatProvider: Loading chat data for chatId:', chatId)
 
       // First, get the customer's chats to find the specific chat
-      const customerChatsResponse = await fetch('http://localhost:3000/chat/customer', {
+      const customerChatsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/customer`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -274,12 +274,20 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       console.log('🔥 ChatProvider: Checking for existing chat for user:', user._id)
 
-      const response = await fetch('http://localhost:3000/chat/customer', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      console.log('🔥 ChatProvider: Making request to:', `${apiUrl}/chat/customer`)
+      
+      const response = await fetch(`${apiUrl}/chat/customer`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
+      }).catch(error => {
+        console.error('🔥 ChatProvider: Fetch error:', error)
+        throw new Error(`Network error: ${error.message}`)
       })
+
+      console.log('🔥 ChatProvider: Response status:', response.status, response.statusText)
 
       if (response.ok) {
         const data = await response.json()
@@ -295,10 +303,18 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           return activeChat?._id || null
         }
       } else {
-        console.warn('🔥 ChatProvider: Failed to fetch customer chats, status:', response.status)
+        const errorText = await response.text().catch(() => 'Unknown error')
+        console.error('🔥 ChatProvider: Failed to fetch customer chats:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText
+        })
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
     } catch (error) {
       console.error('🔥 ChatProvider: Error checking for existing chat:', error)
+      // Don't throw the error, just log it and return null
+      // This prevents the chat widget from breaking
     }
 
     return null
@@ -352,7 +368,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'ADD_MESSAGE', payload: newMessage })
 
         const token = getAuthToken()
-        const response = await fetch(`http://localhost:3000/chat/${state.currentChat._id}/message`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${state.currentChat._id}/message`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -435,7 +451,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     
     try {
       const token = getAuthToken()
-      const response = await fetch('http://localhost:3000/chat', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -481,7 +497,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // Mark messages as read via API
       const token = getAuthToken()
       if (token) {
-        fetch(`http://localhost:3000/chat/${state.currentChat._id}/read`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${state.currentChat._id}/read`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -523,7 +539,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const token = getAuthToken()
       if (!token) return
 
-      const response = await fetch(`http://localhost:3000/chat/${state.currentChat._id}/messages/${messageId}/status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${state.currentChat._id}/messages/${messageId}/status`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

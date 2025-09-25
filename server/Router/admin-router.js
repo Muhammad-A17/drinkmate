@@ -35,6 +35,22 @@ const upload = multer({
 router.get('/users', authMiddleware, requirePermission('users.read'), auditLog('users.read', 'users'), getAllUsers);
 router.delete('/users/:id', authMiddleware, requirePermission('users.delete'), auditLog('users.delete', 'user'), deleteUser);
 
+// Debug endpoint to check user permissions
+router.get('/debug/user', authMiddleware, (req, res) => {
+  res.json({
+    success: true,
+    user: {
+      id: req.user._id,
+      username: req.user.username,
+      email: req.user.email,
+      role: req.user.role,
+      isAdmin: req.user.isAdmin,
+      fullName: req.user.fullName,
+      name: req.user.name
+    }
+  });
+});
+
 // Stats routes
 router.get('/stats', authMiddleware, requirePermission('analytics.read'), auditLog('analytics.read', 'stats'), statsController.getAdminStats);
 router.get('/recent-data', authMiddleware, requirePermission('analytics.read'), auditLog('analytics.read', 'recent-data'), statsController.getRecentData);

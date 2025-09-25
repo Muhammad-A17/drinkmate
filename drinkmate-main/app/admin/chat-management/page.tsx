@@ -807,7 +807,7 @@ export default function ChatManagementPage() {
       }
 
       // Also send via API for persistence
-      const response = await fetch(`http://localhost:3000/chat/${selectedConversation.id}/messages`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${selectedConversation.id}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -937,7 +937,7 @@ export default function ChatManagementPage() {
         }
       }
       
-      const response = await fetch(`http://localhost:3000/chat/${conversationId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${conversationId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

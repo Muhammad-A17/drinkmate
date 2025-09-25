@@ -85,7 +85,7 @@ const SimpleChatWidget: React.FC = () => {
       }
       
       console.log('🔥 SimpleChatWidget: Fetching chats for user:', user._id)
-      const response = await fetch('http://localhost:3000/chat/customer', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/customer`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -217,7 +217,7 @@ const SimpleChatWidget: React.FC = () => {
       setIsCreatingSession(true)
       const token = getAuthToken()
       
-      const newChatResponse = await fetch('http://localhost:3000/chat', {
+      const newChatResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -274,7 +274,7 @@ const SimpleChatWidget: React.FC = () => {
     try {
       const token = getAuthToken()
       
-      const response = await fetch(`http://localhost:3000/chat/${chatId}/message`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${chatId}/message`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -356,7 +356,7 @@ const SimpleChatWidget: React.FC = () => {
     } : null)
 
         const token = getAuthToken()
-        const response = await fetch(`http://localhost:3000/chat/${chatSession._id}/message`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${chatSession._id}/message`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

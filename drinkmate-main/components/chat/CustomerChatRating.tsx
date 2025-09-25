@@ -28,7 +28,7 @@ export default function CustomerChatRating({ chatId, onClose, onRated }: Custome
     setIsSubmitting(true)
     
     try {
-      const response = await fetch(`http://localhost:3000/chat/${chatId}/customer-rate-and-close`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${chatId}/customer-rate-and-close`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

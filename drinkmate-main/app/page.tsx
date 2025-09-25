@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { LoadingLink } from "@/components/ui/LoadingLink"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import React, { useState, useEffect } from "react"
@@ -787,7 +788,7 @@ export default function Home() {
             </Link>
 
             {/* Accessories */}
-            <Link
+            <LoadingLink
               href="/shop/accessories"
               className="text-center space-y-3 md:space-y-4 group cursor-pointer transition-all duration-300 hover:transform hover:-translate-y-3 animate-slide-in-up delay-500 block"
               dir={isRTL ? "rtl" : "ltr"}
@@ -809,7 +810,7 @@ export default function Home() {
               >
                 {t("home.productCategories.accessories")}
               </h3>
-            </Link>
+            </LoadingLink>
           </div>
         </div>
       </section>
