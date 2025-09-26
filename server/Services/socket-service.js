@@ -141,8 +141,10 @@ class SocketService {
 
       // Handle joining chat room
       socket.on('join_chat', (chatId) => {
-        socket.join(`chat_${chatId}`);
-        console.log(`User ${socket.user.email || socket.user.username} joined chat ${chatId}`);
+        const roomName = `chat_${chatId}`;
+        socket.join(roomName);
+        console.log(`🔥 Socket Service: User ${socket.user.username} (${socket.userId}) joined chat ${chatId} (room: ${roomName})`);
+        console.log(`🔥 Socket Service: Room ${roomName} now has ${this.io.sockets.adapter.rooms.get(roomName)?.size || 0} members`);
         
         // Mark messages as read when joining
         this.markMessagesAsRead(chatId, socket.userId);
@@ -195,7 +197,8 @@ class SocketService {
           });
 
           // Emit message to all users in the chat room
-          this.io.to(`chat_${chatId}`).emit('new_message', {
+          const roomName = `chat_${chatId}`;
+          const messageData = {
             chatId: chatId,
             message: {
               _id: lastMessage._id || new Date().getTime().toString(),
@@ -212,7 +215,13 @@ class SocketService {
                 hour12: true
               })
             }
-          });
+          };
+          
+          console.log('🔥 Socket Service: Emitting new_message to room:', roomName);
+          console.log('🔥 Socket Service: Message data:', messageData);
+          console.log('🔥 Socket Service: Room size:', this.io.sockets.adapter.rooms.get(roomName)?.size || 0);
+          
+          this.io.to(roomName).emit('new_message', messageData);
 
           // Notify admins of new message if from customer
           if (!isAdmin && !socket.user.isAdmin) {

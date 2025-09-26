@@ -192,12 +192,30 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
     }
   }, [isOpen, user, isAuthenticated, isConnected])
 
+  // Join chat room when chat session is available and socket is connected
+  useEffect(() => {
+    if (chatSession && isConnected && socket) {
+      console.log('🔥 FloatingChatWidget: Joining chat room after connection:', chatSession._id)
+      joinChat(chatSession._id)
+    }
+  }, [chatSession, isConnected, socket, joinChat])
+
+  // Also join chat room when widget is opened
+  useEffect(() => {
+    if (isOpen && chatSession && isConnected && socket) {
+      console.log('🔥 FloatingChatWidget: Joining chat room when widget opened:', chatSession._id)
+      joinChat(chatSession._id)
+    }
+  }, [isOpen, chatSession, isConnected, socket, joinChat])
+
   // Socket event listeners
   useEffect(() => {
     if (!socket) return
 
     const handleNewMessage = (data: { chatId: string; message: Message }) => {
       console.log('🔥 FloatingChatWidget: New message received:', data)
+      console.log('🔥 FloatingChatWidget: Current chat session ID:', chatSession?._id)
+      console.log('🔥 FloatingChatWidget: Socket connected:', isConnected)
       
       if (chatSession && data.chatId === chatSession._id) {
         setChatSession(prev => {
@@ -367,30 +385,31 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !chatSession) return
 
+    const messageContent = newMessage.trim()
+    setNewMessage('')
+    stopTyping(chatSession._id)
+
     try {
-      const messageData = {
-        content: newMessage.trim(),
-        messageType: 'text'
-      }
-
-      // Send via socket
-      sendMessage(chatSession._id, messageData.content, messageData.messageType)
-
-      // Also send via API for persistence
+      // Send via socket first (real-time)
+      sendMessage(chatSession._id, messageContent, 'text')
+      
+      // Also send via API for persistence (fallback)
       await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${chatSession._id}/message`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(messageData)
+        body: JSON.stringify({
+          content: messageContent,
+          messageType: 'text'
+        })
       })
-
-      setNewMessage('')
-      stopTyping(chatSession._id)
     } catch (err) {
       console.error('Error sending message:', err)
       setError('Failed to send message. Please try again.')
+      // Restore message if sending failed
+      setNewMessage(messageContent)
     }
   }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from './auth-context'
 import { useSocket } from './socket-context'
 import { Message, ChatSession, Conversation } from '@/types/chat'
@@ -171,6 +171,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState)
   const { user, isAuthenticated } = useAuth()
   const { socket, isConnected, sendMessage: socketSendMessage, joinChat, leaveChat } = useSocket()
+  const stateRef = useRef(state)
+
+  // Update ref when state changes
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
 
   // Helper function to get auth token
   const getAuthToken = useCallback(() => {
@@ -524,62 +530,72 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     if (!socket) return
 
     const handleNewMessage = (data: { chatId: string; message: any }) => {
-      if (state.currentChat && data.chatId === state.currentChat._id) {
-        // Check if message already exists to prevent duplicates
-        const messageExists = state.messages.some(msg => {
-          // Check by real ID
-          if (msg.id === data.message._id || msg.id === data.message.id) {
-            return true
-          }
-          
-          // Check by content and timestamp (for temporary messages)
-          if (msg.content === data.message.content) {
-            const msgTime = new Date(msg.timestamp).getTime()
-            const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
-            // If timestamps are within 5 seconds, consider it a duplicate
-            return Math.abs(msgTime - dataTime) < 5000
-          }
-          
-          return false
-        })
-        
-        if (messageExists) {
-          return
+      console.log('🔥 ChatProvider: New message received:', data)
+      console.log('🔥 ChatProvider: Current chat ID:', stateRef.current.currentChat?._id)
+      console.log('🔥 ChatProvider: Message chat ID:', data.chatId)
+      
+      // Only process messages for the current chat
+      if (!stateRef.current.currentChat || data.chatId !== stateRef.current.currentChat._id) {
+        console.log('🔥 ChatProvider: Message not for current chat, ignoring')
+        return
+      }
+
+      // Check if message already exists to prevent duplicates
+      const messageExists = stateRef.current.messages.some((msg: Message) => {
+        // Check by real ID
+        if (msg.id === data.message._id || msg.id === data.message.id) {
+          return true
         }
         
-        const message: Message = {
-          id: data.message._id || data.message.id,
-          content: data.message.content,
-          sender: data.message.sender === 'admin' || data.message.sender === 'agent' ? 'agent' : 'customer',
-          timestamp: data.message.createdAt || data.message.timestamp,
-          isNote: data.message.isNote || false,
-          attachments: data.message.attachments || [],
-          readAt: data.message.readAt,
-          status: 'delivered'
+        // Check by content and timestamp (for temporary messages)
+        if (msg.content === data.message.content) {
+          const msgTime = new Date(msg.timestamp).getTime()
+          const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
+          // If timestamps are within 5 seconds, consider it a duplicate
+          return Math.abs(msgTime - dataTime) < 5000
         }
         
-        dispatch({ type: 'ADD_MESSAGE', payload: message })
+        return false
+      })
+      
+      if (messageExists) {
+        console.log('🔥 ChatProvider: Message already exists, skipping duplicate')
+        return
+      }
+      
+      const message: Message = {
+        id: data.message._id || data.message.id,
+        content: data.message.content,
+        sender: data.message.sender === 'admin' || data.message.sender === 'agent' ? 'agent' : 'customer',
+        timestamp: data.message.createdAt || data.message.timestamp,
+        isNote: data.message.isNote || false,
+        attachments: data.message.attachments || [],
+        readAt: data.message.readAt,
+        status: 'delivered'
+      }
+      
+      console.log('🔥 ChatProvider: Adding new message to state:', message)
+      dispatch({ type: 'ADD_MESSAGE', payload: message })
+      
+      // Update unread count if message is from agent
+      if (message.sender === 'agent') {
+        dispatch({ type: 'SET_UNREAD_COUNT', payload: stateRef.current.unreadCount + 1 })
         
-        // Update unread count if message is from agent
-        if (message.sender === 'agent') {
-          dispatch({ type: 'SET_UNREAD_COUNT', payload: state.unreadCount + 1 })
-          
-          // Auto-mark agent messages as read after a short delay
-          setTimeout(() => {
-            updateMessageStatus(message.id, 'read')
-          }, 2000)
-        }
+        // Auto-mark agent messages as read after a short delay
+        setTimeout(() => {
+          updateMessageStatus(message.id, 'read')
+        }, 2000)
       }
     }
 
     const handleTypingStart = (data: { chatId: string; userId: string }) => {
-      if (state.currentChat && data.chatId === state.currentChat._id) {
+      if (stateRef.current.currentChat && data.chatId === stateRef.current.currentChat._id) {
         dispatch({ type: 'ADD_TYPING_USER', payload: data.userId })
       }
     }
 
     const handleTypingStop = (data: { chatId: string; userId: string }) => {
-      if (state.currentChat && data.chatId === state.currentChat._id) {
+      if (stateRef.current.currentChat && data.chatId === stateRef.current.currentChat._id) {
         dispatch({ type: 'REMOVE_TYPING_USER', payload: data.userId })
       }
     }
@@ -593,7 +609,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       socket.off('typing_start', handleTypingStart)
       socket.off('typing_stop', handleTypingStop)
     }
-  }, [socket, state.currentChat, state.messages, state.unreadCount])
+  }, [socket]) // Removed state.currentChat and state.unreadCount from dependencies
 
   // Check for existing chat on mount
   useEffect(() => {
@@ -611,6 +627,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       })
     }
   }, [user, isAuthenticated, state.currentChat, checkForExistingChat, loadChat, openChat])
+
+  // Ensure socket is connected when user is authenticated
+  useEffect(() => {
+    if (user && isAuthenticated && socket && !isConnected) {
+      console.log('🔥 ChatProvider: User authenticated but socket not connected, attempting to connect')
+      // The socket context should handle reconnection automatically
+    }
+  }, [user, isAuthenticated, socket, isConnected])
 
   // Update connection state
   useEffect(() => {

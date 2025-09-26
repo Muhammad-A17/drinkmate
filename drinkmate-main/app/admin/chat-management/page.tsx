@@ -516,19 +516,8 @@ export default function ChatManagementPage() {
     }
   }, [fetchChats, fetchStats, fetchResponseETA, user, isAuthenticated])
 
-  // Set up polling for real-time updates (reduced frequency since we have sockets)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Don't poll if we're currently deleting a conversation or if we have an active conversation selected
-      if (!deletingConversation && !selectedConversation) {
-        fetchChats()
-        fetchStats()
-        // fetchSessionsNearExpiry will be added after the function is declared
-      }
-    }, 30000) // Poll every 30 seconds for backup updates (reduced from 10s)
-
-    return () => clearInterval(interval)
-  }, [fetchChats, fetchStats, deletingConversation, selectedConversation])
+  // Real-time updates are now handled entirely by socket events
+  // No more polling - all updates come through socket connections
 
   // Poll for sessions near expiry will be added after function declaration
 
@@ -542,8 +531,13 @@ export default function ChatManagementPage() {
     }
 
     const handleNewMessage = (data: { chatId: string; message: any }) => {
+      console.log('🔥 Admin Chat Management: New message received:', data)
+      console.log('🔥 Admin Chat Management: Socket connected:', isConnected)
+      console.log('🔥 Admin Chat Management: Selected conversation ID:', selectedConversation?.id)
+      
       // Skip if this is a message from the current admin (already handled optimistically)
       if (data.message.senderId === user?._id) {
+        console.log('🔥 Admin Chat Management: Skipping own message')
         return
       }
       
@@ -558,14 +552,20 @@ export default function ChatManagementPage() {
         isNote: data.message.messageType === 'system'
       }
       
+      console.log('🔥 Admin Chat Management: Processing new message:', newMessage)
+      
       // Update the conversations list
       setConversations(prev => {
         const updated = prev.map(conv => {
           if (conv.id === data.chatId) {
             // Check if message already exists to prevent duplicates
             const messageExists = conv.messages.some(msg => msg.id === newMessage.id)
-            if (messageExists) return conv
+            if (messageExists) {
+              console.log('🔥 Admin Chat Management: Message already exists in conversation list, skipping')
+              return conv
+            }
             
+            console.log('🔥 Admin Chat Management: Adding message to conversation list')
             const updatedConv = {
               ...conv,
               messages: [...conv.messages, newMessage],
@@ -602,6 +602,7 @@ export default function ChatManagementPage() {
         // Check if message already exists to prevent duplicates
         const messageExists = selectedConversation.messages.some(msg => msg.id === newMessage.id)
         if (!messageExists) {
+          console.log('🔥 Admin Chat Management: Adding message to selected conversation')
           const updatedConv = {
             ...selectedConversation,
             messages: [...selectedConversation.messages, newMessage],
@@ -623,6 +624,8 @@ export default function ChatManagementPage() {
           }
           
           setSelectedConversation(updatedConv)
+        } else {
+          console.log('🔥 Admin Chat Management: Message already exists in selected conversation, skipping')
         }
       }
       
@@ -708,14 +711,24 @@ export default function ChatManagementPage() {
     }
   }, [socket, isConnected, selectedConversation, fetchChats])
 
+  // Join chat room when conversation is selected and socket is connected
+  useEffect(() => {
+    if (selectedConversation && socket && isConnected) {
+      console.log('🔥 Admin: Auto-joining chat room for selected conversation:', selectedConversation.id)
+      socket.emit('join_chat', selectedConversation.id)
+    }
+  }, [selectedConversation, socket, isConnected])
+
   // Handle conversation selection
   const handleConversationSelect = (conversation: Conversation) => {
     setSelectedConversation(conversation)
     
     // Join the chat room for real-time updates
-    if (socket && typeof socket.emit === 'function') {
-      console.log('Admin joining chat room:', conversation.id)
+    if (socket && isConnected && typeof socket.emit === 'function') {
+      console.log('🔥 Admin joining chat room:', conversation.id)
       socket.emit('join_chat', conversation.id)
+    } else {
+      console.log('🔥 Admin: Socket not available or not connected for join_chat')
     }
     
     // Load messages for the selected conversation
@@ -820,26 +833,16 @@ export default function ChatManagementPage() {
       })
 
       if (response.ok) {
-        // Optimistically update the UI
-        const message: Message = {
-          id: Date.now().toString(),
-          content: newMessage,
-          sender: 'agent',
-          timestamp: new Date().toISOString(),
-          isNote: isInternalNote
-        }
-
+        // Clear the message input - real-time updates will come via socket events
+        setNewMessage('')
+        setIsInternalNote(false)
+        
+        // Update conversation status to active when admin responds
         setSelectedConversation(prev => {
           if (!prev) return null
           
           const updatedConv = {
             ...prev,
-            messages: [...prev.messages, message],
-            lastMessage: {
-              content: newMessage,
-              timestamp: message.timestamp,
-              sender: 'agent' as 'agent' | 'customer'
-            },
             // Update status to active when admin responds
             status: prev.status === 'waiting_customer' || prev.status === 'waiting_agent' ? 'active' : prev.status
           }
@@ -857,17 +860,11 @@ export default function ChatManagementPage() {
           return updatedConv
         })
 
-        // Update conversations list
+        // Update conversations list status only - messages will come via socket events
         setConversations(prev => prev.map(conv => {
           if (conv.id === selectedConversation.id) {
             const updatedConv = {
               ...conv,
-              messages: [...conv.messages, message],
-              lastMessage: {
-                content: newMessage,
-                timestamp: message.timestamp,
-                sender: 'agent' as 'agent' | 'customer'
-              },
               // Update status to active when admin responds
               status: conv.status === 'waiting_customer' || conv.status === 'waiting_agent' ? 'active' : conv.status,
               updatedAt: new Date().toISOString()
@@ -888,8 +885,6 @@ export default function ChatManagementPage() {
           return conv
         }))
 
-        setNewMessage('')
-        setIsInternalNote(false)
         toast.success(isInternalNote ? 'Note added' : 'Message sent')
       } else {
         console.log('🔥 Socket not connected, cannot send message')
