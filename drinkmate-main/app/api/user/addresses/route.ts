@@ -30,14 +30,39 @@ async function getUserAddresses(req: AuthenticatedRequest) {
 
     const authToken = req.headers.get('Authorization')?.replace('Bearer ', '') || ''
     
-    // Call backend API to get user addresses
+    // Call backend API to get user profile (which contains address data)
     const response = await makeAuthenticatedRequest(
-      `/user/addresses`,
+      `/auth/profile`,
       { method: 'GET' },
       authToken
     )
 
-    return await handleBackendResponse(response)
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: 'Failed to fetch user profile' },
+        { status: response.status }
+      )
+    }
+
+    const userData = await response.json()
+    
+    // Transform user profile data to addresses format
+    const addresses = [{
+      id: userData.user?._id || userData.user?.id,
+      firstName: userData.user?.name?.split(' ')[0] || '',
+      lastName: userData.user?.name?.split(' ').slice(1).join(' ') || '',
+      phone: userData.user?.phone || '',
+      district: userData.user?.district || '',
+      city: userData.user?.city || '',
+      country: 'Saudi Arabia',
+      nationalAddress: userData.user?.nationalAddress || '',
+      isDefault: true
+    }].filter(addr => addr.district && addr.city) // Only include if has address data
+
+    return NextResponse.json({
+      success: true,
+      data: addresses
+    })
 
   } catch (error) {
     console.error('Error fetching user addresses:', error)
@@ -95,26 +120,47 @@ async function createUserAddress(req: AuthenticatedRequest) {
 
     const authToken = req.headers.get('Authorization')?.replace('Bearer ', '') || ''
     
-    // Call backend API to create address
+    // Call backend API to update user profile with address data
     const response = await makeAuthenticatedRequest(
-      `/user/addresses`,
+      `/auth/profile`,
       {
-        method: 'POST',
+        method: 'PUT',
         body: JSON.stringify({
-          firstName: sanitizeInput(firstName),
-          lastName: sanitizeInput(lastName),
+          name: `${sanitizeInput(firstName)} ${sanitizeInput(lastName)}`.trim(),
           phone: sanitizeInput(phone),
           district: sanitizeInput(district),
           city: sanitizeInput(city),
-          country: 'Saudi Arabia',
-          nationalAddress: nationalAddress ? sanitizeInput(nationalAddress).toUpperCase() : '',
-          isDefault
+          nationalAddress: nationalAddress ? sanitizeInput(nationalAddress).toUpperCase() : ''
         })
       },
       authToken
     )
 
-    return await handleBackendResponse(response)
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: 'Failed to update user profile' },
+        { status: response.status }
+      )
+    }
+
+    const userData = await response.json()
+    
+    // Return the updated address data
+    return NextResponse.json({
+      success: true,
+      message: 'Address updated successfully',
+      data: {
+        id: userData.user?._id || userData.user?.id,
+        firstName: sanitizeInput(firstName),
+        lastName: sanitizeInput(lastName),
+        phone: sanitizeInput(phone),
+        district: sanitizeInput(district),
+        city: sanitizeInput(city),
+        country: 'Saudi Arabia',
+        nationalAddress: nationalAddress ? sanitizeInput(nationalAddress).toUpperCase() : '',
+        isDefault: true
+      }
+    })
 
   } catch (error) {
     console.error('Error creating user address:', error)

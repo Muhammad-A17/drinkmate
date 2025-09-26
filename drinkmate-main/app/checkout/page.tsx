@@ -32,13 +32,13 @@ export default function CheckoutPage() {
   const [shipToDifferentAddress, setShipToDifferentAddress] = useState(false)
   const [orderNotes, setOrderNotes] = useState("")
   const [deliveryAddress, setDeliveryAddress] = useState({
-    fullName: user?.name || "",
-    email: user?.email || "",
-    phone: (user as any)?.phone || "",
-    district: (user as any)?.district || "",
-    city: (user as any)?.city || "",
+    fullName: "",
+    email: "",
+    phone: "",
+    district: "",
+    city: "",
     country: "Saudi Arabia",
-    nationalAddress: (user as any)?.nationalAddress || ""
+    nationalAddress: ""
   })
   
   // Shipping address (if different from billing)
@@ -146,12 +146,75 @@ export default function CheckoutPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       if (user) {
-        console.log('User data for checkout:', user);
-        
         try {
           const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
           if (token) {
-            // Fetch user profile data
+            // Check if we have cached profile data
+            const cachedProfile = localStorage.getItem('user-profile-cache')
+            const cacheTimestamp = localStorage.getItem('user-profile-cache-timestamp')
+            const now = Date.now()
+            const cacheAge = cacheTimestamp ? now - parseInt(cacheTimestamp) : Infinity
+            
+            // Use cached data if it's less than 5 minutes old
+            if (cachedProfile && cacheAge < 5 * 60 * 1000) {
+              try {
+                const userProfile = JSON.parse(cachedProfile)
+                
+                console.log('Using cached profile data:', userProfile)
+                console.log('Cached name:', userProfile.name)
+                console.log('Cached district:', userProfile.district)
+                console.log('Cached city:', userProfile.city)
+                console.log('Cached phone:', userProfile.phone)
+                
+                // Update delivery address with cached data
+                const newDeliveryAddress = {
+                  fullName: userProfile.name || user.name || "",
+                  email: userProfile.email || user.email || "",
+                  phone: userProfile.phone || "",
+                  district: userProfile.district || "",
+                  city: userProfile.city || "",
+                  country: "Saudi Arabia",
+                  nationalAddress: userProfile.nationalAddress || ""
+                }
+                
+                console.log('Setting delivery address from cache:', newDeliveryAddress)
+                setDeliveryAddress(prev => {
+                  console.log('Previous delivery address:', prev)
+                  const updated = { ...prev, ...newDeliveryAddress }
+                  console.log('Updated delivery address:', updated)
+                  return updated
+                })
+                
+                // Also set shipping address to same as delivery if user has address data
+                if (userProfile.district && userProfile.city) {
+                  const newShippingAddress = {
+                    fullName: userProfile.name || user.name || "",
+                    email: userProfile.email || user.email || "",
+                    phone: userProfile.phone || "",
+                    district: userProfile.district || "",
+                    city: userProfile.city || "",
+                    country: "Saudi Arabia",
+                    nationalAddress: userProfile.nationalAddress || ""
+                  }
+                  
+                  console.log('Setting shipping address from cache:', newShippingAddress)
+                  setShippingAddress(prev => {
+                    console.log('Previous shipping address:', prev)
+                    const updated = { ...prev, ...newShippingAddress }
+                    console.log('Updated shipping address:', updated)
+                    return updated
+                  })
+                }
+                return // Use cached data, don't make API call
+              } catch (e) {
+                console.error('Error parsing cached profile data:', e)
+                // If cached data is corrupted, clear it and fetch fresh
+                localStorage.removeItem('user-profile-cache')
+                localStorage.removeItem('user-profile-cache-timestamp')
+              }
+            }
+
+            // Fetch user profile data from API
             const profileResponse = await fetch('/api/user/profile', {
               method: 'GET',
               headers: {
@@ -160,67 +223,95 @@ export default function CheckoutPage() {
               }
             })
 
-            // Fetch user addresses
-            const addressesResponse = await fetch('/api/user/addresses', {
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            })
-
-            let userProfile = null
-            let defaultAddress = null
-
-            // Process profile data
             if (profileResponse.ok) {
               const profileData = await profileResponse.json()
+              
               if (profileData.success && profileData.data) {
-                userProfile = profileData.data
-                console.log('Fetched user profile:', userProfile)
+                const userProfile = profileData.data
+                
+                // Debug: Log the profile data to see what we're getting
+                console.log('Profile data received:', userProfile)
+                console.log('Profile name:', userProfile.name)
+                console.log('Profile district:', userProfile.district)
+                console.log('Profile city:', userProfile.city)
+                console.log('Profile phone:', userProfile.phone)
+                console.log('Profile email:', userProfile.email)
+                console.log('Profile nationalAddress:', userProfile.nationalAddress)
+                
+                // Cache the profile data
+                localStorage.setItem('user-profile-cache', JSON.stringify(userProfile))
+                localStorage.setItem('user-profile-cache-timestamp', now.toString())
+                
+                // Update delivery address with fetched data
+                const newDeliveryAddress = {
+                  fullName: userProfile.name || user.name || "",
+                  email: userProfile.email || user.email || "",
+                  phone: userProfile.phone || "",
+                  district: userProfile.district || "",
+                  city: userProfile.city || "",
+                  country: "Saudi Arabia",
+                  nationalAddress: userProfile.nationalAddress || ""
+                }
+                
+                console.log('Setting delivery address with:', newDeliveryAddress)
+                setDeliveryAddress(prev => {
+                  console.log('Previous delivery address:', prev)
+                  const updated = { ...prev, ...newDeliveryAddress }
+                  console.log('Updated delivery address:', updated)
+                  return updated
+                })
+                
+                // Also set shipping address to same as delivery if user has address data
+                if (userProfile.district && userProfile.city) {
+                  const newShippingAddress = {
+                    fullName: userProfile.name || user.name || "",
+                    email: userProfile.email || user.email || "",
+                    phone: userProfile.phone || "",
+                    district: userProfile.district || "",
+                    city: userProfile.city || "",
+                    country: "Saudi Arabia",
+                    nationalAddress: userProfile.nationalAddress || ""
+                  }
+                  
+                  console.log('Setting shipping address with:', newShippingAddress)
+                  setShippingAddress(prev => {
+                    console.log('Previous shipping address:', prev)
+                    const updated = { ...prev, ...newShippingAddress }
+                    console.log('Updated shipping address:', updated)
+                    return updated
+                  })
+                }
               }
-            }
-
-            // Process addresses data
-            if (addressesResponse.ok) {
-              const addressesData = await addressesResponse.json()
-              if (addressesData.success && addressesData.data) {
-                // Find default address or use first address
-                defaultAddress = addressesData.data.find((addr: any) => addr.isDefault) || addressesData.data[0]
-                console.log('Fetched user addresses:', addressesData.data)
-                console.log('Using default address:', defaultAddress)
+            } else if (profileResponse.status === 429) {
+              // Rate limited - use cached data if available
+              console.warn('Rate limited, using cached data if available')
+              if (cachedProfile) {
+                try {
+                  const userProfile = JSON.parse(cachedProfile)
+                  setDeliveryAddress(prev => ({
+                    ...prev,
+                    fullName: userProfile.name || user.name || "",
+                    email: userProfile.email || user.email || "",
+                    phone: userProfile.phone || "",
+                    district: userProfile.district || "",
+                    city: userProfile.city || "",
+                    country: "Saudi Arabia",
+                    nationalAddress: userProfile.nationalAddress || ""
+                  }))
+                } catch (e) {
+                  // Fallback to basic user data
+                  setDeliveryAddress(prev => ({
+                    ...prev,
+                    fullName: user.name || "",
+                    email: user.email || "",
+                    phone: (user as any)?.phone || "",
+                    district: (user as any)?.district || "",
+                    city: (user as any)?.city || "",
+                    country: "Saudi Arabia",
+                    nationalAddress: (user as any)?.nationalAddress || ""
+                  }))
+                }
               }
-            }
-
-            // Update delivery address with fetched data
-            const addressData = defaultAddress || userProfile
-            setDeliveryAddress(prev => ({
-              ...prev,
-              fullName: addressData?.firstName && addressData?.lastName 
-                ? `${addressData.firstName} ${addressData.lastName}` 
-                : userProfile?.name || user.name || "",
-              email: userProfile?.email || user.email || "",
-              phone: addressData?.phone || userProfile?.phone || "",
-              district: addressData?.district || userProfile?.district || "",
-              city: addressData?.city || userProfile?.city || "",
-              country: "Saudi Arabia",
-              nationalAddress: addressData?.nationalAddress || userProfile?.nationalAddress || ""
-            }))
-            
-            // Also set shipping address to same as delivery if user has address data
-            if ((addressData?.district && addressData?.city) || (userProfile?.district && userProfile?.city)) {
-              setShippingAddress(prev => ({
-                ...prev,
-                fullName: addressData?.firstName && addressData?.lastName 
-                  ? `${addressData.firstName} ${addressData.lastName}` 
-                  : userProfile?.name || user.name || "",
-                email: userProfile?.email || user.email || "",
-                phone: addressData?.phone || userProfile?.phone || "",
-                district: addressData?.district || userProfile?.district || "",
-                city: addressData?.city || userProfile?.city || "",
-                country: "Saudi Arabia",
-                nationalAddress: addressData?.nationalAddress || userProfile?.nationalAddress || ""
-              }))
             }
           } else {
             // Fallback to basic user data if no token
@@ -228,11 +319,7 @@ export default function CheckoutPage() {
               ...prev,
               fullName: user.name || "",
               email: user.email || "",
-              phone: (user as any)?.phone || "",
-              district: (user as any)?.district || "",
-              city: (user as any)?.city || "",
-              country: "Saudi Arabia",
-              nationalAddress: (user as any)?.nationalAddress || ""
+              phone: (user as any)?.phone || ""
             }))
           }
         } catch (error) {
@@ -242,11 +329,7 @@ export default function CheckoutPage() {
             ...prev,
             fullName: user.name || "",
             email: user.email || "",
-            phone: (user as any)?.phone || "",
-            district: (user as any)?.district || "",
-            city: (user as any)?.city || "",
-            country: "Saudi Arabia",
-            nationalAddress: (user as any)?.nationalAddress || ""
+            phone: (user as any)?.phone || ""
           }))
         }
       }
