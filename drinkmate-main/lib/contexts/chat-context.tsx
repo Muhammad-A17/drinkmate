@@ -527,7 +527,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   // Socket event listeners
   useEffect(() => {
-    if (!socket) return
+    if (!socket) {
+      console.log('🔥 ChatProvider: No socket available for event listeners')
+      return
+    }
+
+    console.log('🔥 ChatProvider: Setting up socket event listeners')
+    console.log('🔥 ChatProvider: Socket connected:', socket.connected)
+    console.log('🔥 ChatProvider: Socket ID:', socket.id)
 
     const handleNewMessage = (data: { chatId: string; message: any }) => {
       console.log('🔥 ChatProvider: New message received:', data)
@@ -600,16 +607,40 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    // Remove any existing listeners first
+    socket.off('new_message', handleNewMessage)
+    socket.off('typing_start', handleTypingStart)
+    socket.off('typing_stop', handleTypingStop)
+
+    // Add new listeners
     socket.on('new_message', handleNewMessage)
     socket.on('typing_start', handleTypingStart)
     socket.on('typing_stop', handleTypingStop)
 
+    // Add a test listener to verify socket is working
+    const testHandler = (data: any) => {
+      console.log('🔥 ChatProvider: Test event received:', data)
+    }
+    socket.on('test_event', testHandler)
+
+    console.log('🔥 ChatProvider: Socket event listeners registered')
+
+    // Test the socket connection by emitting a test event
+    setTimeout(() => {
+      if (socket.connected) {
+        console.log('🔥 ChatProvider: Testing socket connection...')
+        socket.emit('test_connection', { message: 'Hello from frontend' })
+      }
+    }, 1000)
+
     return () => {
+      console.log('🔥 ChatProvider: Cleaning up socket event listeners')
       socket.off('new_message', handleNewMessage)
       socket.off('typing_start', handleTypingStart)
       socket.off('typing_stop', handleTypingStop)
+      socket.off('test_event', testHandler)
     }
-  }, [socket]) // Removed state.currentChat and state.unreadCount from dependencies
+  }, [socket, isConnected]) // Added isConnected to dependencies to re-register when connection state changes
 
   // Check for existing chat on mount
   useEffect(() => {

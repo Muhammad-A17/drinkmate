@@ -693,10 +693,25 @@ export default function ChatManagementPage() {
 
     // Register socket event listeners
     if (socket && typeof socket.on === 'function') {
+      console.log('🔥 Admin: Registering socket event listeners')
+      console.log('🔥 Admin: Socket connected:', socket.connected)
+      console.log('🔥 Admin: Socket ID:', socket.id)
+      
+      // Remove existing listeners first to prevent duplicates
+      socket.off('new_message', handleNewMessage)
+      socket.off('chat_updated', handleChatUpdate)
+      socket.off('chat_created', handleChatCreated)
+      socket.off('chat_deleted', handleChatDeleted)
+      
+      // Add new listeners
       socket.on('new_message', handleNewMessage)
       socket.on('chat_updated', handleChatUpdate)
       socket.on('chat_created', handleChatCreated)
       socket.on('chat_deleted', handleChatDeleted)
+      
+      console.log('🔥 Admin: Socket event listeners registered successfully')
+    } else {
+      console.log('🔥 Admin: Cannot register socket event listeners - socket:', !!socket, 'has on method:', typeof socket?.on)
     }
 
     // Cleanup
@@ -709,7 +724,7 @@ export default function ChatManagementPage() {
         socket.off('chat_deleted', handleChatDeleted)
       }
     }
-  }, [socket, isConnected, selectedConversation, fetchChats])
+  }, [socket, isConnected, fetchChats]) // Removed selectedConversation from dependencies
 
   // Join chat room when conversation is selected and socket is connected
   useEffect(() => {

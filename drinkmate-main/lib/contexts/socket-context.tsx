@@ -79,6 +79,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     newSocket.on('connect', () => {
       console.log('🔥 Socket connected successfully! ID:', newSocket.id)
       console.log('🔥 Socket transport:', newSocket.io.engine.transport.name)
+      console.log('🔥 Socket connected at:', new Date().toISOString())
       setIsConnected(true)
       isConnectingRef.current = false
     })
