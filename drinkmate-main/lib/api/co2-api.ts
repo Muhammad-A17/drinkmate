@@ -1,3 +1,4 @@
+// CO2 API - Handles CO2 cylinder operations and data fetching
 import { api, apiCache, retryRequest, getAuthToken } from '../api';
 import { fallbackCylinders } from '../fallback-data';
 
