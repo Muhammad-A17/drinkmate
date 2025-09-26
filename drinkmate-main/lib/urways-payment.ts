@@ -36,8 +36,8 @@ export interface UrwaysPaymentResponse {
 // Default URWAYS configuration
 const DEFAULT_URWAYS_CONFIG: UrwaysConfig = {
   terminalId: 'aqualinesa',
-  terminalPassword: 'urway@123',
-  merchantKey: '57346489046e409862696090e9ed52dc06192f6ab714178d22f49a93277df34f',
+  terminalPassword: 'URWAY@026_a',
+  merchantKey: 'e51ef25d3448a823888e3f38f9ffcc3693a40e3590cf4bb6e7ac5b352a00f30d',
   apiUrl: 'https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest',
   redirectUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3002'}/payment/success`,
   cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3002'}/payment/cancel`
@@ -184,7 +184,8 @@ export class UrwaysPaymentService {
    */
   private generateHash(trackId: string, amount: number, currency: string): string {
     const crypto = require('crypto')
-    const hashString = `${this.config.terminalId}|${this.config.terminalPassword}|${trackId}|${amount}|${currency}|${this.config.merchantKey}`
+    const lowerTrackId = trackId.toLowerCase()
+    const hashString = `${this.config.terminalId}|${this.config.terminalPassword}|${lowerTrackId}|${amount}|${currency}|${this.config.merchantKey}`
     return crypto.createHash('sha256').update(hashString).digest('hex')
   }
 
@@ -228,7 +229,7 @@ export class UrwaysPaymentService {
         <input type="hidden" name="udf4" value="">
         <input type="hidden" name="udf5" value="">
         <input type="hidden" name="returnUrl" value="${this.config.redirectUrl}">
-        <input type="hidden" name="requestHash" value="${hash}">
+        <input type="hidden" name="hash" value="${hash}">
       </form>
       <script>
         document.getElementById('urways-payment-form').submit();
