@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useTranslation } from '@/lib/translation-context'
+import { useTranslation } from '@/lib/contexts/translation-context'
 import { useWishlist } from '@/hooks/use-wishlist'
-import { useCart } from '@/lib/cart-context'
+import { useCart } from '@/lib/contexts/cart-context'
 import { Button } from '@/components/ui/button'
 import { Heart, ShoppingCart, Trash2, Eye, Loader2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'

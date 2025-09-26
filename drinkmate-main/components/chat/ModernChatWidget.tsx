@@ -16,10 +16,10 @@ import {
   Archive,
   Settings
 } from 'lucide-react'
-import { useChat } from '@/lib/chat-context'
-import { useAuth } from '@/lib/auth-context'
-import { useChatStatus } from '@/lib/chat-status-context'
-import { simpleETAService, SimpleETA } from '@/lib/simple-eta-service'
+import { useChat } from '@/lib/contexts/chat-context'
+import { useAuth } from '@/lib/contexts/auth-context'
+import { useChatStatus } from '@/lib/contexts/chat-status-context'
+import { simpleETAService, SimpleETA } from '@/lib/services/simple-eta-service'
 import { Message } from '@/types/chat'
 import VirtualizedMessageList from './VirtualizedMessageList'
 

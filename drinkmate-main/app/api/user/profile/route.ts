@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/auth-middleware'
-import { addSecurityHeaders, logError, sanitizeErrorMessage } from '@/lib/protected-api'
+import { addSecurityHeaders, logError, sanitizeErrorMessage } from '@/lib/api/protected-api'
 
 interface AuthenticatedRequest extends NextRequest {
   user?: {

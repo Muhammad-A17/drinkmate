@@ -4,12 +4,12 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, ShoppingCart, X, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { CartItem } from '@/lib/cart-context'
+import { CartItem } from '@/lib/contexts/cart-context'
 import { Currency } from '@/utils/currency'
 import Image from 'next/image'
 import { isValidImageUrl } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
-import { useCart } from '@/lib/cart-context'
+import { useCart } from '@/lib/contexts/cart-context'
 
 interface ImprovedCartToastProps {
   item: CartItem | null

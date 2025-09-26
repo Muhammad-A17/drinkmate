@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { addSecurityHeaders, logError, sanitizeErrorMessage } from '@/lib/protected-api'
+import { addSecurityHeaders, logError, sanitizeErrorMessage } from '@/lib/api/protected-api'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 

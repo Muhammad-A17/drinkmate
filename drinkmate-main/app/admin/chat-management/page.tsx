@@ -73,9 +73,9 @@ import {
   Hexagon,
   Flag
 } from 'lucide-react'
-import { useAuth } from '@/lib/auth-context'
-import { useTranslation } from '@/lib/translation-context'
-import { useSocket } from '@/lib/socket-context'
+import { useAuth } from '@/lib/contexts/auth-context'
+import { useTranslation } from '@/lib/contexts/translation-context'
+import { useSocket } from '@/lib/contexts/socket-context'
 import { io } from 'socket.io-client'
 import ModernAdminChatWidget from '@/components/chat/ModernAdminChatWidget'
 import VirtualizedConversationList from '@/components/chat/VirtualizedConversationList'
@@ -85,7 +85,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Message, Conversation } from '@/types/chat'
-import { simpleETAService, SimpleETA } from '@/lib/simple-eta-service'
+import { simpleETAService, SimpleETA } from '@/lib/services/simple-eta-service'
 
 // Additional types for this component
 

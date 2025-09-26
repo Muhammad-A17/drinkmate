@@ -62,7 +62,7 @@ import {
   ExternalLink
 } from "lucide-react"
 import { contactAPI } from "@/lib/api"
-import { sanitizeInput, sanitizeHtml } from "@/lib/protected-api"
+import { sanitizeInput, sanitizeHtml } from "@/lib/api/protected-api"
 import { toast } from "sonner"
 
 interface ContactMessage {

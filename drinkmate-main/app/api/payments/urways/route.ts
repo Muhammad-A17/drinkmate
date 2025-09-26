@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { addSecurityHeaders, logError, sanitizeErrorMessage } from '@/lib/protected-api'
+import { addSecurityHeaders, logError, sanitizeErrorMessage } from '@/lib/api/protected-api'
 import { urwaysPayment } from '@/lib/urways-payment'
 
 export async function POST(request: NextRequest) {

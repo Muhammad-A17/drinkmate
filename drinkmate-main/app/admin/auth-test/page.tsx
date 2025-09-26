@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/lib/auth-context'
-import { getAuthToken } from '@/lib/auth-context'
+import { useAuth } from '@/lib/contexts/auth-context'
+import { getAuthToken } from '@/lib/contexts/auth-context'
 
 export default function AuthTestPage() {
   const { user, isAuthenticated, isLoading } = useAuth()

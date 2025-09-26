@@ -1,7 +1,7 @@
 'use client'
 
 import { Currency } from '@/utils/currency'
-import { useCartSettings } from '@/lib/cart-settings-context'
+import { useCartSettings } from '@/lib/contexts/cart-settings-context'
 import { useRouter } from 'next/navigation'
 
 interface CartTotals {

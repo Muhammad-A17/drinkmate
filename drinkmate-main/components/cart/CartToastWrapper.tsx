@@ -1,6 +1,6 @@
 'use client'
 
-import { useCart } from '@/lib/cart-context'
+import { useCart } from '@/lib/contexts/cart-context'
 import ImprovedCartToast from './ImprovedCartToast'
 
 export default function CartToastWrapper() {

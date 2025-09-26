@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTranslation } from '@/lib/translation-context'
-import { useAuth, getAuthToken } from '@/lib/auth-context'
+import { useTranslation } from '@/lib/contexts/translation-context'
+import { useAuth, getAuthToken } from '@/lib/contexts/auth-context'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

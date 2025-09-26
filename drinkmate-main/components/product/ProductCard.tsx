@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ProductCardProps } from '@/lib/types'
 import { useCart } from '@/hooks/use-cart'
 import { useWishlist } from '@/hooks/use-wishlist'
-import { getImageUrl } from '@/lib/image-utils'
+import { getImageUrl } from '@/lib/utils/image-utils'
 import { 
   Star, 
   ShoppingCart, 

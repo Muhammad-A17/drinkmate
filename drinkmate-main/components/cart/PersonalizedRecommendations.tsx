@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Currency } from '@/utils/currency'
 import { useCart } from '@/hooks/use-cart'
-import { useCartSettings } from '@/lib/cart-settings-context'
-import { useAuth } from '@/lib/auth-context'
+import { useCartSettings } from '@/lib/contexts/cart-settings-context'
+import { useAuth } from '@/lib/contexts/auth-context'
 
 interface RecommendationItem {
   _id: string

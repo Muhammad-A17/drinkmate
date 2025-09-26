@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { adminAPI } from "@/lib/api"
-import { getAuthToken } from "@/lib/auth-context"
+import { getAuthToken } from "@/lib/contexts/auth-context"
 import { SafeImage } from "@/components/ui/safe-image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

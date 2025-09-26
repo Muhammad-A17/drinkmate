@@ -7,7 +7,7 @@ import { fmt } from "@/lib/money"
 import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
 import QuantityControl from "./QuantityControl"
 import { toast } from "sonner"
-import { getImageUrl } from "@/lib/image-utils"
+import { getImageUrl } from "@/lib/utils/image-utils"
 
 interface CartLineItemProps {
   item: {

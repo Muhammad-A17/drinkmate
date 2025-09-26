@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/auth-middleware'
-import { makeAuthenticatedRequest, handleBackendResponse, checkRateLimit, sanitizeInput, validateNationalAddress } from '@/lib/protected-api'
+import { makeAuthenticatedRequest, handleBackendResponse, checkRateLimit, sanitizeInput, validateNationalAddress } from '@/lib/api/protected-api'
 
 interface AuthenticatedRequest extends NextRequest {
   user?: {

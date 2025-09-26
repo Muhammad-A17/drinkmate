@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { authAPI } from './api';
+import { authAPI } from '../api';
 
 interface User {
   _id: string;
@@ -65,9 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Verify token and get user data
         try {
-          console.log("Verifying token...");
           const data = await authAPI.verifyToken();
-          console.log("Token verification response:", data);
           
           if (data && data.user) {
             setAuthState({
@@ -76,13 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               isAuthenticated: true,
               isLoading: false,
             });
-            console.log("User authenticated with isAdmin:", data.user.isAdmin);
           } else {
             throw new Error("Invalid user data from token verification");
           }
         } catch (error: any) {
           // Invalid token - but don't clear immediately, give user a chance
-          console.error("Token verification failed:", error);
           // Only clear token if it's a 401 error
           if (error.response?.status === 401) {
             localStorage.removeItem(TOKEN_KEY);
@@ -95,7 +91,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
           } else {
             // For other errors (like 503), clear token and require re-authentication
-            console.warn("Token verification failed with non-401 error, clearing token for security");
             localStorage.removeItem(TOKEN_KEY);
             sessionStorage.removeItem(TOKEN_KEY);
             setAuthState({
@@ -107,7 +102,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (error) {
-        console.error("Authentication error:", error);
         setAuthState({
           user: null,
           token: null,
@@ -122,9 +116,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string, rememberMe = false) => {
     try {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Attempting login with:', { email });
-      }
       
       // Implement retry logic for login
       let attempts = 0;
@@ -135,9 +126,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const data = await authAPI.login(email, password);
           
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Login response:', data);
-          }
           
           // Store token in both localStorage and sessionStorage for reliability
           localStorage.setItem(TOKEN_KEY, data.token);
@@ -152,7 +140,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           setAuthState(newAuthState);
           
-          console.log('Auth state updated after login:', newAuthState);
           
           return { success: true, message: data.message || "Login successful" };
         } catch (error: any) {
@@ -172,7 +159,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       // All attempts failed or we hit a non-retryable error
-      console.error("Login error:", lastError);
       
       // Try demo login for testing if API is down
       if (!lastError.response && email === 'test@example.com' && password === 'test123') {
@@ -216,7 +202,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         message: errorMessage
       };
     } catch (error: any) {
-      console.error("Unexpected error during login:", error);
       return { 
         success: false, 
         message: "An unexpected error occurred. Please try again later."
@@ -226,9 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (fullName: string, email: string, password: string) => {
     try {
-      console.log('Attempting registration with:', { fullName, email });
       const data = await authAPI.register(fullName, email, password);
-      console.log('Registration response:', data);
       
       localStorage.setItem(TOKEN_KEY, data.token);
       setAuthState({
@@ -239,7 +222,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       return { success: true, message: data.message || "Registration successful" };
     } catch (error: any) {
-      console.error("Registration error:", error);
       
       // Try demo registration for testing if API is down
       if (!error.response) {
@@ -291,7 +273,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         message: data.message || "Password reset email sent" 
       };
     } catch (error: any) {
-      console.error("Forgot password error:", error);
       return { 
         success: false, 
         message: error.response?.data?.error || "Failed to send reset email" 
@@ -307,7 +288,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         message: data.message || "Password reset successful" 
       };
     } catch (error: any) {
-      console.error("Reset password error:", error);
       return { 
         success: false, 
         message: error.response?.data?.error || "Failed to reset password" 
@@ -319,31 +299,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const token = getAuthToken();
       if (!token) {
-        console.log("No token found for refresh");
         return;
       }
 
-      console.log("Refreshing user data...");
       const data = await authAPI.verifyToken();
-      console.log("User refresh response:", data);
       
       if (data && data.user) {
-        console.log("Updating user state with:", data.user);
-        console.log("Phone in response:", data.user.phone);
-        console.log("District in response:", data.user.district);
-        console.log("City in response:", data.user.city);
-        console.log("NationalAddress in response:", data.user.nationalAddress);
         
         setAuthState(prev => ({
           ...prev,
           user: data.user,
         }));
-        console.log("User data refreshed successfully");
-      } else {
-        console.log("No user data in response");
       }
     } catch (error: any) {
-      console.error("Failed to refresh user data:", error);
     }
   };
 

@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { MessageCircle, X, Send, Minimize2, Maximize2, User, Clock, CheckCircle } from 'lucide-react'
-import { useSocket } from '@/lib/socket-context'
-import { useAuth, getAuthToken } from '@/lib/auth-context'
-import { useChatStatus } from '@/lib/chat-status-context'
+import { useSocket } from '@/lib/contexts/socket-context'
+import { useAuth, getAuthToken } from '@/lib/contexts/auth-context'
+import { useChatStatus } from '@/lib/contexts/chat-status-context'
 import { Message } from '@/types/chat'
 
 interface ChatSession {

@@ -5,7 +5,7 @@ import { Star, MessageSquare, ThumbsUp, ThumbsDown, UserCircle } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "@/lib/contexts/auth-context";
 import { shopAPI } from "@/lib/api";
 import { toast } from "sonner";
 

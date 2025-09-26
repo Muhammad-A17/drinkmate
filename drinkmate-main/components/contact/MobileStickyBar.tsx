@@ -1,9 +1,9 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { useTranslation } from '@/lib/translation-context'
+import { useTranslation } from '@/lib/contexts/translation-context'
 import { Button } from '@/components/ui/button'
-import { useContactSettings } from '@/lib/contact-settings-context'
+import { useContactSettings } from '@/lib/contexts/contact-settings-context'
 
 interface MobileStickyBarProps {
   onWhatsApp: () => void

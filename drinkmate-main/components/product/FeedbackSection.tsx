@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Star, CheckCircle, Plus, X, Edit, Trash2 } from "lucide-react"
 import Image from "next/image"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth } from "@/lib/contexts/auth-context"
 import { shopAPI } from "@/lib/api"
 import { toast } from "sonner"
 

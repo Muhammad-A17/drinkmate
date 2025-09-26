@@ -1,5 +1,5 @@
-import { api, apiCache, retryRequest, getAuthToken } from './api';
-import { fallbackCylinders } from './fallback-data';
+import { api, apiCache, retryRequest, getAuthToken } from '../api';
+import { fallbackCylinders } from '../fallback-data';
 
 /**
  * Checks if the device is currently online

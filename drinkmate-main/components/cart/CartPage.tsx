@@ -14,7 +14,7 @@ import { useStickyInView } from '@/hooks/useStickyInView'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Banner from '@/components/layout/Banner'
-import { CartSettingsProvider } from '@/lib/cart-settings-context'
+import { CartSettingsProvider } from '@/lib/contexts/cart-settings-context'
 import { Currency } from '@/utils/currency'
 import { motion, AnimatePresence } from 'framer-motion'
 

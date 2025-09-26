@@ -5,10 +5,10 @@ import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { LoadingLink } from "@/components/ui/LoadingLink"
 import Image from "next/image"
-import { useAuth } from "@/lib/auth-context"
-import { useTranslation } from "@/lib/translation-context"
+import { useAuth } from "@/lib/contexts/auth-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 import { useAdminTranslation } from "@/lib/use-admin-translation"
-import { NavigationProvider } from "@/lib/navigation-context"
+import { NavigationProvider } from "@/lib/contexts/navigation-context"
 import { NavigationLoader } from "@/components/ui/NavigationLoader"
 import { 
   LayoutDashboard, 
@@ -31,10 +31,6 @@ import {
   Star,
   Mail,
   Wrench,
-  Database,
-  Bug,
-  TestTube,
-  GitPullRequest,
   Server,
   Activity
 } from "lucide-react"
@@ -59,19 +55,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const { isRTL, language, setLanguage } = useTranslation()
   const { t } = useAdminTranslation()
 
-  // Debug logging
-  useEffect(() => {
-    console.log("AdminLayout auth state:", { 
-      isAuthenticated, 
-      user: user ? { 
-        id: user._id, 
-        email: user.email, 
-        isAdmin: user.isAdmin 
-      } : null,
-      authLoading,
-      pathname
-    });
-  }, [isAuthenticated, user, authLoading, pathname]);
 
   // Protect admin routes
   useEffect(() => {
@@ -84,26 +67,22 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         
         // If not authenticated and not loading, redirect to login
         if (!isAuthenticated && !authLoading) {
-          console.log("User not authenticated, redirecting to login");
           router.push("/login?redirect=/admin");
           return;
         }
         
         // If authenticated but not admin, redirect to home
         if (isAuthenticated && user && !user.isAdmin) {
-          console.log("User not admin, redirecting to home");
           router.push("/");
           return;
         }
         
         // User is authenticated and is an admin
         if (isAuthenticated && user && user.isAdmin) {
-          console.log("Admin access granted");
           setIsLayoutLoading(false);
           setAuthError(null); // Clear any previous errors
         }
       } catch (error) {
-        console.error("Auth check error:", error);
         setAuthError("Authentication check failed. Please try again.");
         router.push("/login?redirect=/admin");
       }
@@ -120,7 +99,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       logout();
       router.push("/login");
     } catch (error) {
-      console.error("Logout error:", error);
     } finally {
       setIsRefreshing(false);
     }
@@ -210,11 +188,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       icon: <Package className="w-5 h-5" /> 
     },
     { 
-      name: "CO2 Orders", 
-      href: "/admin/co2-orders", 
-      icon: <ShoppingBag className="w-5 h-5" /> 
-    },
-    { 
       name: "Blog", 
       href: "/admin/blog", 
       icon: <FileText className="w-5 h-5" /> 
@@ -233,11 +206,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         name: "Chat Management",
         href: "/admin/chat-management",
         icon: <MessageSquare className="w-5 h-5" />
-      },
-      {
-        name: language === 'AR' ? 'حالة طلبات السحب' : 'PR Status',
-        href: "/admin/pr-status",
-        icon: <GitPullRequest className="w-5 h-5" />
       },
     { 
       name: "Contact Settings", 
@@ -274,45 +242,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       href: "/admin/settings", 
       icon: <Settings className="w-5 h-5" /> 
     },
-    // Test & Debug section (only show in development)
-    ...(process.env.NODE_ENV === 'development' ? [
-      { 
-        name: "Test & Debug", 
-        href: "/admin/test-debug", 
-        icon: <Bug className="w-5 h-5" />,
-        isCategory: true
-      },
-      { 
-        name: "Debug Console", 
-        href: "/admin/debug", 
-        icon: <Bug className="w-5 h-5" />,
-        parent: "Test & Debug"
-      },
-      { 
-        name: "Test Dashboard", 
-        href: "/admin/test-dashboard", 
-        icon: <TestTube className="w-5 h-5" />,
-        parent: "Test & Debug"
-      },
-      { 
-        name: "Auth Debug", 
-        href: "/admin/auth-debug", 
-        icon: <Database className="w-5 h-5" />,
-        parent: "Test & Debug"
-      },
-      { 
-        name: "API Testing", 
-        href: "/admin/test", 
-        icon: <TestTube className="w-5 h-5" />,
-        parent: "Test & Debug"
-      },
-      { 
-        name: "Exchange Testing", 
-        href: "/admin/test-exchange", 
-        icon: <TestTube className="w-5 h-5" />,
-        parent: "Test & Debug"
-      },
-    ] : []),
   ]
 
   // If loading
@@ -553,38 +482,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 )
               })}
               
-              {/* Test & Debug Group (only in development) */}
-              {process.env.NODE_ENV === 'development' && (
-                <>
-                  <li className="mb-4 mt-6">
-                      <div className={`px-3 py-2 text-xs font-semibold text-orange-600 uppercase tracking-wider ${!isSidebarOpen && 'text-center'} bg-gradient-to-r from-orange-100/50 to-orange-200/30 rounded-lg`}>
-                      {isSidebarOpen ? "Test & Debug" : "•"}
-                    </div>
-                  </li>
-                  {navItems.filter(item => item.parent === "Test & Debug").map((item) => {
-                    const isActive = pathname === item.href
-                    return (
-                      <li key={item.name} className="ml-4">
-                        <LoadingLink
-                          href={item.href}
-                          className={`flex items-center ${
-                            isSidebarOpen ? "justify-start px-4" : "justify-center"
-                            } py-3 rounded-xl transition-all duration-300 ${
-                            isActive
-                                ? "bg-gradient-to-r from-orange-500/20 to-orange-600/20 text-orange-600 shadow-lg border border-orange-500/30"
-                                : "text-gray-700 hover:bg-orange-50 hover:text-orange-700 hover:shadow-md"
-                          }`}
-                        >
-                          <span className={`flex-shrink-0 ${isActive ? 'text-orange-600' : ''}`}>{item.icon}</span>
-                          {isSidebarOpen && (
-                            <span className="ml-3 text-sm font-medium">{item.name}</span>
-                          )}
-                        </LoadingLink>
-                      </li>
-                    )
-                  })}
-                </>
-              )}
             </ul>
           </nav>
 
@@ -919,35 +816,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 )
               })}
               
-              {/* Test & Debug Group (only in development) */}
-              {process.env.NODE_ENV === 'development' && (
-                <>
-                  <li className="mb-4 mt-6">
-                      <div className="px-3 py-2 text-xs font-semibold text-orange-600 uppercase tracking-wider bg-gradient-to-r from-orange-100/50 to-orange-200/30 rounded-lg">
-                      Test & Debug
-                    </div>
-                  </li>
-                  {navItems.filter(item => item.parent === "Test & Debug").map((item) => {
-                    const isActive = pathname === item.href
-                    return (
-                      <li key={item.name} className="ml-4">
-                        <LoadingLink
-                          href={item.href}
-                          onClick={() => setIsMobileSidebarOpen(false)}
-                            className={`flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-300 ${
-                            isActive
-                                ? "bg-gradient-to-r from-orange-500/20 to-orange-600/20 text-orange-600 shadow-lg border border-orange-500/30"
-                                : "text-gray-700 hover:bg-orange-50 hover:text-orange-700 hover:shadow-md"
-                          }`}
-                        >
-                          <span className={`flex-shrink-0 ${isActive ? 'text-orange-600' : ''}`}>{item.icon}</span>
-                          <span className="ml-3 text-sm font-medium">{item.name}</span>
-                        </LoadingLink>
-                      </li>
-                    )
-                  })}
-                </>
-              )}
             </ul>
           </nav>
 

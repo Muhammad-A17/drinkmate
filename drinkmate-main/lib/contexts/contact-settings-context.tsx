@@ -393,7 +393,6 @@ export function ContactProvider({ children }: { children: ReactNode }) {
           setSettings(prev => ({ ...prev, ...parsed }))
         }
       } catch (error) {
-        console.error('Failed to load contact settings:', error)
       }
     }
   }, [])
@@ -406,7 +405,6 @@ export function ContactProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.setItem('contact-settings', JSON.stringify({ ...settings, ...newSettings }))
       } catch (error) {
-        console.error('Failed to save contact settings:', error)
       }
     }
   }

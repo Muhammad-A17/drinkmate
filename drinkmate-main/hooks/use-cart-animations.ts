@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { CartItem } from '@/lib/cart-context'
+import { CartItem } from '@/lib/contexts/cart-context'
 
 interface CartAnimationState {
   isAdding: boolean

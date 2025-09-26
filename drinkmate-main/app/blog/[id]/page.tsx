@@ -6,7 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import React, { useState } from "react"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 
 export default function BlogPost({ params }: { params: Promise<{ id: string }> }) {
   const { t, isRTL, isHydrated } = useTranslation()

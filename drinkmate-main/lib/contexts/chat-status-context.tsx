@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { chatSettingsService, type ChatStatus } from './chat-settings-service'
+import { chatSettingsService, type ChatStatus } from '../services/chat-settings-service'
 
 interface ChatStatusContextType {
   chatStatus: ChatStatus
@@ -25,12 +25,9 @@ export function ChatStatusProvider({ children }: { children: ReactNode }) {
   const loadChatStatus = async () => {
     try {
       setError(null)
-      console.log('🔥 ChatStatusContext: Loading chat status...')
       const status = await chatSettingsService.getChatStatus()
-      console.log('🔥 ChatStatusContext: Chat status loaded:', status)
       setChatStatus(status)
     } catch (err) {
-      console.error('🔥 ChatStatusContext: Failed to load chat status:', err)
       setError(err instanceof Error ? err.message : 'Failed to load chat status')
       
       // Set fallback status
@@ -40,7 +37,6 @@ export function ChatStatusProvider({ children }: { children: ReactNode }) {
         workingHours: { start: '09:00', end: '17:00' },
         timezone: 'Asia/Riyadh'
       }
-      console.log('🔥 ChatStatusContext: Using fallback status:', fallbackStatus)
       setChatStatus(fallbackStatus)
     }
   }
@@ -62,7 +58,7 @@ export function ChatStatusProvider({ children }: { children: ReactNode }) {
     initializeStatus()
     
     // Set up polling - reduced frequency to prevent rate limiting
-    const interval = setInterval(loadChatStatus, 30000) // Poll every 30 seconds
+    const interval = setInterval(loadChatStatus, 120000) // Poll every 2 minutes
     
     return () => clearInterval(interval)
   }, [])

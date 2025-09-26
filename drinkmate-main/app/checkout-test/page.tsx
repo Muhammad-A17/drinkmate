@@ -4,10 +4,10 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { useCart } from "@/lib/cart-context"
-import { useAuth } from "@/lib/auth-context"
+import { useCart } from "@/lib/contexts/cart-context"
+import { useAuth } from "@/lib/contexts/auth-context"
 import { orderAPI } from "@/lib/api"
-import paymentService from "@/lib/payment-service"
+import paymentService from "@/lib/services/payment-service"
 import { toast } from "sonner"
 import { CheckCircle, AlertCircle, LockIcon, CreditCard, Loader2, Truck, MapPin, X } from "lucide-react"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
@@ -118,7 +118,7 @@ export default function CheckoutTestPage() {
     try {
       // First create the order
       const orderData = {
-        items: state.items.map(item => ({
+        items: state.items.map((item: any) => ({
           name: item.name,
           price: item.price,
           quantity: item.quantity,
@@ -337,7 +337,7 @@ export default function CheckoutTestPage() {
               
               {/* Cart Items */}
               <div className="space-y-0 mb-6">
-                {state.items.map((item, index) => (
+                {state.items.map((item: any, index: number) => (
                   <div key={item.id}>
                     <div className="grid grid-cols-12 gap-4 items-center py-4">
                       {/* Remove Button */}
@@ -553,6 +553,7 @@ export default function CheckoutTestPage() {
                           onChange={(e) => handleCardDetailsChange("expiryMonth", e.target.value)}
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
                           required
+                          aria-label="Expiry month"
                         >
                           <option value="">MM</option>
                           {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
@@ -569,6 +570,7 @@ export default function CheckoutTestPage() {
                           onChange={(e) => handleCardDetailsChange("expiryYear", e.target.value)}
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
                           required
+                          aria-label="Expiry year"
                         >
                           <option value="">YYYY</option>
                           {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map(year => (

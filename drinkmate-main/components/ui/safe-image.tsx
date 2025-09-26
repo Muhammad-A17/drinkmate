@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { isImageAccessible, getCacheBustingUrl } from "@/lib/fetch-utils"
+import { isImageAccessible, getCacheBustingUrl } from "@/lib/utils/fetch-utils"
 import { logger } from "@/lib/logger"
 
 // Utility to transform Cloudinary URLs for better performance and reliability

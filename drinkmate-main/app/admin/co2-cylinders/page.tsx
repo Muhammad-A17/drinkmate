@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth } from "@/lib/contexts/auth-context"
 import { useAdminTranslation } from "@/lib/use-admin-translation"
 import AdminLayout from "@/components/layout/AdminLayout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -46,7 +46,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { backendImageService, uploadImageWithProgress } from "@/lib/cloud-storage"
-import { fetchWithRetry } from "@/lib/fetch-utils"
+import { fetchWithRetry } from "@/lib/utils/fetch-utils"
 import { co2API } from "@/lib/api"
 import api from "@/lib/api"
 import { YouTubeVideo, isYouTubeUrl } from "@/components/ui/youtube-video"

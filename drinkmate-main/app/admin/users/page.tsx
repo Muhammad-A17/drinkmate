@@ -70,7 +70,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { adminAPI } from "@/lib/api"
-import { sanitizeInput, validateUsername, validatePassword, validateEmail } from "@/lib/protected-api"
+import { sanitizeInput, validateUsername, validatePassword, validateEmail } from "@/lib/api/protected-api"
 import { AdminErrorBoundary } from "@/lib/admin-error-handler"
 import { useAdminErrorHandler, useFormErrorHandler } from "@/hooks/use-admin-error-handler"
 import { toast } from "sonner"
@@ -130,20 +130,15 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      console.log("Fetching users...")
       const response = await adminAPI.getAllUsers()
-      console.log("API Response:", response)
       if (response.success && response.users) {
-        console.log("Users data:", response.users)
         setUsers(response.users)
         toast.success(`Loaded ${response.users.length} users successfully`)
       } else {
-        console.error("Failed to fetch users:", response.message)
         toast.error(response.message || "Failed to load users from API")
         setUsers([]) // Set to empty array on failure
       }
     } catch (error) {
-      console.error("Error fetching users:", error)
       toast.error("Failed to fetch users")
       setUsers([]) // Set to empty array on error
     } finally {
@@ -186,7 +181,6 @@ export default function UsersPage() {
         toast.error(response.message || "Failed to update user status")
       }
     } catch (error) {
-      console.error("Error updating user status:", error)
       toast.error("Failed to update user status")
     }
   }
@@ -207,7 +201,6 @@ export default function UsersPage() {
         toast.error(response.message || "Failed to update user role")
       }
     } catch (error) {
-      console.error("Error updating user role:", error)
       toast.error("Failed to update user role")
     }
   }
@@ -221,7 +214,6 @@ export default function UsersPage() {
       toast.success("User deleted successfully")
       fetchUsers()
     } catch (error: any) {
-      console.error("Error deleting user:", error)
       toast.error(error.response?.data?.message || "Failed to delete user")
     }
   }
@@ -281,7 +273,6 @@ export default function UsersPage() {
         toast.error(response.message || "Failed to create user")
       }
     } catch (error: any) {
-      console.error("Error creating user:", error)
       toast.error(error.response?.data?.message || "Failed to create user")
     } finally {
       setIsSubmitting(false)

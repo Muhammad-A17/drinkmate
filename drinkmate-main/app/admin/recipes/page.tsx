@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/auth-context'
-import { getAuthToken } from '@/lib/auth-context'
-import { useTranslation } from '@/lib/translation-context'
+import { useAuth } from '@/lib/contexts/auth-context'
+import { getAuthToken } from '@/lib/contexts/auth-context'
+import { useTranslation } from '@/lib/contexts/translation-context'
 import AdminLayout from '@/components/layout/AdminLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,8 +18,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Plus, Search, Edit, Trash2, Eye, Star, Clock, Users, Filter, Save, X, Image as ImageIcon, ChefHat, TrendingUp, CheckCircle, BarChart3, Download, MoreHorizontal, ChevronLeft, ChevronRight, Loader2, RefreshCw, Upload, Trash } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
-import { recipeAPI } from '@/lib/recipe-api'
-import { sanitizeInput, sanitizeHtml } from '@/lib/protected-api'
+import { recipeAPI } from '@/lib/api/recipe-api'
+import { sanitizeInput, sanitizeHtml } from '@/lib/api/protected-api'
 import { uploadImageWithProgress, validateFile } from '@/lib/cloud-storage'
 
 interface Recipe {

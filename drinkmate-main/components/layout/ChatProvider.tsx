@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { useAuth } from '@/lib/auth-context'
-import { useChatStatus } from '@/lib/chat-status-context'
+import { useAuth } from '@/lib/contexts/auth-context'
+import { useChatStatus } from '@/lib/contexts/chat-status-context'
 import ModernChatWidget from '@/components/chat/ModernChatWidget'
 
 export default function ChatProvider() {

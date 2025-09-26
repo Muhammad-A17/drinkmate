@@ -20,28 +20,6 @@ router.put('/cylinders/:id', co2Controller.updateCylinder);
 router.delete('/cylinders/:id', co2Controller.deleteCylinder);
 router.patch('/cylinders/:id/stock', co2Controller.updateStock);
 
-// ===== ORDER MANAGEMENT ROUTES =====
-
-// Get all orders (admin only)
-router.get('/orders', authenticateToken, isAdmin, co2Controller.getAllOrders);
-
-// Get order by ID (admin only)
-router.get('/orders/:id', authenticateToken, isAdmin, co2Controller.getOrderById);
-
-// Create new order (authenticated users)
-router.post('/orders', authenticateToken, co2Controller.createOrder);
-
-// Update order status (admin only)
-router.patch('/orders/:id/status', authenticateToken, isAdmin, co2Controller.updateOrderStatus);
-
-// Schedule pickup (admin only)
-router.patch('/orders/:id/pickup', authenticateToken, isAdmin, co2Controller.schedulePickup);
-
-// Schedule delivery (admin only)
-router.patch('/orders/:id/delivery', authenticateToken, isAdmin, co2Controller.scheduleDelivery);
-
-// Update cylinder status in order (admin only)
-router.patch('/orders/:id/cylinder-status', authenticateToken, isAdmin, co2Controller.updateCylinderStatus);
 
 // ===== SUBSCRIPTION MANAGEMENT ROUTES =====
 
@@ -65,7 +43,5 @@ router.post('/subscriptions/:id/refill', authenticateToken, isAdmin, co2Controll
 // Get CO2 dashboard stats (admin only)
 router.get('/dashboard/stats', authenticateToken, isAdmin, co2Controller.getDashboardStats);
 
-// Get orders by date range (admin only)
-router.get('/dashboard/orders-by-date', authenticateToken, isAdmin, co2Controller.getOrdersByDateRange);
 
 module.exports = router;

@@ -183,11 +183,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     try {
       const token = getAuthToken()
       if (!token) {
-        console.error('🔥 ChatProvider: No auth token available')
         throw new Error('No auth token')
       }
 
-      console.log('🔥 ChatProvider: Loading chat data for chatId:', chatId)
 
       // First, get the customer's chats to find the specific chat
       const customerChatsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/customer`, {
@@ -198,31 +196,25 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (!customerChatsResponse.ok) {
-        console.error('🔥 ChatProvider: Failed to fetch customer chats, status:', customerChatsResponse.status, customerChatsResponse.statusText)
         throw new Error(`Failed to fetch customer chats: ${customerChatsResponse.status} ${customerChatsResponse.statusText}`)
       }
 
       const customerChatsData = await customerChatsResponse.json()
-      console.log('🔥 ChatProvider: Customer chats data received:', customerChatsData)
       
       if (!customerChatsData.success || !customerChatsData.data?.chats) {
-        console.error('🔥 ChatProvider: Invalid customer chats data structure:', customerChatsData)
         throw new Error('Invalid customer chats data structure')
       }
       
       // Find the specific chat by ID
       const chat = customerChatsData.data.chats.find((c: any) => c._id === chatId)
       if (!chat) {
-        console.error('🔥 ChatProvider: Chat not found in customer chats:', chatId)
         throw new Error('Chat not found')
       }
       
-      console.log('🔥 ChatProvider: Found chat:', chat)
 
       // Process messages from the chat object (they're already included in the response)
       let messages: Message[] = []
       if (chat.messages && Array.isArray(chat.messages)) {
-        console.log('🔥 ChatProvider: Processing messages from chat object:', chat.messages.length)
         messages = chat.messages.map((msg: any): Message => ({
           id: msg._id || msg.id || `msg_${Date.now()}`,
           content: msg.content || '',
@@ -233,9 +225,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           readAt: msg.readAt,
           status: msg.status || 'sent'
         }))
-        console.log('🔥 ChatProvider: Processed messages from chat object:', messages.length)
       } else {
-        console.log('🔥 ChatProvider: No messages found in chat object')
       }
 
       const chatSession: ChatSession = {
@@ -249,10 +239,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         messages
       }
       
-      console.log('🔥 ChatProvider: Chat session created:', chatSession)
       return chatSession
     } catch (error) {
-      console.error('🔥 ChatProvider: Error loading chat data:', error)
       dispatch({ type: 'SET_ERROR', payload: `Failed to load chat: ${error instanceof Error ? error.message : 'Unknown error'}` })
       return null
     }
@@ -261,21 +249,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   // Check for existing active chat
   const checkForExistingChat = useCallback(async (): Promise<string | null> => {
     if (!user || !isAuthenticated) {
-      console.log('🔥 ChatProvider: No user or not authenticated')
       return null
     }
 
     try {
       const token = getAuthToken()
       if (!token) {
-        console.log('🔥 ChatProvider: No auth token for checking existing chat')
         return null
       }
 
-      console.log('🔥 ChatProvider: Checking for existing chat for user:', user._id)
-
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-      console.log('🔥 ChatProvider: Making request to:', `${apiUrl}/chat/customer`)
       
       // First check if server is available
       try {
@@ -315,7 +298,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       if (response.ok) {
         const data = await response.json()
-        console.log('🔥 ChatProvider: Customer chats response:', data)
         
         if (data.success && data.data?.chats) {
           const activeChat = data.data.chats.find((chat: any) => 
@@ -323,20 +305,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             chat.customer.userId === user._id && 
             !chat.isDeleted
           )
-          console.log('🔥 ChatProvider: Found active chat:', activeChat?._id)
           return activeChat?._id || null
         }
       } else {
         const errorText = await response.text().catch(() => 'Unknown error')
-        console.error('🔥 ChatProvider: Failed to fetch customer chats:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText
-        })
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
     } catch (error) {
-      console.error('🔥 ChatProvider: Error checking for existing chat:', error)
       // Don't throw the error, just log it and return null
       // This prevents the chat widget from breaking
     }
@@ -371,11 +346,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     try {
       if (socket && isConnected) {
         // Use socket - don't add optimistic update as socket will provide real-time feedback
-        console.log('🔥 ChatProvider: Sending via socket')
         await socketSendMessage(state.currentChat._id, content.trim(), type)
       } else {
         // API fallback - add optimistic update since no real-time feedback
-        console.log('🔥 ChatProvider: Sending via API fallback')
         
         const messageId = `temp_${Date.now()}`
         const newMessage: Message = {
@@ -406,7 +379,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
         if (response.ok) {
           const responseData = await response.json()
-          console.log('🔥 ChatProvider: Message sent via API:', responseData)
           
           // Replace temporary message with real message
           if (responseData.data?.message) {
@@ -440,28 +412,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (error) {
-      console.error('Error sending message:', error)
       dispatch({ type: 'SET_ERROR', payload: 'Failed to send message' })
     }
   }, [state.currentChat, socket, isConnected, socketSendMessage, getAuthToken])
 
   const loadChat = useCallback(async (chatId: string) => {
-    console.log('🔥 ChatProvider: Loading chat with ID:', chatId)
     dispatch({ type: 'SET_LOADING', payload: true })
     dispatch({ type: 'SET_ERROR', payload: null })
     
     try {
       const chatData = await loadChatData(chatId)
       if (chatData) {
-        console.log('🔥 ChatProvider: Chat data loaded successfully:', chatData)
         dispatch({ type: 'SET_CURRENT_CHAT', payload: chatData })
         joinChat(chatId)
       } else {
-        console.error('🔥 ChatProvider: No chat data returned for chatId:', chatId)
         dispatch({ type: 'SET_ERROR', payload: 'No chat data found' })
       }
     } catch (error) {
-      console.error('🔥 ChatProvider: Error loading chat:', error)
       dispatch({ type: 'SET_ERROR', payload: `Failed to load chat: ${error instanceof Error ? error.message : 'Unknown error'}` })
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
@@ -509,7 +476,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Failed to create chat')
       }
     } catch (error) {
-      console.error('Error creating chat:', error)
       dispatch({ type: 'SET_ERROR', payload: 'Failed to create chat' })
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
@@ -527,7 +493,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
-        }).catch(console.error)
+        }).catch(() => {})
       }
       
       dispatch({ type: 'SET_UNREAD_COUNT', payload: 0 })
@@ -576,7 +542,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'UPDATE_MESSAGE', payload: { id: messageId, updates: { status: status as 'sending' | 'sent' | 'delivered' | 'read' | 'failed' } } })
       }
     } catch (error) {
-      console.error('Error updating message status:', error)
     }
   }, [state.currentChat, getAuthToken])
 
@@ -605,7 +570,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         })
         
         if (messageExists) {
-          console.log('🔥 ChatProvider: Message already exists, skipping duplicate')
           return
         }
         
@@ -660,20 +624,15 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   // Check for existing chat on mount
   useEffect(() => {
     if (user && isAuthenticated && !state.currentChat) {
-      console.log('🔥 ChatProvider: Checking for existing chat on mount')
       checkForExistingChat().then(chatId => {
         if (chatId) {
-          console.log('🔥 ChatProvider: Found existing chat, loading:', chatId)
           loadChat(chatId)
           
           // Auto-open if was open before refresh
           const wasOpen = localStorage.getItem('chat-widget-open') === 'true'
           if (wasOpen) {
-            console.log('🔥 ChatProvider: Auto-opening chat widget')
             openChat()
           }
-        } else {
-          console.log('🔥 ChatProvider: No existing chat found')
         }
       }).catch(error => {
         console.error('🔥 ChatProvider: Error checking for existing chat:', error)

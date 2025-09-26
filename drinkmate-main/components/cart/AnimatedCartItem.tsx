@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Minus, Plus, Trash2, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { CartItem } from '@/lib/cart-context'
+import { CartItem } from '@/lib/contexts/cart-context'
 import Image from 'next/image'
 import { cn, isValidImageUrl } from '@/lib/utils'
 import { Currency } from '@/utils/currency'
-import { getImageUrl } from '@/lib/image-utils'
+import { getImageUrl } from '@/lib/utils/image-utils'
 
 interface AnimatedCartItemProps {
   item: CartItem

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from 'react'
-import { useTranslation } from '@/lib/translation-context'
+import { useTranslation } from '@/lib/contexts/translation-context'
 
 export default function FontProvider() {
   const { language, isRTL } = useTranslation()

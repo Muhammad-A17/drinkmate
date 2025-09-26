@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 import { useDebounce } from "use-debounce"
 import { Search, Filter, X, SlidersHorizontal } from "lucide-react"
 

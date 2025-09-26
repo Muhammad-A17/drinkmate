@@ -150,7 +150,6 @@ class BackendImageService {
       }
 
       const result = await response.json()
-      console.log('Backend upload result:', result)
 
       return {
         success: true,
@@ -159,7 +158,6 @@ class BackendImageService {
       }
 
     } catch (error) {
-      console.error('Backend upload error:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Upload failed'
@@ -226,7 +224,6 @@ class BackendImageService {
       }
 
       const result = await response.json()
-      console.log('Backend video upload result:', result)
 
       return {
         success: true,
@@ -235,7 +232,6 @@ class BackendImageService {
       }
 
     } catch (error) {
-      console.error('Backend video upload error:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Upload failed'
@@ -276,7 +272,6 @@ class BackendImageService {
       }
 
     } catch (error) {
-      console.error('Backend delete error:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Delete failed'

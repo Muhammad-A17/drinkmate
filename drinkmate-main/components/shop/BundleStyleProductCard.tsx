@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils"
 import { Star, ShoppingCart, Heart, Eye, Zap, Award, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
-import { getProductImageUrl } from "@/lib/image-utils"
+import { getProductImageUrl } from "@/lib/utils/image-utils"
 
 export default function BundleStyleProductCard({
   product,

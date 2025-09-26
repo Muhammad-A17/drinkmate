@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { STORAGE_KEYS } from '@/lib/constants'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/contexts/auth-context'
 
 interface WishlistItem {
   _id: string

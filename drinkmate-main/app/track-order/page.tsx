@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useTranslation } from "@/lib/translation-context"
-import { useAuth } from "@/lib/auth-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
+import { useAuth } from "@/lib/contexts/auth-context"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

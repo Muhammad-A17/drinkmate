@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { FreeGiftProduct } from "@/lib/freeGift"
 import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
-import { getImageUrl } from "@/lib/image-utils"
+import { getImageUrl } from "@/lib/utils/image-utils"
 
 interface FreeGiftSelectedCardProps {
   item: FreeGiftProduct

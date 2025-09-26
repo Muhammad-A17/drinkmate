@@ -1,6 +1,6 @@
 'use client'
 
-import { useTranslation } from '@/lib/translation-context'
+import { useTranslation } from '@/lib/contexts/translation-context'
 import { Button } from '@/components/ui/button'
 import { Calendar, Package, ArrowRight } from 'lucide-react'
 import Link from 'next/link'

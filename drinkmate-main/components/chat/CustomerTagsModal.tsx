@@ -20,7 +20,7 @@ import {
   Phone
 } from 'lucide-react'
 import { Customer } from '@/types/chat'
-import { getCustomerDisplayName, getCustomerInitials } from '@/lib/chat-utils'
+import { getCustomerDisplayName, getCustomerInitials } from '@/lib/utils/chat-utils'
 import { cn } from '@/lib/utils'
 
 interface CustomerTagsModalProps {

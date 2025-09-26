@@ -5,7 +5,7 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { LoadingLink } from "@/components/ui/LoadingLink"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 import { FaFacebook, FaTwitter, FaInstagram, FaWhatsapp } from "react-icons/fa"
 
 export default function Footer() {

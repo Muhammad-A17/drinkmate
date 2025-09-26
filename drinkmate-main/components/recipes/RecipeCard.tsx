@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 import StatPill from "./StatPill"
 import { isValidImageUrl } from '@/lib/utils'
 

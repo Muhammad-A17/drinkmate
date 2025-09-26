@@ -4,7 +4,7 @@ import PageLayout from "@/components/layout/PageLayout"
 import { Calendar, User, ArrowRight, Coffee, Sparkles, Heart } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 
 export default function Blog() {
   const { t, isRTL, isHydrated } = useTranslation()

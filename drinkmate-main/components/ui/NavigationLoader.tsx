@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { useNavigation } from '@/lib/navigation-context'
+import { useNavigation } from '@/lib/contexts/navigation-context'
 import { Loader2 } from 'lucide-react'
 
 export function NavigationLoader() {

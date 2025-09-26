@@ -4,13 +4,13 @@ import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 import PageLayout from "@/components/layout/PageLayout"
 import StatPill from "@/components/recipes/StatPill"
 import { Button } from "@/components/ui/button"
 import { Heart, Share2, Copy, Clock, Star, Utensils } from "lucide-react"
 import { toast } from "sonner"
-import { recipeAPI } from "@/lib/recipe-api"
+import { recipeAPI } from "@/lib/api/recipe-api"
 
 interface Recipe {
   _id: string

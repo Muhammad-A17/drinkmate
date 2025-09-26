@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useChat } from '@/lib/chat-context'
-import { useAuth } from '@/lib/auth-context'
+import { useChat } from '@/lib/contexts/chat-context'
+import { useAuth } from '@/lib/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'

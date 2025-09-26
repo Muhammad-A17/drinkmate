@@ -3,8 +3,8 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { MessageCircle, Send, X, User, Clock } from 'lucide-react'
 
-import { useAuth } from '@/lib/auth-context'
-import { useSocket } from '@/lib/socket-context'
+import { useAuth } from '@/lib/contexts/auth-context'
+import { useSocket } from '@/lib/contexts/socket-context'
 import { Message, Conversation } from '@/types/chat'
 
 interface SimpleAdminChatWidgetProps {
