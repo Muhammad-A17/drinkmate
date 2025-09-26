@@ -59,7 +59,10 @@ export function SocketProvider({ children }: SocketProviderProps) {
     // Reset connection state
     setIsConnected(false)
 
-    const socketUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    const socketUrl = process.env.NEXT_PUBLIC_API_URL || 
+      (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000' 
+        : 'https://drinkmates.onrender.com')
     console.log('🔥 Socket connecting to:', socketUrl)
     console.log('🔥 Socket auth token present:', !!token)
     

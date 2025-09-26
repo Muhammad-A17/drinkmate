@@ -14,7 +14,7 @@ const securityHeaders = helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "https://www.youtube.com", "https://www.googletagmanager.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      connectSrc: ["'self'", "https://api.cloudinary.com", "https://www.youtube.com"],
+      connectSrc: ["'self'", "https://api.cloudinary.com", "https://www.youtube.com", "wss:", "ws:", "https://drinkmate-ruddy.vercel.app", "https://drinkmates.vercel.app"],
       mediaSrc: ["'self'", "https://www.youtube.com"],
       objectSrc: ["'none'"],
       frameSrc: ["'self'", "https://www.youtube.com"],

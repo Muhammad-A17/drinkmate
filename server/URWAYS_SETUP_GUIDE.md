@@ -34,7 +34,7 @@ URWAYS_API_KEY=your_merchant_secret_key_here
 URWAYS_SECRET_KEY=your_merchant_secret_key_here
 URWAYS_MERCHANT_ID=your_merchant_id_here
 URWAYS_TERMINAL_ID=your_terminal_id_here
-URWAYS_PASSWORD="#your_terminal_password_here"
+URWAYS_TERMINAL_PASSWORD="#your_terminal_password_here"
 URWAYS_ENVIRONMENT=sandbox
 
 # Frontend Configuration

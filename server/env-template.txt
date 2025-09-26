@@ -58,10 +58,10 @@ EMAIL_PASS=${SMTP_PASS}
 # PAYMENT GATEWAY CONFIGURATION
 # ===========================================
 # Urways Payment Gateway
-URWAYS_API_KEY=your_urways_api_key
-URWAYS_SECRET_KEY=your_urways_secret_key
-URWAYS_MERCHANT_ID=your_urways_merchant_id
-URWAYS_ENVIRONMENT=production
+URWAYS_TERMINAL_ID=aqualinesa
+URWAYS_TERMINAL_PASSWORD=URWAY@026_a
+URWAYS_MERCHANT_KEY=e51ef25d3448a823888e3f38f9ffcc3693a40e3590cf4bb6e7ac5b352a00f30d
+URWAYS_API_URL=https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest
 
 # Tap Payment Gateway
 TAP_API_KEY=your_tap_api_key

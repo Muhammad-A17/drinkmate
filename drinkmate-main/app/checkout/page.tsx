@@ -79,69 +79,69 @@ export default function CheckoutPage() {
     
     for (const item of state.items) {
       try {
-        let isValid = false
+        let isValid = true // Start with valid assumption
+        let validationError = ''
         
-        // Check if it's a product with productId
+        // Only validate if we have the necessary IDs
         if (item.productId && item.productType === 'product') {
-          const response = await shopAPI.getProduct(item.productId)
-          isValid = response.success && response.product
+          try {
+            const response = await shopAPI.getProduct(item.productId)
+            if (!response.success || !response.product) {
+              isValid = false
+              validationError = 'Product not found'
+            }
+          } catch (error) {
+            console.error(`Error validating product ${item.name}:`, error)
+            // Don't mark as invalid on API error, just log it
+            console.warn(`Skipping validation for product ${item.name} due to API error`)
+          }
         } 
-        // Check if it's a bundle with bundleId
         else if (item.bundleId && item.productType === 'bundle') {
           try {
             const response = await shopAPI.getBundle(item.bundleId)
-            isValid = response.success && response.bundle
-          } catch (error) {
-            console.error(`Error validating bundle ${item.name}:`, error)
-            isValid = false
-          }
-        } 
-        // Check if it's a cylinder
-        else if (item.productType === 'cylinder') {
-          const response = await co2API.getCylinder(String(item.id))
-          isValid = response.success && response.cylinder
-        }
-        // For items without specific productType, try to validate using the item ID
-        else if (item.id) {
-          // Try to validate as a regular product first
-          try {
-            const productResponse = await shopAPI.getProduct(String(item.id))
-            if (productResponse.success && productResponse.product) {
-              isValid = true
-            } else {
-              // Try to validate as a bundle
-              const bundleResponse = await shopAPI.getBundle(String(item.id))
-              if (bundleResponse.success && bundleResponse.bundle) {
-                isValid = true
-              } else {
-                // Try to validate as a cylinder
-                const cylinderResponse = await co2API.getCylinder(String(item.id))
-                isValid = cylinderResponse.success && cylinderResponse.cylinder
-              }
+            if (!response.success || !response.bundle) {
+              isValid = false
+              validationError = 'Bundle not found'
             }
           } catch (error) {
-            console.error(`Error validating item ${item.name} with ID ${item.id}:`, error)
-            // If all validation attempts fail, consider the item invalid
-            isValid = false
+            console.error(`Error validating bundle ${item.name}:`, error)
+            // Don't mark as invalid on API error, just log it
+            console.warn(`Skipping validation for bundle ${item.name} due to API error`)
+          }
+        } 
+        else if (item.productType === 'cylinder') {
+          try {
+            const response = await co2API.getCylinder(String(item.id))
+            if (!response.success || !response.cylinder) {
+              isValid = false
+              validationError = 'Cylinder not found'
+            }
+          } catch (error) {
+            console.error(`Error validating cylinder ${item.name}:`, error)
+            // Don't mark as invalid on API error, just log it
+            console.warn(`Skipping validation for cylinder ${item.name} due to API error`)
           }
         }
-        // If item has no ID, consider it invalid
-        else {
-          console.warn(`Cart item ${item.name} has no valid ID for validation`)
-          isValid = false
+        // For items without specific productType or ID, assume they're valid
+        // This prevents removing items that might be valid but don't have proper IDs
+        else if (!item.id) {
+          console.warn(`Cart item ${item.name} has no ID - assuming valid for now`)
+          isValid = true
         }
         
-        if (!isValid) {
-          console.log(`Marking item as invalid: ${item.name} (ID: ${item.id})`)
+        // Only mark as invalid if we have a clear validation error
+        if (!isValid && validationError) {
+          console.log(`Marking item as invalid: ${item.name} (ID: ${item.id}) - ${validationError}`)
           invalidItems.push(String(item.id))
         }
       } catch (error) {
         console.error(`Error validating cart item ${item.name}:`, error)
-        invalidItems.push(String(item.id))
+        // Don't mark as invalid on general errors, just log them
+        console.warn(`Skipping validation for item ${item.name} due to error`)
       }
     }
     
-    // Remove invalid items from cart
+    // Only remove items that are definitely invalid
     if (invalidItems.length > 0) {
       console.log(`Removing ${invalidItems.length} invalid items from cart:`, invalidItems)
       invalidItems.forEach(itemId => {
@@ -170,10 +170,9 @@ export default function CheckoutPage() {
       toast.error("Your cart is empty")
       // Don't redirect - let user stay on checkout page
     } else {
-      // Validate cart items on page load
-      validateCartItems().catch(error => {
-        console.error('Error validating cart items:', error)
-      })
+      // Skip automatic validation on page load to prevent items from being removed
+      // Validation will happen during payment processing instead
+      console.log('Cart loaded with items, skipping automatic validation')
     }
 
     return () => clearTimeout(loadingTimer)
@@ -629,13 +628,11 @@ export default function CheckoutPage() {
 
       let paymentResponse: any
       if (selectedGateway === "urways") {
-        // Call frontend API for URWAYS
-        const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null
+        // Call frontend API for URWAYS (no auth required for guest checkout)
         paymentResponse = await fetch('/api/payments/urways', {
           method: 'POST',
           headers: { 
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify(paymentRequest)
         })

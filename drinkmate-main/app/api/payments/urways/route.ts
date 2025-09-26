@@ -151,6 +151,14 @@ export async function POST(request: NextRequest) {
       requestHash: urwaysRequest.requestHash
     })
     
+    console.log('🔍 Environment Check:', {
+      NODE_ENV: process.env.NODE_ENV,
+      URWAYS_TERMINAL_ID: process.env.URWAYS_TERMINAL_ID ? 'SET' : 'NOT SET',
+      URWAYS_TERMINAL_PASSWORD: process.env.URWAYS_TERMINAL_PASSWORD ? 'SET' : 'NOT SET',
+      URWAYS_MERCHANT_KEY: process.env.URWAYS_MERCHANT_KEY ? 'SET' : 'NOT SET',
+      URWAYS_API_URL: process.env.URWAYS_API_URL ? 'SET' : 'NOT SET'
+    })
+    
     console.log('🚀 Full URWAYS Request:', JSON.stringify(urwaysRequest, null, 2))
 
     // Make API call to URWAYS from server
