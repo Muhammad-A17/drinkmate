@@ -9,7 +9,7 @@ import { ProductGridProps, Product } from '@/lib/types'
 import { useCart } from '@/hooks/use-cart'
 import { useCartAnimations } from '@/hooks/use-cart-animations'
 import CartNotification from '@/components/cart/CartNotification'
-import { getProductImageUrl, getImageUrl } from '@/lib/image-utils'
+import { getProductImageUrl, getImageUrl } from '@/lib/utils/image-utils'
 
 const EmptyState = ({ onRetry, isRTL }: { onRetry?: () => void; isRTL?: boolean }) => (
   <div className="text-center py-16">

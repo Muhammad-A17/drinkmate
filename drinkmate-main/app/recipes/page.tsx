@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import Image from "next/image"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 import PageLayout from "@/components/layout/PageLayout"
 import RecipeCard from "@/components/recipes/RecipeCard"
 import RecipeCardSkeleton from "@/components/recipes/RecipeCardSkeleton"
 import FilterBar from "@/components/recipes/FilterBar"
 import { useRecipeRotation, formatTimeRemaining } from "@/hooks/use-recipe-rotation"
-import { recipeAPI } from "@/lib/recipe-api"
+import { recipeAPI } from "@/lib/api/recipe-api"
 
 interface Recipe {
   id: string
@@ -138,7 +138,6 @@ export default function Recipes() {
   const [hasMore, setHasMore] = useState(true)
   const isFetchingRef = useRef(false)
   
-  console.log('Component render - recipes length:', recipes.length, 'loading:', loading)
 
   // Temporarily disable to debug infinite loop
   // const { currentRecipe, timeUntilNext } = useRecipeRotation(recipes)
@@ -147,17 +146,14 @@ export default function Recipes() {
 
   // Fetch recipes from API
   useEffect(() => {
-    console.log('useEffect triggered with dependencies:', { currentPage, searchQuery, selectedCategory })
     
     const fetchRecipes = async () => {
       // Prevent multiple simultaneous calls
       if (isFetchingRef.current) {
-        console.log('Already fetching, skipping...')
         return
       }
       
       isFetchingRef.current = true
-      console.log('Starting to fetch recipes...')
       
       try {
         setLoading(true)
@@ -188,12 +184,8 @@ export default function Recipes() {
         }
 
         if (process.env.NODE_ENV === 'development') {
-          console.log('Fetching recipes with filters:', filters)
-          console.log('Search query being sent:', filters.search)
-          console.log('API base URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
         }
         const data = await recipeAPI.getRecipes(filters)
-        console.log('API response:', data)
         
         if (data.success && data.recipes) {
           // Transform API data to match frontend interface
@@ -216,32 +208,24 @@ export default function Recipes() {
             isFeatured: recipe.featured || false
           }))
           
-          console.log('Transformed recipes:', transformedRecipes.length)
-          console.log('First recipe:', transformedRecipes[0])
           
           // Handle pagination - append for page > 1, replace for page 1
           if (currentPage === 1) {
-            console.log('Setting recipes (page 1):', transformedRecipes.length)
             setRecipes(transformedRecipes)
           } else {
-            console.log('Appending recipes (page', currentPage + '):', transformedRecipes.length)
             setRecipes(prev => [...prev, ...transformedRecipes])
           }
           setHasMore(data.pagination?.hasNext || false)
         } else {
-          console.warn('API response not successful or no recipes:', data)
           // Fallback to mock data if API fails (only on page 1)
           if (currentPage === 1) {
-            console.log('Using mock recipes:', mockRecipes.length)
             setRecipes(mockRecipes)
           }
           setHasMore(false)
         }
       } catch (error) {
-        console.error('Error fetching recipes:', error)
         // Fallback to mock data if API fails (only on page 1)
         if (currentPage === 1) {
-          console.log('Error occurred, using mock recipes:', mockRecipes.length)
           setRecipes(mockRecipes)
         }
         setHasMore(false)
@@ -257,7 +241,6 @@ export default function Recipes() {
   // Since we're doing server-side filtering, we can use recipes directly
   // Only apply client-side sorting for better UX while waiting for new data
   const sortedRecipes = useMemo(() => {
-    console.log('Applying client-side sorting - recipes length:', recipes.length)
     let sorted = [...recipes]
 
     // Apply sorting (server handles filtering, we handle sorting for responsiveness)
@@ -277,34 +260,28 @@ export default function Recipes() {
         break
     }
 
-    console.log('Client-side sorted recipes:', sorted.length)
     return sorted
   }, [recipes, sortBy])
 
   const handleSearchChange = useCallback((query: string) => {
-    console.log('handleSearchChange called with:', query)
     setSearchQuery(query)
     setCurrentPage(1)
     setHasMore(true)
   }, [])
 
   const handleSortChange = useCallback((sort: string) => {
-    console.log('handleSortChange called with:', sort)
     setSortBy(sort)
   }, [])
 
   const handleCategoryChange = useCallback((category: string) => {
-    console.log('handleCategoryChange called with:', category)
     setSelectedCategory(category)
     setCurrentPage(1)
     setHasMore(true)
   }, [])
 
   const loadMore = useCallback(() => {
-    console.log('Load More clicked, current page:', currentPage)
     setCurrentPage(prev => {
       const nextPage = prev + 1
-      console.log('Setting page to:', nextPage)
       return nextPage
     })
   }, [currentPage])

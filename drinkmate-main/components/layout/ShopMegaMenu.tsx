@@ -4,7 +4,7 @@ import * as Popover from "@radix-ui/react-popover"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 import { useState, useRef, useEffect } from "react"
 import { ChevronDown, ArrowRight, Star, Gift, Zap, ShoppingBag } from "lucide-react"
 

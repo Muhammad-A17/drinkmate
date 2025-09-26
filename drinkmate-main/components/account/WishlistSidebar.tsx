@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useTranslation } from '@/lib/translation-context'
+import { useTranslation } from '@/lib/contexts/translation-context'
 import { useWishlist } from '@/hooks/use-wishlist'
 import { Button } from '@/components/ui/button'
 import { Heart, ShoppingCart, Eye, Trash2, Loader2, X } from 'lucide-react'
@@ -9,7 +9,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Price } from '@/components/account/Price'
-import { useCart } from '@/lib/cart-context'
+import { useCart } from '@/lib/contexts/cart-context'
 
 interface WishlistSidebarProps {
   className?: string

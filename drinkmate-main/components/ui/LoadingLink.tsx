@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useNavigation } from '@/lib/navigation-context'
+import { useNavigation } from '@/lib/contexts/navigation-context'
 import { cn } from '@/lib/utils'
 
 interface LoadingLinkProps {

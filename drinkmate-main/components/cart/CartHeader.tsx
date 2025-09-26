@@ -3,7 +3,7 @@
 import { Lock } from 'lucide-react'
 import Link from 'next/link'
 import { useCart } from '@/hooks/use-cart'
-import { useCartSettings } from '@/lib/cart-settings-context'
+import { useCartSettings } from '@/lib/contexts/cart-settings-context'
 
 export default function CartHeader() {
   const { totalPrice } = useCart()

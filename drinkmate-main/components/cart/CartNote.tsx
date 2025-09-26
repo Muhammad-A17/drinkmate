@@ -1,7 +1,7 @@
 'use client'
 
 import { useCart } from '@/hooks/use-cart'
-import { useCartSettings } from '@/lib/cart-settings-context'
+import { useCartSettings } from '@/lib/contexts/cart-settings-context'
 import { useEffect, useState } from 'react'
 
 export default function CartNote() {

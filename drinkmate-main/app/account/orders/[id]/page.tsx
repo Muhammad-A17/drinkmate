@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useTranslation } from '@/lib/translation-context'
+import { useTranslation } from '@/lib/contexts/translation-context'
 import { useCart } from '@/hooks/use-cart'
 import { Order, OrderLineItem, Shipment, Invoice } from '@/types/account'
 import { Button } from '@/components/ui/button'

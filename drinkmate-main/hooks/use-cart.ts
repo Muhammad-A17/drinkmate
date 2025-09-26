@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect } from 'react'
-import { useCart as useCartContext, CartItem } from '@/lib/cart-context'
+import { useCart as useCartContext, CartItem } from '@/lib/contexts/cart-context'
 
 interface UseCartReturn {
   items: CartItem[]

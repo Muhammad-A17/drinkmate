@@ -2,7 +2,7 @@
 
 import PageLayout from "@/components/layout/PageLayout"
 import { Cookie, Settings, Shield, Info, Eye, Trash2 } from "lucide-react"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 
 export default function CookiePolicy() {
   const { t, isRTL } = useTranslation()

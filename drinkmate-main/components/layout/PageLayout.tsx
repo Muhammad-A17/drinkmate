@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Banner from "./Banner"
 import Header from "./Header"
 import Footer from "./Footer"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 import { toast } from "sonner"
 
 interface PageLayoutProps {

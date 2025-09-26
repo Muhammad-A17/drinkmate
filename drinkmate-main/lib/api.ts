@@ -1,9 +1,9 @@
 // API service for handling all backend requests
 import axios from 'axios';
-import { getAuthToken } from './auth-context';
+import { getAuthToken } from './contexts/auth-context';
 import { fallbackCylinders, fallbackFlavors, fallbackProducts } from './fallback-data';
 import { ErrorHandler, createApiResponse } from './error-handler';
-import { checkAdminRateLimit } from './protected-api';
+import { checkAdminRateLimit } from './api/protected-api';
 
 // Re-export getAuthToken for other modules to use from this single import
 export { getAuthToken };
@@ -17,12 +17,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ||
 
 const FINAL_API_URL = API_URL;
 
-// Debug logging
-console.log('API Configuration:', {
-  originalAPI_URL: API_URL,
-  FINAL_API_URL,
-  hostname: typeof window !== 'undefined' ? window.location.hostname : 'server-side'
-});
 
 // Cache configuration
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes in milliseconds (increased to reduce API calls)
@@ -92,7 +86,6 @@ api.interceptors.response.use(
     // Log security errors but not in production to avoid leaking sensitive info
     if (process.env.NODE_ENV !== 'production' && error.response) {
       if (error.response.status === 401 || error.response.status === 403) {
-        console.warn('Security error:', error.response.status, error.response.data);
       }
     }
     
@@ -108,7 +101,6 @@ export const invalidateCache = (pattern?: string) => {
       if (key.includes(pattern)) {
         apiCache.delete(key);
         if (process.env.NODE_ENV === 'development') {
-          console.log(`Cache invalidated for pattern: ${pattern}, key: ${key}`);
         }
       }
     }
@@ -116,7 +108,6 @@ export const invalidateCache = (pattern?: string) => {
     // Clear all cache
     apiCache.clear();
     if (process.env.NODE_ENV === 'development') {
-      console.log('All cache cleared');
     }
   }
 };
@@ -128,14 +119,12 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
     const cachedData = apiCache.get(cacheKey);
     if (cachedData.timestamp > Date.now() - CACHE_TTL) {
       if (process.env.NODE_ENV === 'development') {
-        console.log(`Cache hit for key: ${cacheKey}`);
       }
       return cachedData.data;
     } else {
       // Cache expired
       apiCache.delete(cacheKey);
       if (process.env.NODE_ENV === 'development') {
-        console.log(`Cache expired for key: ${cacheKey}`);
       }
     }
   }
@@ -147,7 +136,6 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
       : true; // Assume online if we can't detect
       
     if (process.env.NODE_ENV === 'development' && !isOnline) {
-      console.warn('Device appears to be offline');
     }
     
     return isOnline;
@@ -159,7 +147,6 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
   while (retries < maxRetries) {
     // Check if we're online before attempting a request
     if (!checkConnectivity()) {
-      console.warn(`Network offline, waiting before retry attempt ${retries + 1}/${maxRetries}`);
       await new Promise<void>(resolve => setTimeout(resolve, 2000));
       retries++;
       continue;
@@ -167,7 +154,6 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
     
     try {
       if (retries > 0 && process.env.NODE_ENV === 'development') {
-        console.log(`Retry attempt ${retries}/${maxRetries}`);
       }
       
       const result = await apiCall();
@@ -178,9 +164,6 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
           data: result,
           timestamp: Date.now()
         });
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`Data cached for key: ${cacheKey}`);
-        }
       }
     
       return result;
@@ -189,7 +172,6 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
       retries++;
       
       if (process.env.NODE_ENV === 'development') {
-        console.warn(`API call failed (attempt ${retries}/${maxRetries}): ${error.message || 'Network Error'}`);
       }
       
       // Don't retry for certain error codes
@@ -205,7 +187,6 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
       // If we've used all retries, throw the error
       if (retries >= maxRetries) {
         if (process.env.NODE_ENV === 'development') {
-          console.error(`All ${maxRetries} retry attempts failed`);
         }
         throw error;
       }
@@ -218,7 +199,6 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
         waitTime = Math.min(20000, waitTime * 2);
         
         if (process.env.NODE_ENV === 'development') {
-          console.warn(`Network error detected, waiting ${waitTime}ms before retry`);
         }
       }
       
@@ -290,7 +270,6 @@ api.interceptors.response.use(
     if (process.env.NODE_ENV === 'development') {
       // Safely extract error message with fallbacks
       const errorMessage = error.response?.data?.message || error.message || 'Network Error';
-      console.error('API Error:', errorMessage);
       
       // Add additional diagnostic information for network errors
       if (!error.response) {
@@ -308,11 +287,9 @@ api.interceptors.response.use(
           }
         };
         
-        console.warn('Network Error Details:', diagnosticInfo);
         
         // Check if the error is likely due to backend not running
         if (error.code === 'ECONNREFUSED' || error.message?.includes('refused')) {
-          console.warn('⚠️ The API server may not be running. Please ensure the backend server is started.');
         }
       }
     }
@@ -329,7 +306,6 @@ export const authAPI = {
       return response.data;
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Login error:', error.response?.data || error.message);
       }
       throw error;
     }
@@ -341,7 +317,6 @@ export const authAPI = {
       return response.data;
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Registration error:', error.response?.data || error.message);
       }
       throw error;
     }
@@ -353,7 +328,6 @@ export const authAPI = {
       return response.data;
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Forgot password error:', error.response?.data || error.message);
       }
       throw error;
     }
@@ -365,7 +339,6 @@ export const authAPI = {
       return response.data;
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Reset password error:', error.response?.data || error.message);
       }
       throw error;
     }
@@ -383,14 +356,6 @@ export const authAPI = {
         }
         return response.data;
       } catch (error: any) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Token verification failed:', {
-            status: error.response?.status,
-            data: error.response?.data,
-            message: error.message,
-            url: `${API_URL}/auth/verify`
-          });
-        }
         throw error;
       }
     }, undefined, 3, 1500); // 3 retries with 1.5s initial delay
@@ -404,7 +369,6 @@ export const authAPI = {
         return response.data;
       } catch (error: any) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Get profile error:', error.response?.data || error.message);
         }
         throw error;
       }
@@ -423,7 +387,6 @@ export const authAPI = {
       return response.data;
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Update profile error:', error.response?.data || error.message);
       }
       throw error;
     }
@@ -438,7 +401,6 @@ export const authAPI = {
       return response.data;
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Change password error:', error.response?.data || error.message);
       }
       throw error;
     }
@@ -454,7 +416,6 @@ export const authAPI = {
       return response.data;
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Upload avatar error:', error.response?.data || error.message);
       }
       throw error;
     }
@@ -504,7 +465,6 @@ export const shopAPI = {
         return direct.data;
       } catch (err: any) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Error in direct product fetch:', err.response?.status || err.message);
         }
         // If we assumed ObjectId or got a non-404, rethrow
         if (isObjectId && err.response?.status === 404) {
@@ -525,7 +485,6 @@ export const shopAPI = {
           }
           return bySlug.data;
         } catch (slugErr: any) {
-          console.error('Error in slug product fetch:', slugErr.response?.status || slugErr.message);
           throw slugErr;
         }
       }
@@ -540,7 +499,6 @@ export const shopAPI = {
         const response = await api.get(`/shop/products/${slug}`);
         return response.data;
       } catch (error: any) {
-        console.error('Error fetching product by slug:', error.response?.data || error.message);
         throw error;
       }
     });
@@ -635,7 +593,6 @@ export const shopAPI = {
         return direct.data;
       } catch (err: any) {
         if (process.env.NODE_ENV === 'development') {
-          console.error('Error in direct bundle fetch:', err.response?.status || err.message);
         }
         if (isObjectId && err.response?.status === 404) {
           throw err;
@@ -653,7 +610,6 @@ export const shopAPI = {
           }
           return bySlug.data;
         } catch (slugErr: any) {
-          console.error('Error in slug bundle fetch:', slugErr.response?.status || slugErr.message);
           throw slugErr;
         }
       }
@@ -685,7 +641,6 @@ export const shopAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Error adding review:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -856,7 +811,6 @@ export const shopAPI = {
           total: allProducts.length
         };
       } catch (error: any) {
-        console.error('Error fetching all products:', error.response?.data || error.message);
         throw error;
       }
     }, cacheKey);
@@ -983,7 +937,6 @@ export const orderAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Update order status error:', error.response?.data || error.message);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to update order status',
@@ -1003,7 +956,6 @@ export const orderAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Delete order error:', error.response?.data || error.message);
       throw error;
     }
   }
@@ -1160,7 +1112,6 @@ export const chatAPI = {
       const response = await api.get('/chat/business-hours');
       return response.data;
     } catch (error: any) {
-      console.error('Business hours check error:', error);
       throw error;
     }
   },
@@ -1171,7 +1122,6 @@ export const chatAPI = {
       const response = await api.post('/chat/create', chatData);
       return response.data;
     } catch (error: any) {
-      console.error('Create chat error:', error);
       throw error;
     }
   },
@@ -1182,7 +1132,6 @@ export const chatAPI = {
       const response = await api.get('/chat/customer');
       return response.data;
     } catch (error: any) {
-      console.error('Get customer chats error:', error);
       throw error;
     }
   },
@@ -1193,7 +1142,6 @@ export const chatAPI = {
       const response = await api.get('/chat/admin/assigned');
       return response.data;
     } catch (error: any) {
-      console.error('Get admin chats error:', error);
       throw error;
     }
   },
@@ -1204,7 +1152,6 @@ export const chatAPI = {
       const response = await api.get('/chat/admin/all');
       return response.data;
     } catch (error: any) {
-      console.error('Get open chats error:', error);
       throw error;
     }
   },
@@ -1215,7 +1162,6 @@ export const chatAPI = {
       const response = await api.get(`/chat/${chatId}`);
       return response.data;
     } catch (error: any) {
-      console.error('Get chat by ID error:', error);
       throw error;
     }
   },
@@ -1226,7 +1172,6 @@ export const chatAPI = {
       const response = await api.put(`/chat/${chatId}/assign`);
       return response.data;
     } catch (error: any) {
-      console.error('Assign chat error:', error);
       throw error;
     }
   },
@@ -1237,7 +1182,6 @@ export const chatAPI = {
       const response = await api.post(`/chat/${chatId}/messages`, messageData);
       return response.data;
     } catch (error: any) {
-      console.error('Send message error:', error);
       throw error;
     }
   },
@@ -1248,7 +1192,6 @@ export const chatAPI = {
       const response = await api.get(`/chat/${chatId}/messages?limit=${limit}&skip=${skip}`);
       return response.data;
     } catch (error: any) {
-      console.error('Get chat messages error:', error);
       throw error;
     }
   },
@@ -1259,7 +1202,6 @@ export const chatAPI = {
       const response = await api.put(`/chat/${chatId}/read`);
       return response.data;
     } catch (error: any) {
-      console.error('Mark messages as read error:', error);
       throw error;
     }
   },
@@ -1270,7 +1212,6 @@ export const chatAPI = {
       const response = await api.put(`/chat/${chatId}/close`, { resolutionNotes });
       return response.data;
     } catch (error: any) {
-      console.error('Close chat error:', error);
       throw error;
     }
   },
@@ -1281,7 +1222,6 @@ export const chatAPI = {
       const response = await api.get('/chat/admin/stats');
       return response.data;
     } catch (error: any) {
-      console.error('Get chat stats error:', error);
       throw error;
     }
   },
@@ -1292,7 +1232,6 @@ export const chatAPI = {
       const response = await api.post(`/chat/${chatId}/rate`, { score, feedback });
       return response.data;
     } catch (error: any) {
-      console.error('Rate chat error:', error);
       throw error;
     }
   }
@@ -1381,7 +1320,6 @@ export const adminAPI = {
       const response = await api.get(`/admin/products/${id}`);
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getProduct:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch product',
@@ -1405,7 +1343,6 @@ export const adminAPI = {
       const response = await api.post('/admin/products', productData);
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - createProduct:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to create product',
@@ -1419,7 +1356,6 @@ export const adminAPI = {
       const response = await api.put(`/admin/products/${id}`, productData);
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - updateProduct:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to update product',
@@ -1433,7 +1369,6 @@ export const adminAPI = {
       const response = await api.delete(`/admin/products/${id}`);
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - deleteProduct:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to delete product',
@@ -1450,7 +1385,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getOrders:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch orders',
@@ -1464,7 +1398,6 @@ export const adminAPI = {
       const response = await api.get(`/admin/orders/${id}`);
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getOrder:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch order',
@@ -1478,7 +1411,6 @@ export const adminAPI = {
       const response = await api.put(`/admin/orders/${id}/status`, { status });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - updateOrderStatus:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to update order status',
@@ -1495,7 +1427,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getUsers:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch users',
@@ -1509,7 +1440,6 @@ export const adminAPI = {
       const response = await api.get(`/admin/users/${id}`);
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getUser:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch user',
@@ -1523,7 +1453,6 @@ export const adminAPI = {
       const response = await api.put(`/admin/users/${id}`, userData);
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - updateUser:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to update user',
@@ -1540,7 +1469,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getBundles:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch bundles',
@@ -1882,7 +1810,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getAnalytics:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch analytics',
@@ -1901,7 +1828,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getRevenueData:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch revenue data',
@@ -1920,7 +1846,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getOrdersData:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch orders data',
@@ -1939,7 +1864,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getUsersData:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch users data',
@@ -1958,7 +1882,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getCategoryRevenue:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch category revenue data',
@@ -1977,7 +1900,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getTopProducts:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch top products data',
@@ -1996,7 +1918,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getRegionalData:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch regional data',
@@ -2016,7 +1937,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - getSettings:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to fetch settings',
@@ -2035,7 +1955,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - updateSettings:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to update settings',
@@ -2054,7 +1973,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - testEmailConnection:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to test email connection',
@@ -2072,7 +1990,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - exportSettings:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to export settings',
@@ -2094,7 +2011,6 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API Error - importSettings:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to import settings',
@@ -2161,7 +2077,6 @@ export const refillAPI = {
       const response = await api.post('/refill/orders', orderData);
       return response.data;
     } catch (error: any) {
-      console.error('Create refill order error:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -2171,7 +2086,6 @@ export const refillAPI = {
       const response = await api.get(`/refill/orders/user/${userId}`, { params });
       return response.data;
       } catch (error: any) {
-      console.error('Get user refill orders error:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -2181,7 +2095,6 @@ export const refillAPI = {
       const response = await api.get('/refill/orders', { params });
       return response.data;
     } catch (error: any) {
-      console.error('Get all refill orders error:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -2191,7 +2104,6 @@ export const refillAPI = {
       const response = await api.get(`/refill/orders/${id}`);
       return response.data;
     } catch (error: any) {
-      console.error('Get refill order error:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -2201,7 +2113,6 @@ export const refillAPI = {
       const response = await api.patch(`/refill/orders/${id}/status`, statusData);
       return response.data;
     } catch (error: any) {
-      console.error('Update refill order status error:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -2211,7 +2122,6 @@ export const refillAPI = {
       const response = await api.patch(`/refill/orders/${id}/pickup`, pickupData);
       return response.data;
     } catch (error: any) {
-      console.error('Schedule pickup error:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -2221,7 +2131,6 @@ export const refillAPI = {
       const response = await api.patch(`/refill/orders/${id}/delivery`, deliveryData);
       return response.data;
     } catch (error: any) {
-      console.error('Schedule delivery error:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -2231,7 +2140,6 @@ export const refillAPI = {
       const response = await api.patch(`/refill/orders/${id}/cancel`, cancellationData);
       return response.data;
     } catch (error: any) {
-      console.error('Cancel refill order error:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -2241,7 +2149,6 @@ export const refillAPI = {
       const response = await api.get('/refill/dashboard/stats');
       return response.data;
     } catch (error: any) {
-      console.error('Get refill dashboard stats error:', error.response?.data || error.message);
       throw error;
     }
   }
@@ -2261,14 +2168,6 @@ export const co2API = {
         const token = getAuthToken();
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
         
-        // Debug logging
-        console.log('CO2API Debug:', {
-          baseURL: api.defaults.baseURL,
-          endpoint: '/co2/cylinders',
-          fullURL: `${api.defaults.baseURL}/co2/cylinders`,
-          hasToken: !!token,
-          timestamp: new Date().toISOString()
-        });
         
         // Add cache-busting parameter to ensure fresh data
         const response = await api.get('/co2/cylinders', { 
@@ -2276,11 +2175,9 @@ export const co2API = {
           params: { _t: Date.now() } // Cache busting
         });
         
-        console.log('CO2API Response:', response.data);
         return response.data;
       }, cacheKey);
     } catch (error) {
-      console.warn('Failed to fetch cylinders from API, using fallback data', error);
       // Return fallback data in the same format as the API would
       return {
         success: true,
@@ -2293,7 +2190,6 @@ export const co2API = {
   // Get a single CO2 cylinder by slug or ID
   getCylinder: async (slugOrId: string) => {
     if (!slugOrId) {
-      console.warn('getCylinder called with empty slugOrId');
       return { success: false, message: 'No slug or ID provided' };
     }
     
@@ -2302,15 +2198,11 @@ export const co2API = {
     return retryRequest(async () => {
       // Try to fetch by slug first
       try {
-        console.log(`Fetching cylinder by slug: ${slugOrId}`);
         const response = await api.get(`/co2/cylinders/slug/${slugOrId}`);
-        console.log('Slug response:', response.data);
         return response.data;
       } catch (error) {
         // If slug fails, try by ID as fallback
-        console.log(`Trying to fetch cylinder by ID instead: ${slugOrId}`);
         const response = await api.get(`/co2/cylinders/${slugOrId}`);
-        console.log('ID response:', response.data);
         return response.data;
       }
     }, cacheKey);
@@ -2319,9 +2211,7 @@ export const co2API = {
   // Create a new CO2 cylinder
   createCylinder: async (cylinderData: any) => {
     return retryRequest(async () => {
-      console.log('API createCylinder called with:', cylinderData);
       const response = await api.post('/co2/cylinders', cylinderData);
-      console.log('API createCylinder response:', response.data);
       return response.data;
     });
   },
@@ -2329,9 +2219,7 @@ export const co2API = {
   // Update a CO2 cylinder
   updateCylinder: async (id: string, cylinderData: any) => {
     return retryRequest(async () => {
-      console.log('API updateCylinder called with:', { id, cylinderData });
       const response = await api.put(`/co2/cylinders/${id}`, cylinderData);
-      console.log('API updateCylinder response:', response.data);
       return response.data;
     });
   },
@@ -2339,9 +2227,7 @@ export const co2API = {
   // Delete a CO2 cylinder
   deleteCylinder: async (id: string) => {
     return retryRequest(async () => {
-      console.log('API deleteCylinder called with ID:', id);
       const response = await api.delete(`/co2/cylinders/${id}`);
-      console.log('API deleteCylinder response:', response.data);
       return response.data;
     });
   }
@@ -2350,37 +2236,3 @@ export const co2API = {
 // Export the API instance as default
 export default api;
 
-// CO2 Orders API
-export const co2OrdersAPI = {
-  // Get all CO2 orders
-  getOrders: async () => {
-    return retryRequest(async () => {
-      const response = await api.get('/co2/orders');
-      return response.data;
-    });
-  },
-  
-  // Update order status
-  updateOrderStatus: async (orderId: string, status: string) => {
-    return retryRequest(async () => {
-      const response = await api.put(`/co2/orders/${orderId}/status`, { status });
-      return response.data;
-    });
-  },
-  
-  // Update pickup details
-  updatePickupDetails: async (orderId: string, pickupData: any) => {
-    return retryRequest(async () => {
-      const response = await api.put(`/co2/orders/${orderId}/pickup`, pickupData);
-      return response.data;
-    });
-  },
-  
-  // Update delivery details
-  updateDeliveryDetails: async (orderId: string, deliveryData: any) => {
-    return retryRequest(async () => {
-      const response = await api.put(`/co2/orders/${orderId}/delivery`, deliveryData);
-      return response.data;
-    });
-  }
-};

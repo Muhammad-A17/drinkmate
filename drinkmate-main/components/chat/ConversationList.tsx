@@ -32,7 +32,7 @@ import {
   getPriorityColor, 
   getChannelIcon,
   formatMessagePreview
-} from '@/lib/chat-utils'
+} from '@/lib/utils/chat-utils'
 import { cn } from '@/lib/utils'
 
 interface ConversationListProps {

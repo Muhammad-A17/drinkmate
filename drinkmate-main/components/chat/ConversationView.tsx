@@ -37,7 +37,7 @@ import {
   getChannelIcon,
   isWithinBusinessHours,
   calculateSLAStatus
-} from '@/lib/chat-utils'
+} from '@/lib/utils/chat-utils'
 import { cn } from '@/lib/utils'
 import MessageComposer from './MessageComposer'
 import SnoozeModal from './SnoozeModal'

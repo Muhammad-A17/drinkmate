@@ -1,5 +1,5 @@
 // Chat Settings Service - handles API calls for chat settings
-import { getAuthToken } from './auth-context';
+import { getAuthToken } from '../contexts/auth-context';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -47,7 +47,9 @@ class ChatSettingsService {
   private cache: ChatSettings | null = null;
   private cacheTimestamp: number = 0;
   private cachedStatus: ChatStatus | null = null;
+  private lastStatusFetch: number = 0;
   private readonly CACHE_DURATION = 30000; // 30 seconds
+  private readonly STATUS_CACHE_DURATION = 30000; // 30 seconds for status (increased from 10s)
 
   // Get auth token from auth context
   private getAuthToken(): string | null {
@@ -67,7 +69,6 @@ class ChatSettingsService {
     // }
 
     try {
-      console.log('Fetching chat settings from:', `${API_BASE_URL}/chat-settings`);
       const response = await fetch(`${API_BASE_URL}/chat-settings`, {
         method: 'GET',
         headers: {
@@ -79,7 +80,6 @@ class ChatSettingsService {
       if (!response.ok) {
         if (response.status === 429) {
           // Rate limit exceeded - return cached data or default
-          console.warn('Rate limit exceeded for chat settings, using cached data');
           return this.cache || {
             isEnabled: false,
             workingHours: { start: '09:00', end: '17:00' },
@@ -104,7 +104,6 @@ class ChatSettingsService {
         throw new Error(data.message || 'Failed to fetch chat settings');
       }
     } catch (error) {
-      console.error('Error fetching chat settings:', error);
       // Return default settings if API fails
       return this.getDefaultSettings();
     }
@@ -141,7 +140,6 @@ class ChatSettingsService {
         throw new Error(data.message || 'Failed to update chat settings');
       }
     } catch (error) {
-      console.error('Error updating chat settings:', error);
       throw error;
     }
   }
@@ -149,7 +147,11 @@ class ChatSettingsService {
   // Get chat status (public endpoint)
   async getChatStatus(): Promise<ChatStatus> {
     try {
-      console.log('🔥 ChatSettingsService: Fetching chat status from:', `${API_BASE_URL}/chat-settings/status`);
+      // Check if we have cached status and it's still fresh
+      const now = Date.now();
+      if (this.cachedStatus && (now - this.lastStatusFetch) < this.STATUS_CACHE_DURATION) {
+        return this.cachedStatus;
+      }
       
       const response = await fetch(`${API_BASE_URL}/chat-settings/status`, {
         method: 'GET',
@@ -160,12 +162,10 @@ class ChatSettingsService {
         signal: AbortSignal.timeout(5000), // 5 second timeout
       });
 
-      console.log('🔥 ChatSettingsService: Response status:', response.status);
 
       if (!response.ok) {
         if (response.status === 429) {
           // Rate limit exceeded - return cached data or default
-          console.warn('Rate limit exceeded for chat status, using cached data');
           return this.cachedStatus || {
             isOnline: false,
             isEnabled: false,
@@ -178,20 +178,18 @@ class ChatSettingsService {
         let errorMessage = `Failed to fetch chat status: ${response.statusText}`;
         try {
           const errorData = await response.text();
-          console.error('🔥 ChatSettingsService: Error response:', errorData);
           errorMessage = errorData || errorMessage;
         } catch (e) {
-          console.error('🔥 ChatSettingsService: Could not parse error response');
         }
         
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
-      console.log('🔥 ChatSettingsService: Response data:', data);
       
       if (data.success) {
         this.cachedStatus = data.data;
+        this.lastStatusFetch = now;
         return data.data;
       } else {
         throw new Error(data.message || 'Failed to fetch chat status');
@@ -199,7 +197,6 @@ class ChatSettingsService {
     } catch (error) {
       // Only log if it's not a timeout or network error
       if (error instanceof Error && error.name !== 'TimeoutError' && error.name !== 'TypeError') {
-        console.warn('Error fetching chat status:', error.message || error);
       }
       
       // Return cached data or default if API fails
@@ -210,7 +207,6 @@ class ChatSettingsService {
         timezone: 'Asia/Riyadh'
       };
       
-      console.log('🔥 ChatSettingsService: Using fallback status:', fallbackStatus);
       return fallbackStatus;
     }
   }
@@ -245,7 +241,6 @@ class ChatSettingsService {
         throw new Error(data.message || 'Failed to reset chat settings');
       }
     } catch (error) {
-      console.error('Error resetting chat settings:', error);
       throw error;
     }
   }

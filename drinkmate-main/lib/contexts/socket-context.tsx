@@ -34,7 +34,6 @@ export function SocketProvider({ children }: SocketProviderProps) {
   // Function to connect socket manually
   const connectSocket = useCallback(async () => {
     if (!user || !token) {
-      console.log('No user or token, disconnecting socket')
       if (socket) {
         socket.disconnect()
         setSocket(null)
@@ -44,21 +43,15 @@ export function SocketProvider({ children }: SocketProviderProps) {
     }
 
     // Initialize socket connection
-    console.log('Initializing socket connection with token:', token ? 'present' : 'missing')
     if (isConnectingRef.current) {
-      console.log('🔥 Socket connection already in progress, skipping')
       return
     }
 
     // Skip health check to avoid rate limiting issues
-    console.log('🔥 Proceeding with socket connection (health check disabled to avoid rate limiting)')
-
-    console.log('🔥 Starting socket connection...')
     isConnectingRef.current = true
 
     // Clean up any existing socket connection first
     if (socketRef.current) {
-      console.log('🔥 Cleaning up existing socket connection')
       socketRef.current.disconnect()
       socketRef.current = null
     }
@@ -74,21 +67,17 @@ export function SocketProvider({ children }: SocketProviderProps) {
       reconnectionAttempts: 5
     })
     
-    console.log('Socket created:', newSocket, 'Type:', typeof newSocket, 'Has on method:', typeof newSocket.on === 'function')
 
     // Connection event handlers
     newSocket.on('connect', () => {
-      console.log('Socket connected:', newSocket.id)
       setIsConnected(true)
     })
 
     newSocket.on('disconnect', () => {
-      console.log('Socket disconnected')
       setIsConnected(false)
     })
 
     newSocket.on('connect_error', (error) => {
-      console.warn('Socket connection error:', error.message || error)
       setIsConnected(false)
       isConnectingRef.current = false
       
@@ -98,30 +87,23 @@ export function SocketProvider({ children }: SocketProviderProps) {
         (newSocket as any).retryCount = retryCount + 1
         setTimeout(() => {
           if (!isConnected && !isConnectingRef.current) {
-            console.log(`🔥 Retrying socket connection (attempt ${retryCount + 1}/3)...`)
             connectSocket()
           }
         }, 5000 * (retryCount + 1)) // Exponential backoff
-      } else {
-        console.log('🔥 Max retry attempts reached, giving up on socket connection')
       }
     })
 
     newSocket.on('reconnect', (attemptNumber) => {
-      console.log('Socket reconnected after', attemptNumber, 'attempts')
       setIsConnected(true)
     })
 
     newSocket.on('reconnect_error', (error) => {
-      console.warn('Socket reconnection error:', error.message || error)
     })
 
     newSocket.on('reconnect_failed', () => {
-      console.warn('Socket reconnection failed after maximum attempts')
       setIsConnected(false)
     })
 
-    console.log('Setting socket in state:', newSocket)
     setSocket(newSocket)
     socketRef.current = newSocket
   }, [token, user, isConnected]) // Add isConnected to dependencies to prevent infinite loops

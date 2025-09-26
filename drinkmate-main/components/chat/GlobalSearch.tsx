@@ -17,7 +17,7 @@ import {
   XCircle
 } from 'lucide-react'
 import { Conversation, Message } from '@/types/chat'
-import { getCustomerDisplayName, formatRelativeTime } from '@/lib/chat-utils'
+import { getCustomerDisplayName, formatRelativeTime } from '@/lib/utils/chat-utils'
 import { cn } from '@/lib/utils'
 
 interface GlobalSearchProps {

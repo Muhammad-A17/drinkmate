@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthToken } from '@/lib/auth-context'
-import { addSecurityHeaders, logError } from '@/lib/protected-api'
+import { getAuthToken } from '@/lib/contexts/auth-context'
+import { addSecurityHeaders, logError } from '@/lib/api/protected-api'
 
 export async function GET(request: NextRequest) {
   try {

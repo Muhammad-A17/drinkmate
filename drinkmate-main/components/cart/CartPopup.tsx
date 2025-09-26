@@ -9,9 +9,9 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Currency } from '@/utils/currency'
 import Link from 'next/link'
-import { useCartSettings } from '@/lib/cart-settings-context'
-import { getImageUrl } from '@/lib/image-utils'
-import { useAuth } from '@/lib/auth-context'
+import { useCartSettings } from '@/lib/contexts/cart-settings-context'
+import { getImageUrl } from '@/lib/utils/image-utils'
+import { useAuth } from '@/lib/contexts/auth-context'
 
 interface CartPopupProps {
   isOpen: boolean

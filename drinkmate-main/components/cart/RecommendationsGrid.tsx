@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "sonner"
-import { getImageUrl } from "@/lib/image-utils"
+import { getImageUrl } from "@/lib/utils/image-utils"
 
 interface Recommendation {
   id: number

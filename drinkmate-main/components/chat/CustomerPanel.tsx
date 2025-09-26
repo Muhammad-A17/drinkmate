@@ -30,7 +30,7 @@ import {
   getAgentInitials,
   formatRelativeTime, 
   formatAbsoluteTime
-} from '@/lib/chat-utils'
+} from '@/lib/utils/chat-utils'
 import { cn } from '@/lib/utils'
 
 interface CustomerPanelProps {

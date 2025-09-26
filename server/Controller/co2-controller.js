@@ -1,5 +1,4 @@
 const CO2Cylinder = require('../Models/co2-model');
-const CO2Order = require('../Models/co2-order-model');
 const CO2Subscription = require('../Models/co2-subscription-model');
 const User = require('../Models/user-model');
 
@@ -176,184 +175,6 @@ const co2Controller = {
     }
   },
 
-  // ===== ORDER MANAGEMENT =====
-
-  // Get all orders with filtering and pagination
-  getAllOrders: async (req, res) => {
-    try {
-      const { 
-        page = 1, 
-        limit = 10, 
-        status, 
-        orderType, 
-        userId,
-        startDate,
-        endDate,
-        sortBy = 'createdAt',
-        sortOrder = 'desc'
-      } = req.query;
-
-      const filter = {};
-      if (status) filter.status = status;
-      if (orderType) filter.orderType = orderType;
-      if (userId) filter.userId = userId;
-      if (startDate || endDate) {
-        filter.createdAt = {};
-        if (startDate) filter.createdAt.$gte = new Date(startDate);
-        if (endDate) filter.createdAt.$lte = new Date(endDate);
-      }
-
-      const sort = {};
-      sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
-
-      const orders = await CO2Order.find(filter)
-        .populate('userId', 'name email phone')
-        .populate('cylinderType', 'name brand price')
-        .sort(sort)
-        .limit(limit * 1)
-        .skip((page - 1) * limit)
-        .exec();
-
-      const total = await CO2Order.countDocuments(filter);
-
-      res.json({
-        orders,
-        totalPages: Math.ceil(total / limit),
-        currentPage: page,
-        total
-      });
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  },
-
-  // Get order by ID
-  getOrderById: async (req, res) => {
-    try {
-      const order = await CO2Order.findById(req.params.id)
-        .populate('userId', 'name email phone address')
-        .populate('cylinderType', 'name brand price description');
-      
-      if (!order) {
-        return res.status(404).json({ message: 'Order not found' });
-      }
-      res.json(order);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  },
-
-  // Create new order
-  createOrder: async (req, res) => {
-    try {
-      const orderData = req.body;
-      
-      // Initialize cylinders array
-      orderData.cylinders = Array.from({ length: orderData.quantity }, (_, index) => ({
-        cylinderId: `CYL-${Date.now()}-${index + 1}`,
-        status: 'pending'
-      }));
-
-      const order = new CO2Order(orderData);
-      const savedOrder = await order.save();
-      
-      // Populate references for response
-      await savedOrder.populate('userId cylinderType');
-      
-      res.status(201).json(savedOrder);
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
-  },
-
-  // Update order status
-  updateOrderStatus: async (req, res) => {
-    try {
-      const { status, notes } = req.body;
-      const order = await CO2Order.findById(req.params.id);
-      
-      if (!order) {
-        return res.status(404).json({ message: 'Order not found' });
-      }
-
-      if (notes) {
-        order.adminNotes = notes;
-      }
-
-      await order.updateStatus(status);
-      res.json(order);
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
-  },
-
-  // Schedule pickup
-  schedulePickup: async (req, res) => {
-    try {
-      const { pickupDate } = req.body;
-      const order = await CO2Order.findById(req.params.id);
-      
-      if (!order) {
-        return res.status(404).json({ message: 'Order not found' });
-      }
-
-      await order.schedulePickup(new Date(pickupDate));
-      res.json(order);
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
-  },
-
-  // Schedule delivery
-  scheduleDelivery: async (req, res) => {
-    try {
-      const { deliveryDate } = req.body;
-      const order = await CO2Order.findById(req.params.id);
-      
-      if (!order) {
-        return res.status(404).json({ message: 'Order not found' });
-      }
-
-      await order.scheduleDelivery(new Date(deliveryDate));
-      res.json(order);
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
-  },
-
-  // Update cylinder status in order
-  updateCylinderStatus: async (req, res) => {
-    try {
-      const { cylinderId, status, notes } = req.body;
-      const order = await CO2Order.findById(req.params.id);
-      
-      if (!order) {
-        return res.status(404).json({ message: 'Order not found' });
-      }
-
-      const cylinder = order.cylinders.find(c => c.cylinderId === cylinderId);
-      if (!cylinder) {
-        return res.status(404).json({ message: 'Cylinder not found in order' });
-      }
-
-      cylinder.status = status;
-      if (notes) cylinder.notes = notes;
-
-      // Update timestamps based on status
-      if (status === 'picked_up') {
-        cylinder.pickupDate = new Date();
-      } else if (status === 'ready') {
-        cylinder.refillDate = new Date();
-      } else if (status === 'delivered') {
-        cylinder.deliveryDate = new Date();
-      }
-
-      await order.save();
-      res.json(order);
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
-  },
 
   // ===== SUBSCRIPTION MANAGEMENT =====
 
@@ -492,89 +313,24 @@ const co2Controller = {
     try {
       const [
         totalCylinders,
-        totalOrders,
         totalSubscriptions,
-        pendingOrders,
-        lowStockCylinders,
-        monthlyRevenue,
-        topSellingCylinders
+        lowStockCylinders
       ] = await Promise.all([
         CO2Cylinder.countDocuments(),
-        CO2Order.countDocuments(),
         CO2Subscription.countDocuments(),
-        CO2Order.countDocuments({ status: { $in: ['pending', 'confirmed'] } }),
-        CO2Cylinder.countDocuments({ stock: { $lte: '$minStock' } }),
-        CO2Order.aggregate([
-          {
-            $match: {
-              createdAt: { $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) },
-              status: { $in: ['delivered', 'completed'] }
-            }
-          },
-          {
-            $group: {
-              _id: null,
-              total: { $sum: '$total' }
-            }
-          }
-        ]),
-        CO2Order.aggregate([
-          {
-            $match: { status: { $in: ['delivered', 'completed'] } }
-          },
-          {
-            $group: {
-              _id: '$cylinderType',
-              totalOrders: { $sum: 1 },
-              totalQuantity: { $sum: '$quantity' }
-            }
-          },
-          {
-            $sort: { totalQuantity: -1 }
-          },
-          {
-            $limit: 5
-          }
-        ])
+        CO2Cylinder.countDocuments({ stock: { $lte: '$minStock' } })
       ]);
 
       res.json({
         totalCylinders,
-        totalOrders,
         totalSubscriptions,
-        pendingOrders,
-        lowStockCylinders,
-        monthlyRevenue: monthlyRevenue[0]?.total || 0,
-        topSellingCylinders
+        lowStockCylinders
       });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   },
 
-  // Get orders by date range
-  getOrdersByDateRange: async (req, res) => {
-    try {
-      const { startDate, endDate } = req.query;
-      
-      const filter = {};
-      if (startDate && endDate) {
-        filter.createdAt = {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate)
-        };
-      }
-
-      const orders = await CO2Order.find(filter)
-        .populate('userId', 'name email')
-        .populate('cylinderType', 'name brand')
-        .sort({ createdAt: -1 });
-
-      res.json(orders);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
 };
 
 module.exports = co2Controller;

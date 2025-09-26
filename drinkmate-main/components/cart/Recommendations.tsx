@@ -3,8 +3,8 @@
 import Image from 'next/image'
 import { Currency } from '@/utils/currency'
 import { useCart } from '@/hooks/use-cart'
-import { useCartSettings } from '@/lib/cart-settings-context'
-import { getImageUrl } from '@/lib/image-utils'
+import { useCartSettings } from '@/lib/contexts/cart-settings-context'
+import { getImageUrl } from '@/lib/utils/image-utils'
 
 interface RecItem {
   id: string | number

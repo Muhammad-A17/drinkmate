@@ -1,6 +1,6 @@
 'use client'
 
-import { useTranslation } from '@/lib/translation-context'
+import { useTranslation } from '@/lib/contexts/translation-context'
 import { WishlistItem } from '@/types/account'
 import { Button } from '@/components/ui/button'
 import { Heart, ArrowRight, ShoppingCart } from 'lucide-react'

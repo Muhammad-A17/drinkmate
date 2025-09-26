@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, ReactNode } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth } from "@/lib/contexts/auth-context"
 import { adminAPI } from "@/lib/api"
 import AdminLayout from "@/components/layout/AdminLayout"
 import AdminActionBar, { AdminActions } from "@/components/admin/AdminActionBar"

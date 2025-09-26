@@ -55,7 +55,7 @@ import {
 import { shopAPI, invalidateCache } from "@/lib/api"
 import { toast } from "sonner"
 import { adminAPI } from "@/lib/api"
-import { sanitizeInput, sanitizeHtml } from "@/lib/protected-api"
+import { sanitizeInput, sanitizeHtml } from "@/lib/api/protected-api"
 import AdminActionBar, { AdminActions } from "@/components/admin/AdminActionBar"
 import CloudinaryImageUpload from "@/components/ui/cloudinary-image-upload"
 import { YouTubeVideo, isYouTubeUrl } from "@/components/ui/youtube-video"

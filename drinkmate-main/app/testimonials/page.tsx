@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 import PageLayout from "@/components/layout/PageLayout"
 import { Star, Play, Pause, Volume2, VolumeX, Maximize2, ChevronLeft, ChevronRight, Quote, Users, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"

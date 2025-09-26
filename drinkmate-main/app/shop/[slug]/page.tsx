@@ -9,8 +9,8 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { shopAPI } from "@/lib/api"
 import styles from './styles.module.css'
-import { useCart } from "@/lib/cart-context"
-import { useTranslation } from "@/lib/translation-context"
+import { useCart } from "@/lib/contexts/cart-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 import { useWishlist } from "@/hooks/use-wishlist"
 import { Button } from "@/components/ui/button"
 import { Product as ShopProduct, BaseProduct } from '@/lib/types'

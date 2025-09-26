@@ -10,8 +10,8 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { Clock, MessageCircle, Settings, Save, RefreshCw } from 'lucide-react'
-import { chatSettingsService, type ChatSettings } from '@/lib/chat-settings-service'
-import { useAuth } from '@/lib/auth-context'
+import { chatSettingsService, type ChatSettings } from '@/lib/services/chat-settings-service'
+import { useAuth } from '@/lib/contexts/auth-context'
 
 export default function ChatSettingsPage() {
   const { user, isAuthenticated, token } = useAuth()

@@ -18,7 +18,7 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { Conversation, Message } from '@/types/chat'
-import { getCustomerDisplayName, formatAbsoluteTime } from '@/lib/chat-utils'
+import { getCustomerDisplayName, formatAbsoluteTime } from '@/lib/utils/chat-utils'
 import { cn } from '@/lib/utils'
 
 interface ExportModalProps {

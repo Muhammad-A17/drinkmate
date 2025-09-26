@@ -2,7 +2,7 @@
 
 import { Currency } from '@/utils/currency'
 import { useCart } from '@/hooks/use-cart'
-import { useCartSettings } from '@/lib/cart-settings-context'
+import { useCartSettings } from '@/lib/contexts/cart-settings-context'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'

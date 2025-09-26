@@ -2,7 +2,7 @@
 import { CylindersShopSection } from "@/components/sections/CylindersShopSection"
 import PageLayout from "@/components/layout/PageLayout"
 import Image from "next/image"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 
 const faqCards = [
   {

@@ -1,5 +1,5 @@
 // Response ETA Service - calculates estimated response times for chat
-import { getAuthToken } from './auth-context';
+import { getAuthToken } from '../contexts/auth-context';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -56,13 +56,11 @@ class ResponseETAService {
     
     // Check if we've exceeded the rate limit
     if (this.requestCount >= this.MAX_REQUESTS_PER_HOUR) {
-      console.warn('🔥 ResponseETAService: Rate limit exceeded, using cached data');
       return false;
     }
     
     // Check minimum interval between requests
     if (now - this.lastRequestTime < this.MIN_REQUEST_INTERVAL) {
-      console.warn('🔥 ResponseETAService: Request too soon, using cached data');
       return false;
     }
     
@@ -121,7 +119,6 @@ class ResponseETAService {
     }
 
     try {
-      console.log('🔥 ResponseETAService: Fetching queue stats and calculating ETA');
       
       // Update request tracking
       this.lastRequestTime = Date.now();
@@ -137,10 +134,8 @@ class ResponseETAService {
       this.cache = eta;
       this.cacheTimestamp = Date.now();
       
-      console.log('🔥 ResponseETAService: Calculated ETA:', eta);
       return eta;
     } catch (error) {
-      console.error('🔥 ResponseETAService: Error calculating ETA:', error);
       
       // Return fallback ETA
       const fallbackETA: ResponseETA = {
@@ -173,10 +168,8 @@ class ResponseETAService {
       if (!response.ok) {
         // Handle specific error cases
         if (response.status === 429) {
-          console.warn('🔥 ResponseETAService: Rate limited, using fallback data');
           throw new Error('Rate limited');
         } else if (response.status >= 500) {
-          console.warn('🔥 ResponseETAService: Server error, using fallback data');
           throw new Error('Server error');
         } else {
           throw new Error(`Failed to fetch queue stats: ${response.statusText}`);
@@ -203,7 +196,6 @@ class ResponseETAService {
         throw new Error(data.message || 'Failed to fetch queue stats');
       }
     } catch (error) {
-      console.error('Error fetching queue stats:', error);
       
       // Return default stats based on error type
       const isRateLimit = error instanceof Error && error.message.includes('Rate limited');
@@ -320,7 +312,6 @@ class ResponseETAService {
         throw new Error(data.message || 'Failed to fetch chat ETA');
       }
     } catch (error) {
-      console.error('Error fetching chat ETA:', error);
       // Fallback to general ETA
       return this.getResponseETA();
     }
@@ -337,12 +328,10 @@ class ResponseETAService {
   
   disable(): void {
     this.isDisabled = true;
-    console.log('🔥 ResponseETAService: Disabled');
   }
   
   enable(): void {
     this.isDisabled = false;
-    console.log('🔥 ResponseETAService: Enabled');
   }
   
   // Check if service is disabled

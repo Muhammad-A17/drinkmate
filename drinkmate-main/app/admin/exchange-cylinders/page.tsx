@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useAuth, getAuthToken } from "@/lib/auth-context"
+import { useAuth, getAuthToken } from "@/lib/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import AdminLayout from "@/components/layout/AdminLayout"
 import { Button } from "@/components/ui/button"
@@ -38,8 +38,8 @@ import {
 import CloudinaryImageUpload from "@/components/ui/cloudinary-image-upload"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import { toast } from "@/hooks/use-toast"
-import { exchangeCylinderAPI } from "@/lib/exchange-cylinder-api"
-import { sanitizeInput, sanitizeHtml } from "@/lib/protected-api"
+import { exchangeCylinderAPI } from "@/lib/api/exchange-cylinder-api"
+import { sanitizeInput, sanitizeHtml } from "@/lib/api/protected-api"
 
 interface ExchangeCylinder {
   _id: string

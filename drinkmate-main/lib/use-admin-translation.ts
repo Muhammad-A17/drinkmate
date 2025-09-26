@@ -1,6 +1,6 @@
 "use client"
 
-import { useTranslation } from './translation-context'
+import { useTranslation } from './contexts/translation-context'
 import { adminTranslations } from './admin-translations'
 
 export function useAdminTranslation() {

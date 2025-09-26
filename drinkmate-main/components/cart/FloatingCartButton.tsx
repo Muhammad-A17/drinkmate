@@ -7,7 +7,7 @@ import { useCart } from '@/hooks/use-cart'
 import { usePathname } from 'next/navigation'
 import { Currency } from '@/utils/currency'
 import CartPopup from './CartPopup'
-import { CartSettingsProvider } from '@/lib/cart-settings-context'
+import { CartSettingsProvider } from '@/lib/contexts/cart-settings-context'
 
 interface FloatingCartButtonProps {
   className?: string

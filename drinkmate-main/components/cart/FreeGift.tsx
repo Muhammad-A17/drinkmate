@@ -2,10 +2,10 @@
 
 import Image from 'next/image'
 import { useCart } from '@/hooks/use-cart'
-import { useCartSettings } from '@/lib/cart-settings-context'
+import { useCartSettings } from '@/lib/contexts/cart-settings-context'
 import { Gift, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { getImageUrl } from '@/lib/image-utils'
+import { getImageUrl } from '@/lib/utils/image-utils'
 
 interface FreeGiftProduct {
   id: string | number

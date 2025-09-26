@@ -4,7 +4,7 @@ import React, { useState } from "react"
 import Image from "next/image"
 import { Heart, ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useCart } from "@/lib/cart-context"
+import { useCart } from "@/lib/contexts/cart-context"
 import { Star } from "lucide-react"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { generateCSRFToken, validateCSRFToken } from '@/lib/protected-api'
-import { useAuth } from '@/lib/auth-context'
+import { generateCSRFToken, validateCSRFToken } from '@/lib/api/protected-api'
+import { useAuth } from '@/lib/contexts/auth-context'
 
 export function useCSRF() {
   const { user } = useAuth()

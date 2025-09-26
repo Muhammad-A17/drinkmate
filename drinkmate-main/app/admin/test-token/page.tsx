@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { getAuthToken } from '@/lib/auth-context'
+import { getAuthToken } from '@/lib/contexts/auth-context'
 
 export default function TestTokenPage() {
   const [result, setResult] = useState<string>('')

@@ -2,7 +2,7 @@
 
 import PageLayout from "@/components/layout/PageLayout"
 import { Shield, Lock, Eye, Database, UserCheck } from "lucide-react"
-import { useTranslation } from "@/lib/translation-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 
 export default function PrivacyPolicy() {
   const { t, isRTL } = useTranslation()

@@ -4,16 +4,16 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { useCart, CartItem } from "@/lib/cart-context"
-import { useAuth } from "@/lib/auth-context"
+import { useCart, CartItem } from "@/lib/contexts/cart-context"
+import { useAuth } from "@/lib/contexts/auth-context"
 import { orderAPI, shopAPI, co2API } from "@/lib/api"
-import paymentService from "@/lib/payment-service"
+import paymentService from "@/lib/services/payment-service"
 import { toast } from "sonner"
 import { CheckCircle, AlertCircle, LockIcon, CreditCard, Loader2, Truck, MapPin, X } from "lucide-react"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
-import { getImageUrl } from "@/lib/image-utils"
+import { getImageUrl } from "@/lib/utils/image-utils"
 import TabbyInfoDialog from "@/components/checkout/TabbyInfoDialog"
 
 export default function CheckoutPage() {
@@ -310,7 +310,7 @@ export default function CheckoutPage() {
 
       // Create the order
       const orderData = {
-        items: state.items.map(item => {
+        items: state.items.map((item: CartItem) => {
           // Map cart items to the format expected by the backend
           const orderItem: any = {
           name: item.name,
@@ -726,7 +726,7 @@ export default function CheckoutPage() {
               
               {/* Cart Items */}
               <div className="space-y-0 mb-6">
-                {state.items.map((item, index) => (
+                {state.items.map((item: CartItem, index: number) => (
                   <div key={item.id}>
                     <div className="grid grid-cols-12 gap-4 items-center py-4">
                       {/* Remove Button */}
@@ -852,6 +852,7 @@ export default function CheckoutPage() {
                           checked={selectedPaymentMethod === "card"}
                           onChange={() => setSelectedPaymentMethod("card")}
                           className="w-4 h-4 text-[#12d6fa] border-gray-300 focus:ring-[#12d6fa]"
+                          aria-label="Credit Card payment method"
                         />
                         <span className="text-lg font-semibold text-gray-900">{paymentProviders.card.name}</span>
                       </div>
@@ -896,6 +897,7 @@ export default function CheckoutPage() {
                           type="radio"
                           name="payment"
                           value="tabby"
+                          aria-label="Tabby payment method"
                           checked={selectedPaymentMethod === "tabby"}
                           onChange={() => setSelectedPaymentMethod("tabby")}
                           className="w-4 h-4 text-[#12d6fa] border-gray-300 focus:ring-[#12d6fa]"

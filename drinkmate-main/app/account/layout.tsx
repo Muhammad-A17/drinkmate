@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/auth-context'
-import { useTranslation } from '@/lib/translation-context'
+import { useAuth } from '@/lib/contexts/auth-context'
+import { useTranslation } from '@/lib/contexts/translation-context'
 import AccountNav from '@/components/account/AccountNav'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'

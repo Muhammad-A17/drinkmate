@@ -1,4 +1,4 @@
-import { api, retryRequest, apiCache, getAuthToken } from './api'
+import { api, retryRequest, apiCache, getAuthToken } from '../api'
 
 // Simple online check
 const isOnline = () => {
@@ -64,7 +64,6 @@ export const recipeAPI = {
   getRecipes: async (filters: RecipeFilters = {}) => {
     // Check connectivity first
     if (!isOnline()) {
-      console.warn('RecipeAPI: Device is offline, returning fallback data');
       return {
         success: true,
         recipes: [],
@@ -88,17 +87,6 @@ export const recipeAPI = {
         const token = getAuthToken();
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
         
-        // Debug logging
-        if (process.env.NODE_ENV === 'development') {
-          console.log('RecipeAPI Debug:', {
-            baseURL: api.defaults.baseURL,
-            endpoint: '/recipes',
-            fullURL: `${api.defaults.baseURL}/recipes`,
-            hasToken: !!token,
-            filters,
-            timestamp: new Date().toISOString()
-          });
-        }
         
         // Build query parameters
         const params = new URLSearchParams();
@@ -117,14 +105,10 @@ export const recipeAPI = {
           timeout: 10000 // 10 second timeout
         });
         
-        if (process.env.NODE_ENV === 'development') {
-          console.log('RecipeAPI Response:', response.data);
-        }
         
         return response.data;
       }, cacheKey, 2, 2000); // Fewer retries with longer delay
     } catch (error) {
-      console.error('RecipeAPI Error:', error);
       // Return fallback data in the same format as the API would
       return {
         success: false,
@@ -145,13 +129,11 @@ export const recipeAPI = {
   // Get recipe by slug
   getRecipeBySlug: async (slug: string) => {
     if (!slug) {
-      console.warn('getRecipeBySlug called with empty slug');
       return { success: false, message: 'No slug provided' };
     }
     
     // Check connectivity first
     if (!isOnline()) {
-      console.warn(`RecipeAPI: Device is offline, returning fallback data for recipe ${slug}`);
       return {
         success: false,
         recipe: null,
@@ -174,7 +156,6 @@ export const recipeAPI = {
         return response.data;
       }, cacheKey, 2, 2000);
     } catch (error) {
-      console.error(`RecipeAPI Error fetching recipe ${slug}:`, error);
       return {
         success: false,
         recipe: null,
@@ -186,13 +167,11 @@ export const recipeAPI = {
   // Get recipe by ID
   getRecipeById: async (id: string) => {
     if (!id) {
-      console.warn('getRecipeById called with empty id');
       return { success: false, message: 'No ID provided' };
     }
     
     // Check connectivity first
     if (!isOnline()) {
-      console.warn(`RecipeAPI: Device is offline, returning fallback data for recipe ${id}`);
       return {
         success: false,
         recipe: null,
@@ -215,7 +194,6 @@ export const recipeAPI = {
         return response.data;
       }, cacheKey, 2, 2000);
     } catch (error) {
-      console.error(`RecipeAPI Error fetching recipe ${id}:`, error);
       return {
         success: false,
         recipe: null,
@@ -228,7 +206,6 @@ export const recipeAPI = {
   getFeaturedRecipes: async () => {
     // Check connectivity first
     if (!isOnline()) {
-      console.warn('RecipeAPI: Device is offline, returning empty featured recipes');
       return {
         success: true,
         recipes: [],
@@ -247,7 +224,6 @@ export const recipeAPI = {
         return response.data;
       }, cacheKey, 2, 2000);
     } catch (error) {
-      console.error('RecipeAPI Error fetching featured recipes:', error);
       return {
         success: false,
         recipes: [],
@@ -259,13 +235,11 @@ export const recipeAPI = {
   // Get recipes by category
   getRecipesByCategory: async (category: string) => {
     if (!category) {
-      console.warn('getRecipesByCategory called with empty category');
       return { success: false, message: 'No category provided' };
     }
     
     // Check connectivity first
     if (!isOnline()) {
-      console.warn(`RecipeAPI: Device is offline, returning empty recipes for category ${category}`);
       return {
         success: true,
         recipes: [],
@@ -284,7 +258,6 @@ export const recipeAPI = {
         return response.data;
       }, cacheKey, 2, 2000);
     } catch (error) {
-      console.error(`RecipeAPI Error fetching recipes for category ${category}:`, error);
       return {
         success: false,
         recipes: [],
@@ -296,7 +269,6 @@ export const recipeAPI = {
   // Create a new recipe (admin only)
   createRecipe: async (recipeData: any) => {
     if (!isOnline()) {
-      console.warn('RecipeAPI: Device appears to be offline, cannot create recipe');
       return {
         success: false,
         message: 'Device is offline, cannot create recipe'
@@ -307,15 +279,12 @@ export const recipeAPI = {
       // Get admin token
       const token = getAuthToken();
       if (!token) {
-        console.error('RecipeAPI: No auth token available for creating recipe');
         return {
           success: false,
           message: 'Authentication required to create recipe'
         };
       }
 
-      console.log('RecipeAPI: Creating recipe with token', token ? token.substring(0, 10) + '...' : 'none');
-      console.log('RecipeAPI: Creating recipe with data', recipeData);
 
       const headers = { 'Authorization': `Bearer ${token}` };
       
@@ -327,10 +296,8 @@ export const recipeAPI = {
         }
       );
       
-      console.log('RecipeAPI: Create response', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('RecipeAPI Error creating recipe:', error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to create recipe',
@@ -345,7 +312,6 @@ export const recipeAPI = {
   // Update an existing recipe (admin only)
   updateRecipe: async (recipeId: string, recipeData: any) => {
     if (!isOnline()) {
-      console.warn('RecipeAPI: Device appears to be offline, cannot update recipe');
       return {
         success: false,
         message: 'Device is offline, cannot update recipe'
@@ -356,15 +322,12 @@ export const recipeAPI = {
       // Get admin token
       const token = getAuthToken();
       if (!token) {
-        console.error('RecipeAPI: No auth token available for updating recipe');
         return {
           success: false,
           message: 'Authentication required to update recipe'
         };
       }
 
-      console.log('RecipeAPI: Updating recipe with token', token ? token.substring(0, 10) + '...' : 'none');
-      console.log('RecipeAPI: Updating recipe with data', recipeData);
 
       const headers = { 'Authorization': `Bearer ${token}` };
       
@@ -376,10 +339,8 @@ export const recipeAPI = {
         }
       );
       
-      console.log('RecipeAPI: Update response', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('RecipeAPI Error updating recipe:', error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to update recipe',
@@ -394,7 +355,6 @@ export const recipeAPI = {
   // Delete a recipe (admin only)
   deleteRecipe: async (recipeId: string) => {
     if (!isOnline()) {
-      console.warn('RecipeAPI: Device appears to be offline, cannot delete recipe');
       return {
         success: false,
         message: 'Device is offline, cannot delete recipe'
@@ -405,7 +365,6 @@ export const recipeAPI = {
       // Get admin token
       const token = getAuthToken();
       if (!token) {
-        console.error('RecipeAPI: No auth token available for deleting recipe');
         return {
           success: false,
           message: 'Authentication required to delete recipe'
@@ -421,7 +380,6 @@ export const recipeAPI = {
       
       return response.data;
     } catch (error: any) {
-      console.error('RecipeAPI Error deleting recipe:', error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to delete recipe'
@@ -432,12 +390,10 @@ export const recipeAPI = {
   // Rate a recipe
   rateRecipe: async (recipeId: string, rating: number) => {
     if (!recipeId) {
-      console.warn('rateRecipe called with empty recipeId');
       return { success: false, message: 'No recipe ID provided' };
     }
     
     if (rating < 1 || rating > 5) {
-      console.warn('rateRecipe called with invalid rating');
       return { success: false, message: 'Rating must be between 1 and 5' };
     }
     
@@ -448,7 +404,6 @@ export const recipeAPI = {
       );
       return response.data;
     } catch (error) {
-      console.error(`RecipeAPI Error rating recipe ${recipeId}:`, error);
       return {
         success: false,
         message: 'Failed to rate recipe'

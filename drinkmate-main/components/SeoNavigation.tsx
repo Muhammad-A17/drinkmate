@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { formatSeoUrl, generateBreadcrumbs } from '@/lib/seo-utils';
+import { formatSeoUrl, generateBreadcrumbs } from '@/lib/utils/seo-utils';
 
 interface SeoLinkProps {
   href: string;

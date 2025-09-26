@@ -20,7 +20,7 @@ import {
   Trash2,
   Settings
 } from 'lucide-react'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@/lib/contexts/auth-context'
 import { toast } from 'sonner'
 
 interface ChatMessage {

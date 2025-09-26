@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useTranslation } from '@/lib/translation-context'
-import { useAuth } from '@/lib/auth-context'
+import { useTranslation } from '@/lib/contexts/translation-context'
+import { useAuth } from '@/lib/contexts/auth-context'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,

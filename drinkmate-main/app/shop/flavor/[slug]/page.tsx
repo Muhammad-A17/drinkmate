@@ -8,8 +8,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { Suspense } from "react"
 import { shopAPI } from "@/lib/api"
-import { useCart } from "@/lib/cart-context"
-import { useTranslation } from "@/lib/translation-context"
+import { useCart } from "@/lib/contexts/cart-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 import styles from './styles.module.css'
 import { Button } from "@/components/ui/button"
 import {

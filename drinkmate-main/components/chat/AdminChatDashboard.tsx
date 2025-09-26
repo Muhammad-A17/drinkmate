@@ -21,8 +21,8 @@ import {
   MessageSquare,
   X
 } from 'lucide-react'
-import { useAuth } from '@/lib/auth-context'
-import { useSocket } from '@/lib/socket-context'
+import { useAuth } from '@/lib/contexts/auth-context'
+import { useSocket } from '@/lib/contexts/socket-context'
 import { toast } from 'sonner'
 import { Message } from '@/types/chat'
 
@@ -83,7 +83,6 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
 
   useEffect(() => {
     if (isOpen && user) {
-      console.log('AdminChatDashboard: Loading chats and stats for user:', user)
       loadOpenChats()
       loadChatStats()
     }
@@ -94,7 +93,6 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
     if (!socket) return
 
     const handleNewMessage = (data: { chatId: string; message: any }) => {
-      console.log('🔥 AdminChatDashboard: New message received:', data)
       
       if (activeChat && data.chatId === activeChat._id) {
         setMessages(prev => {
@@ -117,11 +115,9 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
           })
 
           if (messageExists) {
-            console.log('🔥 AdminChatDashboard: Duplicate message detected, skipping')
             return prev
           }
 
-          console.log('🔥 AdminChatDashboard: Adding new message to chat')
           return [...prev, data.message]
         })
       }

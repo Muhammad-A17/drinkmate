@@ -1,4 +1,4 @@
-import { api, retryRequest, apiCache, getAuthToken, debouncedApiCall } from './api'
+import { api, retryRequest, apiCache, getAuthToken, debouncedApiCall } from '../api'
 
 // Simple online check
 const isOnline = () => {
