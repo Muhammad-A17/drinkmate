@@ -1,9 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { addSecurityHeaders, logError, sanitizeErrorMessage } from '@/lib/api/protected-api'
-import { urwaysPayment } from '@/lib/urways-payment'
+import crypto from 'crypto'
+
+// URWAYS Configuration
+const URWAYS_CONFIG = {
+  terminalId: 'aqualinesa',
+  terminalPassword: 'URWAY@026_a',
+  merchantKey: 'e51ef25d3448a823888e3f38f9ffcc3693a40e3590cf4bb6e7ac5b352a00f30d',
+  apiUrl: 'https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest'
+}
+
+/**
+ * Generate hash for URWAYS API authentication
+ * Based on URWAY documentation: SHA256(terminalId|password|trackid|amount|currency|merchantKey)
+ * Note: trackid should be lowercase as per documentation
+ */
+const generateHash = (trackid: string, amount: number, currency: string): string => {
+  const lowerTrackid = trackid.toLowerCase()
+  const hashString = `${URWAYS_CONFIG.terminalId}|${URWAYS_CONFIG.terminalPassword}|${lowerTrackid}|${amount}|${currency}|${URWAYS_CONFIG.merchantKey}`
+  console.log('🔐 Hash String:', hashString)
+  const hash = crypto.createHash('sha256').update(hashString).digest('hex')
+  console.log('🔐 Generated Hash:', hash)
+  return hash
+}
+
+/**
+ * Get error message based on URWAY response code
+ */
+const getErrorMessage = (responseCode: string): string => {
+  const errorMessages: { [key: string]: string } = {
+    '000': 'Transaction Successful',
+    '601': 'System Error, Please contact System Admin',
+    '659': 'Request authentication failed',
+    '701': 'Error while processing ApplePay payment Token request',
+    '906': 'Invalid Card Token'
+  }
+  
+  // Handle 5XX bank rejections
+  if (responseCode && responseCode.startsWith('5')) {
+    return 'Bank Rejection'
+  }
+  
+  return errorMessages[responseCode] || `Unknown error (Code: ${responseCode})`
+}
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚀 Creating URWAYS payment request from server...')
+    
+    // Verify this is a server-side request
+    const userAgent = request.headers.get('user-agent') || ''
+    const origin = request.headers.get('origin') || ''
+    
+    console.log('🔍 Server-side validation:', {
+      userAgent: userAgent.substring(0, 50) + '...',
+      origin: origin,
+      isServerRequest: !origin.includes('localhost') && origin.includes('vercel.app')
+    })
+    
     const body = await request.json()
     
     const {
@@ -14,7 +68,7 @@ export async function POST(request: NextRequest) {
       customerEmail,
       customerPhone,
       description,
-      items
+      items = []
     } = body
 
     // Validate required fields
@@ -51,50 +105,103 @@ export async function POST(request: NextRequest) {
       ))
     }
 
-    // Get authorization header from the request
-    const authHeader = request.headers.get('authorization')
-    console.log('🔐 Frontend API - Auth Header:', authHeader ? 'Present' : 'Missing')
+    // Generate track ID (lowercase as per URWAY docs)
+    const trackid = `TXN_${orderId}`.toLowerCase()
+
+    // Get the actual server IP from Vercel headers or use a valid IP
+    const merchantIp = request.headers.get('x-forwarded-for') || 
+                      request.headers.get('x-real-ip') || 
+                      '8.8.8.8' // Fallback to a valid public IP
+
+    // Prepare URWAYS request payload according to official documentation
+    const urwaysRequest = {
+      trackid: trackid,
+      terminalId: URWAYS_CONFIG.terminalId,
+      action: '1', // 1 for Purchase (Automatic Capture)
+      customerEmail: customerEmail,
+      merchantIp: merchantIp, // Use actual server IP
+      country: 'SA',
+      password: URWAYS_CONFIG.terminalPassword,
+      currency: currency,
+      amount: amount.toFixed(2),
+      requestHash: generateHash(trackid, amount, currency),
+      // Required customer details for SAR currency
+      firstName: customerName.split(' ')[0] || 'Customer',
+      lastName: customerName.split(' ').slice(1).join(' ') || 'Name',
+      address: 'Saudi Arabia', // Required for SAR currency
+      city: 'Riyadh', // Required for SAR currency
+      state: 'Riyadh', // Required for SAR currency
+      zip: '12345', // Required for SAR currency
+      phoneno: customerPhone || '966500000000', // Required for SAR currency
+      // User defined fields
+      udf1: orderId, // Order reference
+      udf2: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success`, // Callback URL
+      udf3: 'EN', // Language (EN/AR)
+      udf4: description || 'DrinkMate Order Payment', // Payment description
+      udf5: JSON.stringify(items) // Items as JSON string
+    }
+
+    console.log('🚀 URWAYS Payment Request:', {
+      terminalId: URWAYS_CONFIG.terminalId,
+      amount: urwaysRequest.amount,
+      currency: urwaysRequest.currency,
+      trackid: urwaysRequest.trackid,
+      customerEmail: urwaysRequest.customerEmail,
+      merchantIp: urwaysRequest.merchantIp,
+      requestHash: urwaysRequest.requestHash
+    })
     
-    // Call backend URWAYS API
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-    console.log('🔐 Frontend API - Calling backend:', `${backendUrl}/payments/urways`)
-    
-    const response = await fetch(`${backendUrl}/payments/urways`, {
+    console.log('🚀 Full URWAYS Request:', JSON.stringify(urwaysRequest, null, 2))
+
+    // Make API call to URWAYS from server
+    const response = await fetch(URWAYS_CONFIG.apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(authHeader && { 'Authorization': authHeader })
+        'Accept': 'application/json',
+        'User-Agent': 'DrinkMate-Server/1.0',
+        'X-Forwarded-For': merchantIp,
+        'X-Real-IP': merchantIp
       },
-      body: JSON.stringify({
-        amount,
-        currency,
-        orderId,
-        customerName,
-        customerEmail,
-        customerPhone,
-        description,
-        items
-      })
+      body: JSON.stringify(urwaysRequest)
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const result = await response.json()
+
+    console.log('🚀 URWAYS Payment Response:', result)
+
+    // Check response according to official documentation
+    if (result.responseCode === '000' && result.result === 'Successful') {
+      return addSecurityHeaders(NextResponse.json({
+        success: true,
+        data: {
+          paymentUrl: result.targetUrl || result.intUrl, // Payment URL
+          transactionId: result.tranid, // URWAY transaction ID
+          trackId: result.trackid, // Our order ID
+          message: 'Payment URL generated successfully',
+          // Additional response data
+          authCode: result.authcode,
+          cardBrand: result.cardBrand,
+          maskedPAN: result.maskedPAN,
+          amount: result.amount
+        }
+      }))
+    } else {
+      // Handle error codes according to documentation
+      const errorMessage = getErrorMessage(result.responseCode)
       return addSecurityHeaders(NextResponse.json(
         { 
           success: false, 
-          message: errorData.message || 'Payment request failed',
-          error: errorData.error || 'Backend payment service error'
+          message: 'Payment request failed',
+          error: errorMessage || result.result || 'Failed to create payment request'
         },
-        { status: response.status }
+        { status: 400 }
       ))
     }
-
-    const data = await response.json()
-    
-    return addSecurityHeaders(NextResponse.json({
-      success: true,
-      data: data.data || data
-    }))
 
   } catch (error) {
     logError(error, 'UrwaysPaymentAPI')
@@ -125,24 +232,48 @@ export async function GET(request: NextRequest) {
       ))
     }
 
-    // Verify payment
-    const verificationResult = await urwaysPayment.verifyPayment(transactionId)
+    // Verify payment with URWAYS
+    const verifyRequest = {
+      terminalId: URWAYS_CONFIG.terminalId,
+      password: URWAYS_CONFIG.terminalPassword,
+      action: '10', // 10 for payment status inquiry
+      trackId: transactionId.toLowerCase(),
+      requestHash: generateHash(transactionId.toLowerCase(), 0, 'SAR')
+    }
 
-    if (verificationResult.success) {
+    const response = await fetch(URWAYS_CONFIG.apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'DrinkMate-Server/1.0',
+        'X-Forwarded-For': '8.8.8.8',
+        'X-Real-IP': '8.8.8.8'
+      },
+      body: JSON.stringify(verifyRequest)
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const result = await response.json()
+
+    if (result.responseCode === '000' && result.result === 'CAPTURED') {
       return addSecurityHeaders(NextResponse.json({
         success: true,
         data: {
-          transactionId: verificationResult.transactionId,
+          transactionId: transactionId,
           status: 'verified',
-          message: verificationResult.message
+          message: 'Payment verified successfully'
         }
       }))
     } else {
       return addSecurityHeaders(NextResponse.json(
         { 
           success: false, 
-          message: verificationResult.message || 'Payment verification failed',
-          error: verificationResult.error
+          message: result.responseMessage || 'Payment verification failed',
+          error: result.responseMessage || 'Payment not found or failed'
         },
         { status: 400 }
       ))
