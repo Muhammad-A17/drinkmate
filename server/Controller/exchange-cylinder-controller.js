@@ -1,6 +1,7 @@
 const ExchangeCylinder = require('../Models/exchange-cylinder-model');
 
 // Exchange Cylinder Management Controller
+// Updated on September 26, 2025 - Adding documentation
 const exchangeCylinderController = {
   // ===== EXCHANGE CYLINDER MANAGEMENT =====
   
