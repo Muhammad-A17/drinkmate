@@ -6,8 +6,8 @@ const crypto = require('crypto');
 
 const URWAYS_CONFIG = {
   terminalId: process.env.URWAYS_TERMINAL_ID || 'aqualinesa',
-  terminalPassword: process.env.URWAYS_TERMINAL_PASSWORD || 'urway@123',
-  merchantKey: process.env.URWAYS_MERCHANT_KEY || '57346489046e409862696090e9ed52dc06192f6ab714178d22f49a93277df34f',
+  terminalPassword: process.env.URWAYS_PASSWORD || 'URWAY@026_a',
+  merchantKey: process.env.URWAYS_MERCHANT_KEY || 'e51ef25d3448a823888e3f38f9ffcc3693a40e3590cf4bb6e7ac5b352a00f30d',
   apiUrl: process.env.URWAYS_API_URL || 'https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest'
 };
 
@@ -38,8 +38,11 @@ const getErrorMessage = (responseCode) => {
  * Note: trackid should be lowercase as per documentation
  */
 const generateHash = (trackid, amount, currency) => {
+  // Ensure trackid is lowercase as per URWAYS documentation
+  const lowerTrackid = trackid.toLowerCase();
+  
   // Based on URWAY documentation: SHA256(terminalId|password|trackid|amount|currency|merchantKey)
-  const hashString = `${URWAYS_CONFIG.terminalId}|${URWAYS_CONFIG.terminalPassword}|${trackid}|${amount}|${currency}|${URWAYS_CONFIG.merchantKey}`;
+  const hashString = `${URWAYS_CONFIG.terminalId}|${URWAYS_CONFIG.terminalPassword}|${lowerTrackid}|${amount}|${currency}|${URWAYS_CONFIG.merchantKey}`;
   console.log('🔐 Hash String:', hashString);
   const hash = crypto.createHash('sha256').update(hashString).digest('hex');
   console.log('🔐 Generated Hash:', hash);
@@ -87,14 +90,14 @@ const createPayment = async (req, res) => {
     }
 
     // Generate unique transaction ID (trackid as per documentation)
-    const trackid = `TXN_${orderId}_${Date.now()}`;
+    const trackid = `TXN_${orderId}`;
 
     // Get merchant IP (required by URWAY)
     const merchantIp = req.ip || req.connection.remoteAddress || '127.0.0.1';
 
     // Prepare URWAYS request payload according to official documentation
     const urwaysRequest = {
-      trackid: trackid, // Order ID (lowercase as per docs)
+      trackid: trackid.toLowerCase(), // Order ID (lowercase as per docs)
       terminalId: URWAYS_CONFIG.terminalId,
       action: '1', // 1 for Purchase (Automatic Capture)
       customerEmail: customerEmail,
@@ -103,15 +106,15 @@ const createPayment = async (req, res) => {
       password: URWAYS_CONFIG.terminalPassword,
       currency: currency,
       amount: amount.toFixed(2),
-      requestHash: generateHash(trackid, amount, currency), // Changed from 'hash' to 'requestHash'
-      // Optional customer details
-      firstName: customerName.split(' ')[0] || '',
-      lastName: customerName.split(' ').slice(1).join(' ') || '',
-      address: '',
-      city: '',
-      state: '',
-      zip: '',
-      phoneno: customerPhone || '',
+      requestHash: generateHash(trackid, amount, currency), // Use 'requestHash' as per URWAY API
+      // Required customer details
+      firstName: customerName.split(' ')[0] || 'Customer',
+      lastName: customerName.split(' ').slice(1).join(' ') || 'Name',
+      address: 'Saudi Arabia', // Required for SAR currency
+      city: 'Riyadh', // Required for SAR currency
+      state: 'Riyadh', // Required for SAR currency
+      zip: '12345', // Required for SAR currency
+      phoneno: customerPhone || '966500000000', // Required for SAR currency
       // User defined fields
       udf1: orderId, // Order reference
       udf2: `${process.env.FRONTEND_URL || 'http://localhost:3002'}/payment/success`, // Callback URL

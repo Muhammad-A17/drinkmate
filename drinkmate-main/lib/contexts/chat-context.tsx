@@ -266,15 +266,41 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
       
+      // First check if server is available
+      try {
+        const healthResponse = await fetch(`${apiUrl}/health`, { 
+          method: 'GET',
+          signal: AbortSignal.timeout(5000) // 5 second timeout for health check
+        })
+        if (!healthResponse.ok) {
+          console.log('🔥 ChatProvider: Server health check failed, skipping chat check')
+          return null
+        }
+      } catch (error) {
+        console.log('🔥 ChatProvider: Server not available, skipping chat check:', error)
+        return null
+      }
+      
       const response = await fetch(`${apiUrl}/chat/customer`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        // Add timeout and better error handling
+        signal: AbortSignal.timeout(10000) // 10 second timeout
       }).catch(error => {
-        throw new Error(`Network error: ${error.message}`)
+        console.error('🔥 ChatProvider: Fetch error:', error)
+        // Return null instead of throwing to prevent unhandled promise rejection
+        return null
       })
 
+      // If fetch failed, return null
+      if (!response) {
+        console.log('🔥 ChatProvider: Fetch failed, returning null')
+        return null
+      }
+
+      console.log('🔥 ChatProvider: Response status:', response.status, response.statusText)
 
       if (response.ok) {
         const data = await response.json()
@@ -655,6 +681,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             openChat()
           }
         }
+      }).catch(error => {
+        console.error('🔥 ChatProvider: Error checking for existing chat:', error)
+        // Don't throw the error, just log it and continue
       })
     }
   }, [user, isAuthenticated, state.currentChat, checkForExistingChat, loadChat, openChat])
@@ -674,6 +703,41 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       payload: { isConnected, isReconnecting: false } 
     })
   }, [isConnected])
+
+  // Cleanup on unmount or when leaving contact page
+  useEffect(() => {
+    return () => {
+      console.log('🔥 ChatProvider: Cleaning up on unmount')
+      // Leave current chat if connected
+      if (socket && state.currentChat) {
+        console.log('🔥 ChatProvider: Leaving chat on cleanup:', state.currentChat)
+        socket.emit('leave_chat', state.currentChat)
+      }
+    }
+  }, [socket, state.currentChat])
+
+  // Handle page visibility changes (when user leaves/returns to tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('🔥 ChatProvider: Page hidden, leaving chat if connected')
+        if (socket && state.currentChat) {
+          socket.emit('leave_chat', state.currentChat)
+        }
+      } else {
+        console.log('🔥 ChatProvider: Page visible, rejoining chat if connected')
+        if (socket && state.currentChat) {
+          socket.emit('join_chat', state.currentChat)
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [socket, state.currentChat])
 
   const value: ChatContextType = {
     state,

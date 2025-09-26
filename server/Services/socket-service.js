@@ -156,6 +156,12 @@ class SocketService {
         console.log(`User ${socket.user.email || socket.user.username} left chat ${chatId}`);
       });
 
+      // Handle test connection
+      socket.on('test_connection', (data) => {
+        console.log('🔥 Server: Test connection received from client:', data);
+        socket.emit('test_event', { message: 'Hello from server', timestamp: new Date().toISOString() });
+      });
+
       // Handle sending message
       socket.on('send_message', async (data) => {
         try {

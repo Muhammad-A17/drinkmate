@@ -23,6 +23,8 @@ interface CartState {
   items: CartItem[]
   total: number
   itemCount: number
+  showToast: boolean
+  lastAddedItem: CartItem | null
 }
 
 type CartAction =
@@ -31,6 +33,8 @@ type CartAction =
   | { type: 'UPDATE_QUANTITY'; payload: { id: string | number; quantity: number } }
   | { type: 'CLEAR_CART' }
   | { type: 'LOAD_CART'; payload: CartItem[] }
+  | { type: 'SHOW_TOAST'; payload: CartItem }
+  | { type: 'HIDE_TOAST' }
 
 interface CartContextType {
   state: CartState
@@ -40,6 +44,8 @@ interface CartContextType {
   clearCart: () => void
   isInCart: (id: string | number) => boolean
   getItemQuantity: (id: string | number) => number
+  showToast: (item: CartItem) => void
+  hideToast: () => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -73,7 +79,9 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
           ...state,
           items: updatedItems,
           total: newTotal,
-          itemCount: newItemCount
+          itemCount: newItemCount,
+          showToast: true,
+          lastAddedItem: action.payload
         }
       } else {
         console.log('Cart reducer - adding new item')
@@ -88,7 +96,9 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
           ...state,
           items: newItems,
           total: newTotal,
-          itemCount: newItemCount
+          itemCount: newItemCount,
+          showToast: true,
+          lastAddedItem: action.payload
         }
       }
     }
@@ -156,6 +166,22 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       }
     }
     
+    case 'SHOW_TOAST': {
+      return {
+        ...state,
+        showToast: true,
+        lastAddedItem: action.payload
+      }
+    }
+    
+    case 'HIDE_TOAST': {
+      return {
+        ...state,
+        showToast: false,
+        lastAddedItem: null
+      }
+    }
+    
     default:
       return state
   }
@@ -164,7 +190,9 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 const initialState: CartState = {
   items: [],
   total: 0,
-  itemCount: 0
+  itemCount: 0,
+  showToast: false,
+  lastAddedItem: null
 }
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -244,6 +272,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return item ? item.quantity : 0
   }, [state.items])
 
+  const showToast = useCallback((item: CartItem) => {
+    dispatch({ type: 'SHOW_TOAST', payload: item })
+  }, [])
+
+  const hideToast = useCallback(() => {
+    dispatch({ type: 'HIDE_TOAST' })
+  }, [])
+
   // Memoize the context value to prevent unnecessary re-renders
   const value = useMemo(() => ({
     state,
@@ -252,8 +288,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateQuantity,
     clearCart,
     isInCart,
-    getItemQuantity
-  }), [state, addItem, removeItem, updateQuantity, clearCart, isInCart, getItemQuantity])
+    getItemQuantity,
+    showToast,
+    hideToast
+  }), [state, addItem, removeItem, updateQuantity, clearCart, isInCart, getItemQuantity, showToast, hideToast])
 
   return (
     <CartContext.Provider value={value}>
