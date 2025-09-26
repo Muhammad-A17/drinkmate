@@ -81,10 +81,13 @@ export default function CheckoutPage() {
       try {
         let isValid = false
         
+        // Check if it's a product with productId
         if (item.productId && item.productType === 'product') {
           const response = await shopAPI.getProduct(item.productId)
           isValid = response.success && response.product
-        } else if (item.bundleId && item.productType === 'bundle') {
+        } 
+        // Check if it's a bundle with bundleId
+        else if (item.bundleId && item.productType === 'bundle') {
           try {
             const response = await shopAPI.getBundle(item.bundleId)
             isValid = response.success && response.bundle
@@ -92,12 +95,44 @@ export default function CheckoutPage() {
             console.error(`Error validating bundle ${item.name}:`, error)
             isValid = false
           }
-        } else if (item.productType === 'cylinder') {
+        } 
+        // Check if it's a cylinder
+        else if (item.productType === 'cylinder') {
           const response = await co2API.getCylinder(String(item.id))
           isValid = response.success && response.cylinder
         }
+        // For items without specific productType, try to validate using the item ID
+        else if (item.id) {
+          // Try to validate as a regular product first
+          try {
+            const productResponse = await shopAPI.getProduct(String(item.id))
+            if (productResponse.success && productResponse.product) {
+              isValid = true
+            } else {
+              // Try to validate as a bundle
+              const bundleResponse = await shopAPI.getBundle(String(item.id))
+              if (bundleResponse.success && bundleResponse.bundle) {
+                isValid = true
+              } else {
+                // Try to validate as a cylinder
+                const cylinderResponse = await co2API.getCylinder(String(item.id))
+                isValid = cylinderResponse.success && cylinderResponse.cylinder
+              }
+            }
+          } catch (error) {
+            console.error(`Error validating item ${item.name} with ID ${item.id}:`, error)
+            // If all validation attempts fail, consider the item invalid
+            isValid = false
+          }
+        }
+        // If item has no ID, consider it invalid
+        else {
+          console.warn(`Cart item ${item.name} has no valid ID for validation`)
+          isValid = false
+        }
         
         if (!isValid) {
+          console.log(`Marking item as invalid: ${item.name} (ID: ${item.id})`)
           invalidItems.push(String(item.id))
         }
       } catch (error) {
@@ -108,6 +143,7 @@ export default function CheckoutPage() {
     
     // Remove invalid items from cart
     if (invalidItems.length > 0) {
+      console.log(`Removing ${invalidItems.length} invalid items from cart:`, invalidItems)
       invalidItems.forEach(itemId => {
         if (removeItem && typeof removeItem === 'function') {
           removeItem(itemId)
@@ -123,6 +159,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     console.log("Checkout page loaded, cart items:", state.items.length)
     console.log("Cart state:", state)
+    console.log("User authentication state:", { user: !!user, userId: user?._id })
     
     // Set loading to false after a short delay
     const loadingTimer = setTimeout(() => {
@@ -140,7 +177,7 @@ export default function CheckoutPage() {
     }
 
     return () => clearTimeout(loadingTimer)
-  }, [state.items.length, router, validateCartItems])
+  }, [state.items.length, router, validateCartItems, user])
 
   // Auto-fetch user data when user is logged in
   useEffect(() => {
@@ -420,31 +457,59 @@ export default function CheckoutPage() {
     
     for (const item of items) {
       try {
-        // Check if it's a product
+        let isValid = false
+        
+        // Check if it's a product with productId
         if (item.productId && item.productType === 'product') {
           const response = await shopAPI.getProduct(item.productId)
-          if (!response.success || !response.product) {
-            validationErrors.push(`Product "${item.name}" is no longer available`)
-          }
+          isValid = response.success && response.product
         }
-        // Check if it's a bundle
+        // Check if it's a bundle with bundleId
         else if (item.bundleId && item.productType === 'bundle') {
           try {
             const response = await shopAPI.getBundle(item.bundleId)
-            if (!response.success || !response.bundle) {
-              validationErrors.push(`Bundle "${item.name}" is no longer available`)
-            }
+            isValid = response.success && response.bundle
           } catch (error) {
             console.error(`Error validating bundle ${item.name}:`, error)
-            validationErrors.push(`Bundle "${item.name}" is no longer available`)
+            isValid = false
           }
         }
         // Check if it's a cylinder
         else if (item.productType === 'cylinder') {
           const response = await co2API.getCylinder(String(item.id))
-          if (!response.success || !response.cylinder) {
-            validationErrors.push(`Cylinder "${item.name}" is no longer available`)
+          isValid = response.success && response.cylinder
+        }
+        // For items without specific productType, try to validate using the item ID
+        else if (item.id) {
+          // Try to validate as a regular product first
+          try {
+            const productResponse = await shopAPI.getProduct(String(item.id))
+            if (productResponse.success && productResponse.product) {
+              isValid = true
+            } else {
+              // Try to validate as a bundle
+              const bundleResponse = await shopAPI.getBundle(String(item.id))
+              if (bundleResponse.success && bundleResponse.bundle) {
+                isValid = true
+              } else {
+                // Try to validate as a cylinder
+                const cylinderResponse = await co2API.getCylinder(String(item.id))
+                isValid = cylinderResponse.success && cylinderResponse.cylinder
+              }
+            }
+          } catch (error) {
+            console.error(`Error validating item ${item.name} with ID ${item.id}:`, error)
+            isValid = false
           }
+        }
+        // If item has no ID, consider it invalid
+        else {
+          console.warn(`Cart item ${item.name} has no valid ID for validation`)
+          isValid = false
+        }
+        
+        if (!isValid) {
+          validationErrors.push(`"${item.name}" is no longer available`)
         }
       } catch (error) {
         console.error(`Error validating ${item.name}:`, error)
@@ -510,8 +575,20 @@ export default function CheckoutPage() {
         total: total
       }
 
-      // Create order via API
-      const orderResponse = await orderAPI.createOrder(orderData)
+      // Create order via API (authenticated or guest)
+      let orderResponse
+      if (user && user._id) {
+        // Authenticated user
+        orderResponse = await orderAPI.createOrder(orderData)
+      } else {
+        // Guest user - add guest information
+        const guestOrderData = {
+          ...orderData,
+          guestEmail: deliveryAddress.email,
+          guestName: deliveryAddress.fullName
+        }
+        orderResponse = await orderAPI.createGuestOrder(guestOrderData)
+      }
       
       if (!orderResponse.success) {
         console.error('Order creation failed:', orderResponse)
@@ -1147,20 +1224,50 @@ export default function CheckoutPage() {
                   </div>
                 </div>
                 
-              <Button
-                onClick={handlePayment}
-                disabled={isProcessing || !agreedToTerms}
-                className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-semibold text-lg disabled:opacity-50"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 w-5 h-5 animate-spin" />
-                    Processing Payment...
-                  </>
+              {/* Order button - works for both authenticated and guest users */}
+              <div className="w-full mt-6">
+                {!user || !user._id ? (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-blue-600 mr-2" />
+                      <span className="text-blue-800 text-sm">
+                        You're checking out as a guest. You can also{" "}
+                        <button
+                          onClick={() => router.push('/login?redirect=/checkout')}
+                          className="text-blue-600 hover:underline font-medium"
+                        >
+                          log in
+                        </button>{" "}
+                        for faster checkout next time.
+                      </span>
+                    </div>
+                  </div>
                 ) : (
-                  "Place Order"
+                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                      <span className="text-green-800 text-sm">
+                        Logged in as {user.name || user.email}
+                      </span>
+                    </div>
+                  </div>
                 )}
-              </Button>
+                
+                <Button
+                  onClick={handlePayment}
+                  disabled={isProcessing || !agreedToTerms}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-semibold text-lg disabled:opacity-50"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="mr-2 w-5 h-5 animate-spin" />
+                      Processing Payment...
+                    </>
+                  ) : (
+                    "Place Order"
+                  )}
+                </Button>
+              </div>
           </div>
         </div>
       </div>

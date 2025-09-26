@@ -169,7 +169,8 @@ const secureCORS = (req, res, next) => {
   const allowedOrigins = [
     process.env.FRONTEND_URL,
     process.env.CORS_ORIGIN,
-    'https://drinkmates.vercel.app', // Only allow specific production domain
+    'https://drinkmate-ruddy.vercel.app', // Production Vercel URL
+    'https://drinkmates.vercel.app', // Alternative production domain
     'http://localhost:3001', // Development frontend
     'http://localhost:3002', // Development frontend (Next.js default)
     'http://localhost:3000' // Alternative development port

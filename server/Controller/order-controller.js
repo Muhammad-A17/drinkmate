@@ -4,6 +4,204 @@ const Bundle = require('../Models/bundle-model');
 const Coupon = require('../Models/coupon-model');
 const User = require('../Models/user-model');
 
+// Create a new guest order (no authentication required)
+exports.createGuestOrder = async (req, res) => {
+    try {
+        const { items, shippingAddress, billingAddress, paymentMethod, couponCode, packingInstructions, isGift, giftMessage, guestEmail, guestName } = req.body;
+        
+        // Validate required fields
+        if (!items || items.length === 0 || !shippingAddress || !paymentMethod) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields'
+            });
+        }
+
+        // Validate guest information
+        if (!guestEmail || !guestName) {
+            return res.status(400).json({
+                success: false,
+                message: 'Guest email and name are required'
+            });
+        }
+        
+        // Calculate order totals
+        let subtotal = 0;
+        let discount = 0;
+        const processedItems = [];
+        
+        // Process each item in the order
+        for (const item of items) {
+            let itemData = null;
+            
+            // Check if product or bundle exists and is in stock
+            if (item.product) {
+                const product = await Product.findById(item.product);
+                
+                if (!product) {
+                    console.error(`Product validation failed: Product with ID ${item.product} not found in database`);
+                    return res.status(404).json({
+                        success: false,
+                        message: `Product "${item.name || 'Unknown'}" is no longer available. Please remove it from your cart and try again.`,
+                        code: 'PRODUCT_NOT_FOUND',
+                        productId: item.product
+                    });
+                }
+                
+                if (product.stock < item.quantity) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Not enough stock for product: ${product.name}`
+                    });
+                }
+                
+                // Update stock
+                product.stock -= item.quantity;
+                await product.save();
+                
+                // Calculate item total
+                const itemTotal = product.price * item.quantity;
+                subtotal += itemTotal;
+                
+                // Add to processed items
+                itemData = {
+                    product: product._id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: item.quantity,
+                    color: item.color,
+                    image: product.images.find(img => img.isPrimary)?.url || product.images[0]?.url,
+                    sku: product.sku
+                };
+            } else if (item.bundle) {
+                const bundle = await Bundle.findById(item.bundle);
+                
+                if (!bundle) {
+                    return res.status(404).json({
+                        success: false,
+                        message: `Bundle "${item.name || 'Unknown'}" is no longer available. Please remove it from your cart and try again.`,
+                        code: 'BUNDLE_NOT_FOUND',
+                        bundleId: item.bundle
+                    });
+                }
+                
+                // Calculate item total
+                const itemTotal = bundle.price * item.quantity;
+                subtotal += itemTotal;
+                
+                // Add to processed items
+                itemData = {
+                    bundle: bundle._id,
+                    name: bundle.name,
+                    price: bundle.price,
+                    quantity: item.quantity,
+                    color: item.color,
+                    image: bundle.images.find(img => img.isPrimary)?.url || bundle.images[0]?.url,
+                    sku: bundle.sku
+                };
+            }
+            
+            processedItems.push(itemData);
+        }
+        
+        // Apply coupon if provided (simplified for guest orders)
+        let couponData = null;
+        if (couponCode) {
+            const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+            
+            if (coupon) {
+                // Calculate discount (simplified validation for guests)
+                discount = coupon.calculateDiscount(subtotal);
+                
+                // Update coupon usage
+                coupon.usageCount += 1;
+                await coupon.save();
+                
+                couponData = {
+                    code: coupon.code,
+                    discountAmount: discount,
+                    couponId: coupon._id
+                };
+            }
+        }
+        
+        // Calculate shipping cost (simplified example)
+        const shippingCost = subtotal > 500 ? 0 : 50;
+        
+        // Calculate tax (simplified example - 15% VAT)
+        const taxRate = 0.15;
+        const tax = (subtotal - discount) * taxRate;
+        
+        // Calculate total
+        const total = subtotal - discount + shippingCost + tax;
+        
+        // Create the guest order
+        const order = new Order({
+            user: null, // No user for guest orders
+            guestInfo: {
+                email: guestEmail,
+                name: guestName
+            },
+            items: processedItems,
+            shippingAddress,
+            billingAddress: billingAddress || { sameAsShipping: true },
+            paymentMethod,
+            subtotal,
+            discount,
+            shippingCost,
+            tax,
+            total,
+            coupon: couponData,
+            packingInstructions,
+            isGift,
+            giftMessage,
+            isGuestOrder: true
+        });
+        
+        await order.save();
+        
+        // Process payment based on payment method
+        if (paymentMethod === 'urways') {
+            // For Urways, we'll create the order first and process payment separately
+            order.paymentDetails = {
+                paymentStatus: 'pending',
+                paymentDate: new Date()
+            };
+            order.status = 'pending';
+        } else if (paymentMethod === 'cash_on_delivery') {
+            // For cash on delivery, mark as pending
+            order.paymentDetails = {
+                paymentStatus: 'pending',
+                paymentDate: new Date()
+            };
+            order.status = 'pending';
+        } else {
+            // For other payment methods, simulate successful payment
+            order.paymentDetails = {
+                transactionId: `TRANS-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+                paymentStatus: 'paid',
+                paymentDate: new Date()
+            };
+            order.status = 'processing';
+        }
+        
+        await order.save();
+        
+        res.status(201).json({
+            success: true,
+            message: 'Guest order created successfully',
+            order
+        });
+    } catch (error) {
+        console.error('Error in createGuestOrder:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
 // Create a new order
 exports.createOrder = async (req, res) => {
     try {

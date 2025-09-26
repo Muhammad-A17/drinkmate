@@ -12,7 +12,25 @@ const orderSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false // Allow null for guest orders
+  },
+  
+  // Guest Information (for guest checkout)
+  guestInfo: {
+    email: {
+      type: String,
+      required: function() { return !this.user; } // Required if no user
+    },
+    name: {
+      type: String,
+      required: function() { return !this.user; } // Required if no user
+    }
+  },
+  
+  // Flag to identify guest orders
+  isGuestOrder: {
+    type: Boolean,
+    default: false
   },
   
   // Items (matches controller format)

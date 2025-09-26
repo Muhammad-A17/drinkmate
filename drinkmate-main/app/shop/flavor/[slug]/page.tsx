@@ -403,7 +403,10 @@ export default function FlavorDetailPage() {
       quantity: quantity,
       category: 'flavors',
       color: selectedColor,
-      size: selectedSize
+      size: selectedSize,
+      productId: String(product._id || product.id || productSlug),
+      productType: 'product' as const,
+      sku: product.sku
     })
 
     // Simulate cart API call

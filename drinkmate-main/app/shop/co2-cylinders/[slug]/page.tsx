@@ -77,6 +77,7 @@ interface CO2Cylinder {
   originalPrice: number
   discount: number
   capacity: number
+  sku?: string
   material: string
   stock: number
   minStock: number
@@ -393,7 +394,9 @@ export default function CO2ProductDetail() {
       price: product.price,
       image: product.image || product.images?.[0] || '/placeholder.svg',
       quantity: quantity,
-      category: 'co2-cylinder'
+      category: 'co2-cylinder',
+      productType: 'cylinder' as const,
+      sku: product.sku
     })
 
     // Simulate cart API call

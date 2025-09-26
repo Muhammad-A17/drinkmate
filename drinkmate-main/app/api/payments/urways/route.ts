@@ -4,10 +4,10 @@ import crypto from 'crypto'
 
 // URWAYS Configuration
 const URWAYS_CONFIG = {
-  terminalId: 'aqualinesa',
-  terminalPassword: 'URWAY@026_a',
-  merchantKey: 'e51ef25d3448a823888e3f38f9ffcc3693a40e3590cf4bb6e7ac5b352a00f30d',
-  apiUrl: 'https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest'
+  terminalId: process.env.URWAYS_TERMINAL_ID || 'aqualinesa',
+  terminalPassword: process.env.URWAYS_TERMINAL_PASSWORD || 'URWAY@026_a',
+  merchantKey: process.env.URWAYS_MERCHANT_KEY || 'e51ef25d3448a823888e3f38f9ffcc3693a40e3590cf4bb6e7ac5b352a00f30d',
+  apiUrl: process.env.URWAYS_API_URL || 'https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest'
 }
 
 /**
@@ -70,29 +70,29 @@ export async function POST(request: NextRequest) {
       description,
       items = []
     } = body
-
+    
     // Validate required fields
-    if (!amount || amount <= 0) {
+    if (!amount || !currency || !orderId || !customerEmail || !customerName) {
       return addSecurityHeaders(NextResponse.json(
         { 
           success: false, 
-          message: 'Invalid amount',
-          error: 'Amount must be greater than 0'
+          message: 'Missing required fields: amount, currency, orderId, customerEmail, customerName are required'
+        },
+        { status: 400 }
+      ))
+    }
+    
+    // Validate amount
+    if (amount <= 0) {
+      return addSecurityHeaders(NextResponse.json(
+        { 
+          success: false, 
+          message: 'Invalid amount: amount must be greater than 0'
         },
         { status: 400 }
       ))
     }
 
-    if (!orderId) {
-      return addSecurityHeaders(NextResponse.json(
-        { 
-          success: false, 
-          message: 'Order ID is required',
-          error: 'Order ID cannot be empty'
-        },
-        { status: 400 }
-      ))
-    }
 
     if (!customerName || !customerEmail) {
       return addSecurityHeaders(NextResponse.json(
@@ -154,23 +154,65 @@ export async function POST(request: NextRequest) {
     console.log('🚀 Full URWAYS Request:', JSON.stringify(urwaysRequest, null, 2))
 
     // Make API call to URWAYS from server
-    const response = await fetch(URWAYS_CONFIG.apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'DrinkMate-Server/1.0',
-        'X-Forwarded-For': merchantIp,
-        'X-Real-IP': merchantIp
-      },
-      body: JSON.stringify(urwaysRequest)
-    })
+    // Create AbortController for timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+
+    let response
+    try {
+      response = await fetch(URWAYS_CONFIG.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'DrinkMate-Server/1.0',
+          'X-Forwarded-For': merchantIp,
+          'X-Real-IP': merchantIp
+        },
+        body: JSON.stringify(urwaysRequest),
+        signal: controller.signal
+      })
+
+      // Clear timeout if request completes successfully
+      clearTimeout(timeoutId)
+    } catch (error) {
+      clearTimeout(timeoutId)
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('URWAYS API Timeout:', 'Request timed out after 30 seconds')
+        return addSecurityHeaders(NextResponse.json(
+          { 
+            success: false, 
+            message: 'Payment request timed out',
+            error: 'Request timeout - please try again'
+          },
+          { status: 408 }
+        ))
+      }
+      console.error('URWAYS API Network Error:', error)
+      return addSecurityHeaders(NextResponse.json(
+        { 
+          success: false, 
+          message: 'Payment service unavailable',
+          error: 'Network error - please try again later'
+        },
+        { status: 503 }
+      ))
+    }
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      console.error('URWAYS API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: URWAYS_CONFIG.apiUrl
+      })
+      throw new Error(`URWAYS API error: ${response.status} ${response.statusText}`)
     }
 
     const result = await response.json()
+    
+    if (!result) {
+      throw new Error('Empty response from URWAYS API')
+    }
 
     console.log('🚀 URWAYS Payment Response:', result)
 

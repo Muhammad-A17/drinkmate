@@ -858,9 +858,15 @@ export const shopAPI = {
 
 // Order API
 export const orderAPI = {
-  // Create order
+  // Create order (authenticated users)
   createOrder: async (orderData: any) => {
     const response = await api.post('/checkout/orders', orderData);
+    return response.data;
+  },
+  
+  // Create guest order (no authentication required)
+  createGuestOrder: async (orderData: any) => {
+    const response = await api.post('/checkout/guest-orders', orderData);
     return response.data;
   },
   

@@ -376,7 +376,10 @@ export default function BundleDetailPage() {
         return typeof img === 'string' ? img : img?.url || '/placeholder.svg'
       })(),
       quantity: quantity,
-      category: 'bundles'
+      category: 'bundles',
+      bundleId: String(product._id || product.id || productSlug),
+      productType: 'bundle' as const,
+      sku: product.sku
     })
 
     // Simulate cart API call
