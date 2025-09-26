@@ -144,33 +144,115 @@ export default function CheckoutPage() {
 
   // Auto-fetch user data when user is logged in
   useEffect(() => {
-    if (user) {
-      console.log('User data for checkout:', user);
-      setDeliveryAddress(prev => ({
-      ...prev,
-        fullName: user.name || "",
-        email: user.email || "",
-        phone: (user as any)?.phone || "",
-        district: (user as any)?.district || "",
-        city: (user as any)?.city || "",
-        country: "Saudi Arabia",
-        nationalAddress: (user as any)?.nationalAddress || ""
-      }))
-      
-      // Also set shipping address to same as delivery if user has address data
-      if ((user as any)?.district && (user as any)?.city) {
-        setShippingAddress(prev => ({
-          ...prev,
-          fullName: user.name || "",
-          email: user.email || "",
-          phone: (user as any)?.phone || "",
-          district: (user as any)?.district || "",
-          city: (user as any)?.city || "",
-          country: "Saudi Arabia",
-          nationalAddress: (user as any)?.nationalAddress || ""
-        }))
+    const fetchUserData = async () => {
+      if (user) {
+        console.log('User data for checkout:', user);
+        
+        try {
+          const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+          if (token) {
+            // Fetch user profile data
+            const profileResponse = await fetch('/api/user/profile', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            })
+
+            // Fetch user addresses
+            const addressesResponse = await fetch('/api/user/addresses', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            })
+
+            let userProfile = null
+            let defaultAddress = null
+
+            // Process profile data
+            if (profileResponse.ok) {
+              const profileData = await profileResponse.json()
+              if (profileData.success && profileData.data) {
+                userProfile = profileData.data
+                console.log('Fetched user profile:', userProfile)
+              }
+            }
+
+            // Process addresses data
+            if (addressesResponse.ok) {
+              const addressesData = await addressesResponse.json()
+              if (addressesData.success && addressesData.data) {
+                // Find default address or use first address
+                defaultAddress = addressesData.data.find((addr: any) => addr.isDefault) || addressesData.data[0]
+                console.log('Fetched user addresses:', addressesData.data)
+                console.log('Using default address:', defaultAddress)
+              }
+            }
+
+            // Update delivery address with fetched data
+            const addressData = defaultAddress || userProfile
+            setDeliveryAddress(prev => ({
+              ...prev,
+              fullName: addressData?.firstName && addressData?.lastName 
+                ? `${addressData.firstName} ${addressData.lastName}` 
+                : userProfile?.name || user.name || "",
+              email: userProfile?.email || user.email || "",
+              phone: addressData?.phone || userProfile?.phone || "",
+              district: addressData?.district || userProfile?.district || "",
+              city: addressData?.city || userProfile?.city || "",
+              country: "Saudi Arabia",
+              nationalAddress: addressData?.nationalAddress || userProfile?.nationalAddress || ""
+            }))
+            
+            // Also set shipping address to same as delivery if user has address data
+            if ((addressData?.district && addressData?.city) || (userProfile?.district && userProfile?.city)) {
+              setShippingAddress(prev => ({
+                ...prev,
+                fullName: addressData?.firstName && addressData?.lastName 
+                  ? `${addressData.firstName} ${addressData.lastName}` 
+                  : userProfile?.name || user.name || "",
+                email: userProfile?.email || user.email || "",
+                phone: addressData?.phone || userProfile?.phone || "",
+                district: addressData?.district || userProfile?.district || "",
+                city: addressData?.city || userProfile?.city || "",
+                country: "Saudi Arabia",
+                nationalAddress: addressData?.nationalAddress || userProfile?.nationalAddress || ""
+              }))
+            }
+          } else {
+            // Fallback to basic user data if no token
+            setDeliveryAddress(prev => ({
+              ...prev,
+              fullName: user.name || "",
+              email: user.email || "",
+              phone: (user as any)?.phone || "",
+              district: (user as any)?.district || "",
+              city: (user as any)?.city || "",
+              country: "Saudi Arabia",
+              nationalAddress: (user as any)?.nationalAddress || ""
+            }))
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error)
+          // Fallback to basic user data
+          setDeliveryAddress(prev => ({
+            ...prev,
+            fullName: user.name || "",
+            email: user.email || "",
+            phone: (user as any)?.phone || "",
+            district: (user as any)?.district || "",
+            city: (user as any)?.city || "",
+            country: "Saudi Arabia",
+            nationalAddress: (user as any)?.nationalAddress || ""
+          }))
+        }
       }
     }
+
+    fetchUserData()
   }, [user])
 
   // Payment provider configuration (would come from admin panel)

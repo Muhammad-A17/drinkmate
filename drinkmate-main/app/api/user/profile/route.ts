@@ -122,5 +122,75 @@ async function updateUserProfile(req: AuthenticatedRequest) {
   }
 }
 
-// Export the protected handler
+async function getUserProfile(req: AuthenticatedRequest) {
+  try {
+    const userId = req.user?.id
+    if (!userId) {
+      const response = NextResponse.json(
+        { error: 'User not authenticated' },
+        { status: 401 }
+      )
+      return addSecurityHeaders(response)
+    }
+
+    // Call backend API to get user profile
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    
+    try {
+      const response = await fetch(`${backendUrl}/auth/profile`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': req.headers.get('Authorization') || ''
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        const errorResponse = NextResponse.json(
+          { error: errorData.error || 'Failed to fetch profile' },
+          { status: response.status }
+        )
+        return addSecurityHeaders(errorResponse)
+      }
+
+      const userData = await response.json()
+
+      // Return success response with user data
+      const successResponse = NextResponse.json({
+        success: true,
+        data: {
+          id: userData.user?._id || userData.user?.id,
+          name: userData.user?.name || '',
+          email: userData.user?.email || '',
+          phone: userData.user?.phone || '',
+          district: userData.user?.district || '',
+          city: userData.user?.city || '',
+          country: 'Saudi Arabia',
+          nationalAddress: userData.user?.nationalAddress || ''
+        }
+      })
+      return addSecurityHeaders(successResponse)
+
+    } catch (backendError) {
+      logError(backendError, 'Backend API error')
+      const response = NextResponse.json(
+        { error: 'Service temporarily unavailable' },
+        { status: 503 }
+      )
+      return addSecurityHeaders(response)
+    }
+
+  } catch (error) {
+    logError(error, 'Profile fetch error')
+    const response = NextResponse.json(
+      { error: sanitizeErrorMessage(error) },
+      { status: 500 }
+    )
+    return addSecurityHeaders(response)
+  }
+}
+
+// Export the protected handlers
+export const GET = withAuth(getUserProfile)
 export const PUT = withAuth(updateUserProfile)
