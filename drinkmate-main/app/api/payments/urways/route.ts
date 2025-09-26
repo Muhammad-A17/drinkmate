@@ -46,7 +46,17 @@ const getErrorMessage = (responseCode: string): string => {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🚀 Creating URWAYS payment request...')
+    console.log('🚀 Creating URWAYS payment request from server...')
+    
+    // Verify this is a server-side request
+    const userAgent = request.headers.get('user-agent') || ''
+    const origin = request.headers.get('origin') || ''
+    
+    console.log('🔍 Server-side validation:', {
+      userAgent: userAgent.substring(0, 50) + '...',
+      origin: origin,
+      isServerRequest: !origin.includes('localhost') && origin.includes('vercel.app')
+    })
     
     const body = await request.json()
     
@@ -98,13 +108,18 @@ export async function POST(request: NextRequest) {
     // Generate track ID (lowercase as per URWAY docs)
     const trackid = `TXN_${orderId}`.toLowerCase()
 
+    // Get the actual server IP from Vercel headers or use a valid IP
+    const merchantIp = request.headers.get('x-forwarded-for') || 
+                      request.headers.get('x-real-ip') || 
+                      '8.8.8.8' // Fallback to a valid public IP
+
     // Prepare URWAYS request payload according to official documentation
     const urwaysRequest = {
       trackid: trackid,
       terminalId: URWAYS_CONFIG.terminalId,
       action: '1', // 1 for Purchase (Automatic Capture)
       customerEmail: customerEmail,
-      merchantIp: '127.0.0.1', // Default IP for serverless
+      merchantIp: merchantIp, // Use actual server IP
       country: 'SA',
       password: URWAYS_CONFIG.terminalPassword,
       currency: currency,
@@ -138,12 +153,15 @@ export async function POST(request: NextRequest) {
     
     console.log('🚀 Full URWAYS Request:', JSON.stringify(urwaysRequest, null, 2))
 
-    // Make API call to URWAYS
+    // Make API call to URWAYS from server
     const response = await fetch(URWAYS_CONFIG.apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'User-Agent': 'DrinkMate-Server/1.0',
+        'X-Forwarded-For': merchantIp,
+        'X-Real-IP': merchantIp
       },
       body: JSON.stringify(urwaysRequest)
     })
@@ -227,7 +245,10 @@ export async function GET(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'User-Agent': 'DrinkMate-Server/1.0',
+        'X-Forwarded-For': '8.8.8.8',
+        'X-Real-IP': '8.8.8.8'
       },
       body: JSON.stringify(verifyRequest)
     })
