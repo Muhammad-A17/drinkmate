@@ -1,164 +1,262 @@
-# Drinkmate
+# 🥤 DrinkMates - Premium Soda Making Experience
 
-A modern e-commerce platform for selling soda makers, flavors, and accessories.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Node.js** (v14 or higher)
-- **MongoDB** (optional – the app can run with demo data if MongoDB is not available)
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone <your-repo-url>
-   cd drinkmate
-   ```
-
-2. Install dependencies for both **frontend** and **backend**:
-   ```bash
-   # Install frontend dependencies
-   npm install
-
-   # Install backend dependencies
-   cd server
-   npm install
-   cd ..
-   ```
-
----
-
-## ▶️ Running the Application
-
-You can start the application using the provided batch files:
-
-```bash
-# On Windows - Start both frontend and backend
-start-servers.bat
-
-# Or use a local MongoDB instance
-start-local-mongo.bat
-```
-
-Alternatively, run them manually:
-
-```bash
-# Start backend server (from project root)
-cd server
-node server.js
-
-# In another terminal, start frontend server (from project root)
-npm run dev
-```
-
-- **Frontend:** http://localhost:3001  
-- **Backend API:** http://localhost:3000  
-
----
-
-## 🗄️ MongoDB Connection
-
-The application supports two modes:
-
-1. **Connected Mode** – Uses MongoDB (local or cloud)
-2. **Offline Mode** – Uses in-memory data if MongoDB is unavailable
-
-### MongoDB Setup
-
-1. Create a `server/.env` file and add:
-   ```env
-   MONGODB_URI=mongodb://localhost:27017/drinkmate
-   JWT_SECRET=your_secret_key
-   PORT=3000
-   FRONTEND_URL=http://localhost:3001
-   ```
-
-2. If using local MongoDB:
-   ```bash
-   start-local-mongo.bat
-   ```
-
----
-
-## 📂 Project Structure
-
-```
-drinkmate/
-│
-├── server/                # Backend (Express + MongoDB)
-│   ├── models/            # Mongoose models
-│   ├── routes/            # API routes
-│   ├── controllers/       # Business logic
-│   ├── middleware/        # Auth & error handling
-│   ├── config/            # Database & environment setup
-│   └── server.js          # Entry point for backend
-│
-├── src/                   # Frontend (React + Vite)
-│   ├── components/        # Reusable UI components
-│   ├── pages/             # Page-level components
-│   ├── hooks/             # Custom hooks
-│   ├── context/           # Global state (auth, cart, etc.)
-│   ├── assets/            # Images, fonts, static files
-│   └── main.jsx           # Entry point for frontend
-│
-├── start-servers.bat      # Batch file to run backend + frontend
-├── start-local-mongo.bat  # Batch file to run app with local MongoDB
-└── README.md              # Documentation
-```
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend
-- ⚛️ Next js 
-- 🎨 TailwindCSS  
-- 🔄 Axios (API calls)  
-
-### Backend
-- 🟢 Node.js  
-- 🚂 Express.js  
-- 🍃 MongoDB + Mongoose  
-- 🔐 JWT Authentication  
-
----
+A modern, full-stack e-commerce platform for premium soda makers, CO2 cylinders, Italian flavors, and accessories. Built with Next.js 15, Node.js, and MongoDB.
 
 ## ✨ Features
 
-- 🔑 User authentication (login/register)  
-- 🛒 Shopping cart functionality  
-- 📦 Product browsing by category (Soda Makers, Flavors, Accessories)  
-- 📝 Detailed product pages (images, descriptions, specifications)  
-- 🎁 Bundle packages with discounts  
-- 📱 Responsive design (mobile + desktop)  
+### 🛍️ **E-commerce Platform**
+- **Product Catalog**: Soda makers, CO2 cylinders, Italian flavors, and accessories
+- **Shopping Cart**: Advanced cart management with animations
+- **Order Management**: Complete order processing and tracking
+- **Payment Integration**: Secure payment processing with Urways
+- **User Authentication**: JWT-based authentication system
 
----
+### 💬 **Real-time Chat Support**
+- **Live Chat Widget**: Real-time customer support
+- **Admin Dashboard**: Chat management and assignment
+- **Message History**: Persistent chat conversations
+- **Typing Indicators**: Real-time user activity
+- **WebSocket Integration**: Socket.io for instant messaging
+
+### 🌐 **Multi-language Support**
+- **Arabic & English**: Full RTL/LTR support
+- **Dynamic Translations**: Context-aware translations
+- **Font Optimization**: Cairo (Arabic) and Montserrat (English)
+
+### 🎨 **Modern UI/UX**
+- **Responsive Design**: Mobile-first approach
+- **Dark/Light Mode**: Theme switching capability
+- **Smooth Animations**: CSS transitions and micro-interactions
+- **Image Optimization**: Next.js Image component with Cloudinary
+- **SEO Optimized**: Meta tags, structured data, and sitemaps
+
+## 🚀 Tech Stack
+
+### **Frontend**
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **State Management**: React Context API
+- **Real-time**: Socket.io Client
+- **Images**: Cloudinary Integration
+- **Fonts**: Cairo (Arabic), Montserrat (English)
+
+### **Backend**
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: MongoDB with Mongoose
+- **Authentication**: JWT
+- **Real-time**: Socket.io
+- **File Upload**: Cloudinary
+- **Security**: Helmet, CORS, Rate Limiting
+
+### **Deployment**
+- **Frontend**: Vercel
+- **Backend**: Render.com
+- **Database**: MongoDB Atlas
+- **CDN**: Cloudinary
+
+## 📁 Project Structure
+
+```
+drinkmates/
+├── drinkmate-main/          # Next.js Frontend
+│   ├── app/                # App Router pages
+│   │   ├── admin/          # Admin dashboard
+│   │   ├── api/            # API routes
+│   │   ├── shop/           # Product pages
+│   │   ├── account/        # User account pages
+│   │   └── layout.tsx      # Root layout
+│   ├── components/         # Reusable components
+│   │   ├── ui/            # UI components
+│   │   ├── chat/          # Chat components
+│   │   ├── cart/          # Cart components
+│   │   └── layout/        # Layout components
+│   ├── lib/               # Utilities and contexts
+│   │   ├── contexts/      # React contexts
+│   │   ├── api/           # API utilities
+│   │   └── utils/         # Helper functions
+│   └── public/            # Static assets
+│
+├── server/                 # Node.js Backend
+│   ├── Controller/        # Route controllers
+│   ├── Models/           # Database models
+│   ├── Router/           # Express routes
+│   ├── Middleware/       # Custom middleware
+│   ├── Services/         # Business logic
+│   └── Utils/            # Server utilities
+│
+└── README.md             # This file
+```
+
+## 🛠️ Installation & Setup
+
+### **Prerequisites**
+- Node.js 18+ 
+- MongoDB Atlas account
+- Cloudinary account
+- Git
+
+### **1. Clone Repository**
+```bash
+git clone https://github.com/muhammadfaizanhassan/drinkmates.git
+cd drinkmates
+```
+
+### **2. Frontend Setup**
+```bash
+cd drinkmate-main
+npm install
+cp .env.example .env.local
+# Update environment variables
+npm run dev
+```
+
+### **3. Backend Setup**
+```bash
+cd server
+npm install
+cp env-template.txt .env
+# Update environment variables
+npm start
+```
+
+### **4. Environment Variables**
+
+#### **Frontend (.env.local)**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_preset
+```
+
+#### **Backend (.env)**
+```env
+NODE_ENV=development
+PORT=3000
+MONGODB_URI=your_mongodb_uri
+JWT_SECRET=your_jwt_secret
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+## 🔧 Recent Updates
+
+### **WebSocket Connection Fixes** (Latest)
+- ✅ Fixed CSP configuration for WebSocket connections
+- ✅ Enhanced socket connection logic with environment detection
+- ✅ Improved error handling and retry mechanisms
+- ✅ Updated server CORS configuration
+- ✅ Added detailed logging for debugging
+
+### **Image Optimization**
+- ✅ Fixed aspect ratio warnings for Cloudinary images
+- ✅ Added proper CSS styles for image scaling
+- ✅ Optimized image loading performance
+
+### **Security Enhancements**
+- ✅ Updated Content Security Policy
+- ✅ Enhanced CORS configuration
+- ✅ Improved authentication middleware
+- ✅ Added rate limiting and security headers
+
+## 🚀 Running the Application
+
+### **Development Mode**
+```bash
+# Terminal 1: Start Backend
+cd server
+npm start
+
+# Terminal 2: Start Frontend
+cd drinkmate-main
+npm run dev
+```
+
+### **Access Points**
+- **Frontend**: http://localhost:3002
+- **Backend API**: http://localhost:3000
+- **Admin Dashboard**: http://localhost:3002/admin
+
+## 🚀 Deployment
+
+### **Frontend (Vercel)**
+1. Connect your GitHub repository to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push to main branch
+
+### **Backend (Render)**
+1. Connect your GitHub repository to Render
+2. Set environment variables in Render dashboard
+3. Deploy automatically on push to main branch
+
+### **Database (MongoDB Atlas)**
+1. Create a MongoDB Atlas cluster
+2. Configure network access and database user
+3. Update connection string in environment variables
+
+## 📱 Features Overview
+
+### **Customer Features**
+- Browse products by category
+- Add items to cart with animations
+- Secure checkout process
+- Order tracking and history
+- Real-time chat support
+- Multi-language interface
+
+### **Admin Features**
+- Product management
+- Order management
+- Chat assignment and monitoring
+- User management
+- Analytics dashboard
+- Content management
+
+## 🔒 Security Features
+
+- JWT-based authentication
+- CSRF protection
+- XSS prevention
+- SQL injection protection
+- Rate limiting
+- Secure headers
+- Input validation and sanitization
+
+## 🌐 Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+## 📞 Support
+
+For support and questions:
+- **Email**: support@drinkmates.com
+- **Live Chat**: Available on the website
+- **GitHub Issues**: Report bugs and feature requests
 
 ## 🤝 Contributing
 
-1. Fork the repo  
-2. Create a feature branch (`git checkout -b feature-name`)  
-3. Commit your changes (`git commit -m "Add new feature"`)  
-4. Push to the branch (`git push origin feature-name`)  
-5. Open a Pull Request  
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature-name`)
+3. Commit your changes (`git commit -m "Add new feature"`)
+4. Push to the branch (`git push origin feature-name`)
+5. Create a Pull Request
 
----
+## 📄 License
 
-## 📜 License
-
-This project is licensed under the **MIT License**.  
-You are free to use, modify, and distribute it.
-
----
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👨‍💻 Author
 
 **Muhammad Faizan Hassan**  
 🚀 Passionate Software Engineer | 💡 Focused on MERN, ML & AI  
 📍 Lahore, Pakistan  
-🔗 [GitHub Profile](https://github.com/faizanhassan)  
+🔗 [GitHub Profile](https://github.com/faizanhassan)
 
+---
+
+**Made with ❤️ for the ultimate soda making experience**
