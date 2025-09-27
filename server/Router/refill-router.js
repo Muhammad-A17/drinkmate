@@ -5,6 +5,28 @@ const { authenticateToken, isAdmin } = require('../Middleware/auth-middleware');
 
 // ===== REFILL ORDER MANAGEMENT ROUTES =====
 
+// Base route - service information
+router.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Refill Service',
+    description: 'CO2 cylinder refill and exchange service',
+    endpoints: {
+      orders: {
+        create: 'POST /orders (requires auth)',
+        getUserOrders: 'GET /orders/user/:userId (requires auth)',
+        getAllOrders: 'GET /orders (requires admin)',
+        getOrderById: 'GET /orders/:id (requires admin)',
+        updateStatus: 'PATCH /orders/:id/status (requires admin)',
+        schedulePickup: 'PATCH /orders/:id/pickup (requires admin)',
+        scheduleDelivery: 'PATCH /orders/:id/delivery (requires admin)',
+        cancel: 'PATCH /orders/:id/cancel (requires admin)'
+      }
+    },
+    note: 'All endpoints require authentication. Contact support for assistance.'
+  });
+});
+
 // Create new refill order (authenticated users)
 router.post('/orders', authenticateToken, refillController.createRefillOrder);
 

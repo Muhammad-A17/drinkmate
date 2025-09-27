@@ -4,6 +4,25 @@ const testimonialController = require('../Controller/testimonial-controller');
 const { authMiddleware } = require('../Middleware/auth-middleware');
 const adminMiddleware = require('../Middleware/admin-middleware');
 
+// Base route - redirect to testimonials
+router.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Testimonial Service',
+    endpoints: {
+      testimonials: 'GET /testimonials',
+      byId: 'GET /testimonials/:id',
+      submit: 'POST /submit (requires auth)',
+      admin: {
+        create: 'POST /admin/testimonials (requires admin)',
+        update: 'PUT /admin/testimonials/:id (requires admin)',
+        delete: 'DELETE /admin/testimonials/:id (requires admin)',
+        approve: 'PUT /admin/testimonials/:id/approve (requires admin)'
+      }
+    }
+  });
+});
+
 // Public routes
 router.get('/testimonials', testimonialController.getAllTestimonials);
 router.get('/testimonials/:id', testimonialController.getTestimonialById);

@@ -727,6 +727,7 @@ export default function Home() {
                     width={180}
                     height={225}
                     className="object-contain transition-all duration-500 ease-out translate-y-[50px] group-hover:translate-y-0 scale-150 group-hover:scale-200 hover:scale-225 animate-pop-up drop-shadow-2xl"
+                    style={{ width: "auto", height: "auto" }}
                   />
                 </div>
               </div>
@@ -752,6 +753,7 @@ export default function Home() {
                     width={180}
                     height={225}
                     className="object-contain transition-all duration-500 ease-out translate-y-[50px] group-hover:translate-y-0 scale-150 group-hover:scale-200 hover:scale-225 animate-pop-up drop-shadow-2xl"
+                    style={{ width: "auto", height: "auto" }}
                   />
                 </div>
               </div>
@@ -777,6 +779,7 @@ export default function Home() {
                     width={180}
                     height={225}
                     className="object-contain transition-all duration-500 ease-out translate-y-[50px] group-hover:translate-y-0 scale-150 group-hover:scale-200 hover:scale-225 animate-pop-up drop-shadow-2xl"
+                    style={{ width: "auto", height: "auto" }}
                   />
                 </div>
               </div>
@@ -802,6 +805,7 @@ export default function Home() {
                     width={180}
                     height={225}
                     className="object-contain transition-all duration-500 ease-out translate-y-[50px] group-hover:translate-y-0 scale-150 group-hover:scale-200 hover:scale-225 animate-pop-up drop-shadow-2xl"
+                    style={{ width: "auto", height: "auto" }}
                   />
                 </div>
               </div>
@@ -908,6 +912,8 @@ export default function Home() {
                           zIndex: styles.zIndex,
                           borderRadius: styles.borderRadius || "0px",
                           filter: activeMachineColor === machine.id ? "none" : "grayscale(10%) brightness(1.1)", // Reduced grayscale, added brightness
+                          width: "auto",
+                          height: "auto"
                         }}
                       />
                       <Image
@@ -924,6 +930,8 @@ export default function Home() {
                           zIndex: styles.zIndex,
                           borderRadius: styles.borderRadius || "0px",
                           filter: activeMachineColor === machine.id ? "none" : "grayscale(10%) brightness(1.1)", // Reduced grayscale, added brightness
+                          width: "auto",
+                          height: "auto"
                         }}
                       />
                     </React.Fragment>

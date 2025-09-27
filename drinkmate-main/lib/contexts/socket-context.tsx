@@ -59,12 +59,22 @@ export function SocketProvider({ children }: SocketProviderProps) {
     // Reset connection state
     setIsConnected(false)
 
-    const socketUrl = process.env.NEXT_PUBLIC_API_URL || 
-      (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        ? 'http://localhost:3000' 
-        : 'https://drinkmates.onrender.com')
+    // Determine the correct socket URL based on environment
+    let socketUrl;
+    if (process.env.NEXT_PUBLIC_API_URL) {
+      socketUrl = process.env.NEXT_PUBLIC_API_URL;
+    } else if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      // For local development, use the local server
+      socketUrl = 'http://localhost:3000';
+    } else {
+      // For production, use the production server
+      socketUrl = 'https://drinkmates.onrender.com';
+    }
+    
     console.log('🔥 Socket connecting to:', socketUrl)
     console.log('🔥 Socket auth token present:', !!token)
+    console.log('🔥 Current hostname:', typeof window !== 'undefined' ? window.location.hostname : 'server-side')
+    console.log('🔥 Current port:', typeof window !== 'undefined' ? window.location.port : 'server-side')
     
     const newSocket = io(socketUrl, {
       auth: {
@@ -74,7 +84,10 @@ export function SocketProvider({ children }: SocketProviderProps) {
       timeout: 20000,
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 5,
+      forceNew: true,
+      upgrade: true,
+      rememberUpgrade: false
     })
     
 
@@ -96,6 +109,9 @@ export function SocketProvider({ children }: SocketProviderProps) {
     newSocket.on('connect_error', (error) => {
       console.error('🔥 Socket connection error:', error.message || error)
       console.error('🔥 Socket connection error details:', error)
+      console.error('🔥 Socket connection URL:', socketUrl)
+      console.error('🔥 Error type:', (error as any).type)
+      console.error('🔥 Error description:', (error as any).description)
       setIsConnected(false)
       isConnectingRef.current = false
       
@@ -103,11 +119,14 @@ export function SocketProvider({ children }: SocketProviderProps) {
       const retryCount = (newSocket as any).retryCount || 0
       if (retryCount < 3) {
         (newSocket as any).retryCount = retryCount + 1
+        console.log(`🔥 Retrying socket connection in ${5000 * (retryCount + 1)}ms (attempt ${retryCount + 1}/3)`)
         setTimeout(() => {
           if (!isConnected && !isConnectingRef.current) {
             connectSocket()
           }
         }, 5000 * (retryCount + 1)) // Exponential backoff
+      } else {
+        console.error('🔥 Max socket connection retries reached. Please check if the server is running.')
       }
     })
 

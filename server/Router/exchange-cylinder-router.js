@@ -5,6 +5,25 @@ const { authenticateToken, isAdmin } = require('../Middleware/auth-middleware');
 
 // ===== EXCHANGE CYLINDER MANAGEMENT ROUTES =====
 
+// Base route - redirect to cylinders
+router.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Exchange Cylinder Service',
+    endpoints: {
+      cylinders: 'GET /cylinders',
+      byId: 'GET /cylinders/:id',
+      bySlug: 'GET /cylinders/slug/:slug',
+      byType: 'GET /cylinders/type/:type',
+      byServiceLevel: 'GET /cylinders/service-level/:level',
+      byArea: 'GET /cylinders/area/:area',
+      bestSellers: 'GET /cylinders/best-sellers',
+      featured: 'GET /cylinders/featured',
+      stats: 'GET /cylinders/stats'
+    }
+  });
+});
+
 // Public routes
 // Get all exchange cylinders (public)
 router.get('/cylinders', exchangeCylinderController.getAllExchangeCylinders);

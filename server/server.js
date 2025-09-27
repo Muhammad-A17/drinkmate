@@ -369,17 +369,48 @@ app.use((req, res) => {
     success: false,
     error: 'Route Not Found',
     message: `Cannot ${req.method} ${req.originalUrl}`,
-    availableRoutes: [
-      'GET /',
-      'GET /health',
-      'GET /api-status',
-      'POST /auth/register',
-      'POST /auth/login',
-      'POST /contact/submit',
-      'GET /contact/test',
-      'GET /shop/products',
-      'GET /shop/bundles'
-    ]
+    availableRoutes: {
+      core: [
+        'GET /',
+        'GET /health',
+        'GET /api-status',
+        'GET /test-apis'
+      ],
+      auth: [
+        'POST /auth/register',
+        'POST /auth/login',
+        'POST /auth/forgot-password',
+        'POST /auth/reset-password',
+        'GET /auth/verify (requires auth)',
+        'GET /auth/profile (requires auth)'
+      ],
+      shop: [
+        'GET /shop/products',
+        'GET /shop/bundles',
+        'GET /shop/categories'
+      ],
+      content: [
+        'GET /contact/test',
+        'POST /contact/submit',
+        'GET /blog/posts',
+        'GET /recipes',
+        'GET /co2/cylinders'
+      ],
+      services: [
+        'GET /exchange-cylinders',
+        'GET /exchange-cylinders/cylinders',
+        'GET /testimonials',
+        'GET /testimonials/testimonials',
+        'GET /refill',
+        'GET /wishlist (requires auth)',
+        'GET /chat/messages (requires auth)'
+      ],
+      admin: [
+        'GET /admin/* (requires admin auth)',
+        'GET /chat/* (requires admin auth)'
+      ]
+    },
+    note: 'For detailed endpoint information, visit the base route of each service (e.g., GET /exchange-cylinders)'
   });
 });
 
@@ -427,7 +458,9 @@ setTimeout(() => {
         process.env.FRONTEND_URL || "http://localhost:3001",
         "http://localhost:3002",
         "http://127.0.0.1:3001",
-        "http://127.0.0.1:3002"
+        "http://127.0.0.1:3002",
+        "https://drinkmates.vercel.app",
+        "https://drinkmates.onrender.com"
       ],
       methods: ["GET", "POST"],
       credentials: true,
