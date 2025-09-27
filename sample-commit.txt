@@ -1,0 +1,3 @@
+This is a sample file created for demonstration purposes.
+Created on: $(Get-Date)
+Purpose: To demonstrate git commit and push workflow
