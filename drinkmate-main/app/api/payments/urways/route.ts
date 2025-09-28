@@ -113,42 +113,34 @@ export async function POST(request: NextRequest) {
                       request.headers.get('x-real-ip') || 
                       '8.8.8.8' // Fallback to a valid public IP
 
-    // Prepare URWAYS request payload according to official documentation
+    // Prepare URWAYS request payload using the working test API structure
     const urwaysRequest = {
-      trackid: trackid,
-      terminalId: URWAYS_CONFIG.terminalId,
-      action: '1', // 1 for Purchase (Automatic Capture)
-      customerEmail: customerEmail,
-      merchantIp: merchantIp, // Use actual server IP
-      country: 'SA',
-      password: URWAYS_CONFIG.terminalPassword,
-      currency: currency,
+      merchantID: URWAYS_CONFIG.merchantKey,
       amount: amount.toFixed(2),
-      requestHash: generateHash(trackid, amount, currency),
-      // Required customer details for SAR currency
-      firstName: customerName.split(' ')[0] || 'Customer',
-      lastName: customerName.split(' ').slice(1).join(' ') || 'Name',
-      address: 'Saudi Arabia', // Required for SAR currency
-      city: 'Riyadh', // Required for SAR currency
-      state: 'Riyadh', // Required for SAR currency
-      zip: '12345', // Required for SAR currency
-      phoneno: customerPhone || '966500000000', // Required for SAR currency
-      // User defined fields
-      udf1: orderId, // Order reference
-      udf2: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success`, // Callback URL
-      udf3: 'EN', // Language (EN/AR)
-      udf4: description || 'DrinkMate Order Payment', // Payment description
-      udf5: JSON.stringify(items) // Items as JSON string
+      currency: currency,
+      orderID: orderId,
+      customerEmail: customerEmail,
+      customerName: customerName,
+      description: description || 'DrinkMate Order Payment',
+      returnURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`,
+      cancelURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`,
+      terminalID: URWAYS_CONFIG.terminalId,
+      password: URWAYS_CONFIG.terminalPassword,
+      action: '1', // 1 for payment
+      trackID: trackid.toUpperCase(),
+      udf1: 'DrinkMate',
+      udf2: orderId,
+      udf3: customerEmail
     }
 
     console.log('🚀 URWAYS Payment Request:', {
       terminalId: URWAYS_CONFIG.terminalId,
       amount: urwaysRequest.amount,
       currency: urwaysRequest.currency,
-      trackid: urwaysRequest.trackid,
+      trackID: urwaysRequest.trackID,
       customerEmail: urwaysRequest.customerEmail,
-      merchantIp: urwaysRequest.merchantIp,
-      requestHash: urwaysRequest.requestHash
+      merchantIp: merchantIp,
+      orderID: urwaysRequest.orderID
     })
     
     console.log('🔍 Environment Check:', {
@@ -224,14 +216,14 @@ export async function POST(request: NextRequest) {
 
     console.log('🚀 URWAYS Payment Response:', result)
 
-    // Check response according to official documentation
-    if (result.responseCode === '000' && result.result === 'Successful') {
+    // Check response according to URWAYS API documentation
+    if (result.result === 'SUCCESS' || result.result === 'Successful' || result.result === 'A') {
       return addSecurityHeaders(NextResponse.json({
         success: true,
         data: {
-          paymentUrl: result.targetUrl || result.intUrl, // Payment URL
-          transactionId: result.tranid, // URWAY transaction ID
-          trackId: result.trackid, // Our order ID
+          paymentUrl: result.targetURL || result.paymentURL || result.targetUrl || result.intUrl, // Payment URL
+          transactionId: result.transactionID || result.payid || result.tranid, // URWAY transaction ID
+          trackId: result.trackID || result.trackid || orderId, // Our order ID
           message: 'Payment URL generated successfully',
           // Additional response data
           authCode: result.authcode,
@@ -241,13 +233,15 @@ export async function POST(request: NextRequest) {
         }
       }))
     } else {
-      // Handle error codes according to documentation
-      const errorMessage = getErrorMessage(result.responseCode)
+      // Handle error response
+      const errorMessage = result.errorText || result.errorMessage || result.reason || getErrorMessage(result.responseCode) || 'Payment initiation failed'
       return addSecurityHeaders(NextResponse.json(
         { 
           success: false, 
           message: 'Payment request failed',
-          error: errorMessage || result.result || 'Failed to create payment request'
+          error: errorMessage,
+          responseCode: result.responseCode,
+          response: result // Include full response for debugging
         },
         { status: 400 }
       ))
