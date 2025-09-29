@@ -74,8 +74,17 @@ interface Order {
   customerEmail: string
   customerPhone?: string
   orderDate: string
-  items: number
+  items: Array<{
+    _id?: string
+    id?: string
+    name: string
+    quantity: number
+    price: number
+    image?: string
+    sku?: string
+  }>
   totalAmount: number
+  total?: number
   status: OrderStatus
   paymentStatus: PaymentStatus
   paymentMethod: string
@@ -87,9 +96,16 @@ interface Order {
     state: string
     zipCode: string
     country: string
+    phone?: string
+    nationalAddress?: string
+    specialInstructions?: string
   }
   trackingNumber?: string
   notes?: string
+  createdAt?: string
+  paymentDetails?: {
+    paymentStatus: string
+  }
 }
 
 interface OrderFilters {
@@ -316,7 +332,11 @@ export default function OrdersPage() {
         customerEmail: orderForm.customerEmail,
         customerPhone: orderForm.customerPhone,
         orderDate: new Date().toISOString().split("T")[0],
-        items: 1,
+        items: [{
+          name: "Sample Item",
+          quantity: 1,
+          price: Number.parseFloat(orderForm.totalAmount)
+        }],
         totalAmount: Number.parseFloat(orderForm.totalAmount),
         status: orderForm.status,
         paymentStatus: orderForm.paymentStatus,
@@ -344,16 +364,16 @@ export default function OrdersPage() {
   const handleEditOrder = (order: Order) => {
     setEditingOrder(order)
     
-    // Extract customer info from user or guest info
-    const customerName = order.user?.username || order.guestInfo?.name || 'N/A'
-    const customerEmail = order.user?.email || order.guestInfo?.email || 'N/A'
-    const customerPhone = order.shippingAddress?.phone || 'N/A'
+    // Extract customer info from order properties
+    const customerName = order.customerName || 'N/A'
+    const customerEmail = order.customerEmail || 'N/A'
+    const customerPhone = order.customerPhone || order.shippingAddress?.phone || 'N/A'
     
     // Extract total amount with fallback
     const totalAmount = order.totalAmount || order.total || 0
     
-    // Extract payment status from nested structure
-    const paymentStatus = order.paymentDetails?.paymentStatus || order.paymentStatus || 'pending'
+    // Extract payment status
+    const paymentStatus = order.paymentStatus || 'pending'
     
     setOrderForm({
       customerName: customerName,
@@ -730,8 +750,8 @@ export default function OrdersPage() {
       label: "Customer",
       render: (value, row) => {
         // Handle both user orders and guest orders
-        const customerName = row.user?.username || row.guestInfo?.name || 'N/A'
-        const customerEmail = row.user?.email || row.guestInfo?.email || 'N/A'
+        const customerName = row.customerName || 'N/A'
+        const customerEmail = row.customerEmail || 'N/A'
         const customerPhone = row.shippingAddress?.phone || 'N/A'
         
         return (
@@ -770,7 +790,7 @@ export default function OrdersPage() {
       key: "paymentStatus",
       label: "Payment",
       render: (value, row) => {
-        const paymentStatus = row.paymentDetails?.paymentStatus || value || 'pending'
+        const paymentStatus = value || 'pending'
         const paymentMethod = row.paymentMethod || 'N/A'
         
         return (
@@ -1367,10 +1387,10 @@ export default function OrdersPage() {
                       {(selectedOrder.status || 'pending').toUpperCase()}
                     </Badge>
                     <Badge
-                      variant={(selectedOrder.paymentDetails?.paymentStatus || selectedOrder.paymentStatus || 'pending') === "paid" ? "default" : "destructive"}
+                      variant={(selectedOrder.paymentStatus || 'pending') === "paid" ? "default" : "destructive"}
                       className="text-sm"
                     >
-                      {(selectedOrder.paymentDetails?.paymentStatus || selectedOrder.paymentStatus || 'pending').toUpperCase()}
+                      {(selectedOrder.paymentStatus || 'pending').toUpperCase()}
                     </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
@@ -1391,10 +1411,10 @@ export default function OrdersPage() {
           </CardHeader>
                     <CardContent className="space-y-2">
                       <div>
-                        <strong>Name:</strong> {selectedOrder.user?.username || selectedOrder.guestInfo?.name || 'N/A'}
+                        <strong>Name:</strong> {selectedOrder.customerName || 'N/A'}
               </div>
                           <div>
-                        <strong>Email:</strong> {selectedOrder.user?.email || selectedOrder.guestInfo?.email || 'N/A'}
+                        <strong>Email:</strong> {selectedOrder.customerEmail || 'N/A'}
                             </div>
                       {(selectedOrder.shippingAddress?.phone || selectedOrder.customerPhone) && (
                         <div>
@@ -1441,10 +1461,10 @@ export default function OrdersPage() {
                       <div>
                         <strong>Status:</strong>
                         <Badge
-                          variant={(selectedOrder.paymentDetails?.paymentStatus || selectedOrder.paymentStatus || 'pending') === "paid" ? "default" : "destructive"}
+                          variant={(selectedOrder.paymentStatus || 'pending') === "paid" ? "default" : "destructive"}
                           className="ml-2"
                         >
-                          {selectedOrder.paymentDetails?.paymentStatus || selectedOrder.paymentStatus || 'pending'}
+                          {selectedOrder.paymentStatus || 'pending'}
                             </Badge>
                             </div>
                       <div>
