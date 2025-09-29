@@ -8,7 +8,7 @@ const URWAYS_CONFIG = {
   terminalId: process.env.URWAYS_TERMINAL_ID || 'aqualinesa',
   terminalPassword: process.env.URWAYS_TERMINAL_PASSWORD || 'URWAY@026_a',
   merchantKey: process.env.URWAYS_MERCHANT_KEY || 'e51ef25d3448a823888e3f38f9ffcc3693a40e3590cf4bb6e7ac5b352a00f30d',
-  apiUrl: process.env.URWAYS_API_URL || 'https://payments-dev.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest' // Try dev environment
+  apiUrl: process.env.URWAYS_API_URL || 'https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest' // Production environment
 };
 
 /**
