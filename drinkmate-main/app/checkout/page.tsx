@@ -612,7 +612,7 @@ export default function CheckoutPage() {
       }
 
       // Validate customer data before payment
-      const customerName = deliveryAddress.fullName || `${deliveryAddress.firstName || ''} ${deliveryAddress.lastName || ''}`.trim() || 'Customer'
+      const customerName = deliveryAddress.fullName || 'Customer'
       const customerEmail = deliveryAddress.email
       
       if (!customerEmail) {
