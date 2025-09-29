@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import ImageWithFallback from "@/components/ui/ImageWithFallback"
 import Link from "next/link"
 import { LoadingLink } from "@/components/ui/LoadingLink"
 import { Button } from "@/components/ui/button"
@@ -412,23 +413,23 @@ export default function Home() {
                 return (
                   <div className="w-full bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-b-3xl relative overflow-hidden min-h-[600px] backdrop-blur-sm shadow-2xl shadow-gray-200/50 border border-white/20">
                     {/* Product Images (Absolute Positioning) */}
-                    <Image
+                    <ImageWithFallback
                       src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/drinkmate-machine-hero_ckcqe4.png"
                       alt="Drinkmate OmniFizz Soda Maker"
                       width={242}
                       height={417}
                       quality={85}
-                      priority
+                      priority={true}
                       className="absolute object-contain hidden md:block drop-shadow-2xl"
                       style={{ top: "203px", left: "121px" }}
                     />
-                    <Image
+                    <ImageWithFallback
                       src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/italian-strawberry-lemon_zp1jui.png"
                       alt="Italian Strawberry Lemon Flavor"
                       width={99}
                       height={206}
                       quality={85}
-                      priority
+                      priority={true}
                       className="absolute object-contain hidden md:block drop-shadow-xl"
                       style={{ top: "414px", left: "313px" }}
                     />
@@ -436,22 +437,22 @@ export default function Home() {
                     {/* Mobile Product Images */}
                     <div className="block md:hidden w-full" dir="ltr">
                       <div className="flex flex-row items-end justify-center p-6">
-                        <Image
+                        <ImageWithFallback
                           src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/drinkmate-machine-hero_ckcqe4.png"
                           alt="Drinkmate OmniFizz Soda Maker"
                           width={140}
                           height={220}
                           quality={85}
-                          priority
+                          priority={true}
                           className="object-contain drop-shadow-2xl"
                         />
-                        <Image
+                        <ImageWithFallback
                           src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756893175/italian-strawberry-lemon_zp1jui.png"
                           alt="Italian Strawberry Lemon Flavor"
                           width={80}
                           height={160}
                           quality={85}
-                          priority
+                          priority={true}
                           className="object-contain drop-shadow-xl"
                         />
                       </div>
@@ -721,13 +722,15 @@ export default function Home() {
               <div className="bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-2xl p-4 md:p-8 relative overflow-hidden h-[200px] md:h-[270px] group shadow-xl shadow-gray-200/30 group-hover:shadow-2xl group-hover:shadow-gray-200/40 transition-all duration-500 backdrop-blur-sm border border-white/40 group-hover:border-white/60">
                 {/* Multiple Machine Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
-                  <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561291/Zoomed_In_Machines_uqufys.png"
+                  <ImageWithFallback
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/Machines_y2di07.png"
                     alt="Soda Makers"
                     width={180}
                     height={225}
-                    className="object-contain transition-all duration-500 ease-out translate-y-[50px] group-hover:translate-y-0 scale-150 group-hover:scale-200 hover:scale-225 animate-pop-up drop-shadow-2xl"
+                    className="object-contain transition-all duration-500 ease-out translate-y-[120px] group-hover:translate-y-0 scale-102 group-hover:scale-105 hover:scale-108 animate-pop-up drop-shadow-2xl"
                     style={{ width: "auto", height: "auto" }}
+                    priority={true}
+                    quality={85}
                   />
                 </div>
               </div>
@@ -747,13 +750,15 @@ export default function Home() {
               <div className="bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-2xl p-4 md:p-8 relative overflow-hidden h-[200px] md:h-[270px] group shadow-xl shadow-gray-200/30 group-hover:shadow-2xl group-hover:shadow-gray-200/40 transition-all duration-500 backdrop-blur-sm border border-white/40 group-hover:border-white/60">
                 {/* Multiple CO2 Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
-                  <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/CO2_Zoomed_fwlyev.png"
+                  <ImageWithFallback
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/CO2_bodgrh.png"
                     alt="CO2"
                     width={180}
                     height={225}
-                    className="object-contain transition-all duration-500 ease-out translate-y-[50px] group-hover:translate-y-0 scale-150 group-hover:scale-200 hover:scale-225 animate-pop-up drop-shadow-2xl"
+                    className="object-contain transition-all duration-500 ease-out translate-y-[120px] group-hover:translate-y-0 scale-102 group-hover:scale-105 hover:scale-108 animate-pop-up drop-shadow-2xl"
                     style={{ width: "auto", height: "auto" }}
+                    priority={true}
+                    quality={85}
                   />
                 </div>
               </div>
@@ -773,13 +778,15 @@ export default function Home() {
               <div className="bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-2xl p-4 md:p-8 relative overflow-hidden h-[200px] md:h-[270px] group shadow-xl shadow-gray-200/30 group-hover:shadow-2xl group-hover:shadow-gray-200/40 transition-all duration-500 backdrop-blur-sm border border-white/40 group-hover:border-white/60">
                 {/* Multiple Flavor Images from Flavors Folder in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
-                  <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561291/Zoomed_In_Flavor_yiy4ca.png"
+                  <ImageWithFallback
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/Flavor__ecscmb.png"
                     alt="Premium Italian Flavors"
                     width={180}
                     height={225}
-                    className="object-contain transition-all duration-500 ease-out translate-y-[50px] group-hover:translate-y-0 scale-150 group-hover:scale-200 hover:scale-225 animate-pop-up drop-shadow-2xl"
+                    className="object-contain transition-all duration-500 ease-out translate-y-[120px] group-hover:translate-y-0 scale-102 group-hover:scale-105 hover:scale-108 animate-pop-up drop-shadow-2xl"
                     style={{ width: "auto", height: "auto" }}
+                    priority={true}
+                    quality={85}
                   />
                 </div>
               </div>
@@ -799,13 +806,15 @@ export default function Home() {
               <div className="bg-gradient-to-b from-white via-white/95 to-[#f8fafc] rounded-2xl p-4 md:p-8 relative overflow-hidden h-[200px] md:h-[270px] group shadow-xl shadow-gray-200/30 group-hover:shadow-2xl group-hover:shadow-gray-200/40 transition-all duration-500 backdrop-blur-sm border border-white/40 group-hover:border-white/60">
                 {/* Multiple Accessory Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
-                  <Image
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561289/Accessories_Zoomed_aarhge.png"
+                  <ImageWithFallback
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561289/Accessories_ea0rwx.png"
                     alt="Accessories"
                     width={180}
                     height={225}
-                    className="object-contain transition-all duration-500 ease-out translate-y-[50px] group-hover:translate-y-0 scale-150 group-hover:scale-200 hover:scale-225 animate-pop-up drop-shadow-2xl"
+                    className="object-contain transition-all duration-500 ease-out translate-y-[120px] group-hover:translate-y-0 scale-102 group-hover:scale-105 hover:scale-108 animate-pop-up drop-shadow-2xl"
                     style={{ width: "auto", height: "auto" }}
+                    priority={true}
+                    quality={85}
                   />
                 </div>
               </div>
