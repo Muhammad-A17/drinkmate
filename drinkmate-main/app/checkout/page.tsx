@@ -697,7 +697,8 @@ export default function CheckoutPage() {
         console.error('🚀 Payment failed:', paymentData)
         console.error('🚀 URWAYS Response Details:', paymentData.response)
         console.error('🚀 Response Code:', paymentData.responseCode)
-        const errorMessage = paymentData.message || paymentData.error || "Payment initiation failed"
+        console.error('🚀 Backend Error Data:', paymentData.data)
+        const errorMessage = paymentData.message || paymentData.error || paymentData.data?.message || "Payment initiation failed"
         toast.error(errorMessage)
         console.error('🚀 Full error response:', paymentData)
       }
