@@ -58,9 +58,10 @@ EMAIL_PASS=${SMTP_PASS}
 # PAYMENT GATEWAY CONFIGURATION
 # ===========================================
 # Urways Payment Gateway
-URWAYS_API_KEY=your_urways_api_key
-URWAYS_SECRET_KEY=your_urways_secret_key
-URWAYS_MERCHANT_ID=your_urways_merchant_id
+URWAYS_TERMINAL_ID=your_urways_terminal_id
+URWAYS_TERMINAL_PASSWORD=your_urways_terminal_password
+URWAYS_MERCHANT_KEY=your_urways_merchant_key
+URWAYS_API_URL=https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest
 URWAYS_ENVIRONMENT=production
 
 # Tap Payment Gateway

@@ -3,12 +3,11 @@ const crypto = require('crypto');
 
 class UrwaysService {
     constructor() {
-        this.apiKey = process.env.URWAYS_API_KEY;
-        this.secretKey = process.env.URWAYS_SECRET_KEY;
-        this.merchantId = process.env.URWAYS_MERCHANT_ID;
-        this.terminalId = process.env.URWAYS_TERMINAL_ID;
-        this.password = process.env.URWAYS_TERMINAL_PASSWORD?.replace(/^["']|["']$/g, '');
-        this.environment = process.env.URWAYS_ENVIRONMENT || 'sandbox';
+        this.terminalId = process.env.URWAYS_TERMINAL_ID || 'aqualinesa';
+        this.password = process.env.URWAYS_TERMINAL_PASSWORD?.replace(/^["']|["']$/g, '') || 'URWAY@026_a';
+        this.merchantKey = process.env.URWAYS_MERCHANT_KEY || 'e51ef25d3448a823888e3f38f9ffcc3693a40e3590cf4bb6e7ac5b352a00f30d';
+        this.apiUrl = process.env.URWAYS_API_URL || 'https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest';
+        this.environment = process.env.URWAYS_ENVIRONMENT || 'production';
         
         // Set base URL based on environment
         this.baseUrl = this.environment === 'production' 
@@ -52,12 +51,11 @@ class UrwaysService {
                 throw new Error('Missing required payment data');
             }
 
-            // Prepare payment request for Urways API
+            // Prepare payment request for Urways API (matching frontend structure)
+            const trackid = `TXN_${orderId}`.toLowerCase();
             const paymentRequest = {
-                merchantID: this.merchantId,
-                terminalID: this.terminalId,
-                password: this.password,
-                amount: (amount * 100).toString(), // Convert to halalas
+                merchantID: this.merchantKey,
+                amount: amount.toFixed(2),
                 currency: currency,
                 orderID: orderId,
                 customerEmail: customerEmail,
@@ -65,8 +63,10 @@ class UrwaysService {
                 description: description || `DrinkMate Order ${orderId}`,
                 returnURL: returnUrl || `${process.env.FRONTEND_URL}/payment/success?orderId=${orderId}`,
                 cancelURL: cancelUrl || `${process.env.FRONTEND_URL}/payment/cancel?orderId=${orderId}`,
+                terminalID: this.terminalId,
+                password: this.password,
                 action: '1', // 1 for payment
-                trackID: `TRACK_${Date.now()}`,
+                trackID: trackid.toUpperCase(),
                 udf1: 'DrinkMate',
                 udf2: orderId,
                 udf3: customerEmail
@@ -82,7 +82,7 @@ class UrwaysService {
 
             // Make API call to Urways
             const response = await axios.post(
-                `${this.baseUrl}/URWAYPGService/transaction/jsonProcess/JSONrequest`,
+                this.apiUrl,
                 paymentRequest,
                 {
                     headers: {
