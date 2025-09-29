@@ -141,42 +141,36 @@ export async function POST(request: NextRequest) {
                       request.headers.get('x-real-ip') || 
                       '8.8.8.8' // Fallback to a valid public IP
 
-    // Prepare URWAYS request payload - try different format
+    // Prepare URWAYS request payload - try the working format from backend
     const urwaysRequest = {
-      terminalId: URWAYS_CONFIG.terminalId,
+      merchantID: URWAYS_CONFIG.merchantKey,
+      terminalID: URWAYS_CONFIG.terminalId,
       password: URWAYS_CONFIG.terminalPassword,
       action: '1', // 1 for payment
-      trackid: trackid.toLowerCase(),
+      trackID: trackid.toUpperCase(),
       amount: amount.toFixed(2),
       currency: currency,
+      orderID: orderId,
       customerEmail: customerEmail,
-      merchantIp: merchantIp,
-      country: 'SA',
-      requestHash: generateHash(trackid, amount, currency),
-      // Required customer details
-      firstName: customerName.split(' ')[0] || 'Customer',
-      lastName: customerName.split(' ').slice(1).join(' ') || 'Name',
-      address: 'Saudi Arabia',
-      city: 'Riyadh',
-      state: 'Riyadh',
-      zip: '12345',
-      phoneno: '966500000000',
-      // User defined fields
-      udf1: orderId,
-      udf2: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`,
-      udf3: 'EN',
-      udf4: description || 'DrinkMate Order Payment',
-      udf5: JSON.stringify(items)
+      customerName: customerName,
+      description: description || 'DrinkMate Order Payment',
+      returnURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`,
+      cancelURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`,
+      udf1: 'DrinkMate',
+      udf2: orderId,
+      udf3: customerEmail,
+      // Add signature for authentication
+      signature: generateHash(trackid, amount, currency)
     }
 
     console.log('🚀 URWAYS Payment Request:', {
-      terminalId: URWAYS_CONFIG.terminalId,
+      terminalID: URWAYS_CONFIG.terminalId,
       amount: urwaysRequest.amount,
       currency: urwaysRequest.currency,
-      trackid: urwaysRequest.trackid,
+      trackID: urwaysRequest.trackID,
       customerEmail: urwaysRequest.customerEmail,
       merchantIp: merchantIp,
-      orderId: urwaysRequest.udf1
+      orderID: urwaysRequest.orderID
     })
     
     console.log('🔍 Environment Check:', {
