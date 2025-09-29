@@ -16,76 +16,37 @@ import QuantityControl from "@/components/refill/QuantityControl"
 import { toast } from "sonner"
 import styles from "./refill-cylinder.module.css"
 
+// Type definition for refill slides
+interface RefillSlide {
+  headline: string;
+  description: string;
+  buttonText: string;
+  offerText: string;
+}
+
 export default function CO2() {
   const { t, isRTL } = useTranslation()
   const { addItem } = useCart()
   
   // Slideshow state (same as shop page)
-  const refillSlides = [
+  const refillSlides: RefillSlide[] = [
     {
       headline: "REFILL MORE. SAVE MORE.",
       description: "Now refill 4 cylinders all together for the price of 55 ﷼ each cylinder.",
       buttonText: "Refill Now",
       offerText: "*Offer valid for whole year*",
-      imageSrc: "/images/co2-cylinders.png",
-      imageAlt: "CO2 Cylinders",
-      showYellowCircle: true,
-      yellowCircleData: {
-        carbonatesUpto: "Carbonates up to",
-        liters: "60",
-        litersOfDrink: "Liters of Drink",
-      },
-      multiImages: [],
     },
     {
       headline: "PREMIUM ITALIAN FLAVORS NOW AVAILABLE",
       description: "Experience authentic taste with our new premium Italian flavor collection.",
       buttonText: "",
       offerText: "",
-      imageSrc: "/images/energy-cola-flavors.png",
-      imageAlt: "Energy Drink & Cola Flavor",
-      showYellowCircle: false,
-      yellowCircleData: null,
-      multiImages: [],
     },
     {
       headline: "5% OFF ON FIRST ORDER FOR OUR NEW CUSTOMERS",
       description: "Getting into sparkle game? Enjoy 5% off on your first order with drinkmate.",
       buttonText: "",
       offerText: "",
-      imageSrc: null,
-      imageAlt: "Drinkmate products",
-      showYellowCircle: false,
-      yellowCircleData: null,
-      multiImages: [
-        {
-          src: "/images/drinkmate-machine.png",
-          alt: "Drinkmate Machine",
-          width: 121,
-          height: 345,
-          top: 18,
-          left: 824,
-          zIndex: 2,
-        },
-        {
-          src: "/images/co2-cylinder-single.png",
-          alt: "CO2 Cylinder",
-          width: 340,
-          height: 340,
-          top: 28,
-          left: 781,
-          zIndex: 1,
-        },
-        {
-          src: "/images/strawberry-lemon-flavor.png",
-          alt: "Strawberry Lemon Flavor",
-          width: 55,
-          height: 157,
-          top: 135,
-          left: 984,
-          zIndex: 3,
-        },
-      ],
     },
   ]
 
@@ -429,50 +390,6 @@ export default function CO2() {
             </div>
           </div>
 
-          {/* Enhanced Product Image Container */}
-          {refillSlides[currentRefillSlide].imageSrc ? (
-            <div className="absolute right-4 md:right-16 h-full flex justify-center items-center opacity-90 hover:opacity-100 transition-opacity duration-300">
-              <div className="relative">
-                <Image
-                  src={refillSlides[currentRefillSlide].imageSrc || "/placeholder.svg"}
-                  alt={refillSlides[currentRefillSlide].imageAlt}
-                  width={280}
-                  height={200}
-                  className="object-contain w-auto h-full drop-shadow-2xl hover:scale-105 transition-transform duration-300"
-                />
-                {/* Enhanced Yellow 60 Liters Circle */}
-                {refillSlides[currentRefillSlide].showYellowCircle && refillSlides[currentRefillSlide].yellowCircleData && (
-                  <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full w-32 h-32 flex flex-col items-center justify-center text-white font-bold text-center p-3 shadow-2xl animate-pulse">
-                    <span className="text-xs font-semibold">{refillSlides[currentRefillSlide].yellowCircleData.carbonatesUpto}</span>
-                    <span className="text-5xl font-black">{refillSlides[currentRefillSlide].yellowCircleData.liters}</span>
-                    <span className="text-xs font-semibold">{refillSlides[currentRefillSlide].yellowCircleData.litersOfDrink}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            // Enhanced Multi-image container for the third slide
-            <div className="absolute right-4 md:right-16 h-full flex justify-center items-center">
-              <div className="relative w-96 h-80">
-                {refillSlides[currentRefillSlide].multiImages &&
-                  refillSlides[currentRefillSlide].multiImages.map((img, index) => (
-                    <Image
-                      key={index}
-                      src={img.src || "/placeholder.svg"}
-                      alt={img.alt}
-                      width={img.width}
-                      height={img.height}
-                      className="absolute object-contain hover:scale-105 transition-transform duration-300"
-                      style={{ 
-                        top: `${img.top * 0.8}px`, 
-                        left: `${img.left * 0.8}px`, 
-                        zIndex: img.zIndex 
-                      }}
-                    />
-                  ))}
-              </div>
-            </div>
-          )}
 
           {/* Enhanced Right Navigation Button */}
           <Button
@@ -1096,9 +1013,6 @@ export default function CO2() {
                       <p className="text-[#12d6fa] font-bold text-lg">Order Online</p>
                     </div>
                   </div>
-                  <div className="absolute -top-4 -right-4 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-black shadow-lg">
-                    1
-                  </div>
                 </div>
                 <h3 className="text-2xl font-bold text-black mb-4">Order Online</h3>
                 <p className="text-gray-600 text-lg leading-relaxed">
@@ -1116,9 +1030,6 @@ export default function CO2() {
                       </div>
                       <p className="text-[#a8f387] font-bold text-lg">Schedule Pickup</p>
                     </div>
-                  </div>
-                  <div className="absolute -top-4 -right-4 bg-gradient-to-r from-[#a8f387] to-[#9ae374] text-black rounded-full w-12 h-12 flex items-center justify-center text-xl font-black shadow-lg">
-                    2
                   </div>
                 </div>
                 <h3 className="text-2xl font-bold text-black mb-4">Schedule Pickup</h3>
@@ -1138,9 +1049,6 @@ export default function CO2() {
                       <p className="text-[#12d6fa] font-bold text-lg">Receive Refilled</p>
                     </div>
                   </div>
-                  <div className="absolute -top-4 -right-4 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-black shadow-lg">
-                    3
-                  </div>
                 </div>
                 <h3 className="text-2xl font-bold text-black mb-4">Receive Refilled Cylinders</h3>
                 <p className="text-gray-600 text-lg leading-relaxed">
@@ -1149,40 +1057,6 @@ export default function CO2() {
               </div>
             </div>
             
-            {/* Process Benefits */}
-            <div className="mt-16 bg-gradient-to-r from-gray-50 to-gray-100 rounded-3xl p-8 border border-gray-200">
-              <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">Why Our Process is Better</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-[#12d6fa] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle className="w-8 h-8 text-white" />
-                  </div>
-                  <h4 className="font-bold text-gray-900 mb-2">Convenient</h4>
-                  <p className="text-sm text-gray-600">Home pickup and delivery</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-[#a8f387] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Shield className="w-8 h-8 text-black" />
-                  </div>
-                  <h4 className="font-bold text-gray-900 mb-2">Safe</h4>
-                  <p className="text-sm text-gray-600">Food-grade CO2 certified</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-[#12d6fa] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Truck className="w-8 h-8 text-white" />
-                  </div>
-                  <h4 className="font-bold text-gray-900 mb-2">Fast</h4>
-                  <p className="text-sm text-gray-600">3-5 day turnaround</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-[#a8f387] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Star className="w-8 h-8 text-black" />
-                  </div>
-                  <h4 className="font-bold text-gray-900 mb-2">Reliable</h4>
-                  <p className="text-sm text-gray-600">Quality guaranteed</p>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Horizontal Divider */}
