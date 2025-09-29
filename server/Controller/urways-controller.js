@@ -55,6 +55,13 @@ const generateHash = (trackid, amount, currency) => {
 const createPayment = async (req, res) => {
   try {
     console.log('🚀 Creating URWAYS payment request...');
+    console.log('🚀 Request body:', req.body);
+    console.log('🚀 URWAYS Config:', {
+      terminalId: URWAYS_CONFIG.terminalId,
+      hasPassword: !!URWAYS_CONFIG.terminalPassword,
+      hasMerchantKey: !!URWAYS_CONFIG.merchantKey,
+      apiUrl: URWAYS_CONFIG.apiUrl
+    });
     
     const {
       amount,
@@ -95,42 +102,36 @@ const createPayment = async (req, res) => {
     // Get merchant IP (required by URWAY)
     const merchantIp = req.ip || req.connection.remoteAddress || '127.0.0.1';
 
-    // Prepare URWAYS request payload according to official documentation
+    // Prepare URWAYS request payload - use the working format
     const urwaysRequest = {
-      trackid: trackid.toLowerCase(), // Order ID (lowercase as per docs)
-      terminalId: URWAYS_CONFIG.terminalId,
-      action: '1', // 1 for Purchase (Automatic Capture)
-      customerEmail: customerEmail,
-      merchantIp: merchantIp, // Required by URWAY
-      country: 'SA',
+      merchantID: URWAYS_CONFIG.merchantKey,
+      terminalID: URWAYS_CONFIG.terminalId,
       password: URWAYS_CONFIG.terminalPassword,
-      currency: currency,
+      action: '1', // 1 for payment
+      trackID: trackid.toUpperCase(),
       amount: amount.toFixed(2),
-      requestHash: generateHash(trackid, amount, currency), // Use 'requestHash' as per URWAY API
-      // Required customer details
-      firstName: customerName.split(' ')[0] || 'Customer',
-      lastName: customerName.split(' ').slice(1).join(' ') || 'Name',
-      address: 'Saudi Arabia', // Required for SAR currency
-      city: 'Riyadh', // Required for SAR currency
-      state: 'Riyadh', // Required for SAR currency
-      zip: '12345', // Required for SAR currency
-      phoneno: customerPhone || '966500000000', // Required for SAR currency
-      // User defined fields
-      udf1: orderId, // Order reference
-      udf2: `${process.env.FRONTEND_URL || 'http://localhost:3002'}/payment/success`, // Callback URL
-      udf3: 'EN', // Language (EN/AR)
-      udf4: description, // Payment description
-      udf5: JSON.stringify(items) // Items as JSON string
+      currency: currency,
+      orderID: orderId,
+      customerEmail: customerEmail,
+      customerName: customerName,
+      description: description || 'DrinkMate Order Payment',
+      returnURL: `${process.env.FRONTEND_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`,
+      cancelURL: `${process.env.FRONTEND_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`,
+      udf1: 'DrinkMate',
+      udf2: orderId,
+      udf3: customerEmail,
+      // Add signature for authentication
+      signature: generateHash(trackid, amount, currency)
     };
 
     console.log('🚀 URWAYS Payment Request:', {
-      terminalId: URWAYS_CONFIG.terminalId,
+      terminalID: URWAYS_CONFIG.terminalId,
       amount: urwaysRequest.amount,
       currency: urwaysRequest.currency,
-      trackid: urwaysRequest.trackid,
+      trackID: urwaysRequest.trackID,
       customerEmail: urwaysRequest.customerEmail,
-      merchantIp: urwaysRequest.merchantIp,
-      requestHash: urwaysRequest.requestHash
+      orderID: urwaysRequest.orderID,
+      signature: urwaysRequest.signature
     });
     
     console.log('🚀 Full URWAYS Request:', JSON.stringify(urwaysRequest, null, 2));
