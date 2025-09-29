@@ -645,6 +645,7 @@ export default function CheckoutPage() {
       let paymentResponse: any
       if (selectedGateway === "urways") {
         // Call frontend API for URWAYS (no auth required for guest checkout)
+        console.log('🚀 Sending URWAYS payment request:', paymentRequest)
         paymentResponse = await fetch('/api/payments/urways', {
           method: 'POST',
           headers: { 
@@ -652,6 +653,8 @@ export default function CheckoutPage() {
           },
           body: JSON.stringify(paymentRequest)
         })
+        
+        console.log('🚀 URWAYS payment response status:', paymentResponse.status, paymentResponse.statusText)
       } else if (selectedGateway === "tabby") {
         // Call backend API for Tabby
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
@@ -684,12 +687,16 @@ export default function CheckoutPage() {
       }
 
       const paymentData = await paymentResponse.json()
+      console.log('🚀 Payment response data:', paymentData)
 
       if (paymentData.success && paymentData.paymentUrl) {
         // Redirect to payment gateway
         window.location.href = paymentData.paymentUrl
       } else {
-        toast.error(paymentData.error || "Payment initiation failed")
+        console.error('🚀 Payment failed:', paymentData)
+        const errorMessage = paymentData.message || paymentData.error || "Payment initiation failed"
+        toast.error(errorMessage)
+        console.error('🚀 Full error response:', paymentData)
       }
       
     } catch (error) {
