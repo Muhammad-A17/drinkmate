@@ -644,10 +644,9 @@ export default function CheckoutPage() {
 
       let paymentResponse: any
       if (selectedGateway === "urways") {
-        // Call backend API for URWAYS (uses backend .env file)
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://drinkmates.onrender.com'
-        console.log('🚀 Sending URWAYS payment request to backend:', paymentRequest)
-        paymentResponse = await fetch(`${backendUrl}/payments/urways/guest`, {
+        // Call frontend API for URWAYS (temporary solution)
+        console.log('🚀 Sending URWAYS payment request to frontend API:', paymentRequest)
+        paymentResponse = await fetch('/api/payments/urways', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json'
