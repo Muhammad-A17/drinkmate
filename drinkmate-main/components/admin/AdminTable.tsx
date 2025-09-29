@@ -417,8 +417,11 @@ export const CellRenderers = {
     </span>
   ),
 
-  date: (value: string | Date) => {
+  date: (value: string | Date | null | undefined) => {
+    if (!value) return 'N/A'
     const date = typeof value === 'string' ? new Date(value) : value
+    // Check if the date is valid
+    if (isNaN(date.getTime())) return 'Invalid Date'
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',

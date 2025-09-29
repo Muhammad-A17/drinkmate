@@ -343,22 +343,34 @@ export default function OrdersPage() {
 
   const handleEditOrder = (order: Order) => {
     setEditingOrder(order)
+    
+    // Extract customer info from user or guest info
+    const customerName = order.user?.username || order.guestInfo?.name || 'N/A'
+    const customerEmail = order.user?.email || order.guestInfo?.email || 'N/A'
+    const customerPhone = order.shippingAddress?.phone || 'N/A'
+    
+    // Extract total amount with fallback
+    const totalAmount = order.totalAmount || order.total || 0
+    
+    // Extract payment status from nested structure
+    const paymentStatus = order.paymentDetails?.paymentStatus || order.paymentStatus || 'pending'
+    
     setOrderForm({
-      customerName: order.customerName,
-      customerEmail: order.customerEmail,
-      customerPhone: order.customerPhone || "",
-      totalAmount: order.totalAmount.toString(),
-      paymentMethod: order.paymentMethod,
-      shippingMethod: order.shippingMethod,
-      status: order.status,
-      paymentStatus: order.paymentStatus,
+      customerName: customerName,
+      customerEmail: customerEmail,
+      customerPhone: customerPhone,
+      totalAmount: totalAmount.toString(),
+      paymentMethod: order.paymentMethod || 'urways',
+      shippingMethod: order.shippingMethod || 'standard',
+      status: order.status || 'pending',
+      paymentStatus: paymentStatus,
       shippingStatus: order.shippingStatus || "pending",
-      street: order.shippingAddress?.street || "",
+      street: order.shippingAddress?.street || order.shippingAddress?.nationalAddress || "",
       city: order.shippingAddress?.city || "",
       state: order.shippingAddress?.state || "",
       zipCode: order.shippingAddress?.zipCode || "",
       country: order.shippingAddress?.country || "Saudi Arabia",
-      notes: order.notes || "",
+      notes: order.shippingAddress?.specialInstructions || "",
     })
     setShowEditOrder(true)
   }
@@ -716,16 +728,23 @@ export default function OrdersPage() {
     {
       key: "customerName",
       label: "Customer",
-      render: (value, row) => (
-        <div>
-          <div className="font-medium">{value}</div>
-          <div className="text-xs text-muted-foreground">{row.customerEmail}</div>
-          {row.customerPhone && <div className="text-xs text-muted-foreground">{row.customerPhone}</div>}
-        </div>
-      ),
+      render: (value, row) => {
+        // Handle both user orders and guest orders
+        const customerName = row.user?.username || row.guestInfo?.name || 'N/A'
+        const customerEmail = row.user?.email || row.guestInfo?.email || 'N/A'
+        const customerPhone = row.shippingAddress?.phone || 'N/A'
+        
+        return (
+          <div>
+            <div className="font-medium">{customerName}</div>
+            <div className="text-xs text-muted-foreground">{customerEmail}</div>
+            {customerPhone !== 'N/A' && <div className="text-xs text-muted-foreground">{customerPhone}</div>}
+          </div>
+        )
+      },
     },
     {
-      key: "orderDate",
+      key: "createdAt",
       label: "Date",
       render: CellRenderers.date,
       width: "120px",
@@ -733,36 +752,56 @@ export default function OrdersPage() {
     {
       key: "items",
       label: "Items",
-      render: (value) => `${value} item${value !== 1 ? "s" : ""}`,
+      render: (value, row) => {
+        const itemCount = Array.isArray(value) ? value.length : 0
+        return `${itemCount} item${itemCount !== 1 ? "s" : ""}`
+      },
     },
     {
       key: "totalAmount",
       label: "Total",
-      render: (value) => CellRenderers.currency(value, "SAR"),
+      render: (value, row) => {
+        // Use totalAmount from the order, fallback to calculated total
+        const total = row.totalAmount || row.total || 0
+        return CellRenderers.currency(total, "SAR")
+      },
     },
     {
       key: "paymentStatus",
       label: "Payment",
-      render: (value, row) => (
-        <div>
-          <Badge variant={value === "paid" ? "default" : value === "refunded" ? "secondary" : "destructive"}>
-            {value}
-          </Badge>
-          <div className="text-xs text-muted-foreground mt-1">{row.paymentMethod}</div>
-        </div>
-      ),
+      render: (value, row) => {
+        const paymentStatus = row.paymentDetails?.paymentStatus || value || 'pending'
+        const paymentMethod = row.paymentMethod || 'N/A'
+        
+        return (
+          <div>
+            <Badge 
+              variant={paymentStatus === "paid" ? "default" : paymentStatus === "refunded" ? "secondary" : "destructive"}
+              className={paymentStatus === "pending" || paymentStatus === "failed" ? "bg-red-600 text-white border-red-600" : ""}
+            >
+              {paymentStatus}
+            </Badge>
+            <div className="text-xs text-muted-foreground mt-1">{paymentMethod}</div>
+          </div>
+        )
+      },
     },
     {
       key: "shippingMethod",
       label: "Shipping",
-      render: (value, row) => (
-        <div>
-          <div className="text-sm">{value}</div>
-          <Badge variant="outline" className="text-xs mt-1">
-            {row.shippingStatus}
-          </Badge>
-        </div>
-      ),
+      render: (value, row) => {
+        const shippingStatus = row.shippingStatus || 'pending'
+        const shippingMethod = value || 'N/A'
+        
+        return (
+          <div>
+            <div className="text-sm">{shippingMethod}</div>
+            <Badge variant={shippingStatus === "delivered" ? "default" : shippingStatus === "shipped" ? "secondary" : "outline"} className="text-xs mt-1">
+              {shippingStatus}
+            </Badge>
+          </div>
+        )
+      },
     },
     {
       key: "status",
@@ -829,6 +868,7 @@ export default function OrdersPage() {
       onClick: handleCancelOrder,
       condition: (order) => ["pending", "processing", "confirmed"].includes(order.status),
       variant: "destructive",
+      className: "bg-red-600 hover:bg-red-700 text-white border-red-600",
       priority: 8
     },
     {
@@ -838,6 +878,7 @@ export default function OrdersPage() {
       onClick: handleRefundOrder,
       condition: (order) => order.paymentStatus === "paid" && ["delivered", "cancelled"].includes(order.status),
       variant: "destructive",
+      className: "bg-red-600 hover:bg-red-700 text-white border-red-600",
       priority: 9
     },
     {
@@ -847,6 +888,7 @@ export default function OrdersPage() {
       onClick: handleDeleteOrder,
       condition: () => true,
       variant: "destructive",
+      className: "bg-red-600 hover:bg-red-700 text-white border-red-600",
       priority: 10
     }
   ]
@@ -1322,17 +1364,17 @@ export default function OrdersPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <Badge variant={selectedOrder.status === "delivered" ? "default" : "secondary"} className="text-sm">
-                      {selectedOrder.status.toUpperCase()}
+                      {(selectedOrder.status || 'pending').toUpperCase()}
                     </Badge>
                     <Badge
-                      variant={selectedOrder.paymentStatus === "paid" ? "default" : "destructive"}
+                      variant={(selectedOrder.paymentDetails?.paymentStatus || selectedOrder.paymentStatus || 'pending') === "paid" ? "default" : "destructive"}
                       className="text-sm"
                     >
-                      {selectedOrder.paymentStatus.toUpperCase()}
+                      {(selectedOrder.paymentDetails?.paymentStatus || selectedOrder.paymentStatus || 'pending').toUpperCase()}
                     </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    Order Date: {new Date(selectedOrder.orderDate).toLocaleDateString()}
+                    Order Date: {new Date(selectedOrder.createdAt || selectedOrder.orderDate || new Date()).toLocaleDateString()}
                   </div>
                 </div>
 
@@ -1349,14 +1391,14 @@ export default function OrdersPage() {
           </CardHeader>
                     <CardContent className="space-y-2">
                       <div>
-                        <strong>Name:</strong> {selectedOrder.customerName}
+                        <strong>Name:</strong> {selectedOrder.user?.username || selectedOrder.guestInfo?.name || 'N/A'}
               </div>
                           <div>
-                        <strong>Email:</strong> {selectedOrder.customerEmail}
+                        <strong>Email:</strong> {selectedOrder.user?.email || selectedOrder.guestInfo?.email || 'N/A'}
                             </div>
-                      {selectedOrder.customerPhone && (
+                      {(selectedOrder.shippingAddress?.phone || selectedOrder.customerPhone) && (
                         <div>
-                          <strong>Phone:</strong> {selectedOrder.customerPhone}
+                          <strong>Phone:</strong> {selectedOrder.shippingAddress?.phone || selectedOrder.customerPhone}
                             </div>
                       )}
                     </CardContent>
@@ -1372,12 +1414,12 @@ export default function OrdersPage() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-2">
-                        <div>{selectedOrder.shippingAddress.street}</div>
+                        <div>{selectedOrder.shippingAddress.nationalAddress || selectedOrder.shippingAddress.street || 'N/A'}</div>
                         <div>
-                          {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state}
+                          {selectedOrder.shippingAddress.city || 'N/A'}, {selectedOrder.shippingAddress.state || 'N/A'}
                           </div>
-                        <div>{selectedOrder.shippingAddress.zipCode}</div>
-                        <div>{selectedOrder.shippingAddress.country}</div>
+                        <div>{selectedOrder.shippingAddress.zipCode || 'N/A'}</div>
+                        <div>{selectedOrder.shippingAddress.country || 'Saudi Arabia'}</div>
                       </CardContent>
                     </Card>
                   )}
@@ -1394,19 +1436,19 @@ export default function OrdersPage() {
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <div>
-                        <strong>Method:</strong> {selectedOrder.paymentMethod}
+                        <strong>Method:</strong> {selectedOrder.paymentMethod || 'N/A'}
                       </div>
                       <div>
                         <strong>Status:</strong>
                         <Badge
-                          variant={selectedOrder.paymentStatus === "paid" ? "default" : "destructive"}
+                          variant={(selectedOrder.paymentDetails?.paymentStatus || selectedOrder.paymentStatus || 'pending') === "paid" ? "default" : "destructive"}
                           className="ml-2"
                         >
-                          {selectedOrder.paymentStatus}
+                          {selectedOrder.paymentDetails?.paymentStatus || selectedOrder.paymentStatus || 'pending'}
                             </Badge>
                             </div>
                       <div>
-                        <strong>Total Amount:</strong> {CellRenderers.currency(selectedOrder.totalAmount, "SAR")}
+                        <strong>Total Amount:</strong> {CellRenderers.currency(selectedOrder.totalAmount || selectedOrder.total || 0, "SAR")}
                           </div>
                     </CardContent>
                   </Card>
@@ -1420,12 +1462,12 @@ export default function OrdersPage() {
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <div>
-                        <strong>Method:</strong> {selectedOrder.shippingMethod}
+                        <strong>Method:</strong> {selectedOrder.shippingMethod || 'Standard'}
                           </div>
                       <div>
                         <strong>Status:</strong>
                         <Badge variant="outline" className="ml-2">
-                          {selectedOrder.shippingStatus}
+                          {selectedOrder.shippingStatus || 'pending'}
                           </Badge>
                       </div>
                       {selectedOrder.trackingNumber && (
@@ -1443,11 +1485,46 @@ export default function OrdersPage() {
                     <CardTitle className="text-lg">Order Items</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Order items details would be displayed here</p>
-                      <p className="text-sm">Total: {selectedOrder.items} items</p>
-                    </div>
+                    {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                      <div className="space-y-4">
+                        {selectedOrder.items.map((item, index) => (
+                          <div key={item._id || item.id || index} className="flex items-center justify-between p-4 border rounded-lg">
+                            <div className="flex items-center space-x-4">
+                              {item.image && (
+                                <img 
+                                  src={item.image} 
+                                  alt={item.name} 
+                                  className="w-12 h-12 object-cover rounded"
+                                />
+                              )}
+                              <div>
+                                <h4 className="font-medium">{item.name}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  SKU: {item.sku || 'N/A'} | Qty: {item.quantity}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium">{CellRenderers.currency(item.price, "SAR")}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Total: {CellRenderers.currency(item.price * item.quantity, "SAR")}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="border-t pt-4">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">Total Items:</span>
+                            <span className="font-medium">{selectedOrder.items.length}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No items found for this order</p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
