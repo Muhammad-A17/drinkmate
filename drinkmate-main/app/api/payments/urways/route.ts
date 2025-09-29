@@ -71,12 +71,40 @@ export async function POST(request: NextRequest) {
       items = []
     } = body
     
+    // Debug log the received data
+    console.log('🚀 URWAYS API - Received payment request:', {
+      amount,
+      currency,
+      orderId,
+      customerEmail,
+      customerName,
+      hasAmount: !!amount,
+      hasCurrency: !!currency,
+      hasOrderId: !!orderId,
+      hasCustomerEmail: !!customerEmail,
+      hasCustomerName: !!customerName
+    })
+
     // Validate required fields
     if (!amount || !currency || !orderId || !customerEmail || !customerName) {
+      console.error('🚀 URWAYS API - Validation failed:', {
+        amount: amount || 'MISSING',
+        currency: currency || 'MISSING',
+        orderId: orderId || 'MISSING',
+        customerEmail: customerEmail || 'MISSING',
+        customerName: customerName || 'MISSING'
+      })
       return addSecurityHeaders(NextResponse.json(
         { 
           success: false, 
-          message: 'Missing required fields: amount, currency, orderId, customerEmail, customerName are required'
+          message: 'Missing required fields: amount, currency, orderId, customerEmail, customerName are required',
+          debug: {
+            hasAmount: !!amount,
+            hasCurrency: !!currency,
+            hasOrderId: !!orderId,
+            hasCustomerEmail: !!customerEmail,
+            hasCustomerName: !!customerName
+          }
         },
         { status: 400 }
       ))

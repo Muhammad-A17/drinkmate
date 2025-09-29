@@ -611,13 +611,29 @@ export default function CheckoutPage() {
         return
       }
 
+      // Validate customer data before payment
+      const customerName = deliveryAddress.fullName || `${deliveryAddress.firstName || ''} ${deliveryAddress.lastName || ''}`.trim() || 'Customer'
+      const customerEmail = deliveryAddress.email
+      
+      if (!customerEmail) {
+        toast.error("Customer email is required for payment")
+        setIsProcessing(false)
+        return
+      }
+      
+      if (!customerName || customerName === 'Customer') {
+        toast.error("Customer name is required for payment")
+        setIsProcessing(false)
+        return
+      }
+
       // Now process payment
       const paymentRequest = {
         amount: total,
         currency: 'SAR',
         orderId: orderResponse.orderId || `ORDER-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        customerEmail: deliveryAddress.email,
-        customerName: deliveryAddress.fullName,
+        customerEmail: customerEmail,
+        customerName: customerName,
         description: `DrinkMate Order - ${state.itemCount} items`,
         returnUrl: `${window.location.origin}/payment/success`,
         cancelUrl: `${window.location.origin}/payment/cancel`
