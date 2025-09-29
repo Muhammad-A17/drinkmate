@@ -111,16 +111,16 @@ const createPayment = async (req, res) => {
       trackID: trackid.toUpperCase(),
       amount: amount.toFixed(2),
       currency: currency,
-      orderID: orderId,
+      orderID: orderId.toUpperCase(), // Make sure case matches
       customerEmail: customerEmail,
       customerName: customerName,
       description: description || 'DrinkMate Order Payment',
       returnURL: `${process.env.FRONTEND_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`,
       cancelURL: `${process.env.FRONTEND_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`,
       udf1: 'DrinkMate',
-      udf2: orderId,
+      udf2: orderId.toUpperCase(), // Make sure case matches
       udf3: customerEmail,
-      // Add signature for authentication
+      // Add signature for authentication - use original trackid (function handles lowercase conversion)
       signature: generateHash(trackid, amount, currency)
     };
 
