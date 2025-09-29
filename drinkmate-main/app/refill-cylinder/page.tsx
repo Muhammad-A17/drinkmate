@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChevronLeft, ChevronRight, Plus, Minus, ChevronDown, Star, ShoppingCart, Info, Truck, Shield, RotateCcw, CheckCircle, ArrowRight, Gift } from "lucide-react"
 import PageLayout from "@/components/layout/PageLayout"
 import { useTranslation } from "@/lib/contexts/translation-context"
@@ -173,7 +174,115 @@ export default function CO2() {
   }, [retryCount])
 
   // Get selected cylinder data
-  const selectedCylinderData = cylinderBrands.find(brand => brand.id === selectedCylinder)
+  const getCylinderData = (cylinderId: string) => {
+    // Hardcoded cylinder data for known brands
+    const cylinderDataMap: { [key: string]: any } = {
+      "drinkmate": {
+        id: "drinkmate",
+        name: "Drinkmate",
+        price: 65,
+        originalPrice: 75,
+        discount: 13,
+        description: "Original Drinkmate CO2 cylinder refill",
+        brand: "Drinkmate",
+        type: "refill",
+        capacity: "60L"
+      },
+     
+      "sodastream": {
+        id: "sodastream",
+        name: "SodaStream",
+        price: 72,
+        originalPrice: 85,
+        discount: 15,
+        description: "SodaStream CO2 cylinder refill",
+        brand: "SodaStream",
+        type: "refill",
+        capacity: "60L"
+      },
+      "errva": {
+        id: "errva",
+        name: "Errva",
+        price: 68,
+        originalPrice: 78,
+        discount: 13,
+        description: "Errva CO2 cylinder refill",
+        brand: "Errva",
+        type: "refill",
+        capacity: "60L"
+      },
+      "fawwar": {
+        id: "fawwar",
+        name: "Fawwar",
+        price: 70,
+        originalPrice: 82,
+        discount: 15,
+        description: "Fawwar CO2 cylinder refill",
+        brand: "Fawwar",
+        type: "refill",
+        capacity: "60L"
+      },
+      "phillips": {
+        id: "phillips",
+        name: "Phillips",
+        price: 75,
+        originalPrice: 90,
+        discount: 17,
+        description: "Phillips CO2 cylinder refill",
+        brand: "Phillips",
+        type: "refill",
+        capacity: "60L"
+      },
+      "ultima-cosa": {
+        id: "ultima-cosa",
+        name: "Ultima Cosa",
+        price: 80,
+        originalPrice: 95,
+        discount: 16,
+        description: "Ultima Cosa CO2 cylinder refill",
+        brand: "Ultima Cosa",
+        type: "refill",
+        capacity: "60L"
+      },
+      "bubble-bro": {
+        id: "bubble-bro",
+        name: "Bubble Bro",
+        price: 73,
+        originalPrice: 88,
+        discount: 17,
+        description: "Bubble Bro CO2 cylinder refill",
+        brand: "Bubble Bro",
+        type: "refill",
+        capacity: "60L"
+      },
+      "yoco-cosa": {
+        id: "yoco-cosa",
+        name: "Yoco Cosa",
+        price: 78,
+        originalPrice: 92,
+        discount: 15,
+        description: "Yoco Cosa CO2 cylinder refill",
+        brand: "Yoco Cosa",
+        type: "refill",
+        capacity: "60L"
+      },
+      "other-brand": {
+        id: "other-brand",
+        name: "Other brand cylinders",
+        price: 85,
+        originalPrice: 100,
+        discount: 15,
+        description: "Generic CO2 cylinder refill for various brand cylinders",
+        brand: "Other",
+        type: "refill",
+        capacity: "60L"
+      }
+    }
+
+    return cylinderDataMap[cylinderId] || cylinderBrands.find(brand => brand.id === cylinderId)
+  }
+
+  const selectedCylinderData = getCylinderData(selectedCylinder)
   
   // Dynamic pricing based on quantity and brand
   const getCylinderPrice = () => {
@@ -200,12 +309,28 @@ export default function CO2() {
 
   const handleAddToCart = () => {
     if (selectedCylinderData) {
+      // Generate unique ID based on cylinder type
+      const getCylinderId = (cylinderId: string) => {
+        const idMap: { [key: string]: number } = {
+          "drinkmate": 1001,
+          "sodastream": 1003,
+          "errva": 1004,
+          "fawwar": 1005,
+          "phillips": 1006,
+          "ultima-cosa": 1007,
+          "bubble-bro": 1008,
+          "yoco-cosa": 1009,
+          "other-brand": 1010
+        }
+        return idMap[cylinderId] || 9999
+      }
+
       addItem({
-        id: 999 + cylinderBrands.findIndex(brand => brand.id === selectedCylinder), // Unique ID for each cylinder type
+        id: getCylinderId(selectedCylinder),
         name: `${selectedCylinderData.name} CO2 Cylinder Refill/Exchange`,
         price: cylinderPrice,
         quantity: quantity,
-        image: selectedCylinderData.image,
+        image: selectedCylinderData.image || "/images/co2-cylinder-single.png",
         category: "co2",
       })
       
@@ -259,304 +384,716 @@ export default function CO2() {
 
   return (
     <PageLayout currentPage="refill-cylinder">
-      {/* Refill Section Carousel - Same as shop page */}
+      {/* Enhanced Refill Section Carousel */}
       <section className="py-8 md:py-16">
-        <div className="max-w-7xl mx-auto bg-[#f3f3f3] rounded-3xl relative h-[250px] flex items-center justify-between px-6">
-          {/* Left Navigation Button */}
+        <div className="max-w-7xl mx-auto bg-gradient-to-br from-[#f8fafc] via-[#f3f3f3] to-[#e2e8f0] rounded-3xl relative h-[280px] md:h-[320px] flex items-center justify-between px-4 md:px-6 overflow-hidden shadow-2xl">
+          {/* Enhanced Left Navigation Button */}
           <Button
-            className="rounded-full w-10 h-10 flex items-center justify-center border border-gray-300 bg-white text-gray-700 shadow-sm z-10 hover:bg-gray-100 hover:border-gray-400"
+            className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-white bg-white/90 text-gray-700 shadow-lg z-10 hover:bg-white hover:border-[#12d6fa] hover:scale-110 transition-all duration-300 backdrop-blur-sm"
             onClick={prevRefillSlide}
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-6 h-6" />
           </Button>
 
-          {/* Main Content Area */}
-          <div className={`absolute ${styles.sliderContentPosition}`}>
-            <div className="w-[520px] h-[138px] flex flex-col justify-between">
-              <div className="space-y-3">
-                <h2 className="text-4xl font-bold text-black leading-tight">{refillSlides[currentRefillSlide].headline}</h2>
-                                 <p className="text-gray-700 text-[15px] whitespace-nowrap">
-                   {refillSlides[currentRefillSlide].headline === "REFILL MORE. SAVE MORE." ? (
-                     <>Now refill 4 cylinders all together for the price of <SaudiRiyal amount={55} size="sm" /> each cylinder.</>
-                   ) : (
-                     refillSlides[currentRefillSlide].description
-                   )}
-                 </p>
+          {/* Enhanced Main Content Area */}
+          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-8">
+            <div className="text-center space-y-6">
+              <div className="space-y-4">
+                <h2 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-[#12d6fa] to-[#a8f387] bg-clip-text text-transparent leading-tight animate-fade-in">
+                  {refillSlides[currentRefillSlide].headline}
+                </h2>
+                <p className="text-gray-700 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
+                  {refillSlides[currentRefillSlide].headline === "REFILL MORE. SAVE MORE." ? (
+                    <>Now refill 4 cylinders all together for the price of <SaudiRiyal amount={55} size="sm" className="font-bold text-[#12d6fa]" /> each cylinder.</>
+                  ) : (
+                    refillSlides[currentRefillSlide].description
+                  )}
+                </p>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
                 {refillSlides[currentRefillSlide].buttonText && (
                   <Button 
                     onClick={() => window.location.href = refillSlides[currentRefillSlide].buttonText === "Refill Now" ? "/co2" : "/shop"}
-                    className="bg-[#a8f387] hover:bg-[#9ae374] text-black font-medium px-6 py-3 rounded-full"
+                    className="bg-gradient-to-r from-[#a8f387] to-[#9ae374] hover:from-[#9ae374] hover:to-[#8dd663] text-black font-bold px-8 py-4 rounded-full text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                   >
                     {refillSlides[currentRefillSlide].buttonText}
+                    <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 )}
-                {refillSlides[currentRefillSlide].offerText && <span className="text-sm text-gray-500">{refillSlides[currentRefillSlide].offerText}</span>}
+                {refillSlides[currentRefillSlide].offerText && (
+                  <span className="text-sm text-gray-600 bg-white/80 px-4 py-2 rounded-full border border-gray-200 backdrop-blur-sm">
+                    {refillSlides[currentRefillSlide].offerText}
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Product Image Container */}
+          {/* Enhanced Product Image Container */}
           {refillSlides[currentRefillSlide].imageSrc ? (
-            <div className="absolute right-[100px] h-full flex justify-center items-center">
-              <Image
-                src={refillSlides[currentRefillSlide].imageSrc || "/placeholder.svg"}
-                alt={refillSlides[currentRefillSlide].imageAlt}
-                width={300}
-                height={200}
-                className="object-cover w-auto h-full"
-              />
-              {/* Yellow 60 Liters Circle */}
-              {refillSlides[currentRefillSlide].showYellowCircle && refillSlides[currentRefillSlide].yellowCircleData && (
-                <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 bg-yellow-400 rounded-full w-28 h-28 flex flex-col items-center justify-center text-white font-bold text-center p-2 shadow-md">
-                  <span className="text-[10px]">{refillSlides[currentRefillSlide].yellowCircleData.carbonatesUpto}</span>
-                  <span className="text-4xl">{refillSlides[currentRefillSlide].yellowCircleData.liters}</span>
-                  <span className="text-[10px]">{refillSlides[currentRefillSlide].yellowCircleData.litersOfDrink}</span>
-                </div>
-              )}
+            <div className="absolute right-4 md:right-16 h-full flex justify-center items-center opacity-90 hover:opacity-100 transition-opacity duration-300">
+              <div className="relative">
+                <Image
+                  src={refillSlides[currentRefillSlide].imageSrc || "/placeholder.svg"}
+                  alt={refillSlides[currentRefillSlide].imageAlt}
+                  width={280}
+                  height={200}
+                  className="object-contain w-auto h-full drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+                />
+                {/* Enhanced Yellow 60 Liters Circle */}
+                {refillSlides[currentRefillSlide].showYellowCircle && refillSlides[currentRefillSlide].yellowCircleData && (
+                  <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full w-32 h-32 flex flex-col items-center justify-center text-white font-bold text-center p-3 shadow-2xl animate-pulse">
+                    <span className="text-xs font-semibold">{refillSlides[currentRefillSlide].yellowCircleData.carbonatesUpto}</span>
+                    <span className="text-5xl font-black">{refillSlides[currentRefillSlide].yellowCircleData.liters}</span>
+                    <span className="text-xs font-semibold">{refillSlides[currentRefillSlide].yellowCircleData.litersOfDrink}</span>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
-            // Multi-image container for the third slide, positioned absolutely within the main gray container
-            <div className={styles.multiImageContainer}>
-              {refillSlides[currentRefillSlide].multiImages &&
-                refillSlides[currentRefillSlide].multiImages.map((img, index) => (
-                  <Image
-                    key={index}
-                    src={img.src || "/placeholder.svg"}
-                    alt={img.alt}
-                    width={img.width}
-                    height={img.height}
-                    className={`${styles.multiImage}`}
-                    style={{ top: `${img.top}px`, left: `${img.left}px`, zIndex: img.zIndex }}
-                  />
-                ))}
+            // Enhanced Multi-image container for the third slide
+            <div className="absolute right-4 md:right-16 h-full flex justify-center items-center">
+              <div className="relative w-96 h-80">
+                {refillSlides[currentRefillSlide].multiImages &&
+                  refillSlides[currentRefillSlide].multiImages.map((img, index) => (
+                    <Image
+                      key={index}
+                      src={img.src || "/placeholder.svg"}
+                      alt={img.alt}
+                      width={img.width}
+                      height={img.height}
+                      className="absolute object-contain hover:scale-105 transition-transform duration-300"
+                      style={{ 
+                        top: `${img.top * 0.8}px`, 
+                        left: `${img.left * 0.8}px`, 
+                        zIndex: img.zIndex 
+                      }}
+                    />
+                  ))}
+              </div>
             </div>
           )}
 
-          {/* Right Navigation Button */}
+          {/* Enhanced Right Navigation Button */}
           <Button
-            className="rounded-full w-10 h-10 flex items-center justify-center border border-gray-300 bg-white text-gray-700 shadow-sm z-10 hover:bg-gray-100 hover:border-gray-400"
+            className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-white bg-white/90 text-gray-700 shadow-lg z-10 hover:bg-white hover:border-[#12d6fa] hover:scale-110 transition-all duration-300 backdrop-blur-sm"
             onClick={nextRefillSlide}
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-6 h-6" />
           </Button>
 
-          {/* Slideshow Dots */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          {/* Enhanced Slideshow Dots */}
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3">
             {refillSlides.map((_, index) => (
-              <div
+              <button
                 key={index}
-                className={`w-3 h-3 rounded-full ${index === currentRefillSlide ? "bg-yellow-400" : "bg-gray-300"}`}
-              ></div>
+                onClick={() => setCurrentRefillSlide(index)}
+                className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                  index === currentRefillSlide 
+                    ? "bg-gradient-to-r from-[#12d6fa] to-[#a8f387] scale-125 shadow-lg" 
+                    : "bg-white/60 hover:bg-white/80 hover:scale-110"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+                title={`Go to slide ${index + 1}`}
+              />
             ))}
           </div>
         </div>
       </section>
 
-      {/* Refill / Exchange Cylinder Section */}
-      <section className="py-8">
-        <div className="max-w-[1100px] mx-auto px-4 md:px-6">
-          <h1 className="text-4xl font-bold text-black text-center mb-8 tracking-tight">
-            Refill / Exchange Cylinder
-          </h1>
+      {/* Enhanced Refill / Exchange Cylinder Section */}
+      <section className="py-12 md:py-16">
+        <div className="max-w-[1200px] mx-auto px-4 md:px-6">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-[#12d6fa]/15 to-[#a8f387]/15 px-8 py-4 rounded-full border-2 border-[#12d6fa]/30 mb-8 shadow-lg backdrop-blur-sm">
+              <div className="w-3 h-3 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-full animate-pulse"></div>
+              <span className="text-base font-bold text-gray-800 tracking-wide">PREMIUM SERVICE</span>
+              <div className="w-3 h-3 bg-gradient-to-r from-[#a8f387] to-[#9ae374] rounded-full animate-pulse"></div>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-gray-900 via-[#12d6fa] to-[#a8f387] bg-clip-text text-transparent mb-6 tracking-tight leading-tight">
+              Premium Cylinder Refill & Exchange
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed font-medium">
+              Experience our premium CO2 cylinder service with food-grade quality, 
+              fast delivery, and exclusive benefits for discerning customers.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4 mt-8">
+              <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-full shadow-md border border-gray-200">
+                <CheckCircle className="w-5 h-5 text-[#a8f387]" />
+                <span className="text-sm font-semibold text-gray-700">Food Grade CO2</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-full shadow-md border border-gray-200">
+                <Truck className="w-5 h-5 text-[#12d6fa]" />
+                <span className="text-sm font-semibold text-gray-700">Free Delivery 4+</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-full shadow-md border border-gray-200">
+                <Shield className="w-5 h-5 text-[#a8f387]" />
+                <span className="text-sm font-semibold text-gray-700">Quality Guaranteed</span>
+              </div>
+            </div>
+          </div>
           
           {/* Two Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Left Side - Visual (7 columns) */}
+            {/* Left Side - Premium Visual (7 columns) */}
             <div className="lg:col-span-7">
-              <div className="rounded-3xl border border-black/5 bg-[radial-gradient(1200px_600px_at_-10%_-20%,#f8fbff,transparent)] p-6">
-                <Image
-                  src="/images/co2-cylinder-new.png"
-                  alt="CO2 Cylinders"
-                  width={600}
-                  height={845}
-                  className="w-full h-auto object-contain"
-                  priority
-                />
+              <div className="relative overflow-hidden">
+                {/* White Background */}
+                <div className="absolute inset-0 bg-white rounded-3xl"></div>
+                
+                {/* Main Content */}
+                <div className="relative bg-white rounded-3xl border border-gray-200 shadow-2xl p-8">
+                  <div className="relative">
+                    <Image
+                      src="https://res.cloudinary.com/da6dzmflp/image/upload/v1757353811/drinkmate/tgxojr9o5oiihkf6tv21.png"
+                      alt="CO2 Cylinders"
+                      width={600}
+                      height={845}
+                      className="w-full h-auto object-contain drop-shadow-2xl"
+                      priority
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Order Summary - Moved under image */}
+              <div className="mt-8">
+                <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/20 shadow-2xl p-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Order Summary</h3>
+                  
+                  {/* Selected Cylinder Info */}
+                  {selectedCylinderData && (
+                    <div className="mb-6 p-4 bg-gradient-to-r from-[#12d6fa]/10 to-[#a8f387]/10 rounded-2xl border border-[#12d6fa]/20">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-xl flex items-center justify-center">
+                          <span className="text-white font-bold text-lg">
+                            {selectedCylinderData.name.charAt(0)}
+                          </span>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-gray-900">{selectedCylinderData.name}</h4>
+                          <p className="text-sm text-gray-600">CO2 Cylinder Refill/Exchange</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Quantity and Return Info */}
+                  <div className="mb-6 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700">Quantity:</span>
+                      <span className="font-semibold text-gray-900">{quantity} cylinder{quantity > 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700">Return required:</span>
+                      <span className="font-semibold text-gray-900">{quantity} empty cylinder{quantity > 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700">Delivery time:</span>
+                      <span className="font-semibold text-[#12d6fa]">3-5 business days</span>
+                    </div>
+                  </div>
+                  
+                  {/* Pricing Breakdown */}
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700">Unit price:</span>
+                      <span className="font-semibold text-gray-900">
+                        <SaudiRiyal amount={cylinderPrice} size="sm" />
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700">Subtotal ({quantity} × <SaudiRiyal amount={cylinderPrice} size="sm" />):</span>
+                      <span className="font-semibold text-gray-900">
+                        <SaudiRiyal amount={subtotal} size="sm" />
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700">Delivery:</span>
+                      <span className={`font-semibold ${deliveryCharge === 0 ? 'text-[#a8f387]' : 'text-gray-900'}`}>
+                        {deliveryCharge === 0 ? 'FREE' : <SaudiRiyal amount={deliveryCharge} size="sm" />}
+                      </span>
+                    </div>
+                    {selectedCylinderData && (selectedCylinderData.originalPrice * quantity) - subtotal > 0 && (
+                      <div className="flex justify-between items-center text-[#a8f387]">
+                        <span className="font-semibold">You save:</span>
+                        <span className="font-bold">
+                          <SaudiRiyal amount={(selectedCylinderData.originalPrice * quantity) - subtotal} size="sm" />
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Total */}
+                  <div className="border-t border-gray-200 pt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xl font-bold text-gray-900">Total:</span>
+                      <span className="text-2xl font-black text-[#12d6fa]">
+                        <SaudiRiyal amount={total} size="lg" />
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Additional Info */}
+                  <div className="mt-6 text-center">
+                    <p className="text-xs text-gray-500">
+                      * Empty cylinders will be picked up from your location
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Right Side - Controls (5 columns) */}
             <div className="lg:col-span-5 space-y-6">
-              {/* Select a cylinder header */}
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-black tracking-tight">Select a cylinder</h2>
+              {/* Enhanced Select a cylinder header */}
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+                <div>
+                  <h2 className="text-3xl font-black text-black tracking-tight">Select Your Cylinder</h2>
+                  <p className="text-gray-600 mt-2">Choose from our premium collection</p>
+                </div>
                 <a 
                   href="/contact" 
-                  className="text-blue-600 text-sm hover:underline transition-colors duration-200"
+                  className="inline-flex items-center space-x-2 text-[#12d6fa] text-sm font-semibold hover:text-[#0bc4e8] transition-colors duration-200 bg-[#12d6fa]/10 px-4 py-2 rounded-full hover:bg-[#12d6fa]/20"
                 >
-                  Need Help?
+                  <Info className="w-4 h-4" />
+                  <span>Need Help?</span>
                 </a>
               </div>
 
-              {/* Drinkmate Cylinder Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-black">Drinkmate Cylinder</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <CylinderCard
-                    selected={selectedCylinder === "drinkmate"}
-                    title="Drinkmate"
-                    price={65}
-                    originalPrice={75}
-                    discount={13}
-                    icon="/images/co2-cylinder.png"
-                    onClick={() => setSelectedCylinder("drinkmate")}
-                  />
-                  <CylinderCard
-                    selected={selectedCylinder === "other-to-drinkmate"}
-                    title="Other brand to Drinkmate"
-                    price={75}
-                    originalPrice={85}
-                    discount={12}
-                    icon="/images/co2-cylinder-single.png"
-                    onClick={() => setSelectedCylinder("other-to-drinkmate")}
-                  />
+              {/* Enhanced Premium Cylinder Brand Selection */}
+              <div className="space-y-8">
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#12d6fa]/20 to-[#a8f387]/20 rounded-3xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
+                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 shadow-2xl group-hover:shadow-3xl transition-all duration-300">
+                    <Select value={selectedCylinder} onValueChange={setSelectedCylinder}>
+                      <SelectTrigger className="w-full h-16 border-0 bg-transparent text-lg font-semibold focus:ring-0 focus:outline-none px-8 hover:bg-gray-50/50 transition-colors duration-200">
+                        <SelectValue placeholder="Choose your premium cylinder brand" />
+                      </SelectTrigger>
+                      <SelectContent className="border-0 shadow-2xl rounded-2xl max-h-96 overflow-y-auto">
+                        <SelectItem value="drinkmate" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-full flex items-center justify-center text-white font-bold text-sm">D</div>
+                            <div>
+                              <div className="font-semibold">Drinkmate</div>
+                              <div className="text-sm text-gray-500">Premium Original</div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="sodastream" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#a8f387] to-[#9ae374] rounded-full flex items-center justify-center text-black font-bold text-sm">S</div>
+                            <div>
+                              <div className="font-semibold">SodaStream</div>
+                              <div className="text-sm text-gray-500">Classic Choice</div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="errva" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-full flex items-center justify-center text-white font-bold text-sm">E</div>
+                            <div>
+                              <div className="font-semibold">Errva</div>
+                              <div className="text-sm text-gray-500">Reliable Brand</div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="fawwar" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#a8f387] to-[#12d6fa] rounded-full flex items-center justify-center text-white font-bold text-sm">F</div>
+                            <div>
+                              <div className="font-semibold">Fawwar</div>
+                              <div className="text-sm text-gray-500">Quality Assured</div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="phillips" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-full flex items-center justify-center text-white font-bold text-sm">P</div>
+                            <div>
+                              <div className="font-semibold">Phillips</div>
+                              <div className="text-sm text-gray-500">Professional Grade</div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="ultima-cosa" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#a8f387] to-[#9ae374] rounded-full flex items-center justify-center text-black font-bold text-sm">U</div>
+                            <div>
+                              <div className="font-semibold">Ultima Cosa</div>
+                              <div className="text-sm text-gray-500">Premium Italian</div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="bubble-bro" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-full flex items-center justify-center text-white font-bold text-sm">B</div>
+                            <div>
+                              <div className="font-semibold">Bubble Bro</div>
+                              <div className="text-sm text-gray-500">Modern Design</div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="yoco-cosa" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#a8f387] to-[#12d6fa] rounded-full flex items-center justify-center text-white font-bold text-sm">Y</div>
+                            <div>
+                              <div className="font-semibold">Yoco Cosa</div>
+                              <div className="text-sm text-gray-500">Artisan Quality</div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="other-brand" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-700 rounded-full flex items-center justify-center text-white font-bold text-sm">O</div>
+                            <div>
+                              <div className="font-semibold">Other Brand Cylinders</div>
+                              <div className="text-sm text-gray-500">Universal Compatibility</div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
-              {/* Other brand cylinders */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-black">Other brand cylinders</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {cylinderBrands.slice(2).map((brand) => (
-                    <CylinderCard
-                      key={brand.id}
-                      selected={selectedCylinder === brand.id}
-                      title={brand.name}
-                      price={brand.price}
-                      originalPrice={brand.originalPrice}
-                      discount={brand.discount}
-                      icon={brand.image}
-                      onClick={() => setSelectedCylinder(brand.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Selected Cylinder Info */}
+              {/* Premium Selected Cylinder Info */}
               {selectedCylinderData && (
-                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-200">
-                  <div className="flex items-start space-x-3">
-                    <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-blue-900 mb-1">{selectedCylinderData.name}</h4>
-                      <p className="text-sm text-blue-800">{selectedCylinderData.description}</p>
+                <div className="relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#12d6fa]/10 via-[#a8f387]/10 to-[#12d6fa]/5 rounded-3xl"></div>
+                  <div className="relative p-6 border border-[#12d6fa]/20 rounded-3xl shadow-lg backdrop-blur-sm">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <Info className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h4 className="text-xl font-bold text-gray-900">{selectedCylinderData.name}</h4>
+                          <div className="px-3 py-1 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white text-xs font-semibold rounded-full">
+                            PREMIUM
+                          </div>
+                        </div>
+                        <p className="text-gray-700 leading-relaxed mb-3">{selectedCylinderData.description}</p>
+                        <div className="flex items-center space-x-4 text-sm">
+                          <div className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-[#a8f387] rounded-full"></div>
+                            <span className="text-gray-600">Food Grade CO2</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-[#12d6fa] rounded-full"></div>
+                            <span className="text-gray-600">60L Capacity</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] rounded-full"></div>
+                            <span className="text-gray-600">Premium Quality</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Quantity Control */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-black">
-                  How many cylinders would you like to refill/exchange?
-                </h3>
-                <QuantityControl
-                  quantity={quantity}
-                  onQuantityChange={setQuantity}
-                  min={1}
-                  max={10}
-                />
+              {/* Enhanced Premium Quantity Control */}
+              <div className="space-y-8">
+                <div className="text-center">
+                  <h3 className="text-3xl font-black text-black mb-3">
+                    Choose Your Quantity
+                  </h3>
+                  <p className="text-gray-600 text-lg">
+                    Select the number of premium cylinders for refill/exchange
+                  </p>
+                </div>
+                
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#a8f387]/20 to-[#12d6fa]/20 rounded-3xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
+                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 shadow-2xl p-8 group-hover:shadow-3xl transition-all duration-300">
+                    {/* Quantity Selection Form */}
+                    <div className="mb-8">
+                      <label className="block text-lg font-semibold text-gray-900 mb-4">
+                        Number of Cylinders to Refill/Exchange
+                      </label>
+                      <div className="flex items-center justify-center space-x-4">
+                        <button
+                          onClick={() => handleQuantityChange(-1)}
+                          disabled={quantity <= 1}
+                          className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 flex items-center justify-center transition-all duration-200"
+                          aria-label="Decrease quantity"
+                          title="Decrease quantity"
+                        >
+                          <Minus className="w-5 h-5" />
+                        </button>
+                        <div className="w-20 h-12 bg-gradient-to-r from-[#12d6fa]/10 to-[#a8f387]/10 rounded-xl flex items-center justify-center border-2 border-[#12d6fa]/30">
+                          <span className="text-2xl font-bold text-gray-900">{quantity}</span>
+                        </div>
+                        <button
+                          onClick={() => handleQuantityChange(1)}
+                          disabled={quantity >= 10}
+                          className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 flex items-center justify-center transition-all duration-200"
+                          aria-label="Increase quantity"
+                          title="Increase quantity"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <p className="text-center text-sm text-gray-600 mt-3">
+                        Please return {quantity} empty cylinder{quantity > 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    
+                    {/* Delivery Information */}
+                    <div className="bg-gradient-to-r from-[#12d6fa]/10 to-[#a8f387]/10 rounded-2xl p-4 mb-6 border border-[#12d6fa]/20">
+                      <div className="flex items-center justify-center space-x-2">
+                        <Truck className="w-5 h-5 text-[#12d6fa]" />
+                        <span className="text-sm font-semibold text-gray-700">
+                          Estimated delivery time: 3-5 business days
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Enhanced Premium Quantity Benefits */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
+                        quantity >= 2 
+                          ? 'bg-gradient-to-br from-[#a8f387]/20 to-[#9ae374]/20 border-[#a8f387] shadow-lg scale-105' 
+                          : 'bg-gradient-to-br from-[#a8f387]/10 to-[#9ae374]/10 border-[#a8f387]/20'
+                      }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
+                          quantity >= 2 
+                            ? 'bg-[#a8f387] shadow-lg scale-110' 
+                            : 'bg-[#a8f387]/70'
+                        }`}>
+                          <span className="text-black font-black text-sm">2+</span>
+                        </div>
+                        <div className={`text-sm font-bold transition-colors duration-300 ${
+                          quantity >= 2 ? 'text-[#a8f387]' : 'text-gray-600'
+                        }`}>5% OFF</div>
+                        <div className="text-xs text-gray-600 font-medium">2+ cylinders</div>
+                        {quantity >= 2 && (
+                          <div className="mt-1 text-xs font-semibold text-[#a8f387] animate-pulse">
+                            ✓ ACTIVE
+                          </div>
+                        )}
+                      </div>
+                      <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
+                        quantity >= 3 
+                          ? 'bg-gradient-to-br from-[#12d6fa]/20 to-[#0bc4e8]/20 border-[#12d6fa] shadow-lg scale-105' 
+                          : 'bg-gradient-to-br from-[#12d6fa]/10 to-[#0bc4e8]/10 border-[#12d6fa]/20'
+                      }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
+                          quantity >= 3 
+                            ? 'bg-[#12d6fa] shadow-lg scale-110' 
+                            : 'bg-[#12d6fa]/70'
+                        }`}>
+                          <span className="text-white font-black text-sm">3+</span>
+                        </div>
+                        <div className={`text-sm font-bold transition-colors duration-300 ${
+                          quantity >= 3 ? 'text-[#12d6fa]' : 'text-gray-600'
+                        }`}>10% OFF</div>
+                        <div className="text-xs text-gray-600 font-medium">3+ cylinders</div>
+                        {quantity >= 3 && (
+                          <div className="mt-1 text-xs font-semibold text-[#12d6fa] animate-pulse">
+                            ✓ ACTIVE
+                          </div>
+                        )}
+                      </div>
+                      <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
+                        quantity >= 4 
+                          ? 'bg-gradient-to-br from-[#12d6fa]/20 to-[#a8f387]/20 border-[#12d6fa] shadow-lg scale-105' 
+                          : 'bg-gradient-to-br from-[#12d6fa]/10 to-[#a8f387]/10 border-[#12d6fa]/20'
+                      }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
+                          quantity >= 4 
+                            ? 'bg-gradient-to-r from-[#12d6fa] to-[#a8f387] shadow-lg scale-110' 
+                            : 'bg-gradient-to-r from-[#12d6fa]/70 to-[#a8f387]/70'
+                        }`}>
+                          <span className="text-white font-black text-sm">4+</span>
+                        </div>
+                        <div className={`text-sm font-bold transition-colors duration-300 ${
+                          quantity >= 4 ? 'text-gray-800' : 'text-gray-600'
+                        }`}>15% OFF</div>
+                        <div className="text-xs text-gray-600 font-medium">+ FREE delivery</div>
+                        {quantity >= 4 && (
+                          <div className="mt-1 text-xs font-semibold text-[#a8f387] animate-pulse">
+                            ✓ ACTIVE
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* CTAs */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  onClick={handleAddToCart}
-                  className="sm:flex-1 bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-200 hover:shadow-lg"
-                >
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  Add to cart
-                </Button>
-                <Button
-                  variant="outline"
-                  className="sm:flex-1 px-6 py-3 border-2 border-gray-300 rounded-2xl font-semibold hover:bg-gray-50 transition-all duration-200"
-                >
-                  Subscribe to save
-                </Button>
+              {/* Enhanced Premium CTAs */}
+              <div className="space-y-6">
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] rounded-3xl blur-lg group-hover:blur-xl opacity-75 transition-all duration-300"></div>
+                  <Button
+                    onClick={handleAddToCart}
+                    className="relative w-full bg-gradient-to-r from-[#12d6fa] to-[#a8f387] hover:from-[#0bc4e8] hover:to-[#9ae374] text-white px-10 py-6 rounded-3xl font-black text-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 border-0 group-hover:shadow-3xl"
+                  >
+                    <ShoppingCart className="w-6 h-6 mr-4 group-hover:animate-bounce" />
+                    Add Premium Cylinders to Cart
+                    <ArrowRight className="w-5 h-5 ml-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Button
+                    variant="outline"
+                    className="px-8 py-4 border-2 border-[#a8f387] rounded-2xl font-bold text-lg hover:bg-gradient-to-r hover:from-[#a8f387] hover:to-[#9ae374] hover:text-black hover:border-transparent transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                  >
+                    <Gift className="w-5 h-5 mr-3 group-hover:animate-pulse" />
+                    Subscribe & Save 20%
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="px-8 py-4 border-2 border-[#12d6fa] rounded-2xl font-bold text-lg hover:bg-gradient-to-r hover:from-[#12d6fa] hover:to-[#0bc4e8] hover:text-white hover:border-transparent transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                  >
+                    <Star className="w-5 h-5 mr-3 group-hover:animate-spin" />
+                    Premium Membership
+                  </Button>
+                </div>
+                
+                {/* Additional Premium Features */}
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
+                  <h4 className="text-lg font-bold text-gray-900 mb-4 text-center">Why Choose Our Premium Service?</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-[#a8f387] flex-shrink-0" />
+                      <span className="text-sm font-medium text-gray-700">Food-grade CO2 certified</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-[#12d6fa] flex-shrink-0" />
+                      <span className="text-sm font-medium text-gray-700">3-5 day turnaround</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-[#a8f387] flex-shrink-0" />
+                      <span className="text-sm font-medium text-gray-700">Home pickup & delivery</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-5 h-5 text-[#12d6fa] flex-shrink-0" />
+                      <span className="text-sm font-medium text-gray-700">Quality guaranteed</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Order Summary - Sticky on desktop */}
-              <div className="lg:sticky lg:top-24">
-                <OrderSummary
-                  quantity={quantity}
-                  unitPrice={cylinderPrice}
-                  subtotal={subtotal}
-                  deliveryCharge={deliveryCharge}
-                  total={total}
-                  savings={selectedCylinderData ? (selectedCylinderData.originalPrice * quantity) - subtotal : 0}
-                  freeDeliveryThreshold={4}
-                />
-              </div>
             </div>
           </div>
 
           {/* Horizontal Divider */}
           <div className="w-full h-px bg-gray-300 my-12"></div>
 
-          {/* How Refill/Exchange Works Section */}
-          <div className="py-12">
-            <h2 className="text-3xl font-bold text-black text-center mb-12">
-              How Refill/Exchange Works
-            </h2>
+          {/* Enhanced How Refill/Exchange Works Section */}
+          <div className="py-16">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-black text-black mb-6">
+                How Refill/Exchange Works
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Our streamlined process makes cylinder refill and exchange simple and convenient
+              </p>
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
               {/* Step 1 */}
-              <div className="text-center">
-                <div className="w-full h-64 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg mb-6 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <ShoppingCart className="w-10 h-10 text-blue-600" />
+              <div className="text-center group">
+                <div className="relative mb-8">
+                  <div className="w-full h-80 bg-gradient-to-br from-[#12d6fa]/10 to-[#12d6fa]/5 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-[#12d6fa]/20">
+                    <div className="text-center">
+                      <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                        <ShoppingCart className="w-12 h-12 text-white" />
+                      </div>
+                      <p className="text-[#12d6fa] font-bold text-lg">Order Online</p>
                     </div>
-                    <p className="text-blue-600 font-medium">Order Online</p>
+                  </div>
+                  <div className="absolute -top-4 -right-4 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-black shadow-lg">
+                    1
                   </div>
                 </div>
-                <div className="bg-[#a8f387] text-black rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-4 text-lg font-bold">
-                  1
-                </div>
-                <h3 className="text-lg font-semibold text-black mb-2">Order Online</h3>
-                <p className="text-gray-600 text-sm">
-                  Select your cylinder type and quantity, then place your order through our website.
+                <h3 className="text-2xl font-bold text-black mb-4">Order Online</h3>
+                <p className="text-gray-600 text-lg leading-relaxed">
+                  Select your cylinder type and quantity, then place your order through our website with just a few clicks.
                 </p>
               </div>
 
               {/* Step 2 */}
-              <div className="text-center">
-                <div className="w-full h-64 bg-gradient-to-br from-green-50 to-green-100 rounded-lg mb-6 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-green-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Truck className="w-10 h-10 text-green-600" />
+              <div className="text-center group">
+                <div className="relative mb-8">
+                  <div className="w-full h-80 bg-gradient-to-br from-[#a8f387]/10 to-[#a8f387]/5 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-[#a8f387]/20">
+                    <div className="text-center">
+                      <div className="w-24 h-24 bg-gradient-to-br from-[#a8f387] to-[#9ae374] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                        <Truck className="w-12 h-12 text-black" />
+                      </div>
+                      <p className="text-[#a8f387] font-bold text-lg">Schedule Pickup</p>
                     </div>
-                    <p className="text-green-600 font-medium">Schedule Pickup</p>
+                  </div>
+                  <div className="absolute -top-4 -right-4 bg-gradient-to-r from-[#a8f387] to-[#9ae374] text-black rounded-full w-12 h-12 flex items-center justify-center text-xl font-black shadow-lg">
+                    2
                   </div>
                 </div>
-                <div className="bg-[#a8f387] text-black rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-4 text-lg font-bold">
-                  2
-                </div>
-                <h3 className="text-lg font-semibold text-black mb-2">Schedule Pickup</h3>
-                <p className="text-gray-600 text-sm">
-                  We'll schedule a convenient time to pick up your empty cylinders from your location.
+                <h3 className="text-2xl font-bold text-black mb-4">Schedule Pickup</h3>
+                <p className="text-gray-600 text-lg leading-relaxed">
+                  We'll schedule a convenient time to pick up your empty cylinders from your location at no extra cost.
                 </p>
               </div>
 
               {/* Step 3 */}
-              <div className="text-center">
-                <div className="w-full h-64 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg mb-6 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-purple-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Shield className="w-10 h-10 text-purple-600" />
+              <div className="text-center group">
+                <div className="relative mb-8">
+                  <div className="w-full h-80 bg-gradient-to-br from-[#12d6fa]/10 to-[#a8f387]/10 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-[#12d6fa]/20">
+                    <div className="text-center">
+                      <div className="w-24 h-24 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                        <Shield className="w-12 h-12 text-white" />
+                      </div>
+                      <p className="text-[#12d6fa] font-bold text-lg">Receive Refilled</p>
                     </div>
-                    <p className="text-purple-600 font-medium">Receive Refilled</p>
+                  </div>
+                  <div className="absolute -top-4 -right-4 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-black shadow-lg">
+                    3
                   </div>
                 </div>
-                <div className="bg-[#a8f387] text-black rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-4 text-lg font-bold">
-                  3
-                </div>
-                <h3 className="text-lg font-semibold text-black mb-2">Receive Refilled Cylinders</h3>
-                <p className="text-gray-600 text-sm">
-                  Get your freshly refilled CO2 cylinders delivered to your door within 3-5 business days.
+                <h3 className="text-2xl font-bold text-black mb-4">Receive Refilled Cylinders</h3>
+                <p className="text-gray-600 text-lg leading-relaxed">
+                  Get your freshly refilled CO2 cylinders delivered to your door within 3-5 business days, ready to use.
                 </p>
+              </div>
+            </div>
+            
+            {/* Process Benefits */}
+            <div className="mt-16 bg-gradient-to-r from-gray-50 to-gray-100 rounded-3xl p-8 border border-gray-200">
+              <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">Why Our Process is Better</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-[#12d6fa] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-white" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 mb-2">Convenient</h4>
+                  <p className="text-sm text-gray-600">Home pickup and delivery</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-[#a8f387] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Shield className="w-8 h-8 text-black" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 mb-2">Safe</h4>
+                  <p className="text-sm text-gray-600">Food-grade CO2 certified</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-[#12d6fa] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Truck className="w-8 h-8 text-white" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 mb-2">Fast</h4>
+                  <p className="text-sm text-gray-600">3-5 day turnaround</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-[#a8f387] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Star className="w-8 h-8 text-black" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 mb-2">Reliable</h4>
+                  <p className="text-sm text-gray-600">Quality guaranteed</p>
+                </div>
               </div>
             </div>
           </div>
@@ -564,49 +1101,61 @@ export default function CO2() {
           {/* Horizontal Divider */}
           <div className="w-full h-px bg-gray-300 my-12"></div>
 
-          {/* Tab Section */}
-          <div className="py-12">
-            <div className="max-w-4xl mx-auto">
-              {/* Tab Headers */}
-              <div className="flex w-full mb-8">
+          {/* Enhanced Tab Section */}
+          <div className="py-16">
+            <div className="max-w-5xl mx-auto">
+              {/* Enhanced Tab Headers */}
+              <div className="flex w-full mb-12 bg-gray-100 rounded-2xl p-2">
                 <button 
                   onClick={() => setActiveTab("faqs")}
-                  className={`flex-1 py-4 px-6 font-semibold text-center transition-all duration-200 ${
+                  className={`flex-1 py-4 px-8 font-bold text-center transition-all duration-300 rounded-xl ${
                     activeTab === "faqs" 
-                      ? "bg-[#f4c430] text-black shadow-lg" 
-                      : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
-                  } rounded-l-xl`}
+                      ? "bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white shadow-lg scale-105" 
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                  }`}
                 >
-                  FAQS
+                  <div className="flex items-center justify-center space-x-2">
+                    <Info className="w-5 h-5" />
+                    <span>FAQs</span>
+                  </div>
                 </button>
                 <button 
                   onClick={() => setActiveTab("description")}
-                  className={`flex-1 py-4 px-6 font-semibold text-center transition-all duration-200 ${
+                  className={`flex-1 py-4 px-8 font-bold text-center transition-all duration-300 rounded-xl ${
                     activeTab === "description" 
-                      ? "bg-[#f4c430] text-black shadow-lg" 
-                      : "bg-white text-gray-600 hover:bg-gray-50 border-t border-b border-gray-200"
+                      ? "bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white shadow-lg scale-105" 
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                   }`}
                 >
-                  Description
+                  <div className="flex items-center justify-center space-x-2">
+                    <Shield className="w-5 h-5" />
+                    <span>Description</span>
+                  </div>
                 </button>
                 <button 
                   onClick={() => setActiveTab("reviews")}
-                  className={`flex-1 py-4 px-6 font-semibold text-center transition-all duration-200 ${
+                  className={`flex-1 py-4 px-8 font-bold text-center transition-all duration-300 rounded-xl ${
                     activeTab === "reviews" 
-                      ? "bg-[#f4c430] text-black shadow-lg" 
-                      : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
-                  } rounded-r-xl`}
+                      ? "bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white shadow-lg scale-105" 
+                      : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                  }`}
                 >
-                  Reviews
+                  <div className="flex items-center justify-center space-x-2">
+                    <Star className="w-5 h-5" />
+                    <span>Reviews</span>
+                  </div>
                 </button>
               </div>
 
-              {/* Tab Content */}
-              <div className="bg-white rounded-2xl shadow-sm p-8">
+              {/* Enhanced Tab Content */}
+              <div className="bg-white rounded-3xl shadow-2xl p-10 border border-gray-100">
                 {activeTab === "faqs" && (
                   <div>
-                    <h3 className="text-2xl font-bold text-black mb-8">Frequently Asked Questions</h3>
-                    <div className="space-y-4">
+                    <div className="text-center mb-12">
+                      <h3 className="text-3xl font-black text-black mb-4">Frequently Asked Questions</h3>
+                      <p className="text-gray-600 text-lg">Everything you need to know about our premium cylinder service</p>
+                    </div>
+                    <div className="space-y-6">
                       {[
                         {
                           question: "How long does the refill/exchange process take?",
@@ -629,21 +1178,21 @@ export default function CO2() {
                           answer: "We offer tiered pricing: 5% off for 2+ cylinders, 10% off for 3+ cylinders, and 15% off for 4+ cylinders. Plus, orders of 4+ cylinders get FREE delivery!"
                         }
                       ].map((faq, index) => (
-                        <div key={index} className="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-all duration-200">
+                        <div key={index} className="border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#12d6fa]/30 transition-all duration-300 group">
                           <button
                             onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
-                            className="w-full px-6 py-5 text-left flex justify-between items-center hover:bg-gray-50 transition-colors duration-200"
+                            className="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-gradient-to-r hover:from-[#12d6fa]/5 hover:to-[#a8f387]/5 transition-all duration-300 group-hover:scale-[1.02]"
                           >
-                            <span className="font-semibold text-black text-lg">{faq.question}</span>
+                            <span className="font-bold text-black text-xl group-hover:text-[#12d6fa] transition-colors duration-300">{faq.question}</span>
                             <ChevronDown 
-                              className={`w-5 h-5 text-[#12d6fa] transition-transform duration-200 ${
+                              className={`w-6 h-6 text-[#12d6fa] transition-all duration-300 group-hover:scale-110 ${
                                 openFAQ === index ? "rotate-180" : ""
                               }`} 
                             />
                           </button>
                           {openFAQ === index && (
-                            <div className="px-6 pb-5 bg-gray-50">
-                              <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                            <div className="px-8 pb-6 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200">
+                              <p className="text-gray-700 leading-relaxed text-lg pt-2">{faq.answer}</p>
                             </div>
                           )}
                         </div>
@@ -762,3 +1311,8 @@ export default function CO2() {
     </PageLayout>
   )
 }
+
+
+
+
+
