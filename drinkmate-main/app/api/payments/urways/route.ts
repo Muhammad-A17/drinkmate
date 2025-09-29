@@ -10,6 +10,19 @@ const URWAYS_CONFIG = {
   apiUrl: process.env.URWAYS_API_URL || 'https://payments.urway-tech.com/URWAYPGService/transaction/jsonProcess/JSONrequest'
 }
 
+console.log('🔍 URWAYS Config on startup:', {
+  terminalId: URWAYS_CONFIG.terminalId,
+  merchantKey: URWAYS_CONFIG.merchantKey,
+  apiUrl: URWAYS_CONFIG.apiUrl,
+  hasPassword: !!URWAYS_CONFIG.terminalPassword,
+  envVars: {
+    URWAYS_TERMINAL_ID: process.env.URWAYS_TERMINAL_ID ? 'SET' : 'NOT SET',
+    URWAYS_TERMINAL_PASSWORD: process.env.URWAYS_TERMINAL_PASSWORD ? 'SET' : 'NOT SET',
+    URWAYS_MERCHANT_KEY: process.env.URWAYS_MERCHANT_KEY ? 'SET' : 'NOT SET',
+    URWAYS_API_URL: process.env.URWAYS_API_URL ? 'SET' : 'NOT SET'
+  }
+})
+
 /**
  * Generate hash for URWAYS API authentication
  * Based on URWAY documentation: SHA256(terminalId|password|trackid|amount|currency|merchantKey)
@@ -179,6 +192,13 @@ export async function POST(request: NextRequest) {
       URWAYS_TERMINAL_PASSWORD: process.env.URWAYS_TERMINAL_PASSWORD ? 'SET' : 'NOT SET',
       URWAYS_MERCHANT_KEY: process.env.URWAYS_MERCHANT_KEY ? 'SET' : 'NOT SET',
       URWAYS_API_URL: process.env.URWAYS_API_URL ? 'SET' : 'NOT SET'
+    })
+    
+    console.log('🔍 URWAYS Config Values:', {
+      terminalId: URWAYS_CONFIG.terminalId,
+      merchantKey: URWAYS_CONFIG.merchantKey,
+      apiUrl: URWAYS_CONFIG.apiUrl,
+      hasPassword: !!URWAYS_CONFIG.terminalPassword
     })
     
     console.log('🚀 Full URWAYS Request:', JSON.stringify(urwaysRequest, null, 2))

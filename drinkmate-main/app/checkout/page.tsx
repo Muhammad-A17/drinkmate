@@ -644,9 +644,10 @@ export default function CheckoutPage() {
 
       let paymentResponse: any
       if (selectedGateway === "urways") {
-        // Call frontend API for URWAYS (no auth required for guest checkout)
-        console.log('🚀 Sending URWAYS payment request:', paymentRequest)
-        paymentResponse = await fetch('/api/payments/urways', {
+        // Call backend API for URWAYS (uses backend .env file)
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+        console.log('🚀 Sending URWAYS payment request to backend:', paymentRequest)
+        paymentResponse = await fetch(`${backendUrl}/payments/urways/guest`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json'

@@ -3,8 +3,11 @@ const router = express.Router();
 const urwaysController = require('../Controller/urways-controller');
 const { authenticateToken } = require('../Middleware/auth-middleware');
 
-// Process Urways payment
+// Process Urways payment (authenticated)
 router.post('/urways', authenticateToken, urwaysController.createPayment);
+
+// Process Urways payment (public - for guest checkout)
+router.post('/urways/guest', urwaysController.createPayment);
 
 // Verify Urways payment
 router.get('/urways/verify/:transactionId', urwaysController.verifyPayment);
