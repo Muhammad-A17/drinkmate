@@ -645,7 +645,7 @@ export default function CheckoutPage() {
       let paymentResponse: any
       if (selectedGateway === "urways") {
         // Call backend API for URWAYS (uses backend .env file)
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://drinkmates.onrender.com'
         console.log('🚀 Sending URWAYS payment request to backend:', paymentRequest)
         paymentResponse = await fetch(`${backendUrl}/payments/urways/guest`, {
           method: 'POST',
@@ -658,7 +658,7 @@ export default function CheckoutPage() {
         console.log('🚀 URWAYS payment response status:', paymentResponse.status, paymentResponse.statusText)
       } else if (selectedGateway === "tabby") {
         // Call backend API for Tabby
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://drinkmates.onrender.com'
         paymentResponse = await fetch(`${backendUrl}/payments/tabby`, {
           method: 'POST',
           headers: { 
@@ -669,7 +669,7 @@ export default function CheckoutPage() {
         })
       } else if (selectedGateway === "tap") {
         // Call backend API for Tap
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://drinkmates.onrender.com'
         paymentResponse = await fetch(`${backendUrl}/payments/tap`, {
           method: 'POST',
           headers: { 
