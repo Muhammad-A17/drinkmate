@@ -158,7 +158,9 @@ export async function POST(request: NextRequest) {
       trackID: trackid.toUpperCase(),
       udf1: 'DrinkMate',
       udf2: orderId,
-      udf3: customerEmail
+      udf3: customerEmail,
+      // Add signature for authentication
+      signature: generateHash(trackid, amount, currency)
     }
 
     console.log('🚀 URWAYS Payment Request:', {
@@ -188,6 +190,7 @@ export async function POST(request: NextRequest) {
 
     let response
     try {
+      console.log('🚀 Making request to URWAYS API:', URWAYS_CONFIG.apiUrl)
       response = await fetch(URWAYS_CONFIG.apiUrl, {
         method: 'POST',
         headers: {
@@ -200,6 +203,8 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify(urwaysRequest),
         signal: controller.signal
       })
+      
+      console.log('🚀 URWAYS API Response Status:', response.status, response.statusText)
 
       // Clear timeout if request completes successfully
       clearTimeout(timeoutId)
@@ -243,6 +248,13 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('🚀 URWAYS Payment Response:', result)
+    console.log('🚀 URWAYS Response Details:', {
+      result: result.result,
+      responseCode: result.responseCode,
+      errorText: result.errorText,
+      errorMessage: result.errorMessage,
+      reason: result.reason
+    })
 
     // Check response according to URWAYS API documentation
     if (result.result === 'SUCCESS' || result.result === 'Successful' || result.result === 'A') {
