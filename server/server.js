@@ -477,9 +477,18 @@ setTimeout(() => {
   // Make io available to routes
   app.set('io', io);
 
-  // Initialize Session Timeout service
+  // Initialize Session Timeout service only after database connection
   const sessionTimeoutService = require('./Services/session-timeout-service');
-  sessionTimeoutService.start();
+  
+  // Start session timeout service after a delay to ensure DB connection
+  setTimeout(() => {
+    const { isConnected } = require('./Utils/db');
+    if (isConnected()) {
+      sessionTimeoutService.start();
+    } else {
+      console.log('⚠️ Database not connected, session timeout service will start when DB is ready');
+    }
+  }, 5000); // Wait 5 seconds for DB connection
 
   server.listen(PORT, () => {
     console.log(`🚀 Server is running on http://localhost:${PORT}`);

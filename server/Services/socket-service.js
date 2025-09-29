@@ -159,7 +159,26 @@ class SocketService {
       // Handle test connection
       socket.on('test_connection', (data) => {
         console.log('🔥 Server: Test connection received from client:', data);
-        socket.emit('test_event', { message: 'Hello from server', timestamp: new Date().toISOString() });
+        socket.emit('test_event', { 
+          message: 'Hello from server', 
+          timestamp: new Date().toISOString(),
+          serverTime: Date.now(),
+          connectedUsers: this.connectedUsers.size,
+          adminSockets: this.adminSockets.size
+        });
+      });
+
+      // Handle health check
+      socket.on('health_check', (callback) => {
+        if (typeof callback === 'function') {
+          callback({
+            status: 'healthy',
+            timestamp: new Date().toISOString(),
+            connectedUsers: this.connectedUsers.size,
+            adminSockets: this.adminSockets.size,
+            serverUptime: process.uptime()
+          });
+        }
       });
 
       // Handle sending message

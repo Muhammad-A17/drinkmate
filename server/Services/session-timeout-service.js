@@ -42,8 +42,23 @@ class SessionTimeoutService {
   // Check and close expired sessions
   async checkAndCloseExpiredSessions() {
     try {
+      // Check if database is connected before proceeding
+      const { isConnected } = require('../Utils/db');
+      if (!isConnected()) {
+        console.log('Database not connected, skipping session check');
+        return;
+      }
+
       console.log('Checking for expired chat sessions...');
-      const closedSessions = await Chat.closeExpiredSessions();
+      
+      // Add timeout wrapper to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Session check timeout')), 15000); // 15 second timeout
+      });
+      
+      const sessionPromise = Chat.closeExpiredSessions();
+      
+      const closedSessions = await Promise.race([sessionPromise, timeoutPromise]);
       
       if (closedSessions.length > 0) {
         console.log(`Closed ${closedSessions.length} expired chat sessions`);
@@ -62,6 +77,15 @@ class SessionTimeoutService {
       }
     } catch (error) {
       console.error('Error checking expired sessions:', error);
+      
+      // If it's a timeout error, don't spam the logs
+      if (error.message === 'Session check timeout') {
+        console.log('Session check timed out, will retry on next cycle');
+      } else if (error.message.includes('before initial connection is complete')) {
+        console.log('Database not ready, skipping session check');
+      } else {
+        console.error('MongoDB operation failed:', error.message);
+      }
     }
   }
 

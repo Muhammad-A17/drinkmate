@@ -472,17 +472,56 @@ chatSchema.statics.closeExpiredSessions = async function() {
     const now = new Date();
     const fourHoursAgo = new Date(now.getTime() - (4 * 60 * 60 * 1000));
     
-    // Find all active chats that haven't had activity in the last 4 hours
+    // Use lean() for better performance and add timeout
     const expiredChats = await this.find({
       status: { $in: ['active', 'waiting'] },
       lastMessageAt: { $lt: fourHoursAgo }
-    });
+    })
+    .lean() // Use lean for better performance
+    .maxTimeMS(10000); // 10 second timeout
     
     console.log(`Found ${expiredChats.length} expired chat sessions to close`);
     
-    // Close each expired session
-    const closePromises = expiredChats.map(chat => chat.closeExpiredSession());
-    const results = await Promise.all(closePromises);
+    if (expiredChats.length === 0) {
+      return [];
+    }
+    
+    // Process in batches to avoid overwhelming the database
+    const batchSize = 10;
+    const results = [];
+    
+    for (let i = 0; i < expiredChats.length; i += batchSize) {
+      const batch = expiredChats.slice(i, i + batchSize);
+      
+      // Process batch with timeout
+      const batchPromise = Promise.all(
+        batch.map(async (chat) => {
+          try {
+            // Find the full document to update
+            const fullChat = await this.findById(chat._id);
+            if (fullChat && fullChat.status !== 'closed') {
+              return await fullChat.closeExpiredSession();
+            }
+            return null;
+          } catch (error) {
+            console.error(`Error closing chat ${chat._id}:`, error.message);
+            return null;
+          }
+        })
+      );
+      
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Batch timeout')), 5000);
+      });
+      
+      try {
+        const batchResults = await Promise.race([batchPromise, timeoutPromise]);
+        results.push(...batchResults.filter(result => result !== null));
+      } catch (error) {
+        console.error('Batch processing timeout:', error.message);
+        // Continue with next batch
+      }
+    }
     
     console.log(`Successfully closed ${results.length} expired chat sessions`);
     return results;

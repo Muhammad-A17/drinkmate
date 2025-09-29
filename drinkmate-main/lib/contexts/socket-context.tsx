@@ -16,6 +16,7 @@ interface SocketContextType {
   stopTyping: (chatId: string) => void
   assignChat: (chatId: string) => void
   updateChatStatus: (chatId: string, status: string, resolutionNotes?: string) => void
+  healthCheck: () => Promise<any>
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined)
@@ -84,10 +85,14 @@ export function SocketProvider({ children }: SocketProviderProps) {
       timeout: 20000,
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 10,
       forceNew: true,
       upgrade: true,
-      rememberUpgrade: false
+      rememberUpgrade: false,
+      autoConnect: true,
+      multiplex: false,
+      closeOnBeforeunload: false
     })
     
 
@@ -115,26 +120,25 @@ export function SocketProvider({ children }: SocketProviderProps) {
       setIsConnected(false)
       isConnectingRef.current = false
       
-      // Retry connection after a delay, but limit retries
-      const retryCount = (newSocket as any).retryCount || 0
-      if (retryCount < 3) {
-        (newSocket as any).retryCount = retryCount + 1
-        console.log(`🔥 Retrying socket connection in ${5000 * (retryCount + 1)}ms (attempt ${retryCount + 1}/3)`)
-        setTimeout(() => {
-          if (!isConnected && !isConnectingRef.current) {
-            connectSocket()
-          }
-        }, 5000 * (retryCount + 1)) // Exponential backoff
-      } else {
-        console.error('🔥 Max socket connection retries reached. Please check if the server is running.')
-      }
+      // Don't retry automatically - let Socket.io handle reconnection
+      console.log('🔥 Socket connection failed, Socket.io will handle reconnection automatically')
     })
 
     newSocket.on('reconnect', (attemptNumber) => {
+      console.log('🔥 Socket reconnected after', attemptNumber, 'attempts')
       setIsConnected(true)
+      isConnectingRef.current = false
     })
 
     newSocket.on('reconnect_error', (error) => {
+      console.error('🔥 Socket reconnection error:', error)
+      setIsConnected(false)
+    })
+
+    newSocket.on('reconnect_failed', () => {
+      console.error('🔥 Socket reconnection failed after all attempts')
+      setIsConnected(false)
+      isConnectingRef.current = false
     })
 
     // Add debugging for socket events
@@ -144,10 +148,6 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
     newSocket.on('error', (error) => {
       console.error('🔥 Socket error event:', error)
-    })
-
-    newSocket.on('reconnect_failed', () => {
-      setIsConnected(false)
     })
 
     setSocket(newSocket)
@@ -242,6 +242,24 @@ export function SocketProvider({ children }: SocketProviderProps) {
     }
   }
 
+  const healthCheck = useCallback((): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      if (!socket || !isConnected) {
+        reject(new Error('Socket not connected'))
+        return
+      }
+
+      const timeout = setTimeout(() => {
+        reject(new Error('Health check timeout'))
+      }, 5000)
+
+      socket.emit('health_check', (response: any) => {
+        clearTimeout(timeout)
+        resolve(response)
+      })
+    })
+  }, [socket, isConnected])
+
   const value: SocketContextType = {
     socket,
     isConnected,
@@ -253,7 +271,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
     startTyping,
     stopTyping,
     assignChat,
-    updateChatStatus
+    updateChatStatus,
+    healthCheck
   }
 
   return (
