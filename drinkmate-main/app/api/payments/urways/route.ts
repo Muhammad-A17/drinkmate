@@ -141,36 +141,42 @@ export async function POST(request: NextRequest) {
                       request.headers.get('x-real-ip') || 
                       '8.8.8.8' // Fallback to a valid public IP
 
-    // Prepare URWAYS request payload using the working test API structure
+    // Prepare URWAYS request payload - try different format
     const urwaysRequest = {
-      merchantID: URWAYS_CONFIG.merchantKey,
-      amount: amount.toFixed(2),
-      currency: currency,
-      orderID: orderId,
-      customerEmail: customerEmail,
-      customerName: customerName,
-      description: description || 'DrinkMate Order Payment',
-      returnURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`,
-      cancelURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`,
-      terminalID: URWAYS_CONFIG.terminalId,
+      terminalId: URWAYS_CONFIG.terminalId,
       password: URWAYS_CONFIG.terminalPassword,
       action: '1', // 1 for payment
-      trackID: trackid.toUpperCase(),
-      udf1: 'DrinkMate',
-      udf2: orderId,
-      udf3: customerEmail,
-      // Add signature for authentication
-      signature: generateHash(trackid, amount, currency)
+      trackid: trackid.toLowerCase(),
+      amount: amount.toFixed(2),
+      currency: currency,
+      customerEmail: customerEmail,
+      merchantIp: merchantIp,
+      country: 'SA',
+      requestHash: generateHash(trackid, amount, currency),
+      // Required customer details
+      firstName: customerName.split(' ')[0] || 'Customer',
+      lastName: customerName.split(' ').slice(1).join(' ') || 'Name',
+      address: 'Saudi Arabia',
+      city: 'Riyadh',
+      state: 'Riyadh',
+      zip: '12345',
+      phoneno: '966500000000',
+      // User defined fields
+      udf1: orderId,
+      udf2: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`,
+      udf3: 'EN',
+      udf4: description || 'DrinkMate Order Payment',
+      udf5: JSON.stringify(items)
     }
 
     console.log('🚀 URWAYS Payment Request:', {
       terminalId: URWAYS_CONFIG.terminalId,
       amount: urwaysRequest.amount,
       currency: urwaysRequest.currency,
-      trackID: urwaysRequest.trackID,
+      trackid: urwaysRequest.trackid,
       customerEmail: urwaysRequest.customerEmail,
       merchantIp: merchantIp,
-      orderID: urwaysRequest.orderID
+      orderId: urwaysRequest.udf1
     })
     
     console.log('🔍 Environment Check:', {

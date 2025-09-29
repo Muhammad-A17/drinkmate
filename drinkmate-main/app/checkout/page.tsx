@@ -694,6 +694,8 @@ export default function CheckoutPage() {
         window.location.href = paymentData.paymentUrl
       } else {
         console.error('🚀 Payment failed:', paymentData)
+        console.error('🚀 URWAYS Response Details:', paymentData.response)
+        console.error('🚀 Response Code:', paymentData.responseCode)
         const errorMessage = paymentData.message || paymentData.error || "Payment initiation failed"
         toast.error(errorMessage)
         console.error('🚀 Full error response:', paymentData)
