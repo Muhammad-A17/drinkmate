@@ -556,8 +556,8 @@ export default function CO2() {
                 </div>
               </div>
               
-              {/* Order Summary - Moved under image */}
-              <div className="mt-8">
+              {/* Order Summary - Hidden on mobile, shown on desktop under image */}
+              <div className="mt-8 hidden lg:block">
                 <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/20 shadow-2xl p-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Order Summary</h3>
                   
@@ -975,6 +975,93 @@ export default function CO2() {
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-[#12d6fa] flex-shrink-0" />
                       <span className="text-sm font-medium text-gray-700">Quality guaranteed</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Order Summary - Mobile only, appears under Why Choose Our Premium Service */}
+                <div className="lg:hidden mt-6">
+                  <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/20 shadow-2xl p-6">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Order Summary</h3>
+                    
+                    {/* Selected Cylinder Info */}
+                    {selectedCylinderData && (
+                      <div className="mb-6 p-4 bg-gradient-to-r from-[#12d6fa]/10 to-[#a8f387]/10 rounded-2xl border border-[#12d6fa]/20">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-xl flex items-center justify-center">
+                            <span className="text-white font-bold text-lg">
+                              {selectedCylinderData.name.charAt(0)}
+                            </span>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-900">{selectedCylinderData.name}</h4>
+                            <p className="text-sm text-gray-600">CO2 Cylinder Refill/Exchange</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Quantity and Return Info */}
+                    <div className="mb-6 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700">Quantity:</span>
+                        <span className="font-semibold text-gray-900">{quantity} cylinder{quantity > 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700">Return required:</span>
+                        <span className="font-semibold text-gray-900">{quantity} empty cylinder{quantity > 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700">Delivery time:</span>
+                        <span className="font-semibold text-[#12d6fa]">3-5 business days</span>
+                      </div>
+                    </div>
+                    
+                    {/* Pricing Breakdown */}
+                    <div className="space-y-3 mb-6">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700">Unit price:</span>
+                        <span className="font-semibold text-gray-900">
+                          <SaudiRiyal amount={cylinderPrice} size="sm" />
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700">Subtotal ({quantity} × <SaudiRiyal amount={cylinderPrice} size="sm" />):</span>
+                        <span className="font-semibold text-gray-900">
+                          <SaudiRiyal amount={subtotal} size="sm" />
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700">Delivery:</span>
+                        <span className={`font-semibold ${deliveryCharge === 0 ? 'text-[#a8f387]' : 'text-gray-900'}`}>
+                          {deliveryCharge === 0 ? 'FREE' : <SaudiRiyal amount={deliveryCharge} size="sm" />}
+                        </span>
+                      </div>
+                      {selectedCylinderData && (selectedCylinderData.originalPrice * quantity) - subtotal > 0 && (
+                        <div className="flex justify-between items-center text-[#a8f387]">
+                          <span className="font-semibold">You save:</span>
+                          <span className="font-bold">
+                            <SaudiRiyal amount={(selectedCylinderData.originalPrice * quantity) - subtotal} size="sm" />
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Total */}
+                    <div className="border-t border-gray-200 pt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xl font-bold text-gray-900">Total:</span>
+                        <span className="text-2xl font-black text-[#12d6fa]">
+                          <SaudiRiyal amount={total} size="lg" />
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Additional Info */}
+                    <div className="mt-6 text-center">
+                      <p className="text-xs text-gray-500">
+                        * Empty cylinders will be picked up from your location
+                      </p>
                     </div>
                   </div>
                 </div>
