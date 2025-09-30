@@ -125,10 +125,52 @@ export default function RefillCylindersPage() {
         return
       }
 
-      // For now, using mock data since we need a separate refill cylinders API
-      // TODO: Create /api/refill/cylinders endpoint
-      const mockCylinders: RefillCylinder[] = getMockCylinders()
-      setCylinders(mockCylinders)
+      // Use real API call to refill cylinders endpoint
+      const response = await fetch('/api/refill/cylinders', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      if (data.success && data.cylinders) {
+        // Transform backend data to match frontend interface
+        const transformedCylinders: RefillCylinder[] = data.cylinders.map((cylinder: any) => ({
+          _id: cylinder._id,
+          name: cylinder.name,
+          brand: cylinder.brand,
+          type: cylinder.type,
+          refillPrice: cylinder.price,
+          originalPrice: cylinder.originalPrice || cylinder.price,
+          discount: cylinder.discount || 0,
+          capacity: cylinder.capacity,
+          material: cylinder.material,
+          stock: cylinder.stock,
+          minStock: cylinder.minStock || 5,
+          isAvailable: cylinder.isAvailable,
+          image: cylinder.image,
+          description: cylinder.description,
+          features: cylinder.features || [],
+          status: cylinder.status,
+          isBestSeller: cylinder.isBestSeller || false,
+          isFeatured: cylinder.isFeatured || false,
+          averageRating: cylinder.averageRating || 0,
+          totalReviews: cylinder.totalReviews || 0,
+          createdAt: new Date(cylinder.createdAt),
+          updatedAt: new Date(cylinder.updatedAt)
+        }))
+        
+        setCylinders(transformedCylinders)
+      } else {
+        throw new Error(data.message || 'Failed to fetch cylinders')
+      }
     } catch (error) {
       console.error("Error fetching refill cylinders:", error)
       toast.error("Failed to fetch refill cylinders")

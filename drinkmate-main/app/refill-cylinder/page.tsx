@@ -87,12 +87,23 @@ export default function CO2() {
           console.warn('Device appears to be offline, will use fallback data');
         }
         
-        // Use co2API with improved error handling
-        const response = await co2API.getCylinders();
+        // Use refill API for consistency with admin panel
+        const response = await fetch('/api/refill/cylinders', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         
-        if (response.success) {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
           // Transform API data to match the expected format
-          const transformedCylinders = response.cylinders.map((cylinder: any) => ({
+          const transformedCylinders = data.cylinders.map((cylinder: any) => ({
             id: cylinder._id || cylinder.id, // Handle both API and fallback data
             name: cylinder.name,
             image: cylinder.image,
@@ -108,11 +119,11 @@ export default function CO2() {
           setCylinderBrands(transformedCylinders)
           
           // Log when using fallback data
-          if (response.message?.includes('fallback')) {
-            console.info('Using fallback cylinder data:', response.message);
+          if (data.message?.includes('fallback')) {
+            console.info('Using fallback cylinder data:', data.message);
           }
         } else {
-          console.error('Failed to fetch cylinders:', response.message);
+          console.error('Failed to fetch cylinders:', data.message);
           setApiError('Could not retrieve cylinder information. Please try again later.');
         }
       } catch (error: any) {

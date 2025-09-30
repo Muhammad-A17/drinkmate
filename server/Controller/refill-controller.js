@@ -1,5 +1,6 @@
 const RefillOrder = require('../Models/refill-order-model');
 const User = require('../Models/user-model');
+const CO2Cylinder = require('../Models/co2-model');
 const { sendEmail } = require('../Utils/email-service');
 
 const refillController = {
@@ -177,6 +178,174 @@ const refillController = {
       res.status(500).json({ 
         success: false, 
         message: 'Failed to fetch refill orders',
+        error: error.message 
+      });
+    }
+  },
+
+  // ===== REFILL CYLINDER MANAGEMENT =====
+  
+  // Get all refill cylinders (filtered from CO2 cylinders)
+  getAllRefillCylinders: async (req, res) => {
+    try {
+      const { 
+        page = 1, 
+        limit = 20, 
+        brand, 
+        status, 
+        minPrice, 
+        maxPrice,
+        sortBy = 'createdAt',
+        sortOrder = 'desc'
+      } = req.query;
+
+      const filter = { type: 'refill' }; // Only refill type cylinders
+      if (brand) filter.brand = brand;
+      if (status) filter.status = status;
+      if (minPrice || maxPrice) {
+        filter.price = {};
+        if (minPrice) filter.price.$gte = parseFloat(minPrice);
+        if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
+      }
+
+      const sort = {};
+      sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+      const cylinders = await CO2Cylinder.find(filter)
+        .sort(sort)
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .exec();
+
+      const total = await CO2Cylinder.countDocuments(filter);
+
+      res.json({
+        success: true,
+        cylinders,
+        totalPages: Math.ceil(total / limit),
+        currentPage: parseInt(page),
+        total
+      });
+    } catch (error) {
+      console.error('Error fetching refill cylinders:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch refill cylinders',
+        error: error.message 
+      });
+    }
+  },
+
+  // Get refill cylinder by ID
+  getRefillCylinderById: async (req, res) => {
+    try {
+      const cylinder = await CO2Cylinder.findOne({ 
+        _id: req.params.id, 
+        type: 'refill' 
+      });
+      
+      if (!cylinder) {
+        return res.status(404).json({ 
+          success: false,
+          message: 'Refill cylinder not found' 
+        });
+      }
+      
+      res.json({
+        success: true,
+        cylinder
+      });
+    } catch (error) {
+      console.error('Error fetching refill cylinder:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch refill cylinder',
+        error: error.message 
+      });
+    }
+  },
+
+  // Create new refill cylinder (admin only)
+  createRefillCylinder: async (req, res) => {
+    try {
+      const cylinderData = {
+        ...req.body,
+        type: 'refill' // Ensure it's a refill type
+      };
+
+      const cylinder = new CO2Cylinder(cylinderData);
+      const savedCylinder = await cylinder.save();
+
+      res.status(201).json({
+        success: true,
+        message: 'Refill cylinder created successfully',
+        cylinder: savedCylinder
+      });
+    } catch (error) {
+      console.error('Error creating refill cylinder:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create refill cylinder',
+        error: error.message 
+      });
+    }
+  },
+
+  // Update refill cylinder (admin only)
+  updateRefillCylinder: async (req, res) => {
+    try {
+      const cylinder = await CO2Cylinder.findOneAndUpdate(
+        { _id: req.params.id, type: 'refill' },
+        { ...req.body, updatedAt: new Date() },
+        { new: true, runValidators: true }
+      );
+
+      if (!cylinder) {
+        return res.status(404).json({ 
+          success: false,
+          message: 'Refill cylinder not found' 
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Refill cylinder updated successfully',
+        cylinder
+      });
+    } catch (error) {
+      console.error('Error updating refill cylinder:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to update refill cylinder',
+        error: error.message 
+      });
+    }
+  },
+
+  // Delete refill cylinder (admin only)
+  deleteRefillCylinder: async (req, res) => {
+    try {
+      const cylinder = await CO2Cylinder.findOneAndDelete({ 
+        _id: req.params.id, 
+        type: 'refill' 
+      });
+
+      if (!cylinder) {
+        return res.status(404).json({ 
+          success: false,
+          message: 'Refill cylinder not found' 
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Refill cylinder deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting refill cylinder:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to delete refill cylinder',
         error: error.message 
       });
     }

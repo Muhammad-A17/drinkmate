@@ -30,6 +30,19 @@ router.get('/', (req, res) => {
 // Create new refill order (authenticated users)
 router.post('/orders', authenticateToken, refillController.createRefillOrder);
 
+// ===== REFILL CYLINDER MANAGEMENT ROUTES =====
+
+// Get all refill cylinders (public)
+router.get('/cylinders', refillController.getAllRefillCylinders);
+
+// Get refill cylinder by ID (public)
+router.get('/cylinders/:id', refillController.getRefillCylinderById);
+
+// Admin only routes for refill cylinder management
+router.post('/cylinders', authenticateToken, isAdmin, refillController.createRefillCylinder);
+router.put('/cylinders/:id', authenticateToken, isAdmin, refillController.updateRefillCylinder);
+router.delete('/cylinders/:id', authenticateToken, isAdmin, refillController.deleteRefillCylinder);
+
 // Get user's refill orders (authenticated users)
 router.get('/orders/user/:userId', authenticateToken, refillController.getUserRefillOrders);
 
