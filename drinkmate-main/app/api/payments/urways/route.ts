@@ -25,12 +25,10 @@ console.log('🔍 URWAYS Config on startup:', {
 
 /**
  * Generate hash for URWAYS API authentication
- * Based on URWAY documentation: SHA256(terminalId|password|trackid|amount|currency|merchantKey)
- * Note: trackid should be lowercase as per documentation
+ * Based on working site format: SHA256(merchantId|amount|currency|orderId|customerEmail|customerName|description|returnUrl|cancelUrl|terminalId|password|action|trackId|udf1|udf2|udf3)
  */
-const generateHash = (trackid: string, amount: number, currency: string): string => {
-  const lowerTrackid = trackid.toLowerCase()
-  const hashString = `${URWAYS_CONFIG.terminalId}|${URWAYS_CONFIG.terminalPassword}|${lowerTrackid}|${amount}|${currency}|${URWAYS_CONFIG.merchantKey}`
+const generateHash = (trackid: string, amount: number, currency: string, orderId: string, customerEmail: string, customerName: string, description: string, returnUrl: string, cancelUrl: string): string => {
+  const hashString = `${URWAYS_CONFIG.merchantKey}|${amount}|${currency}|${orderId}|${customerEmail}|${customerName}|${description}|${returnUrl}|${cancelUrl}|${URWAYS_CONFIG.terminalId}|${URWAYS_CONFIG.terminalPassword}|0|${trackid.toUpperCase()}|DrinkMate|${orderId}|${customerEmail}`
   console.log('🔐 Hash String:', hashString)
   const hash = crypto.createHash('sha256').update(hashString).digest('hex')
   console.log('🔐 Generated Hash:', hash)
@@ -154,36 +152,38 @@ export async function POST(request: NextRequest) {
                       request.headers.get('x-real-ip') || 
                       '8.8.8.8' // Fallback to a valid public IP
 
-    // Prepare URWAYS request payload - try the working format from backend
+    // Prepare URWAYS request payload using PascalCase field names
+    // Based on URWAYS official documentation
     const urwaysRequest = {
-      merchantID: URWAYS_CONFIG.merchantKey,
-      terminalID: URWAYS_CONFIG.terminalId,
-      password: URWAYS_CONFIG.terminalPassword,
-      action: '1', // 1 for payment
-      trackID: trackid.toUpperCase(),
-      amount: amount.toFixed(2),
-      currency: currency,
-      orderID: orderId,
-      customerEmail: customerEmail,
-      customerName: customerName,
-      description: description || 'DrinkMate Order Payment',
-      returnURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`,
-      cancelURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`,
-      udf1: 'DrinkMate',
-      udf2: orderId,
-      udf3: customerEmail,
-      // Add signature for authentication
-      signature: generateHash(trackid, amount, currency)
+      MerchantID: URWAYS_CONFIG.merchantKey,
+      TerminalID: URWAYS_CONFIG.terminalId,
+      Password: URWAYS_CONFIG.terminalPassword,
+      Action: '0', // 0 for creating payment session
+      TrackID: trackid.toUpperCase(),
+      Amount: amount.toFixed(2),
+      Currency: currency,
+      OrderID: orderId,
+      CustomerEmail: customerEmail,
+      CustomerName: customerName,
+      Description: description || 'DrinkMate Order Payment',
+      ReturnURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`,
+      CancelURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`,
+      UDF1: 'DrinkMate',
+      UDF2: orderId,
+      UDF3: customerEmail,
+      Country: 'SA', // Saudi Arabia
+      MerchantIP: merchantIp,
+      RequestHash: generateHash(trackid, amount, currency, orderId, customerEmail, customerName, description || 'DrinkMate Order Payment', `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`, `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`)
     }
 
     console.log('🚀 URWAYS Payment Request:', {
-      terminalID: URWAYS_CONFIG.terminalId,
-      amount: urwaysRequest.amount,
-      currency: urwaysRequest.currency,
-      trackID: urwaysRequest.trackID,
-      customerEmail: urwaysRequest.customerEmail,
+      terminalId: URWAYS_CONFIG.terminalId,
+      amount: urwaysRequest.Amount,
+      currency: urwaysRequest.Currency,
+      trackId: urwaysRequest.TrackID,
+      customerEmail: urwaysRequest.CustomerEmail,
       merchantIp: merchantIp,
-      orderID: urwaysRequest.orderID
+      orderId: urwaysRequest.OrderID
     })
     
     console.log('🔍 Environment Check:', {
@@ -203,15 +203,10 @@ export async function POST(request: NextRequest) {
     
     console.log('🚀 Full URWAYS Request:', JSON.stringify(urwaysRequest, null, 2))
 
-    // Make API call to URWAYS from server
-    // Create AbortController for timeout
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
-
-    let response
+    // Attempt to create a URWAYS payment session via JSON API, then return hosted form URL
+    let urwaysResponse: any = null
     try {
-      console.log('🚀 Making request to URWAYS API:', URWAYS_CONFIG.apiUrl)
-      response = await fetch(URWAYS_CONFIG.apiUrl, {
+      const response = await fetch(URWAYS_CONFIG.apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -220,92 +215,47 @@ export async function POST(request: NextRequest) {
           'X-Forwarded-For': merchantIp,
           'X-Real-IP': merchantIp
         },
-        body: JSON.stringify(urwaysRequest),
-        signal: controller.signal
+        body: JSON.stringify(urwaysRequest)
       })
-      
-      console.log('🚀 URWAYS API Response Status:', response.status, response.statusText)
 
-      // Clear timeout if request completes successfully
-      clearTimeout(timeoutId)
-    } catch (error) {
-      clearTimeout(timeoutId)
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.error('URWAYS API Timeout:', 'Request timed out after 30 seconds')
-        return addSecurityHeaders(NextResponse.json(
-          { 
-            success: false, 
-            message: 'Payment request timed out',
-            error: 'Request timeout - please try again'
-          },
-          { status: 408 }
-        ))
+      if (!response.ok) {
+        throw new Error(`HTTP error from URWAYS API: ${response.status}`)
       }
-      console.error('URWAYS API Network Error:', error)
-      return addSecurityHeaders(NextResponse.json(
-        { 
-          success: false, 
-          message: 'Payment service unavailable',
-          error: 'Network error - please try again later'
-        },
-        { status: 503 }
-      ))
+      urwaysResponse = await response.json()
+      console.log('✅ URWAYS API response:', urwaysResponse)
+    } catch (e) {
+      console.error('❌ URWAYS API call failed:', e)
+      return addSecurityHeaders(NextResponse.json({
+        success: false,
+        message: 'Payment initiation failed',
+        response: urwaysResponse,
+        error: sanitizeErrorMessage(e instanceof Error ? e.message : 'Unknown error'),
+        responseCode: urwaysResponse?.responseCode
+      }, { status: 502 }))
     }
 
-    if (!response.ok) {
-      console.error('URWAYS API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        url: URWAYS_CONFIG.apiUrl
-      })
-      throw new Error(`URWAYS API error: ${response.status} ${response.statusText}`)
-    }
-
-    const result = await response.json()
-    
-    if (!result) {
-      throw new Error('Empty response from URWAYS API')
-    }
-
-    console.log('🚀 URWAYS Payment Response:', result)
-    console.log('🚀 URWAYS Response Details:', {
-      result: result.result,
-      responseCode: result.responseCode,
-      errorText: result.errorText,
-      errorMessage: result.errorMessage,
-      reason: result.reason
-    })
-
-    // Check response according to URWAYS API documentation
-    if (result.result === 'SUCCESS' || result.result === 'Successful' || result.result === 'A') {
+    // If URWAYS returns a payment id (e.g., PaymentId or paymentId), build hosted form URL
+    const paymentId = urwaysResponse?.paymentId || urwaysResponse?.PaymentId || urwaysResponse?.tranid || urwaysResponse?.TranId
+    if (paymentId) {
+      const paymentUrl = `https://payments.urway-tech.com/URWAYPGService/direct.jsp?paymentid=${paymentId}`
       return addSecurityHeaders(NextResponse.json({
         success: true,
         data: {
-          paymentUrl: result.targetURL || result.paymentURL || result.targetUrl || result.intUrl, // Payment URL
-          transactionId: result.transactionID || result.payid || result.tranid, // URWAY transaction ID
-          trackId: result.trackID || result.trackid || orderId, // Our order ID
-          message: 'Payment URL generated successfully',
-          // Additional response data
-          authCode: result.authcode,
-          cardBrand: result.cardBrand,
-          maskedPAN: result.maskedPAN,
-          amount: result.amount
+          paymentUrl,
+          transactionId: paymentId,
+          trackId: urwaysRequest.TrackID,
+          amount
         }
       }))
-    } else {
-      // Handle error response
-      const errorMessage = result.errorText || result.errorMessage || result.reason || getErrorMessage(result.responseCode) || 'Payment initiation failed'
-      return addSecurityHeaders(NextResponse.json(
-        { 
-          success: false, 
-          message: 'Payment request failed',
-          error: errorMessage,
-          responseCode: result.responseCode,
-          response: result // Include full response for debugging
-        },
-        { status: 400 }
-      ))
     }
+
+    // If URWAYS returns failure, bubble up details
+    return addSecurityHeaders(NextResponse.json({
+      success: false,
+      message: getErrorMessage(urwaysResponse?.responseCode) || 'Payment initiation failed',
+      response: urwaysResponse,
+      responseCode: urwaysResponse?.responseCode
+    }, { status: 400 }))
 
   } catch (error) {
     logError(error, 'UrwaysPaymentAPI')
@@ -342,7 +292,7 @@ export async function GET(request: NextRequest) {
       password: URWAYS_CONFIG.terminalPassword,
       action: '10', // 10 for payment status inquiry
       trackId: transactionId.toLowerCase(),
-      requestHash: generateHash(transactionId.toLowerCase(), 0, 'SAR')
+      requestHash: generateHash(transactionId.toLowerCase(), 0, 'SAR', transactionId, 'test@test.com', 'Test User', 'Payment Verification', 'https://drinkmate-ruddy.vercel.app/success', 'https://drinkmate-ruddy.vercel.app/cancel')
     }
 
     const response = await fetch(URWAYS_CONFIG.apiUrl, {

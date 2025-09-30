@@ -689,9 +689,10 @@ export default function CheckoutPage() {
       const paymentData = await paymentResponse.json()
       console.log('🚀 Payment response data:', paymentData)
 
-      if (paymentData.success && paymentData.paymentUrl) {
+      if (paymentData.success && (paymentData.paymentUrl || paymentData.data?.paymentUrl)) {
         // Redirect to payment gateway
-        window.location.href = paymentData.paymentUrl
+        const paymentUrl = paymentData.paymentUrl || paymentData.data?.paymentUrl
+        window.location.href = paymentUrl
       } else {
         console.error('🚀 Payment failed:', paymentData)
         console.error('🚀 URWAYS Response Details:', paymentData.response)

@@ -15,11 +15,19 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ||
     ? 'http://localhost:3000' 
     : 'https://drinkmates.onrender.com');
 
-const FINAL_API_URL = API_URL;
+// Force local development URL when running locally
+const isLocalDev = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+  (window.location.port === '3002' || window.location.port === '3001' || window.location.port === '3000');
+
+// For production, use the environment variable or fallback to production URL
+const FINAL_API_URL = process.env.NODE_ENV === 'production' 
+  ? (process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com')
+  : (isLocalDev ? 'http://localhost:3000' : API_URL);
 
 
-// Cache configuration
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutes in milliseconds (increased to reduce API calls)
+// Cache configuration - Reduced for better synchronization
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes in milliseconds (reduced for better sync)
 export const apiCache = new Map();
 
 // Debounce map to prevent rapid API calls

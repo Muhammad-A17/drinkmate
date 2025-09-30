@@ -130,7 +130,57 @@ export default function OrderDetailsPage() {
       const response = await adminAPI.getOrder(orderId)
       
       if (response.success && response.order) {
-        setOrder(response.order)
+        // Transform backend data to match frontend interface
+        const backendOrder = response.order as any;
+        const items: OrderItem[] = (backendOrder.items || []).map((it: any) => ({
+          name: it.name ?? 'Item',
+          quantity: Number(it.quantity ?? 0),
+          price: Number(it.price ?? 0),
+          image: it.image
+        }));
+
+        const shippingAddress: Order['shippingAddress'] = {
+          fullName: backendOrder.shippingAddress?.fullName || backendOrder.customerFullName || backendOrder.guestInfo?.name || 'Customer',
+          email: backendOrder.shippingAddress?.email || backendOrder.guestInfo?.email || 'unknown@example.com',
+          phone: backendOrder.shippingAddress?.phone || backendOrder.guestInfo?.phone || '',
+          district: backendOrder.shippingAddress?.district || '',
+          city: backendOrder.shippingAddress?.city || '',
+          country: backendOrder.shippingAddress?.country || 'Saudi Arabia',
+          nationalAddress: backendOrder.shippingAddress?.nationalAddress
+        };
+
+        const userForOrder: Order['user'] = backendOrder.user && backendOrder.user._id ? {
+          _id: String(backendOrder.user._id),
+          username: backendOrder.user.username || (backendOrder.customerFullName || 'customer'),
+          email: backendOrder.user.email || shippingAddress.email
+        } : {
+          _id: 'guest',
+          username: backendOrder.customerFullName || backendOrder.guestInfo?.name || 'guest',
+          email: backendOrder.guestInfo?.email || shippingAddress.email
+        };
+
+        const transformedOrder: Order = {
+          _id: String(backendOrder._id),
+          orderNumber: backendOrder.orderNumber || 'UNKNOWN',
+          user: userForOrder,
+          items,
+          shippingAddress,
+          paymentMethod: backendOrder.paymentMethod || 'unknown',
+          deliveryOption: backendOrder.deliveryOption || 'standard',
+          cardDetails: backendOrder.cardDetails,
+          subtotal: Number(backendOrder.subtotal ?? 0),
+          shippingCost: Number(backendOrder.shippingCost ?? 0),
+          tax: Number(backendOrder.tax ?? 0),
+          total: Number(backendOrder.total ?? backendOrder.totalAmount ?? 0),
+          status: backendOrder.status || 'pending',
+          paymentStatus: backendOrder.paymentDetails?.paymentStatus || backendOrder.paymentStatus || 'unpaid',
+          createdAt: backendOrder.createdAt || new Date().toISOString(),
+          updatedAt: backendOrder.updatedAt || backendOrder.createdAt || new Date().toISOString(),
+          trackingNumber: backendOrder.trackingNumber,
+          estimatedDeliveryDate: backendOrder.estimatedDeliveryDate
+        };
+
+        setOrder(transformedOrder)
       } else {
         console.error("Failed to fetch order:", response.message);
         toast.error(response.message || 'Order not found')

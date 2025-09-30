@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/contexts/auth-context"
-import { adminAPI } from "@/lib/api"
+import { adminAPI, apiCache } from "@/lib/api"
 import AdminLayout from "@/components/layout/AdminLayout"
 import AdminActionBar, { AdminActions } from "@/components/admin/AdminActionBar"
 import AdminTable, { CellRenderers, type TableColumn, type ContextTableAction } from "@/components/admin/AdminTable"
@@ -174,7 +174,22 @@ export default function OrdersPage() {
       router.push('/admin/login')
       return
     }
+    
+    // Fetch orders when authenticated
+    fetchOrders()
   }, [user, isAuthenticated, isLoading, router])
+
+  // Auto-refresh orders every 30 seconds to keep data in sync
+  useEffect(() => {
+    if (!isAuthenticated || !user?.isAdmin) return
+    
+    const interval = setInterval(() => {
+      console.log('Auto-refreshing orders...')
+      fetchOrders()
+    }, 30000) // 30 seconds
+    
+    return () => clearInterval(interval)
+  }, [isAuthenticated, user?.isAdmin])
   
   // Memoized pagination calculations for performance
   const paginationData = useMemo(() => {
@@ -257,23 +272,59 @@ export default function OrdersPage() {
       setLoading(true);
       toast.info("Loading orders...");
       
+      // Invalidate cache for fresh data
+      if (typeof window !== 'undefined') {
+        // Clear any cached order data
+        const cacheKeys = Array.from(apiCache.keys()).filter(key => key.includes('orders'));
+        cacheKeys.forEach(key => apiCache.delete(key));
+      }
+      
       // Use standardized adminAPI
       const response = await adminAPI.getOrders();
       
       if (response.success && response.orders) {
-        setOrders(response.orders);
+        // Transform backend data to match frontend interface
+        const transformedOrders = response.orders.map((order: any) => ({
+          _id: order._id,
+          orderNumber: order.orderNumber,
+          customerName: order.customerFullName || order.guestInfo?.name || 'Guest Customer',
+          customerEmail: order.guestInfo?.email || order.shippingAddress?.email || 'No email',
+          customerPhone: order.shippingAddress?.phone || order.guestInfo?.phone || '',
+          orderDate: order.createdAt || order.orderDate,
+          items: order.items || [],
+          totalAmount: order.total || order.totalAmount || 0,
+          total: order.total || order.totalAmount || 0,
+          status: order.status || 'pending',
+          paymentStatus: order.paymentDetails?.paymentStatus || order.paymentStatus || 'unpaid',
+          paymentMethod: order.paymentMethod || 'unknown',
+          shippingMethod: order.shippingMethod || 'standard',
+          shippingStatus: order.shippingStatus || 'pending',
+          shippingAddress: order.shippingAddress || {},
+          trackingNumber: order.trackingNumber || '',
+          notes: order.notes || '',
+          createdAt: order.createdAt || new Date().toISOString(),
+          paymentDetails: order.paymentDetails || { paymentStatus: 'unpaid' },
+          // Additional fields for compatibility
+          customerFullName: order.customerFullName || order.guestInfo?.name || 'Guest Customer',
+          totalItems: order.totalItems || (order.items ? order.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) : 0),
+          ageInDays: order.ageInDays || 0,
+          isGuestOrder: order.isGuestOrder || false,
+          guestInfo: order.guestInfo || null
+        }));
+        
+        setOrders(transformedOrders);
         // Update stats
         setOrderStats({
-          total: response.orders.length,
-          pending: response.orders.filter((o: Order) => o.status === 'pending').length,
-          processing: response.orders.filter((o: Order) => o.status === 'processing').length,
-          delivered: response.orders.filter((o: Order) => o.status === 'delivered').length,
-          revenue: response.orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0),
-          avgOrderValue: response.orders.length ? 
-            response.orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0) / response.orders.length : 0
+          total: transformedOrders.length,
+          pending: transformedOrders.filter((o: Order) => o.status === 'pending').length,
+          processing: transformedOrders.filter((o: Order) => o.status === 'processing').length,
+          delivered: transformedOrders.filter((o: Order) => o.status === 'delivered').length,
+          revenue: transformedOrders.reduce((sum: number, o: Order) => sum + (o.totalAmount || 0), 0),
+          avgOrderValue: transformedOrders.length ? 
+            transformedOrders.reduce((sum: number, o: Order) => sum + (o.totalAmount || 0), 0) / transformedOrders.length : 0
         });
         setLoading(false);
-        toast.success(`Loaded ${response.orders.length} orders successfully`);
+        toast.success(`Loaded ${transformedOrders.length} orders successfully`);
         return;
       } else {
         console.error("Failed to fetch orders:", response.message);
@@ -1082,6 +1133,17 @@ export default function OrdersPage() {
                     <div className="text-2xl font-bold text-[#12d6fa]">{orders.length}</div>
                     <div className="text-sm text-gray-500">Total Orders</div>
                   </div>
+                  <div className="w-px h-12 bg-gray-300"></div>
+                  <Button
+                    onClick={fetchOrders}
+                    disabled={loading}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
                 </div>
               </div>
               
