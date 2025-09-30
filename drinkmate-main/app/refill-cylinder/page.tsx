@@ -414,34 +414,7 @@ export default function CO2() {
       {/* Enhanced Refill / Exchange Cylinder Section */}
       <section className="py-12 md:py-16">
         <div className="max-w-[1200px] mx-auto px-4 md:px-6">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-[#12d6fa]/15 to-[#a8f387]/15 px-8 py-4 rounded-full border-2 border-[#12d6fa]/30 mb-8 shadow-lg backdrop-blur-sm">
-              <div className="w-3 h-3 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-full animate-pulse"></div>
-              <span className="text-base font-bold text-gray-800 tracking-wide">PREMIUM SERVICE</span>
-              <div className="w-3 h-3 bg-gradient-to-r from-[#a8f387] to-[#9ae374] rounded-full animate-pulse"></div>
-            </div>
-            <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-gray-900 via-[#12d6fa] to-[#a8f387] bg-clip-text text-transparent mb-6 tracking-tight leading-tight">
-              Premium Cylinder Refill & Exchange
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed font-medium">
-              Experience our premium CO2 cylinder service with food-grade quality, 
-              fast delivery, and exclusive benefits for discerning customers.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 mt-8">
-              <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-full shadow-md border border-gray-200">
-                <CheckCircle className="w-5 h-5 text-[#a8f387]" />
-                <span className="text-sm font-semibold text-gray-700">Food Grade CO2</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-full shadow-md border border-gray-200">
-                <Truck className="w-5 h-5 text-[#12d6fa]" />
-                <span className="text-sm font-semibold text-gray-700">Free Delivery 4+</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-full shadow-md border border-gray-200">
-                <Shield className="w-5 h-5 text-[#a8f387]" />
-                <span className="text-sm font-semibold text-gray-700">Quality Guaranteed</span>
-              </div>
-            </div>
-          </div>
+       
           
           {/* Two Column Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
