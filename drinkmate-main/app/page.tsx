@@ -34,9 +34,9 @@ function StepCard({
   const vref = useAutoPlayOnView<HTMLVideoElement>();
   
   return (
-    <article className="rounded-2xl border border-black/10 bg-white overflow-hidden shadow-[0_6px_20px_rgba(0,0,0,.06)] transition hover:shadow-[0_10px_28px_rgba(0,0,0,.10)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500">
-      {/* Keep videos compact on mobile */}
-      <div className="aspect-[4/5] md:aspect-[3/4] overflow-hidden">
+    <article className="rounded-2xl border border-black/10 bg-white overflow-hidden shadow-[0_6px_20px_rgba(0,0,0,.06)] transition hover:shadow-[0_10px_28px_rgba(0,0,0,.10)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 h-[280px] md:h-[320px] w-full max-w-[300px] mx-auto">
+      {/* Full image container */}
+      <div className="w-full h-full overflow-hidden">
         <motion.div
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.98 }}
@@ -51,16 +51,11 @@ function StepCard({
             unoptimized
           />
           {/* Gradient and overlayed text - Hidden by default, shown on hover */}
-          <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <p className="text-white font-extrabold text-xs">{`Step ${step}: ${title}`}</p>
-            <p className="text-white/90 text-[10px] leading-snug">{description}</p>
+          <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <p className="text-white font-extrabold text-sm">{`Step ${step}: ${title}`}</p>
+            <p className="text-white/90 text-xs leading-snug">{description}</p>
           </div>
         </motion.div>
-      </div>
-      <div className="px-2.5 py-2">
-        <p className="text-[12px] sm:text-sm font-semibold text-center tabular-nums">
-          Step {step}: {title}
-        </p>
       </div>
     </article>
   );
@@ -190,31 +185,31 @@ export default function Home() {
   const steps = [
     {
       id: 1,
-      title: t("home.howItWorks.steps.step1.title"),
-      description: t("home.howItWorks.steps.step1.description"),
+      title: "Fill",
+      description: "Fill the bottle with your desired beverage.",
       img: "/images/step/step 1.webp",
-      alt: t("home.howItWorks.steps.step1.alt"),
+      alt: "Step 1: Fill the bottle with your desired beverage",
     },
     {
       id: 2,
-      title: t("home.howItWorks.steps.step2.title"),
-      description: t("home.howItWorks.steps.step2.description"),
+      title: "Fizz",
+      description: "Press the button to carbonate your drink.",
       img: "/images/step/step 2.webp",
-      alt: t("home.howItWorks.steps.step2.alt"),
+      alt: "Step 2: Press the button to carbonate your drink",
     },
     {
       id: 3,
-      title: t("home.howItWorks.steps.step3.title"),
-      description: t("home.howItWorks.steps.step3.description"),
+      title: "Flip",
+      description: "Open the valve on the Fizz Infuser to release the pressure.",
       img: "/images/step/step 3.webp",
-      alt: t("home.howItWorks.steps.step3.alt"),
+      alt: "Step 3: Open the valve on the Fizz Infuser to release the pressure",
     },
     {
       id: 4,
-      title: t("home.howItWorks.steps.step4.title"),
-      description: t("home.howItWorks.steps.step4.description"),
-      img: "/images/step/step 4.webp", // 👉 Add this image to your public/images
-      alt: t("home.howItWorks.steps.step4.alt"),
+      title: "And Enjoy!",
+      description: "Fill into a glass and enjoy the drink.",
+      img: "/images/step/step 4.webp",
+      alt: "Step 4: Fill into a glass and enjoy the drink",
     },
   ]
 
@@ -1215,21 +1210,21 @@ export default function Home() {
 
       {/* Second Card - How does it work */}
 
-      <section className="max-w-screen-xl mx-auto px-4 md:px-6 py-6 md:py-16 overflow-x-clip">
-        <div className="grid gap-6 lg:grid-cols-12 items-start">
-          {/* Left copy */}
-          <div className="lg:col-span-5" dir={isRTL ? "rtl" : "ltr"}>
-            <h2 className={`font-bold leading-tight text-[#12d6fa] text-[clamp(22px,6vw,44px)] ${isRTL ? "font-cairo text-end" : "font-montserrat text-start"}`}>
-              <Balancer>{t("home.howItWorks.title")}</Balancer>
+      <section className="max-w-screen-xl mx-auto px-6 md:px-8 lg:px-12 py-8 md:py-16 lg:py-20">
+        <div className="space-y-12">
+          {/* Header */}
+          <div className="text-center space-y-4 md:space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+            <h2 className={`font-bold leading-tight text-[#12d6fa] text-[clamp(22px,6vw,44px)] ${isRTL ? "font-cairo text-end" : "font-montserrat text-center"}`}>
+              <Balancer>How does the Drinkmate® OmniFizz work?</Balancer>
             </h2>
-            <p className={`mt-2 text-sm text-black/70 ${isRTL ? "font-noto-arabic text-end" : "font-noto-sans text-start"}`}>
-              {t("home.howItWorks.description")}
+            <p className={`text-base md:text-lg text-black/70 leading-relaxed max-w-2xl mx-auto ${isRTL ? "font-noto-arabic text-end" : "font-noto-sans text-center"}`}>
+              Four simple steps that show you how to use the Drinkmate® OmniFizz
             </p>
           </div>
 
           {/* Cards */}
-          <div className="lg:col-span-7">
-            <ul className="grid gap-3 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
+          <div className="w-full">
+            <ul className="grid gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
               {steps.map((step, index) => (
                 <motion.li
                   key={step.id}
@@ -1490,11 +1485,11 @@ export default function Home() {
       {/* Flavor Section */}
 <section className="px-6 md:px-20 lg:px-24 xl:px-32 2xl:px-40">
   {/* Header */}
-  <div className="text-center mb-2 md:mb-4" dir={isRTL ? "rtl" : "ltr"}>
-    <div className="flex justify-center">
+  <div className="text-center mb-6 md:mb-8 py-6 md:py-8" dir={isRTL ? "rtl" : "ltr"}>
+    <div className="flex justify-center mb-4 md:mb-6">
       <div className="bg-[#12d6fa] bg-clip-text">
         <p
-          className={`text-base md:text-lg lg:text-xl font-medium mb-2 md:mb-3 text-transparent bg-clip-text bg-[#12d6fa] text-center ${
+          className={`text-lg md:text-xl lg:text-2xl font-semibold mb-4 md:mb-6 text-transparent bg-clip-text bg-[#12d6fa] text-center leading-loose pb-2 ${
             isRTL ? "font-cairo" : "font-montserrat"
           }`}
         >
@@ -1503,13 +1498,13 @@ export default function Home() {
       </div>
     </div>
     <h2
-      className={`text-2xl md:text-4xl lg:text-6xl font-medium bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 bg-clip-text text-transparent mb-3 md:mb-4 text-center ${
+      className={`text-3xl md:text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 bg-clip-text text-transparent mb-6 md:mb-8 text-center leading-normal pb-3 ${
         isRTL ? "font-cairo" : "font-montserrat"
       }`}
     >
       {t("home.flavorSection.title")}
     </h2>
-    <div className="w-16 md:w-24 h-1 bg-[#12d6fa] mx-auto rounded-full shadow-lg"></div>
+    <div className="w-20 md:w-32 h-1.5 bg-[#12d6fa] mx-auto rounded-full shadow-lg"></div>
   </div>
 
   <div
