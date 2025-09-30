@@ -553,8 +553,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   // Socket event listeners
   useEffect(() => {
-    if (!socket) {
-      console.log('🔥 ChatProvider: No socket available for event listeners')
+    if (!socket || !isConnected) {
+      console.log('🔥 ChatProvider: No socket or not connected for event listeners')
       return
     }
 
@@ -567,6 +567,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       console.log('🔥 ChatProvider: Current chat ID:', stateRef.current.currentChat?._id)
       console.log('🔥 ChatProvider: Message chat ID:', data.chatId)
       
+      // Validate data structure
+      if (!data || !data.chatId || !data.message) {
+        console.error('🔥 ChatProvider: Invalid message data structure:', data)
+        return
+      }
+      
       // Only process messages for the current chat
       if (!stateRef.current.currentChat || data.chatId !== stateRef.current.currentChat._id) {
         console.log('🔥 ChatProvider: Message not for current chat, ignoring')
@@ -575,17 +581,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       // Check if message already exists to prevent duplicates
       const messageExists = stateRef.current.messages.some((msg: Message) => {
-        // Check by real ID
+        // Check by real ID first (most reliable)
         if (msg.id === data.message._id || msg.id === data.message.id) {
           return true
         }
         
-        // Check by content and timestamp (for temporary messages)
-        if (msg.content === data.message.content) {
+        // Only check by content and timestamp if IDs don't match and content is identical
+        if (msg.content === data.message.content && data.message.content) {
           const msgTime = new Date(msg.timestamp).getTime()
           const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
-          // If timestamps are within 5 seconds, consider it a duplicate
-          return Math.abs(msgTime - dataTime) < 5000
+          // If timestamps are within 2 seconds, consider it a duplicate (reduced from 5 seconds)
+          return Math.abs(msgTime - dataTime) < 2000
         }
         
         return false

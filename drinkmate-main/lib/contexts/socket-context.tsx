@@ -86,7 +86,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      reconnectionAttempts: 10,
+      reconnectionAttempts: 15, // Increased attempts
       forceNew: true,
       upgrade: true,
       rememberUpgrade: false,
@@ -181,14 +181,14 @@ export function SocketProvider({ children }: SocketProviderProps) {
       // Add a small delay to ensure the socket connection is established
       const timer = setTimeout(() => {
         connectSocket()
-      }, 500) // Increased delay to ensure everything is ready
+      }, 1000) // Increased delay to ensure everything is ready
       return () => clearTimeout(timer)
     } else {
       console.log('🔥 SocketProvider: No user or token, disconnecting socket')
       console.log('🔥 SocketProvider: User:', !!user, 'Token:', !!token)
       disconnectSocket()
     }
-  }, [user, token, connectSocket, disconnectSocket])
+  }, [user, token]) // Removed connectSocket and disconnectSocket from dependencies to prevent loops
 
   const joinChat = (chatId: string) => {
     if (socket && isConnected) {

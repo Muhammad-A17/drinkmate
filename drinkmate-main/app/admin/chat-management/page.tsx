@@ -536,9 +536,16 @@ export default function ChatManagementPage() {
       console.log('🔥 Admin Chat Management: Selected conversation ID:', selectedConversation?.id)
       
       // Skip if this is a message from the current admin (already handled optimistically)
+      // But only skip if we're sure it's the same message (check by content and timestamp)
       if (data.message.senderId === user?._id) {
-        console.log('🔥 Admin Chat Management: Skipping own message')
-        return
+        const isDuplicate = selectedConversation?.messages.some(msg => 
+          msg.content === data.message.content && 
+          Math.abs(new Date(msg.timestamp).getTime() - new Date(data.message.timestamp).getTime()) < 1000
+        )
+        if (isDuplicate) {
+          console.log('🔥 Admin Chat Management: Skipping own duplicate message')
+          return
+        }
       }
       
       // Determine if this is an admin/agent message based on sender type
@@ -692,7 +699,7 @@ export default function ChatManagementPage() {
     }
 
     // Register socket event listeners
-    if (socket && typeof socket.on === 'function') {
+    if (socket && isConnected && typeof socket.on === 'function') {
       console.log('🔥 Admin: Registering socket event listeners')
       console.log('🔥 Admin: Socket connected:', socket.connected)
       console.log('🔥 Admin: Socket ID:', socket.id)
@@ -711,7 +718,7 @@ export default function ChatManagementPage() {
       
       console.log('🔥 Admin: Socket event listeners registered successfully')
     } else {
-      console.log('🔥 Admin: Cannot register socket event listeners - socket:', !!socket, 'has on method:', typeof socket?.on)
+      console.log('🔥 Admin: Cannot register socket event listeners - socket:', !!socket, 'connected:', isConnected, 'has on method:', typeof socket?.on)
     }
 
     // Cleanup
