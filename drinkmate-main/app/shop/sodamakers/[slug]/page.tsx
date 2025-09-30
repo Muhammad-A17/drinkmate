@@ -381,6 +381,61 @@ export default function SodamakerProductDetail() {
             ],
             tags: ['soda-maker', 'professional', 'stainless-steel', 'carbonation']
           },
+          'drinkmate-omnifizz': {
+            _id: 'mock-omnifizz-1',
+            name: 'Drinkmate OmniFizz',
+            slug: 'drinkmate-omnifizz',
+            shortDescription: 'Effortlessly carbonate any drink with endless possibilities for sparkling refreshments',
+            fullDescription: 'Unlike traditional soda makers, the Drinkmate OmniFizz allows you to effortlessly carbonate any drink, from juice and iced tea to wine and cocktails, providing endless possibilities for sparkling refreshments.',
+            price: 199.99,
+            originalPrice: 249.99,
+            sku: 'DM-OF-001',
+            category: 'sodamakers',
+            image: '/images/products/omnifizz-1.jpg',
+            images: [
+              { url: '/images/products/omnifizz-1.jpg', alt: 'Drinkmate OmniFizz - Front View', isPrimary: true },
+              { url: '/images/products/omnifizz-2.jpg', alt: 'Drinkmate OmniFizz - Side View', isPrimary: false },
+              { url: '/images/products/omnifizz-3.jpg', alt: 'Drinkmate OmniFizz - In Use', isPrimary: false }
+            ],
+            stock: 75,
+            isActive: true,
+            isFeatured: true,
+            isBestSeller: true,
+            averageRating: 4.7,
+            reviewCount: 156,
+            totalReviews: 156,
+            features: [
+              'Universal Carbonation - Carbonate any liquid from juice to wine and cocktails',
+              'Advanced Carbonation Technology - Precise control for perfect bubbles every time',
+              'Compact Design - Space-saving design perfect for any kitchen counter',
+              'Easy-to-Use Interface - Simple one-button operation for effortless carbonation',
+              'Durable Construction - Built to last with high-quality materials',
+              'Versatile Applications - From soft drinks to sparkling cocktails and more'
+            ],
+            specifications: {
+              'Power': '90W',
+              'Capacity': '1.0L',
+              'Material': 'BPA-Free Plastic & Stainless Steel',
+              'Weight': '2.1kg',
+              'Dimensions': '20cm x 18cm x 30cm',
+              'Warranty': '2 years',
+              'Pressure Rating': '45 PSI',
+              'Thread Type': 'Standard 3/8" UNF',
+              'Valve Type': 'Precision Flow Control',
+              'Certification': 'FDA, CE, ISO 9001',
+              'Temperature Range': '2°C to +35°C',
+              'Service Life': '8 Years',
+              'CO2 Purity': '99.9% Food Grade',
+              'Safety Features': 'Automatic Pressure Release'
+            },
+            colors: [
+              { name: 'Silver', hexCode: '#C0C0C0', inStock: true },
+              { name: 'Black', hexCode: '#000000', inStock: true },
+              { name: 'Purple', hexCode: '#8B5CF6', inStock: true },
+              { name: 'White', hexCode: '#FFFFFF', inStock: true }
+            ],
+            tags: ['soda-maker', 'universal', 'versatile', 'carbonation', 'omnifizz']
+          },
           'drinkmate-premium-flavor-pack': {
             _id: 'mock-flavor-pack-1',
             name: 'DrinkMate Premium Flavor Pack',

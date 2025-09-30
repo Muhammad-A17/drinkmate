@@ -238,13 +238,15 @@ export default function Home() {
     { id: "red", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657901/drinkmate-machine-red_lkj7c9.png", alt: "Drinkmate OmniFizz Red" },
     { id: "cyan", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657904/drinkmate-machine-blue_fs1bk8.png", alt: "Drinkmate OmniFizz Blue" },
     { id: "black", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756657900/drinkmate-machine-black-small_mztxfb.png", alt: "Drinkmate OmniFizz Black" },
+    { id: "purple", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1759261662/Screenshot_2025-10-01_004727_an7b2g.png", alt: "Drinkmate OmniFizz Purple" },
+    { id: "white", src: "https://res.cloudinary.com/dw2h8hejn/image/upload/v1759261464/Screenshot_2025-10-01_004339_d54o2g.png", alt: "Drinkmate OmniFizz White" },
   ]
 
   const machineStyles = {
     red: {
       red: {
-        width: 140,
-        height: 350,
+        width: 120,
+        height: 240,
         top: "50px",
         left: "50%",
         transform: "translateX(-50%)",
@@ -252,74 +254,106 @@ export default function Home() {
         zIndex: 2,
         borderRadius: "5px",
         // Desktop styles
-        mdWidth: 320,
-        mdHeight: 750,
+        mdWidth: 400,
+        mdHeight: 720,
         mdTop: "50px",
       },
       cyan: {
-        width: 70,
-        height: 175,
-        top: "300px",
-        left: "30%",
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "20%",
         transform: "translateX(-50%)",
         opacity: 0.5,
         zIndex: 1,
-        // Desktop styles
-        mdWidth: 120,
-        mdHeight: 300,
-        mdTop: "400px",
-        mdLeft: "25%",
-      },
-      black: {
-        width: 60,
-        height: 150,
-        top: "300px",
-        left: "70%",
-        transform: "translateX(-50%)",
-        opacity: 0,
-        zIndex: 0,
         borderRadius: "5px",
         // Desktop styles
         mdWidth: 100,
         mdHeight: 250,
-        mdTop: "400px",
-        mdLeft: "75%",
+        mdTop: "420px",
+        mdLeft: "20%",
       },
-    },
-    cyan: {
-      red: {
-        width: 70,
-        height: 175,
-        top: "300px",
-        left: "30%",
+      black: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "40%",
         transform: "translateX(-50%)",
         opacity: 0.5,
         zIndex: 1,
         borderRadius: "5px",
         // Desktop styles
-        mdWidth: 120,
-        mdHeight: 300,
-        mdTop: "400px",
-        mdLeft: "25%",
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "40%",
+      },
+      purple: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "60%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "60%",
+      },
+      white: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "80%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "80%",
+      },
+    },
+    cyan: {
+      red: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "20%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "20%",
       },
       cyan: { 
-        width: 140, 
-        height: 350, 
+        width: 120, 
+        height: 240, 
         top: "50px", 
         left: "50%", 
         transform: "translateX(-50%)", 
         opacity: 1, 
         zIndex: 2,
+        borderRadius: "5px",
         // Desktop styles
-        mdWidth: 320,
-        mdHeight: 750,
+        mdWidth: 400,
+        mdHeight: 720,
         mdTop: "50px",
       },
       black: {
         width: 60,
         height: 150,
-        top: "300px",
-        left: "70%",
+        top: "320px",
+        left: "40%",
         transform: "translateX(-50%)",
         opacity: 0.5,
         zIndex: 1,
@@ -327,43 +361,74 @@ export default function Home() {
         // Desktop styles
         mdWidth: 100,
         mdHeight: 250,
-        mdTop: "400px",
-        mdLeft: "75%",
+        mdTop: "420px",
+        mdLeft: "40%",
+      },
+      purple: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "60%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "60%",
+      },
+      white: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "80%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "80%",
       },
     },
     black: {
       red: {
-        width: 70,
-        height: 175,
-        top: "300px",
-        left: "30%",
-        transform: "translateX(-50%)",
-        opacity: 0, // Hide red machine
-        zIndex: 0,
-        borderRadius: "5px",
-        // Desktop styles
-        mdWidth: 120,
-        mdHeight: 300,
-        mdTop: "400px",
-        mdLeft: "25%",
-      },
-      cyan: {
-        width: 70,
-        height: 175,
-        top: "300px",
-        left: "70%",
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "20%",
         transform: "translateX(-50%)",
         opacity: 0.5,
         zIndex: 1,
+        borderRadius: "5px",
         // Desktop styles
         mdWidth: 100,
-        mdHeight: 300,
-        mdTop: "400px",
-        mdLeft: "75%",
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "20%",
+      },
+      cyan: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "40%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "40%",
       },
       black: {
         width: 120,
-        height: 280,
+        height: 240,
         top: "50px",
         left: "50%",
         transform: "translateX(-50%)",
@@ -371,8 +436,190 @@ export default function Home() {
         zIndex: 2,
         borderRadius: "5px",
         // Desktop styles
-        mdWidth: 280,
-        mdHeight: 580,
+        mdWidth: 400,
+        mdHeight: 720,
+        mdTop: "50px",
+      },
+      purple: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "60%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "60%",
+      },
+      white: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "80%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "80%",
+      },
+    },
+    purple: {
+      red: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "20%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "20%",
+      },
+      cyan: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "40%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "40%",
+      },
+      black: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "60%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "60%",
+      },
+      purple: {
+        width: 120,
+        height: 240,
+        top: "50px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        opacity: 1,
+        zIndex: 2,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 400,
+        mdHeight: 720,
+        mdTop: "50px",
+      },
+      white: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "80%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "80%",
+      },
+    },
+    white: {
+      red: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "20%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "20%",
+      },
+      cyan: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "40%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "40%",
+      },
+      black: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "60%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "60%",
+      },
+      purple: {
+        width: 60,
+        height: 150,
+        top: "320px",
+        left: "80%",
+        transform: "translateX(-50%)",
+        opacity: 0.5,
+        zIndex: 1,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 100,
+        mdHeight: 250,
+        mdTop: "420px",
+        mdLeft: "80%",
+      },
+      white: {
+        width: 120,
+        height: 240,
+        top: "50px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        opacity: 1,
+        zIndex: 2,
+        borderRadius: "5px",
+        // Desktop styles
+        mdWidth: 400,
+        mdHeight: 720,
         mdTop: "50px",
       },
     },
@@ -860,7 +1107,7 @@ export default function Home() {
                     {t("home.megaOffer.availableColors")}
                   </h3>
                   <div
-                    className={`flex ${isRTL ? "flex-row-reverse" : ""} space-x-3 md:space-x-4 ${isRTL ? "space-x-reverse justify-start" : "justify-start"}`}
+                    className={`flex ${isRTL ? "flex-row-reverse" : ""} space-x-3 md:space-x-4 ${isRTL ? "space-x-reverse justify-start" : "justify-start"} flex-wrap`}
                   >
                     <button
                       className="w-8 h-8 md:w-12 md:h-12 bg-red-500 rounded-lg cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 border-2 border-white/50 hover:border-white/80"
@@ -876,6 +1123,16 @@ export default function Home() {
                       className="w-8 h-8 md:w-12 md:h-12 bg-black rounded-lg cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 border-2 border-white/50 hover:border-white/80"
                       onClick={() => setActiveMachineColor("black")}
                       aria-label="Select Black Machine"
+                    ></button>
+                    <button
+                      className="w-8 h-8 md:w-12 md:h-12 bg-purple-500 rounded-lg cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 border-2 border-white/50 hover:border-white/80"
+                      onClick={() => setActiveMachineColor("purple")}
+                      aria-label="Select Purple Machine"
+                    ></button>
+                    <button
+                      className="w-8 h-8 md:w-12 md:h-12 bg-white border-2 border-gray-300 rounded-lg cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 hover:border-gray-400"
+                      onClick={() => setActiveMachineColor("white")}
+                      aria-label="Select White Machine"
                     ></button>
                   </div>
                 </div>
@@ -921,8 +1178,8 @@ export default function Home() {
                           zIndex: styles.zIndex,
                           borderRadius: styles.borderRadius || "0px",
                           filter: activeMachineColor === machine.id ? "none" : "grayscale(10%) brightness(1.1)", // Reduced grayscale, added brightness
-                          width: "auto",
-                          height: "auto"
+                          width: `${styles.width}px`,
+                          height: `${styles.height}px`
                         }}
                       />
                       <Image
@@ -939,8 +1196,8 @@ export default function Home() {
                           zIndex: styles.zIndex,
                           borderRadius: styles.borderRadius || "0px",
                           filter: activeMachineColor === machine.id ? "none" : "grayscale(10%) brightness(1.1)", // Reduced grayscale, added brightness
-                          width: "auto",
-                          height: "auto"
+                          width: `${styles.mdWidth || styles.width}px`,
+                          height: `${styles.mdHeight || styles.height}px`
                         }}
                       />
                     </React.Fragment>
