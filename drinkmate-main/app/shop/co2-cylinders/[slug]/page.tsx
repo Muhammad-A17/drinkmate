@@ -2116,14 +2116,14 @@ export default function CO2ProductDetail() {
                               onClick={(e) => {
                                 e.preventDefault()
                                 const cartItem = {
-                                  id: relatedProduct.id,
+                                  id: relatedProduct.id || relatedProduct._id,
                                   name: relatedProduct.name,
                                   price: relatedProduct.price,
                                   quantity: 1,
                                   image: relatedProduct.image || "/placeholder.svg",
                                   category: "co2-cylinder",
                                   productType: 'product' as const,
-                                  productId: relatedProduct.id
+                                  productId: relatedProduct.id || relatedProduct._id
                                 }
                                 addItem(cartItem)
                               }}

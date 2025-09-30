@@ -250,12 +250,76 @@ export default function ShopProductDetail() {
       try {
         setLoading(true)
 
+        // First, check if this is a known product that should redirect
+        // Check for specific known products that exist in mock data
+        const knownProducts = {
+          'aqualine-starter-kit-soda-maker': {
+            category: 'sodamakers',
+            isBundle: true,
+            correctUrl: '/shop/sodamakers/bundles/aqualine-starter-kit-soda-maker'
+          }
+        }
+
+        if (knownProducts[productSlug as keyof typeof knownProducts]) {
+          const productInfo = knownProducts[productSlug as keyof typeof knownProducts]
+          console.log(`🔄 Known product redirect: ${productSlug} -> ${productInfo.correctUrl}`)
+          router.replace(productInfo.correctUrl)
+          return
+        }
+
         // Get product details using the standard API endpoint
         const response = await shopAPI.getProduct(productSlug)
 
         // Handle API response format
         if (response.success && response.product) {
           const productData = response.product
+
+          // Check if we need to redirect to a category-specific route
+          const category = productData.category
+          const categoryName = typeof category === 'string' ? category : category?.name || ''
+          const categorySlug = categoryName.toLowerCase()
+          
+          console.log('🔍 Product redirect debug:', {
+            productSlug,
+            category,
+            categoryName,
+            categorySlug,
+            subcategory: productData.subcategory,
+            name: productData.name,
+            title: productData.title
+          })
+          
+          // Determine if this is a bundle
+          const isBundle = productData.subcategory?.toLowerCase().includes('bundle') || 
+                          productData.name?.toLowerCase().includes('bundle') ||
+                          productData.title?.toLowerCase().includes('bundle')
+          
+          console.log('📦 Bundle check:', { isBundle, subcategory: productData.subcategory })
+          
+          // Generate the correct URL based on category
+          let correctUrl = ''
+          if (isBundle) {
+            if (categorySlug === 'flavors') correctUrl = `/shop/flavor/bundles/${productSlug}`
+            else if (categorySlug === 'accessories') correctUrl = `/shop/accessories/bundles/${productSlug}`
+            else if (categorySlug === 'sodamakers') correctUrl = `/shop/sodamakers/bundles/${productSlug}`
+            else correctUrl = `/shop/${categorySlug}/bundles/${productSlug}`
+          } else {
+            if (categorySlug === 'flavors') correctUrl = `/shop/flavor/${productSlug}`
+            else if (categorySlug === 'accessories') correctUrl = `/shop/accessories/${productSlug}`
+            else if (categorySlug === 'co2-cylinders' || categorySlug === 'co2') correctUrl = `/shop/co2-cylinders/${productSlug}`
+            else if (categorySlug === 'sodamakers') correctUrl = `/shop/sodamakers/${productSlug}`
+          }
+          
+          console.log('🎯 Generated correct URL:', correctUrl)
+          
+          // If we have a correct URL and it's different from current, redirect
+          if (correctUrl && correctUrl !== `/shop/${productSlug}`) {
+            console.log(`🔄 Redirecting from /shop/${productSlug} to ${correctUrl}`)
+            router.replace(correctUrl)
+            return
+          } else {
+            console.log('✅ No redirect needed, staying on generic route')
+          }
 
           // Ensure image URLs are absolute
           const processedProduct = {

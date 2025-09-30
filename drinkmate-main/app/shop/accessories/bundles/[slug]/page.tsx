@@ -2181,14 +2181,14 @@ export default function AccessoriesBundleDetail() {
                               onClick={(e) => {
                                 e.preventDefault()
                                 const cartItem = {
-                                  id: relatedProduct.id,
+                                  id: relatedProduct.id || relatedProduct._id,
                                   name: relatedProduct.name,
                                   price: relatedProduct.price,
                                   quantity: 1,
                                   image: relatedProduct.image || "/placeholder.svg",
                                   category: "bundle",
                                   productType: 'bundle' as const,
-                                  bundleId: relatedProduct.id
+                                  bundleId: relatedProduct.id || relatedProduct._id
                                 }
                                 addItem(cartItem)
                               }}

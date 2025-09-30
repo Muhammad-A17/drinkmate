@@ -23,6 +23,37 @@ import { Heart, Eye, ShoppingCart, Star, Zap, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import YouTubeThumbnail from "@/components/ui/YouTubeThumbnail"
 
+// Helper function to generate correct product URL based on category
+const getProductUrl = (product: Product): string => {
+  if (!product.slug) return '/shop'
+  
+  // Get category name (handle both string and object formats)
+  const categoryName = typeof product.category === 'string' 
+    ? product.category 
+    : product.category?.name || ''
+  
+  const category = categoryName.toLowerCase()
+  
+  // Handle bundles (check if product has bundle-related properties)
+  if (product.subcategory?.toLowerCase().includes('bundle') || 
+      product.name?.toLowerCase().includes('bundle') ||
+      product.title?.toLowerCase().includes('bundle')) {
+    if (category === 'flavors') return `/shop/flavor/bundles/${product.slug}`
+    if (category === 'accessories') return `/shop/accessories/bundles/${product.slug}`
+    if (category === 'sodamakers') return `/shop/sodamakers/bundles/${product.slug}`
+    return `/shop/${category}/bundles/${product.slug}`
+  }
+  
+  // Handle regular products
+  if (category === 'flavors') return `/shop/flavor/${product.slug}`
+  if (category === 'accessories') return `/shop/accessories/${product.slug}`
+  if (category === 'co2-cylinders' || category === 'co2') return `/shop/co2-cylinders/${product.slug}`
+  if (category === 'sodamakers') return `/shop/sodamakers/${product.slug}`
+  
+  // Fallback to generic shop URL
+  return `/shop/${product.slug}`
+}
+
 export default function ProductCard({
   product,
   dir = "ltr",
@@ -151,7 +182,7 @@ export default function ProductCard({
       aria-labelledby={`product-title-${product.id}`}
     >
       {/* Image Container - Covering Upper Side */}
-      <Link href={`/shop/${product.slug}`} className="block">
+      <Link href={getProductUrl(product)} className="block">
         <div className="relative h-80 bg-gray-50 overflow-hidden mb-6">
           {(() => {
             // Use the improved image selection logic
@@ -245,7 +276,7 @@ export default function ProductCard({
 
       {/* Content Section */}
       <div className="p-6 flex flex-col flex-1">
-        <Link href={`/shop/${product.slug}`}>
+        <Link href={getProductUrl(product)}>
           <h3 className="text-xl mb-3 hover:text-brand-600 transition-colors leading-tight cursor-pointer">{product.title}</h3>
         </Link>
 

@@ -19,6 +19,22 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
+// Helper function to generate correct product URL based on category
+const getProductUrl = (product: { category: string; slug: string }): string => {
+  if (!product.slug) return '/shop'
+  
+  const category = product.category?.toLowerCase()
+  
+  // Handle regular products
+  if (category === 'flavors') return `/shop/flavor/${product.slug}`
+  if (category === 'accessories') return `/shop/accessories/${product.slug}`
+  if (category === 'co2-cylinders' || category === 'co2') return `/shop/co2-cylinders/${product.slug}`
+  if (category === 'sodamakers') return `/shop/sodamakers/${product.slug}`
+  
+  // Fallback to generic shop URL
+  return `/shop/${product.slug}`
+}
+
 interface ExchangeCylinderCardProps {
   product: {
     id: string
@@ -115,7 +131,7 @@ export default function ExchangeCylinderCard({
       
       {/* Image Container */}
       <div className="relative">
-        <Link href={`/shop/${product.slug}`} className="block">
+        <Link href={getProductUrl(product)} className="block">
           <div className="relative h-[220px] sm:h-[260px] lg:h-[320px] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden p-3 sm:p-4">
             <Image
               src={getBestImage()}
@@ -216,7 +232,7 @@ export default function ExchangeCylinderCard({
       {/* Product Information */}
       <div className="p-4 sm:p-6 flex-1 flex flex-col relative z-10 min-h-0 pb-4 sm:pb-6">
         {/* Product Name */}
-        <Link href={`/shop/${product.slug}`} className="block mb-3 group">
+        <Link href={getProductUrl(product)} className="block mb-3 group">
           <h3 
             id={`product-title-${product.id}`}
             className="font-bold text-xl text-gray-900 group-hover:text-cyan-600 transition-colors leading-tight tracking-tight line-clamp-2"
