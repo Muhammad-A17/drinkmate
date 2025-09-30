@@ -295,14 +295,7 @@ export default function CO2() {
         category: "co2",
       })
       
-      // Show success toast
-      toast.success(`Added ${quantity} cylinder${quantity > 1 ? 's' : ''} to cart`, {
-        description: "View cart to proceed to checkout",
-        action: {
-          label: "View cart",
-          onClick: () => window.location.href = "/cart"
-        }
-      })
+      // Cart toast will be shown automatically by the cart context
     }
   }
 

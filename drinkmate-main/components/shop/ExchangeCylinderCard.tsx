@@ -68,7 +68,6 @@ export default function ExchangeCylinderCard({
     setIsAddingToCart(true)
     try {
       await onAddToCart({ productId: product.id, qty: 1 })
-      toast.success(`${product.title} added to cart!`)
     } catch (error) {
       toast.error("Failed to add to cart. Please try again.")
     } finally {

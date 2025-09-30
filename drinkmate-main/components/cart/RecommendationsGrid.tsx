@@ -39,9 +39,6 @@ function RecCard({ product, onAddToCart }: { product: Recommendation; onAddToCar
     setIsAdding(true)
     try {
       await onAddToCart(product)
-      toast.success(`${product.name} added to cart`, {
-        duration: 3000,
-      })
     } catch (error) {
       toast.error("Failed to add item to cart")
     } finally {

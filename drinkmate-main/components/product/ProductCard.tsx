@@ -58,7 +58,6 @@ export default function ProductCard({
 
     addItem(cartItem)
     onAddToCart?.({ productId: product._id, qty: 1 })
-    toast.success('Product added to cart!')
   }
 
   const handleWishlistToggle = () => {

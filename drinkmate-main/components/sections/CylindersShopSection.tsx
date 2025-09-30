@@ -67,7 +67,6 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
     }
     
     addItem(cartItem)
-    toast.success(`${cylinder.name} added to cart!`)
   }, [addItem])
 
   const fetchCylinders = useCallback(async () => {

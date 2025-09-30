@@ -2262,7 +2262,17 @@ export default function SodamakerProductDetail() {
                               className="opacity-0 group-hover:opacity-100 transition-opacity border-[#12d6fa] text-[#12d6fa] hover:bg-[#12d6fa] hover:text-white bg-transparent"
                               onClick={(e) => {
                                 e.preventDefault()
-                                alert(`Added ${relatedProduct.name} to cart!`)
+                                const cartItem = {
+                                  id: relatedProduct.id,
+                                  name: relatedProduct.name,
+                                  price: relatedProduct.price,
+                                  quantity: 1,
+                                  image: relatedProduct.image || "/placeholder.svg",
+                                  category: "sodamaker",
+                                  productType: 'product' as const,
+                                  productId: relatedProduct.id
+                                }
+                                addItem(cartItem)
                               }}
                             >
                               <ShoppingCart className="w-3 h-3" />

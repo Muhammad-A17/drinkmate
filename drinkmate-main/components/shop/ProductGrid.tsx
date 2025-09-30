@@ -8,7 +8,6 @@ import ProductCardSkeleton from './ProductCardSkeleton'
 import { ProductGridProps, Product } from '@/lib/types'
 import { useCart } from '@/hooks/use-cart'
 import { useCartAnimations } from '@/hooks/use-cart-animations'
-import CartNotification from '@/components/cart/CartNotification'
 import { getProductImageUrl, getImageUrl } from '@/lib/utils/image-utils'
 
 const EmptyState = ({ onRetry, isRTL }: { onRetry?: () => void; isRTL?: boolean }) => (
@@ -165,8 +164,11 @@ export default function ProductGrid({
     console.log('Display image (processed):', displayImage)
     
     const isBundle = payload.isBundle || (product as any).isBundle || false
+    // Create a unique cart item ID by combining product ID with timestamp and random string
+    const uniqueCartItemId = `${payload.productId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    
     const cartItem = {
-      id: payload.productId,
+      id: uniqueCartItemId,
       name: product.title || product.name || '',
       price: product.price,
       quantity: payload.qty,
@@ -204,16 +206,6 @@ export default function ProductGrid({
         ))}
       </div>
 
-      {/* Cart Notification */}
-      <CartNotification
-        item={animationState.lastAddedItem}
-        isVisible={animationState.showNotification}
-        onClose={hideNotification}
-        onViewCart={() => {
-          // Don't navigate automatically - just close the notification
-          hideNotification()
-        }}
-      />
     </>
   )
 }

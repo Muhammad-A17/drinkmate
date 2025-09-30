@@ -49,7 +49,8 @@ export default function ImprovedCartToast({
       const timer = setTimeout(() => {
         setToastStack(prev => {
           if (prev.length === 1) {
-            onClose()
+            // Use setTimeout to defer the onClose call outside of render
+            setTimeout(() => onClose(), 0)
             return []
           }
           return prev.slice(1)

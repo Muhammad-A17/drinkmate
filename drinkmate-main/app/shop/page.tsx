@@ -465,7 +465,6 @@ function ShopPageContent() {
 
   const handleAddToCart = useCallback((item: any) => {
     addItem(item)
-    toast.success('Product added to cart!')
   }, [addItem])
 
   // Premium feature handlers
