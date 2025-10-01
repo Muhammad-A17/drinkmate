@@ -48,6 +48,7 @@ interface Bundle {
   reviews: number
   badge?: string
   category?: string
+  subcategory?: string
 }
 
 export default function SodamakersPage() {
@@ -140,13 +141,20 @@ export default function SodamakersPage() {
       const sodaMakersCat = categoriesWithSubs.find((c: any) => {
         const name = (c.name || '').toLowerCase()
         const slug = (c.slug || '').toLowerCase()
-        return name.includes('soda') || name.includes('machine') || slug.includes('sodamaker') || slug.includes('machine')
+        return name.includes('soda') || name.includes('machine') || slug.includes('sodamaker') || slug.includes('machine') || slug === 'sodamakers'
       })
       const sodaMakersSlug = sodaMakersCat?.slug || 'sodamakers'
+      
+      console.log('🔍 Found soda makers category:', sodaMakersCat)
+      console.log('🔍 Using slug:', sodaMakersSlug)
 
       // Fetch products by category (returns subcategory field)
+      console.log('🔍 Fetching products by category:', sodaMakersSlug);
       const byCategoryResp = await shopAPI.getProductsByCategory(sodaMakersSlug, { limit: 100 })
+      console.log('📦 Category response:', byCategoryResp);
       const sodaMakerProducts = byCategoryResp.products || []
+      console.log('📦 Soda maker products:', sodaMakerProducts);
+      console.log('📦 Number of products:', sodaMakerProducts.length);
 
       // Helper to pick first/primary image
       const pickImage = (imgs: any): string => {
@@ -174,25 +182,38 @@ export default function SodamakersPage() {
       }))
 
       setAllSodaMakers(formattedSodaMakers)
+      console.log('📦 Formatted soda makers:', formattedSodaMakers);
+      console.log('📦 Formatted soda makers slugs:', formattedSodaMakers.map((p: any) => ({ name: p.name, slug: p.slug })));
 
       // Build sections by subcategory
       const subs = (sodaMakersCat?.subcategories || []) as Array<{ _id: string; name: string }>
+      console.log('🔍 Available subcategories:', subs)
+      
       const bySubId: Record<string, Product[]> = {}
       for (const p of formattedSodaMakers) {
         const sid = p.subcategory || ''
         if (!bySubId[sid]) bySubId[sid] = []
         bySubId[sid].push(p)
       }
+      console.log('🔍 Products grouped by subcategory ID:', bySubId)
+      
       const sections: Array<{ _id: string; name: string; products: Product[] }> = []
       for (const sc of subs) {
-        sections.push({ _id: sc._id, name: sc.name, products: (bySubId[sc._id] || []) })
+        const products = bySubId[sc._id] || []
+        if (products.length > 0) {
+          sections.push({ _id: sc._id, name: sc.name, products })
+        }
       }
+      
+      // Add products that don't match any subcategory
       const otherProducts = Object.entries(bySubId)
         .filter(([sid]) => !subs.find(s => s._id === sid))
         .flatMap(([_, arr]) => arr)
       if (otherProducts.length > 0) {
         sections.push({ _id: 'others', name: 'Other Soda Makers', products: otherProducts })
       }
+      
+      console.log('🔍 Final sections:', sections)
       setSubcategorySections(sections)
     } catch (error) {
       console.error("Error fetching products:", error)
@@ -312,27 +333,32 @@ export default function SodamakersPage() {
       // Add product view functionality if needed
     }
 
+    const productData = {
+      _id: product._id,
+      id: product._id,
+      name: product.name,
+      slug: product.slug || product._id,
+      title: product.name,
+      image: product.image,
+      price: product.price,
+      compareAtPrice: product.originalPrice,
+      rating: product.rating || 0,
+      reviewCount: product.reviews || 0,
+      description: product.description,
+      category: product.category,
+      inStock: true,
+      badges: (product as any).badge ? [(product as any).badge] : undefined,
+      // Pass the images array as well for better image handling
+      images: product.images
+    }
+    
+    console.log('Sodamaker page - product data for BundleStyleProductCard:', productData)
+    console.log('Sodamaker page - original product:', product)
+
     return (
       <BundleStyleProductCard
         key={product._id}
-        product={{
-          _id: product._id,
-          id: product._id,
-          name: product.name,
-          slug: (product as any).slug || product._id,
-          title: product.name,
-          image: product.image,
-          price: product.price,
-          compareAtPrice: product.originalPrice,
-          rating: product.rating || 0,
-          reviewCount: product.reviews || 0,
-          description: product.description,
-          category: product.category,
-          inStock: true,
-          badges: (product as any).badge ? [(product as any).badge] : undefined,
-          // Pass the images array as well for better image handling
-          images: product.images
-        }}
+        product={productData}
         onAddToCart={({ productId, qty }: { productId: string; qty: number }) => {
           const cartItem = {
             id: productId,
@@ -442,7 +468,8 @@ export default function SodamakersPage() {
                               rating: bundle.rating || 0,
                               reviewCount: bundle.reviews || 0,
                               description: bundle.description,
-                              category: "bundle",
+                              category: "sodamakers",
+                              subcategory: bundle.subcategory || "Bundles & Promotions of Soda Makers",
                               inStock: true,
                               badges: bundle.badge ? [bundle.badge] : undefined,
                             }}
@@ -453,7 +480,7 @@ export default function SodamakersPage() {
                                 price: bundle.price,
                                 quantity: qty,
                                 image: bundle.image || '/placeholder.svg',
-                                category: typeof bundle.category === 'string' ? bundle.category : (bundle.category as any)?.name || 'Bundle',
+                                category: "sodamakers",
                                 bundleId: productId,
                                 productType: 'bundle' as const,
                                 isBundle: true
@@ -475,14 +502,21 @@ export default function SodamakersPage() {
 
 
             {/* Product Sections */}
-            {subcategorySections.filter(section => section.products.length > 0).map((section) => (
-              <div key={section._id} className="mb-12 sm:mb-16">
-                <h2 className="text-lg sm:text-xl font-medium mb-4 sm:mb-6 text-gray-900">{section.name}</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                  {section.products.map((product) => renderProductCard(product))}
+            {subcategorySections.length > 0 ? (
+              subcategorySections.filter(section => section.products.length > 0).map((section) => (
+                <div key={section._id} className="mb-12 sm:mb-16">
+                  <h2 className="text-lg sm:text-xl font-medium mb-4 sm:mb-6 text-gray-900">{section.name}</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                    {section.products.map((product) => renderProductCard(product))}
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">No products found in this category.</p>
+                <p className="text-gray-400 text-sm mt-2">Please check back later or try a different category.</p>
               </div>
-            ))}
+            )}
           </>
         )}
       </div>

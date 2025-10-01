@@ -23,7 +23,17 @@ import { getProductImageUrl } from "@/lib/utils/image-utils"
 
 // Helper function to generate correct product URL based on category
 const getProductUrl = (product: Product): string => {
-  if (!product.slug) return '/shop'
+  console.log('getProductUrl - product:', {
+    slug: product.slug,
+    category: product.category,
+    name: product.name,
+    subcategory: product.subcategory
+  })
+  
+  if (!product.slug) {
+    console.log('getProductUrl - no slug, returning /shop')
+    return '/shop'
+  }
   
   // Get category name (handle both string and object formats)
   const categoryName = typeof product.category === 'string' 
@@ -31,25 +41,58 @@ const getProductUrl = (product: Product): string => {
     : product.category?.name || ''
   
   const category = categoryName.toLowerCase()
+  console.log('getProductUrl - category:', category)
   
   // Handle bundles (check if product has bundle-related properties)
   if (product.subcategory?.toLowerCase().includes('bundle') || 
       product.name?.toLowerCase().includes('bundle') ||
       product.title?.toLowerCase().includes('bundle')) {
-    if (category === 'flavors') return `/shop/flavor/bundles/${product.slug}`
-    if (category === 'accessories') return `/shop/accessories/bundles/${product.slug}`
-    if (category === 'sodamakers') return `/shop/sodamakers/bundles/${product.slug}`
-    return `/shop/${category}/bundles/${product.slug}`
+    if (category === 'flavors' || category === 'flavor') {
+      const url = `/shop/flavor/bundles/${product.slug}`
+      console.log('getProductUrl - flavor bundle URL:', url)
+      return url
+    }
+    if (category === 'accessories' || category === 'accessory') {
+      const url = `/shop/accessories/bundles/${product.slug}`
+      console.log('getProductUrl - accessory bundle URL:', url)
+      return url
+    }
+    if (category === 'sodamakers' || category === 'sodamaker' || category === 'machine' || category === 'machines') {
+      const url = `/shop/sodamakers/bundles/${product.slug}`
+      console.log('getProductUrl - sodamaker bundle URL:', url)
+      return url
+    }
+    const url = `/shop/${category}/bundles/${product.slug}`
+    console.log('getProductUrl - generic bundle URL:', url)
+    return url
   }
   
   // Handle regular products
-  if (category === 'flavors') return `/shop/flavor/${product.slug}`
-  if (category === 'accessories') return `/shop/accessories/${product.slug}`
-  if (category === 'co2-cylinders' || category === 'co2') return `/shop/co2-cylinders/${product.slug}`
-  if (category === 'sodamakers') return `/shop/sodamakers/${product.slug}`
+  if (category === 'flavors' || category === 'flavor') {
+    const url = `/shop/flavor/${product.slug}`
+    console.log('getProductUrl - flavor product URL:', url)
+    return url
+  }
+  if (category === 'accessories' || category === 'accessory') {
+    const url = `/shop/accessories/${product.slug}`
+    console.log('getProductUrl - accessory product URL:', url)
+    return url
+  }
+  if (category === 'co2-cylinders' || category === 'co2-cylinder' || category === 'co2') {
+    const url = `/shop/co2-cylinders/${product.slug}`
+    console.log('getProductUrl - co2 cylinder URL:', url)
+    return url
+  }
+  if (category === 'sodamakers' || category === 'sodamaker' || category === 'machine' || category === 'machines') {
+    const url = `/shop/sodamakers/${product.slug}`
+    console.log('getProductUrl - sodamaker product URL:', url)
+    return url
+  }
   
   // Fallback to generic shop URL
-  return `/shop/${product.slug}`
+  const url = `/shop/${product.slug}`
+  console.log('getProductUrl - fallback URL:', url)
+  return url
 }
 
 export default function BundleStyleProductCard({

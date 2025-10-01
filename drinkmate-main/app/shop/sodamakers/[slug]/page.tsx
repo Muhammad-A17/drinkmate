@@ -107,7 +107,7 @@ interface SodamakerProduct {
   tags: string[]
   seoTitle?: string
   seoDescription?: string
-  rating?: number // For compatibility with mock data
+  rating?: number | { average: number; count: number } // For compatibility with mock data
   reviews?: number // For compatibility with mock data
   badge?: string // For compatibility with mock data
 }
@@ -522,12 +522,56 @@ export default function SodamakerProductDetail() {
         }
         
         // Try to get product details using shopAPI
+        console.log('🔍 Attempting to fetch product with slug:', productSlug);
         const response = await shopAPI.getProductFlexible(productSlug);
         console.log('📦 API Response:', response);
+        console.log('📦 API Response type:', typeof response);
+        console.log('📦 API Response success:', response.success);
+        console.log('📦 API Response product:', response.product);
         
         // Handle both response formats: { success: true, product: data } and direct data
-        const productData = response.success ? response.product : response;
+        let productData = response.success ? response.product : response;
         console.log('📋 Processed product data:', productData);
+        console.log('📋 Product data type:', typeof productData);
+        console.log('📋 Product data keys:', productData ? Object.keys(productData) : 'null');
+        
+        // If product not found, try to find by name mapping
+        if (!productData || (!productData._id && !productData.id)) {
+          console.log('🔍 Product not found by slug, trying name mapping...');
+          
+          // Map common slug variations to actual product names
+          const slugMappings: Record<string, string> = {
+            'lux-stainless-steel-soda-and-soft-drink-maker-starter-kit': 'Luxe Soda Maker - Stainless Steel',
+            'luxe-soda-maker-stainless-steel': 'Luxe Soda Maker - Stainless Steel',
+            'drinkmate-soda-maker-machine': 'DrinkMate Soda Maker Machine',
+            'drinkmate-omnifizz': 'DrinkMate OmniFizz',
+            'drinkmate-premium-flavor-pack': 'DrinkMate Premium Flavor Pack'
+          };
+          
+          const mappedName = slugMappings[productSlug];
+          if (mappedName) {
+            console.log(`🔄 Trying to find product by name: ${mappedName}`);
+            
+            // Try to fetch all products and find by name
+            try {
+              const allProductsResponse = await shopAPI.getProducts({ category: 'sodamakers' });
+              const allProducts = allProductsResponse.products || allProductsResponse || [];
+              
+              const foundProduct = allProducts.find((p: any) => 
+                p.name === mappedName || 
+                p.name?.toLowerCase().includes(mappedName.toLowerCase()) ||
+                p.slug === productSlug
+              );
+              
+              if (foundProduct) {
+                console.log('✅ Found product by name mapping:', foundProduct);
+                productData = foundProduct;
+              }
+            } catch (searchError) {
+              console.log('❌ Error searching for product by name:', searchError);
+            }
+          }
+        }
         
         if (productData && (productData._id || productData.id)) {
           
@@ -1181,16 +1225,33 @@ export default function SodamakerProductDetail() {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                                i < Math.floor(product.averageRating) ? "text-yellow-400 fill-current" : "text-gray-300"
-                              }`}
-                            />
-                          ))}
+                          {[...Array(5)].map((_, i) => {
+                            const rating = product.rating;
+                            const averageRating = product.averageRating;
+                            const ratingValue = typeof rating === 'number' 
+                              ? rating 
+                              : ((rating as any)?.average || averageRating || 0);
+                            
+                            return (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                                  i < Math.floor(ratingValue) ? "text-yellow-400 fill-current" : "text-gray-300"
+                                }`}
+                              />
+                            );
+                          })}
                         </div>
-                        <span className="font-semibold text-sm sm:text-base">{product.averageRating}</span>
+                        <span className="font-semibold text-sm sm:text-base">
+                          {(() => {
+                            const rating = product.rating;
+                            const averageRating = product.averageRating;
+                            const ratingValue = typeof rating === 'number' 
+                              ? rating 
+                              : ((rating as any)?.average || averageRating || 0);
+                            return ratingValue.toFixed(1);
+                          })()}
+                        </span>
                         <span className="text-xs sm:text-sm text-muted-foreground">
                           ({(product.totalReviews || product.reviewCount || 0).toLocaleString()} reviews)
                         </span>
@@ -2307,7 +2368,16 @@ export default function SodamakerProductDetail() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-1">
                               <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                              <span className="text-sm font-medium">{relatedProduct.rating}</span>
+                              <span className="text-sm font-medium">
+                                {(() => {
+                                  const rating = relatedProduct.rating;
+                                  const averageRating = relatedProduct.averageRating;
+                                  const ratingValue = typeof rating === 'number' 
+                                    ? rating 
+                                    : ((rating as any)?.average || averageRating || 0);
+                                  return ratingValue.toFixed(1);
+                                })()}
+                              </span>
                               <span className="text-xs text-muted-foreground">({relatedProduct.reviews})</span>
                             </div>
 

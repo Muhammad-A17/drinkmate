@@ -69,6 +69,7 @@ function ShopPageContent() {
   // Filter and view state
   const [filters, setFilters] = useState({
     category: 'all',
+    subcategory: 'all',
     priceRange: [0, 10000] as [number, number],
     brand: [] as string[],
     rating: 0,
@@ -134,9 +135,18 @@ function ShopPageContent() {
     }
 
     const params = new URLSearchParams(searchParams)
+    console.log('🔍 URL params:', Object.fromEntries(params.entries()))
+    console.log('🔍 Current pathname:', window.location.pathname)
     
     // Read filters from URL
+    // Only apply category filter if we're on the main shop page and it's explicitly set
     const category = params.get('cat') || 'all'
+    console.log('🔍 Category from URL:', category)
+    
+    // If we're on the main shop page and no category is specified, show all products
+    const isMainShopPage = window.location.pathname === '/shop'
+    const finalCategory = isMainShopPage && !params.get('cat') ? 'all' : category
+    console.log('🔍 Final category after main shop check:', finalCategory)
     const priceMin = parseInt(params.get('priceMin') || '0')
     const priceMax = parseInt(params.get('priceMax') || '10000')
     const brand = params.get('brand') ? params.get('brand')!.split(',') : []
@@ -152,7 +162,8 @@ function ShopPageContent() {
     // Only update state if values are different to prevent loops
     setFilters(prevFilters => {
       const newFilters = {
-        category,
+        category: finalCategory,
+        subcategory: 'all', // Reset subcategory when reading from URL
         priceRange: [priceMin, priceMax] as [number, number],
         brand,
         rating,
@@ -234,20 +245,43 @@ function ShopPageContent() {
 
       // Fetch products, categories, and other data
       const [productsResponse, categoriesResponse] = await Promise.all([
-        shopAPI.getProducts(),
+        shopAPI.getProducts({ limit: 100 }), // Fetch up to 100 products to get all
         shopAPI.getCategories()
       ])
 
+      console.log('📦 Raw API response:', {
+        success: productsResponse.success,
+        totalProducts: productsResponse.totalProducts,
+        count: productsResponse.count,
+        currentPage: productsResponse.currentPage,
+        totalPages: productsResponse.totalPages,
+        productsLength: productsResponse.products?.length
+      })
+
       if (productsResponse.success && productsResponse.products) {
-        setProducts(productsResponse.products)
+        // Process products to add missing properties
+        const processedProducts = productsResponse.products.map((product: any) => ({
+          ...product,
+          inStock: product.inStock !== undefined ? product.inStock : true, // Default to in stock if not specified
+          brand: product.brand || 'Drinkmate', // Default brand if not specified
+        }))
+        
+        setProducts(processedProducts)
         
         // Extract unique brands
         const uniqueBrands = [...new Set(
-          productsResponse.products
+          processedProducts
             .map((product: any) => product.brand)
             .filter(Boolean)
         )] as string[]
         setBrands(uniqueBrands)
+        
+        console.log('📊 Processed products for stats:', {
+          totalProducts: processedProducts.length,
+          inStockCount: processedProducts.filter((p: any) => p.inStock).length,
+          brands: uniqueBrands,
+          sampleProduct: processedProducts[0]
+        })
       }
 
       if (categoriesResponse.success && categoriesResponse.categories) {
@@ -272,8 +306,15 @@ function ShopPageContent() {
 
   // Filter products based on current filters
   const filteredProducts = useMemo(() => {
+    console.log('🔍 Starting product filtering with:', {
+      totalProducts: products.length,
+      filters,
+      debouncedSearchQuery
+    })
+    
     // Filter out invalid products first
     let filtered = products.filter(product => product && typeof product === 'object')
+    console.log('🔍 After invalid filter:', filtered.length)
 
     // Search filter using debounced query
     if (debouncedSearchQuery) {
@@ -292,15 +333,73 @@ function ShopPageContent() {
         
         return titleMatch || descriptionMatch || brandMatch || categoryMatch
       })
+      console.log('🔍 After search filter:', filtered.length)
     }
 
     // Category filter
     if (filters.category && filters.category !== 'all') {
+      console.log('🔍 Applying category filter:', filters.category)
+      console.log('🔍 Sample product categories before filter:', filtered.slice(0, 3).map(p => ({
+        name: (p as any)?.name,
+        category: (p as any)?.category
+      })))
+      
       filtered = filtered.filter(product => {
         const category = (product as any)?.category
-        return category === filters.category ||
-               (typeof category === 'object' && category?.slug === filters.category)
+        const categoryId = typeof category === 'object' ? category?._id : category
+        const categorySlug = typeof category === 'object' ? category?.slug : null
+        
+        // Check both ID and slug matches
+        const matchesId = categoryId === filters.category
+        const matchesSlug = categorySlug === filters.category
+        
+        // Also check if the category name matches common variations
+        const categoryName = typeof category === 'object' ? category?.name : null
+        const matchesName = categoryName && (
+          categoryName.toLowerCase().includes(filters.category.toLowerCase()) ||
+          filters.category.toLowerCase().includes(categoryName.toLowerCase())
+        )
+        
+        const matches = matchesId || matchesSlug || matchesName
+        
+        // Only log the first few products to avoid spam
+        if (filtered.indexOf(product) < 3) {
+          console.log('🔍 Product category check:', {
+            productName: (product as any)?.name,
+            category,
+            categoryId,
+            categorySlug,
+            categoryName,
+            filterCategory: filters.category,
+            matches
+          })
+        }
+        
+        return matches
       })
+      console.log('🔍 After category filter:', filtered.length)
+    }
+
+    // Subcategory filter
+    if (filters.subcategory && filters.subcategory !== 'all') {
+      console.log('🔍 Applying subcategory filter:', filters.subcategory)
+      filtered = filtered.filter(product => {
+        const subcategory = (product as any)?.subcategory
+        const subcategoryId = typeof subcategory === 'object' ? subcategory?._id : subcategory
+        const subcategorySlug = typeof subcategory === 'object' ? subcategory?.slug : null
+        const subcategoryName = typeof subcategory === 'object' ? subcategory?.name : subcategory
+        
+        // Check ID, slug, and name matches
+        const matchesId = subcategoryId === filters.subcategory
+        const matchesSlug = subcategorySlug === filters.subcategory
+        const matchesName = subcategoryName && (
+          subcategoryName.toLowerCase().includes(filters.subcategory.toLowerCase()) ||
+          filters.subcategory.toLowerCase().includes(subcategoryName.toLowerCase())
+        )
+        
+        return matchesId || matchesSlug || matchesName
+      })
+      console.log('🔍 After subcategory filter:', filtered.length)
     }
 
     // Price range filter
@@ -386,6 +485,11 @@ function ShopPageContent() {
       }
     })
 
+    console.log('🔍 Final filtered products:', {
+      total: filtered.length,
+      sample: filtered[0]
+    })
+
     return filtered
   }, [products, filters, sortBy, sortOrder, debouncedSearchQuery])
 
@@ -394,11 +498,22 @@ function ShopPageContent() {
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const paginatedProducts = filteredProducts.slice(startIndex, endIndex)
+  
+  console.log('📄 Pagination info:', {
+    totalFilteredProducts: filteredProducts.length,
+    itemsPerPage,
+    currentPage,
+    totalPages,
+    startIndex,
+    endIndex,
+    paginatedProductsCount: paginatedProducts.length
+  })
 
   // Count active filters
   const activeFilterCount = useMemo(() => {
     let count = 0
     if (filters.category !== 'all') count++
+    if (filters.subcategory !== 'all') count++
     if (filters.brand.length > 0) count += filters.brand.length
     if (filters.rating > 0) count++
     if (filters.inStock) count++
@@ -408,6 +523,84 @@ function ShopPageContent() {
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 10000) count++
     return count
   }, [filters])
+
+  // Calculate product counts for each filter option
+  const filterCounts = useMemo(() => {
+    const counts = {
+      categories: {} as Record<string, number>,
+      subcategories: {} as Record<string, number>,
+      brands: {} as Record<string, number>,
+      ratings: {} as Record<number, number>,
+      priceRanges: {
+        '0-100': 0,
+        '100-500': 0,
+        '500-1000': 0,
+        '1000-5000': 0,
+        '5000+': 0
+      },
+      availability: {
+        inStock: 0,
+        outOfStock: 0
+      },
+      specialOffers: {
+        newProducts: 0,
+        bestSellers: 0,
+        onSale: 0
+      }
+    }
+
+    // Calculate counts for all products (before any filtering)
+    products.forEach(product => {
+      // Category counts
+      const category = (product as any)?.category
+      const categorySlug = typeof category === 'object' ? category?.slug : category
+      if (categorySlug) {
+        counts.categories[categorySlug] = (counts.categories[categorySlug] || 0) + 1
+      }
+
+      // Subcategory counts
+      const subcategory = (product as any)?.subcategory
+      const subcategorySlug = typeof subcategory === 'object' ? subcategory?.slug : subcategory
+      const subcategoryName = typeof subcategory === 'object' ? subcategory?.name : subcategory
+      if (subcategorySlug) {
+        counts.subcategories[subcategorySlug] = (counts.subcategories[subcategorySlug] || 0) + 1
+      } else if (subcategoryName) {
+        counts.subcategories[subcategoryName] = (counts.subcategories[subcategoryName] || 0) + 1
+      }
+
+      // Brand counts
+      const brand = (product as any)?.brand || 'Drinkmate'
+      counts.brands[brand] = (counts.brands[brand] || 0) + 1
+
+      // Rating counts
+      const rating = (product as any)?.rating || (product as any)?.averageRating || 0
+      const ratingFloor = Math.floor(rating)
+      if (ratingFloor >= 1) {
+        counts.ratings[ratingFloor] = (counts.ratings[ratingFloor] || 0) + 1
+      }
+
+      // Price range counts
+      const price = product?.price || 0
+      if (price >= 0 && price <= 100) counts.priceRanges['0-100']++
+      else if (price > 100 && price <= 500) counts.priceRanges['100-500']++
+      else if (price > 500 && price <= 1000) counts.priceRanges['100-500']++
+      else if (price > 1000 && price <= 5000) counts.priceRanges['1000-5000']++
+      else if (price > 5000) counts.priceRanges['5000+']++
+
+      // Availability counts
+      if (product?.inStock) counts.availability.inStock++
+      else counts.availability.outOfStock++
+
+      // Special offers counts
+      if ((product as any)?.isNewProduct) counts.specialOffers.newProducts++
+      if ((product as any)?.isBestSeller) counts.specialOffers.bestSellers++
+      if ((product as any)?.compareAtPrice && (product as any)?.compareAtPrice > product?.price) {
+        counts.specialOffers.onSale++
+      }
+    })
+
+    return counts
+  }, [products])
 
   // Event handlers
   const handleFiltersChange = useCallback((newFilters: any) => {
@@ -419,6 +612,7 @@ function ShopPageContent() {
   const handleClearFilters = useCallback(() => {
     const clearedFilters = {
       category: 'all',
+      subcategory: 'all',
       priceRange: [0, 10000] as [number, number],
       brand: [] as string[],
       rating: 0,
@@ -927,6 +1121,7 @@ function ShopPageContent() {
                   categories={categories}
                   brands={brands}
                   productCount={filteredProducts.length}
+                  filterCounts={filterCounts}
                   isRTL={isRTL}
                 />
               </div>

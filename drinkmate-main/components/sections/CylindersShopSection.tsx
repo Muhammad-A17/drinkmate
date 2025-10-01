@@ -219,7 +219,7 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
       case 'exchange':
         return 'Exchange Cylinders'
       case 'refill':
-        return 'Refill Cylinders'
+        return ''
       default:
         return 'Shop CO2 Cylinders'
     }
@@ -230,7 +230,7 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
       case 'exchange':
         return 'Quick and easy cylinder exchange service'
       case 'refill':
-        return 'Get your empty cylinders refilled with premium CO2'
+        return ''
       default:
         return 'Choose the perfect CO2 solution for your needs'
     }
@@ -279,10 +279,6 @@ export function CylindersShopSection({ type = 'all' }: CylindersShopSectionProps
           </div>
         )}
         
-        {/* Results count */}
-        <div className="mt-2 text-xs sm:text-sm text-gray-500">
-          Found {cylinders.length} cylinder{cylinders.length !== 1 ? 's' : ''}
-        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 items-start">

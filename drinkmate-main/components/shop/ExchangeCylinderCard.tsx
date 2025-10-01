@@ -26,10 +26,10 @@ const getProductUrl = (product: { category: string; slug: string }): string => {
   const category = product.category?.toLowerCase()
   
   // Handle regular products
-  if (category === 'flavors') return `/shop/flavor/${product.slug}`
-  if (category === 'accessories') return `/shop/accessories/${product.slug}`
-  if (category === 'co2-cylinders' || category === 'co2') return `/shop/co2-cylinders/${product.slug}`
-  if (category === 'sodamakers') return `/shop/sodamakers/${product.slug}`
+  if (category === 'flavors' || category === 'flavor') return `/shop/flavor/${product.slug}`
+  if (category === 'accessories' || category === 'accessory') return `/shop/accessories/${product.slug}`
+  if (category === 'co2-cylinders' || category === 'co2-cylinder' || category === 'co2') return `/shop/co2-cylinders/${product.slug}`
+  if (category === 'sodamakers' || category === 'sodamaker' || category === 'machine' || category === 'machines') return `/shop/sodamakers/${product.slug}`
   
   // Fallback to generic shop URL
   return `/shop/${product.slug}`

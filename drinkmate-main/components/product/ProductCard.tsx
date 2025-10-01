@@ -30,6 +30,37 @@ import {
 import SaudiRiyal from '@/components/ui/SaudiRiyal'
 import { toast } from 'sonner'
 
+// Helper function to generate correct product URL based on category
+const getProductUrl = (product: any): string => {
+  if (!product.slug) return '/shop'
+  
+  // Get category name (handle both string and object formats)
+  const categoryName = typeof product.category === 'string' 
+    ? product.category 
+    : product.category?.name || ''
+  
+  const category = categoryName.toLowerCase()
+  
+  // Handle bundles (check if product has bundle-related properties)
+  if (product.subcategory?.toLowerCase().includes('bundle') || 
+      product.name?.toLowerCase().includes('bundle') ||
+      product.title?.toLowerCase().includes('bundle')) {
+    if (category === 'flavors' || category === 'flavor') return `/shop/flavor/bundles/${product.slug}`
+    if (category === 'accessories' || category === 'accessory') return `/shop/accessories/bundles/${product.slug}`
+    if (category === 'sodamakers' || category === 'sodamaker' || category === 'machine' || category === 'machines') return `/shop/sodamakers/bundles/${product.slug}`
+    return `/shop/${category}/bundles/${product.slug}`
+  }
+  
+  // Handle regular products
+  if (category === 'flavors' || category === 'flavor') return `/shop/flavor/${product.slug}`
+  if (category === 'accessories' || category === 'accessory') return `/shop/accessories/${product.slug}`
+  if (category === 'co2-cylinders' || category === 'co2-cylinder' || category === 'co2') return `/shop/co2-cylinders/${product.slug}`
+  if (category === 'sodamakers' || category === 'sodamaker' || category === 'machine' || category === 'machines') return `/shop/sodamakers/${product.slug}`
+  
+  // Fallback to generic shop URL
+  return `/shop/${product.slug}`
+}
+
 export default function ProductCard({ 
   product, 
   onAddToCart, 
@@ -97,7 +128,7 @@ export default function ProductCard({
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 rounded-t-2xl">
-        <Link href={`/shop/${product.slug}`}>
+        <Link href={getProductUrl(product)}>
           <Image
             src={getImageUrl(product.images?.[0] || product.image)}
             alt={product.name}
@@ -218,7 +249,7 @@ export default function ProductCard({
       <CardContent className="p-5">
         <div className="space-y-3">
           {/* Product Name */}
-          <Link href={`/shop/${product.slug}`}>
+          <Link href={getProductUrl(product)}>
             <h3 className="font-bold text-slate-900 line-clamp-2 hover:text-[#12d6fa] transition-colors duration-300 text-lg leading-tight">
               {product.name}
             </h3>
@@ -227,19 +258,34 @@ export default function ProductCard({
           {/* Rating */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-4 h-4 ${
-                    i < Math.round((product as any).rating || (product as any).averageRating || 0)
-                      ? 'text-amber-400 fill-amber-400'
-                      : 'text-slate-300'
-                  }`}
-                />
-              ))}
+              {Array.from({ length: 5 }).map((_, i) => {
+                const rating = (product as any).rating;
+                const averageRating = (product as any).averageRating;
+                const ratingValue = typeof rating === 'number' 
+                  ? rating 
+                  : (rating?.average || averageRating || 0);
+                
+                return (
+                  <Star
+                    key={i}
+                    className={`w-4 h-4 ${
+                      i < Math.round(ratingValue)
+                        ? 'text-amber-400 fill-amber-400'
+                        : 'text-slate-300'
+                    }`}
+                  />
+                );
+              })}
             </div>
             <span className="text-sm font-medium text-slate-600">
-              {(product as any).rating || (product as any).averageRating || 0}
+              {(() => {
+                const rating = (product as any).rating;
+                const averageRating = (product as any).averageRating;
+                const ratingValue = typeof rating === 'number' 
+                  ? rating 
+                  : (rating?.average || averageRating || 0);
+                return ratingValue.toFixed(1);
+              })()}
             </span>
           </div>
 

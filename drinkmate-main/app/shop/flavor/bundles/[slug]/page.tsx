@@ -1054,19 +1054,34 @@ export default function BundleDetailPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                                star <= (product.averageRating || product.rating || 0)
-                                  ? "text-yellow-400 fill-current"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          ))}
+                          {[1, 2, 3, 4, 5].map((star) => {
+                            const rating = product.rating;
+                            const averageRating = product.averageRating;
+                            const ratingValue = typeof rating === 'number' 
+                              ? rating 
+                              : ((rating as any)?.average || averageRating || 0);
+                            
+                            return (
+                              <Star
+                                key={star}
+                                className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                                  star <= Math.floor(ratingValue)
+                                    ? "text-yellow-400 fill-current"
+                                    : "text-gray-300"
+                                }`}
+                              />
+                            );
+                          })}
                         </div>
                         <span className="text-sm sm:text-base font-medium">
-                          {product.averageRating || product.rating || 0}
+                          {(() => {
+                            const rating = product.rating;
+                            const averageRating = product.averageRating;
+                            const ratingValue = typeof rating === 'number' 
+                              ? rating 
+                              : ((rating as any)?.average || averageRating || 0);
+                            return ratingValue.toFixed(1);
+                          })()}
                         </span>
                         <span className="text-sm text-muted-foreground">
                           ({product.totalReviews || product.reviews || 0} reviews)

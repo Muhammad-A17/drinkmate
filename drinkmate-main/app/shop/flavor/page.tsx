@@ -52,6 +52,7 @@ interface Bundle {
   reviews: number
   badge?: string
   category?: string
+  subcategory?: string
 }
 
 export default function FlavorPage() {
@@ -144,13 +145,20 @@ export default function FlavorPage() {
       const flavorsCat = categoriesWithSubs.find((c: any) => {
         const name = (c.name || '').toLowerCase()
         const slug = (c.slug || '').toLowerCase()
-        return name.includes('flavor') || slug.includes('flavor')
+        return name.includes('flavor') || slug.includes('flavor') || slug === 'flavors'
       })
-      const flavorSlug = flavorsCat?.slug || 'flavor'
+      const flavorSlug = flavorsCat?.slug || 'flavors'
+      
+      console.log('🔍 Found flavors category:', flavorsCat)
+      console.log('🔍 Using slug:', flavorSlug)
 
       // Fetch products by category (returns subcategory field)
+      console.log('🔍 Fetching products by category:', flavorSlug);
       const byCategoryResp = await shopAPI.getProductsByCategory(flavorSlug, { limit: 100 })
+      console.log('📦 Category response:', byCategoryResp);
       const flavorProducts = byCategoryResp.products || []
+      console.log('📦 Flavor products:', flavorProducts);
+      console.log('📦 Number of products:', flavorProducts.length);
 
       // Helper to pick first/primary image
       const pickImage = (imgs: any): string => {
@@ -463,7 +471,8 @@ export default function FlavorPage() {
                               rating: bundle.rating || 0,
                               reviewCount: bundle.reviews || 0,
                               description: bundle.description,
-                              category: "bundle",
+                              category: "flavors",
+                              subcategory: bundle.subcategory || "Bundles & Promotions of Flavors",
                               inStock: true,
                               badges: bundle.badge ? [bundle.badge] : undefined,
                             }}
@@ -474,7 +483,7 @@ export default function FlavorPage() {
                                 price: bundle.price,
                                 quantity: qty,
                                 image: bundle.image || '/placeholder.svg',
-                                category: typeof bundle.category === 'string' ? bundle.category : (bundle.category as any)?.name || 'Bundle',
+                                category: "flavors",
                                 bundleId: productId,
                                 productType: 'bundle' as const,
                                 isBundle: true

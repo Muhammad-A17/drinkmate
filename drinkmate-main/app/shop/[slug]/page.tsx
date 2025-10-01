@@ -299,15 +299,15 @@ export default function ShopProductDetail() {
           // Generate the correct URL based on category
           let correctUrl = ''
           if (isBundle) {
-            if (categorySlug === 'flavors') correctUrl = `/shop/flavor/bundles/${productSlug}`
-            else if (categorySlug === 'accessories') correctUrl = `/shop/accessories/bundles/${productSlug}`
-            else if (categorySlug === 'sodamakers') correctUrl = `/shop/sodamakers/bundles/${productSlug}`
+            if (categorySlug === 'flavors' || categorySlug === 'flavor') correctUrl = `/shop/flavor/bundles/${productSlug}`
+            else if (categorySlug === 'accessories' || categorySlug === 'accessory') correctUrl = `/shop/accessories/bundles/${productSlug}`
+            else if (categorySlug === 'sodamakers' || categorySlug === 'sodamaker' || categorySlug === 'machine' || categorySlug === 'machines') correctUrl = `/shop/sodamakers/bundles/${productSlug}`
             else correctUrl = `/shop/${categorySlug}/bundles/${productSlug}`
           } else {
-            if (categorySlug === 'flavors') correctUrl = `/shop/flavor/${productSlug}`
-            else if (categorySlug === 'accessories') correctUrl = `/shop/accessories/${productSlug}`
-            else if (categorySlug === 'co2-cylinders' || categorySlug === 'co2') correctUrl = `/shop/co2-cylinders/${productSlug}`
-            else if (categorySlug === 'sodamakers') correctUrl = `/shop/sodamakers/${productSlug}`
+            if (categorySlug === 'flavors' || categorySlug === 'flavor') correctUrl = `/shop/flavor/${productSlug}`
+            else if (categorySlug === 'accessories' || categorySlug === 'accessory') correctUrl = `/shop/accessories/${productSlug}`
+            else if (categorySlug === 'co2-cylinders' || categorySlug === 'co2-cylinder' || categorySlug === 'co2') correctUrl = `/shop/co2-cylinders/${productSlug}`
+            else if (categorySlug === 'sodamakers' || categorySlug === 'sodamaker' || categorySlug === 'machine' || categorySlug === 'machines') correctUrl = `/shop/sodamakers/${productSlug}`
           }
           
           console.log('🎯 Generated correct URL:', correctUrl)

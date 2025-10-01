@@ -73,6 +73,7 @@ interface Bundle {
     image?: string
   }>
   averageRating?: number
+  rating?: number | { average: number; count: number }
   reviewCount?: number
 }
 
@@ -1244,16 +1245,33 @@ export default function BundleDetailPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                                i < Math.floor(bundle.averageRating || 0) ? "text-yellow-400 fill-current" : "text-gray-300"
-                              }`}
-                            />
-                          ))}
+                          {[...Array(5)].map((_, i) => {
+                            const rating = bundle.rating;
+                            const averageRating = bundle.averageRating;
+                            const ratingValue = typeof rating === 'number' 
+                              ? rating 
+                              : ((rating as any)?.average || averageRating || 0);
+                            
+                            return (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                                  i < Math.floor(ratingValue) ? "text-yellow-400 fill-current" : "text-gray-300"
+                                }`}
+                              />
+                            );
+                          })}
                         </div>
-                        <span className="font-semibold text-base sm:text-lg">{bundle.averageRating || 0}</span>
+                        <span className="font-semibold text-base sm:text-lg">
+                          {(() => {
+                            const rating = bundle.rating;
+                            const averageRating = bundle.averageRating;
+                            const ratingValue = typeof rating === 'number' 
+                              ? rating 
+                              : ((rating as any)?.average || averageRating || 0);
+                            return ratingValue.toFixed(1);
+                          })()}
+                        </span>
                         <span className="text-sm sm:text-base text-muted-foreground">
                           ({(bundle.reviewCount || 0).toLocaleString()} reviews)
                         </span>

@@ -248,14 +248,20 @@ export function QuickView({ isOpen, onClose, product, onAddToCart }: QuickViewPr
               {product.rating && (
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-4 h-4 ${
-                          i < product.rating! ? 'text-amber-400 fill-current' : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      const ratingValue = typeof product.rating === 'number' 
+                        ? product.rating 
+                        : (product.rating as any)?.average || 0;
+                      
+                      return (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 ${
+                            i < Math.floor(ratingValue) ? 'text-amber-400 fill-current' : 'text-gray-300'
+                          }`}
+                        />
+                      );
+                    })}
                   </div>
                   {product.reviewCount && (
                     <span className="text-sm text-gray-500">

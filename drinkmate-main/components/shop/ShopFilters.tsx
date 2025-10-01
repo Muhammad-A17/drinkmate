@@ -36,6 +36,7 @@ interface FilterOption {
 interface ShopFiltersProps {
   filters: {
     category: string
+    subcategory: string
     priceRange: [number, number]
     brand: string[]
     rating: number
@@ -47,9 +48,18 @@ interface ShopFiltersProps {
   }
   onFiltersChange: (filters: any) => void
   onClearFilters: () => void
-  categories: Array<{ _id: string; name: string; slug: string; count?: number }>
+  categories: Array<{ _id: string; name: string; slug: string; count?: number; subcategories?: Array<{ _id: string; name: string; slug: string }> }>
   brands: string[]
   productCount: number
+  filterCounts?: {
+    categories: Record<string, number>
+    subcategories: Record<string, number>
+    brands: Record<string, number>
+    ratings: Record<number, number>
+    priceRanges: Record<string, number>
+    availability: Record<string, number>
+    specialOffers: Record<string, number>
+  }
   isRTL?: boolean
   isMobile?: boolean
   isOpen?: boolean
@@ -70,6 +80,7 @@ export default function ShopFilters({
   categories,
   brands,
   productCount,
+  filterCounts,
   isRTL = false,
   isMobile = false,
   isOpen = false,
@@ -102,7 +113,16 @@ export default function ShopFilters({
   const handleCategoryChange = useCallback((categorySlug: string) => {
     const newCategory = filters.category === categorySlug ? 'all' : categorySlug
     handleFilterChange('category', newCategory)
+    // Reset subcategory when category changes
+    if (newCategory !== 'all') {
+      handleFilterChange('subcategory', 'all')
+    }
   }, [filters.category, handleFilterChange])
+
+  const handleSubcategoryChange = useCallback((subcategorySlug: string) => {
+    const newSubcategory = filters.subcategory === subcategorySlug ? 'all' : subcategorySlug
+    handleFilterChange('subcategory', newSubcategory)
+  }, [filters.subcategory, handleFilterChange])
 
   const handleBrandChange = useCallback((brand: string) => {
     const newBrands = filters.brand.includes(brand)
@@ -131,6 +151,7 @@ export default function ShopFilters({
   const getActiveFilterCount = useCallback(() => {
     let count = 0
     if (filters.category !== 'all') count++
+    if (filters.subcategory !== 'all') count++
     if (filters.brand.length > 0) count += filters.brand.length
     if (filters.rating > 0) count++
     if (filters.inStock) count++
@@ -229,28 +250,91 @@ export default function ShopFilters({
               {productCount}
             </Badge>
           </div>
-          {categories.map((category) => (
-            <div key={category._id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
-              <div className="flex items-center space-x-3">
-                <Checkbox
-                  id={`category-${category.slug}`}
-                  checked={filters.category === category.slug}
-                  onCheckedChange={() => handleCategoryChange(category.slug)}
-                  className="data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
-                />
-                <Label htmlFor={`category-${category.slug}`} className="text-sm font-medium cursor-pointer">
-                  {category.name}
-                </Label>
-              </div>
-              {category.count !== undefined && (
-                <Badge variant="secondary" className="bg-gray-100 text-gray-600 px-2 py-1">
-                  {category.count}
+          {categories.map((category) => {
+            const count = filterCounts?.categories[category.slug] || 0
+            return (
+              <div key={category._id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`category-${category.slug}`}
+                    checked={filters.category === category.slug}
+                    onCheckedChange={() => handleCategoryChange(category.slug)}
+                    className="data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
+                  />
+                  <Label htmlFor={`category-${category.slug}`} className="text-sm font-medium cursor-pointer">
+                    {category.name}
+                  </Label>
+                </div>
+                <Badge 
+                  variant="secondary" 
+                  className={cn(
+                    "px-2 py-1",
+                    count > 0 
+                      ? "bg-brand-100 text-brand-700" 
+                      : "bg-gray-100 text-gray-400"
+                  )}
+                >
+                  {count}
                 </Badge>
-              )}
-            </div>
-          ))}
+              </div>
+            )
+          })}
         </div>
       </FilterSection>
+
+      {/* Subcategory Filter */}
+      {filters.category !== 'all' && (
+        <FilterSection
+          title="Subcategories"
+          sectionKey="subcategory"
+          icon={<Tag className="w-4 h-4 text-brand-600" />}
+        >
+          <div className="space-y-2">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="subcategory-all"
+                  checked={filters.subcategory === 'all'}
+                  onCheckedChange={() => handleSubcategoryChange('all')}
+                  className="data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
+                />
+                <Label htmlFor="subcategory-all" className="text-sm font-medium cursor-pointer">
+                  All Subcategories
+                </Label>
+              </div>
+              <Badge variant="secondary" className="bg-brand-100 text-brand-700 px-2 py-1">
+                {productCount}
+              </Badge>
+            </div>
+            {Object.entries(filterCounts?.subcategories || {}).map(([subcategorySlug, count]) => (
+              <div key={subcategorySlug} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`subcategory-${subcategorySlug}`}
+                    checked={filters.subcategory === subcategorySlug}
+                    onCheckedChange={() => handleSubcategoryChange(subcategorySlug)}
+                    className="data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
+                  />
+                  <Label htmlFor={`subcategory-${subcategorySlug}`} className="text-sm font-medium cursor-pointer">
+                    {subcategorySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </Label>
+                </div>
+                <Badge 
+                  variant="secondary" 
+                  className={cn(
+                    "px-2 py-1",
+                    count > 0 
+                      ? "bg-brand-100 text-brand-700" 
+                      : "bg-gray-100 text-gray-400"
+                  )}
+                >
+                  {count}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </FilterSection>
+      )}
 
       {/* Price Range Filter */}
       <FilterSection
@@ -309,21 +393,35 @@ export default function ShopFilters({
           icon={<Award className="w-4 h-4 text-brand-600" />}
         >
           <div className="space-y-2">
-            {brands.map((brand) => (
-              <div key={brand} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id={`brand-${brand}`}
-                    checked={filters.brand.includes(brand)}
-                    onCheckedChange={() => handleBrandChange(brand)}
-                    className="data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
-                  />
-                  <Label htmlFor={`brand-${brand}`} className="text-sm font-medium cursor-pointer">
-                    {brand}
-                  </Label>
+            {brands.map((brand) => {
+              const count = filterCounts?.brands[brand] || 0
+              return (
+                <div key={brand} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id={`brand-${brand}`}
+                      checked={filters.brand.includes(brand)}
+                      onCheckedChange={() => handleBrandChange(brand)}
+                      className="data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
+                    />
+                    <Label htmlFor={`brand-${brand}`} className="text-sm font-medium cursor-pointer">
+                      {brand}
+                    </Label>
+                  </div>
+                  <Badge 
+                    variant="secondary" 
+                    className={cn(
+                      "px-2 py-1",
+                      count > 0 
+                        ? "bg-brand-100 text-brand-700" 
+                        : "bg-gray-100 text-gray-400"
+                    )}
+                  >
+                    {count}
+                  </Badge>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </FilterSection>
       )}
@@ -335,32 +433,46 @@ export default function ShopFilters({
         icon={<Star className="w-4 h-4 text-brand-600" />}
       >
         <div className="space-y-2">
-          {ratingOptions.map((option) => (
-            <div key={option.value} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
-              <div className="flex items-center space-x-3">
-                <Checkbox
-                  id={`rating-${option.value}`}
-                  checked={filters.rating === option.value}
-                  onCheckedChange={() => handleRatingChange(option.value)}
-                  className="data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
-                />
-                <Label htmlFor={`rating-${option.value}`} className="text-sm font-medium cursor-pointer flex items-center gap-2">
-                  <div className="flex text-amber-400">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className={cn(
-                          "w-4 h-4",
-                          i < option.value ? "fill-current" : "text-gray-300"
-                        )}
-                      />
-                    ))}
-                  </div>
-                  <span>{option.label}</span>
-                </Label>
+          {ratingOptions.map((option) => {
+            const count = filterCounts?.ratings[option.value] || 0
+            return (
+              <div key={option.value} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`rating-${option.value}`}
+                    checked={filters.rating === option.value}
+                    onCheckedChange={() => handleRatingChange(option.value)}
+                    className="data-[state=checked]:bg-brand-500 data-[state=checked]:border-brand-500"
+                  />
+                  <Label htmlFor={`rating-${option.value}`} className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                    <div className="flex text-amber-400">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={cn(
+                            "w-4 h-4",
+                            i < option.value ? "fill-current" : "text-gray-300"
+                          )}
+                        />
+                      ))}
+                    </div>
+                    <span>{option.label}</span>
+                  </Label>
+                </div>
+                <Badge 
+                  variant="secondary" 
+                  className={cn(
+                    "px-2 py-1",
+                    count > 0 
+                      ? "bg-brand-100 text-brand-700" 
+                      : "bg-gray-100 text-gray-400"
+                  )}
+                >
+                  {count}
+                </Badge>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </FilterSection>
 
@@ -384,6 +496,17 @@ export default function ShopFilters({
                 In Stock Only
               </Label>
             </div>
+            <Badge 
+              variant="secondary" 
+              className={cn(
+                "px-2 py-1",
+                (filterCounts?.availability.inStock || 0) > 0 
+                  ? "bg-emerald-100 text-emerald-700" 
+                  : "bg-gray-100 text-gray-400"
+              )}
+            >
+              {filterCounts?.availability.inStock || 0}
+            </Badge>
           </div>
         </div>
       </FilterSection>
@@ -408,6 +531,17 @@ export default function ShopFilters({
                 New Products
               </Label>
             </div>
+            <Badge 
+              variant="secondary" 
+              className={cn(
+                "px-2 py-1",
+                (filterCounts?.specialOffers.newProducts || 0) > 0 
+                  ? "bg-green-100 text-green-700" 
+                  : "bg-gray-100 text-gray-400"
+              )}
+            >
+              {filterCounts?.specialOffers.newProducts || 0}
+            </Badge>
           </div>
           <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
             <div className="flex items-center space-x-3">
@@ -422,6 +556,17 @@ export default function ShopFilters({
                 Best Sellers
               </Label>
             </div>
+            <Badge 
+              variant="secondary" 
+              className={cn(
+                "px-2 py-1",
+                (filterCounts?.specialOffers.bestSellers || 0) > 0 
+                  ? "bg-amber-100 text-amber-700" 
+                  : "bg-gray-100 text-gray-400"
+              )}
+            >
+              {filterCounts?.specialOffers.bestSellers || 0}
+            </Badge>
           </div>
           <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
             <div className="flex items-center space-x-3">
@@ -436,6 +581,17 @@ export default function ShopFilters({
                 On Sale
               </Label>
             </div>
+            <Badge 
+              variant="secondary" 
+              className={cn(
+                "px-2 py-1",
+                (filterCounts?.specialOffers.onSale || 0) > 0 
+                  ? "bg-red-100 text-red-700" 
+                  : "bg-gray-100 text-gray-400"
+              )}
+            >
+              {filterCounts?.specialOffers.onSale || 0}
+            </Badge>
           </div>
         </div>
       </FilterSection>
