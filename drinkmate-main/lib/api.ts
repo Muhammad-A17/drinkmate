@@ -982,6 +982,18 @@ export const blogAPI = {
     const response = await api.get('/blog/posts', { params });
     return response.data;
   },
+
+  // Get all posts for admin (includes unpublished and comments)
+  getPostsAdmin: async (params = {}) => {
+    const token = getAuthToken();
+    const response = await api.get('/blog/admin/posts', { 
+      params,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+    });
+    return response.data;
+  },
   
   // Get single post
   getPost: async (idOrSlug: string) => {
@@ -995,9 +1007,15 @@ export const blogAPI = {
     return response.data;
   },
   
-  // Add comment
+  // Add comment (authenticated)
   addComment: async (id: string, comment: string) => {
     const response = await api.post(`/blog/posts/${id}/comments`, { comment });
+    return response.data;
+  },
+  
+  // Add public comment (no authentication required)
+  addPublicComment: async (id: string, commentData: { comment: string; username: string; email: string }) => {
+    const response = await api.post(`/blog/posts/${id}/comments/public`, commentData);
     return response.data;
   },
   
@@ -1042,6 +1060,18 @@ export const blogAPI = {
     const token = getAuthToken();
     
     const response = await api.put(`/blog/posts/${postId}/comments/${commentId}/approve`, {}, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  },
+  
+  // Delete comment (admin only)
+  deleteComment: async (postId: string, commentId: string) => {
+    const token = getAuthToken();
+    
+    const response = await api.delete(`/blog/posts/${postId}/comments/${commentId}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

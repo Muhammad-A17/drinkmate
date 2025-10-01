@@ -8,6 +8,11 @@ import { notFound } from "next/navigation"
 import React, { useState, useEffect } from "react"
 import { useTranslation } from "@/lib/contexts/translation-context"
 import { blogAPI } from "@/lib/api"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 
 interface BlogPostData {
   _id: string
@@ -25,6 +30,14 @@ interface BlogPostData {
   comments: number
   tags: string[]
   slug?: string
+  commentsList?: Array<{
+    _id: string
+    user: string
+    username: string
+    comment: string
+    isApproved: boolean
+    createdAt: string
+  }>
 }
 
 export default function BlogPost({ params }: { params: Promise<{ id: string }> }) {
@@ -36,6 +49,14 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [relatedPosts, setRelatedPosts] = useState<BlogPostData[]>([])
+  
+  // Comment states
+  const [comments, setComments] = useState<any[]>([])
+  const [newComment, setNewComment] = useState("")
+  const [commentAuthor, setCommentAuthor] = useState("")
+  const [commentEmail, setCommentEmail] = useState("")
+  const [submittingComment, setSubmittingComment] = useState(false)
+  const [commentsError, setCommentsError] = useState<string | null>(null)
   
   // Extract id from params when component mounts
   React.useEffect(() => {
@@ -56,6 +77,37 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
         if (response.success && response.post) {
           setBlogPost(response.post)
           setRelatedPosts(response.relatedPosts || [])
+          
+          // Set approved comments and ensure createdAt field exists
+          try {
+            setCommentsError(null)
+            const rawComments = response.post.comments || []
+            
+            // Validate and process comments safely
+            const validComments = rawComments.filter((comment: any) => {
+              return comment && typeof comment === 'object' && comment.username && comment.comment
+            })
+            
+            const approvedComments = validComments
+              .filter((comment: any) => comment.isApproved === true)
+              .map((comment: any) => {
+                // Create a clean, serializable comment object
+                return {
+                  _id: String(comment._id || Math.random().toString()),
+                  user: String(comment.user || ''),
+                  username: String(comment.username || 'Anonymous'),
+                  comment: String(comment.comment || ''),
+                  isApproved: Boolean(comment.isApproved),
+                  createdAt: String(comment.createdAt || comment.date || new Date().toISOString())
+                }
+              })
+            
+            setComments(approvedComments)
+          } catch (commentsErr) {
+            console.error('Error processing comments:', commentsErr)
+            setCommentsError('Failed to load comments')
+            setComments([])
+          }
         } else {
           setError('Blog post not found')
         }
@@ -174,8 +226,22 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
     )
   }
 
+  // Use the dynamic blogPost data instead of static data with safety checks
+  const post = blogPost ? {
+    ...blogPost,
+    tags: Array.isArray(blogPost.tags) ? blogPost.tags : [],
+    title: String(blogPost.title || ''),
+    category: String(blogPost.category || ''),
+    authorName: String(blogPost.authorName || ''),
+    content: String(blogPost.content || ''),
+    image: String(blogPost.image || ''),
+    publishDate: String(blogPost.publishDate || ''),
+    readTime: Number(blogPost.readTime) || 0,
+    comments: Number(blogPost.comments) || 0
+  } : null
+
   // Show error state
-  if (error || !blogPost) {
+  if (error || !blogPost || !post) {
     return (
       <PageLayout currentPage="blog">
         <div className="min-h-screen bg-gradient-to-b from-white to-[#f3f3f3] flex items-center justify-center">
@@ -194,171 +260,6 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
       </PageLayout>
     )
   }
-  
-  // Static blog post data (replaced with dynamic API data)
-  /* const blogPosts = [
-    {
-      id: 1,
-      title: t('blog.blogPosts.post1.title'),
-      content: `
-        <div class="space-y-8">
-          <div class="bg-gradient-to-r from-blue-50 to-cyan-50 p-6 rounded-2xl border-l-4 border-[#12d6fa]">
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">🌞 ${t('blog.blogPosts.post1.subtitle')}</h2>
-            <p class="text-lg text-gray-700 leading-relaxed">
-              ${t('blog.blogPosts.post1.intro')}
-            </p>
-          </div>
-          
-          <div class="bg-white p-6 rounded-2xl shadow-lg">
-            <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-              <span class="text-3xl mr-3">✨</span>
-              ${t('blog.blogPosts.post1.whyMake.title')}
-            </h2>
-            <div class="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-3 text-[#12d6fa]">${t('blog.blogPosts.post1.whyMake.health.title')}</h3>
-                <ul class="space-y-2 text-gray-700">
-                  <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    ${t('blog.blogPosts.post1.whyMake.health.benefit1')}
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    ${t('blog.blogPosts.post1.whyMake.health.benefit2')}
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    ${t('blog.blogPosts.post1.whyMake.health.benefit3')}
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    ${t('blog.blogPosts.post1.whyMake.health.benefit4')}
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-gray-800 mb-3 text-[#a8f387]">${t('blog.blogPosts.post1.whyMake.cost.title')}</h3>
-                <ul class="space-y-2 text-gray-700">
-                  <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    ${t('blog.blogPosts.post1.whyMake.cost.saving1')}
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    ${t('blog.blogPosts.post1.whyMake.cost.saving2')}
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    ${t('blog.blogPosts.post1.whyMake.cost.saving3')}
-                  </li>
-                  <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    ${t('blog.blogPosts.post1.whyMake.cost.saving4')}
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      `,
-      excerpt: t('blog.blogPosts.post1.excerpt'),
-      author: t('blog.blogPosts.post1.author'),
-      date: t('blog.blogPosts.post1.date'),
-      category: t('blog.categories.recipes'),
-      image: "/images/drink-recipes.png",
-      readTime: `12 ${t('blog.blogPosts.readTime')}`,
-      tags: [t('blog.blogPosts.post1.tags.recipes'), t('blog.blogPosts.post1.tags.summer'), t('blog.blogPosts.post1.tags.refreshing'), t('blog.blogPosts.post1.tags.healthy'), t('blog.blogPosts.post1.tags.sparkling')],
-      likes: 245,
-      comments: 67
-    },
-    {
-      id: 2,
-      title: t('blog.blogPosts.post2.title'),
-      content: t('blog.blogPosts.post2.content'),
-      excerpt: t('blog.blogPosts.post2.excerpt'),
-      author: t('blog.blogPosts.post2.author'),
-      date: t('blog.blogPosts.post2.date'),
-      category: t('blog.categories.science'),
-      image: "/images/co2-cylinder.png",
-      readTime: `15 ${t('blog.blogPosts.readTime')}`,
-      tags: [t('blog.blogPosts.post2.tags.science'), t('blog.blogPosts.post2.tags.chemistry'), t('blog.blogPosts.post2.tags.carbonation'), t('blog.blogPosts.post2.tags.technology')],
-      likes: 189,
-      comments: 42
-    },
-    {
-      id: 3,
-      title: t('blog.blogPosts.post3.title'),
-      content: t('blog.blogPosts.post3.content'),
-      excerpt: t('blog.blogPosts.post3.excerpt'),
-      author: t('blog.blogPosts.post3.author'),
-      date: t('blog.blogPosts.post3.date'),
-      category: t('blog.categories.guide'),
-      image: "/images/co2-cylinder.png",
-      readTime: `8 ${t('blog.blogPosts.readTime')}`,
-      tags: [t('blog.blogPosts.post3.tags.guide'), t('blog.blogPosts.post3.tags.co2'), t('blog.blogPosts.post3.tags.equipment'), t('blog.blogPosts.post3.tags.tips')],
-      likes: 156,
-      comments: 38
-    },
-    {
-      id: 4,
-      title: t('blog.blogPosts.post4.title'),
-      content: t('blog.blogPosts.post4.content'),
-      excerpt: t('blog.blogPosts.post4.excerpt'),
-      author: t('blog.blogPosts.post4.author'),
-      date: t('blog.blogPosts.post4.date'),
-      category: t('blog.categories.products'),
-      image: "/images/italian-strawberry-lemon.png",
-      readTime: `10 ${t('blog.blogPosts.readTime')}`,
-      tags: [t('blog.blogPosts.post4.tags.products'), t('blog.blogPosts.post4.tags.italian'), t('blog.blogPosts.post4.tags.syrups'), t('blog.blogPosts.post4.tags.premium')],
-      likes: 203,
-      comments: 51
-    },
-    {
-      id: 5,
-      title: t('blog.blogPosts.post5.title'),
-      content: t('blog.blogPosts.post5.content'),
-      excerpt: t('blog.blogPosts.post5.excerpt'),
-      author: t('blog.blogPosts.post5.author'),
-      date: t('blog.blogPosts.post5.date'),
-      category: t('blog.categories.environment'),
-      image: "/images/plastic-impact.png",
-      readTime: `12 ${t('blog.blogPosts.readTime')}`,
-      tags: [t('blog.blogPosts.post5.tags.environment'), t('blog.blogPosts.post5.tags.plastic'), t('blog.blogPosts.post5.tags.sustainability'), t('blog.blogPosts.post5.tags.green')],
-      likes: 178,
-      comments: 45
-    },
-    {
-      id: 6,
-      title: t('blog.blogPosts.post6.title'),
-      content: t('blog.blogPosts.post6.content'),
-      excerpt: t('blog.blogPosts.post6.excerpt'),
-      author: t('blog.blogPosts.post6.author'),
-      date: t('blog.blogPosts.post6.date'),
-      category: t('blog.categories.health'),
-      image: "/images/health-benefits.png",
-      readTime: `10 ${t('blog.blogPosts.readTime')}`,
-      tags: [t('blog.blogPosts.post6.tags.health'), t('blog.blogPosts.post6.tags.benefits'), t('blog.blogPosts.post6.tags.myths'), t('blog.blogPosts.post6.tags.science')],
-      likes: 234,
-      comments: 58
-    },
-    {
-      id: 7,
-      title: t('blog.blogPosts.post7.title'),
-      content: t('blog.blogPosts.post7.content'),
-      excerpt: t('blog.blogPosts.post7.excerpt'),
-      author: t('blog.blogPosts.post7.author'),
-      date: t('blog.blogPosts.post7.date'),
-      category: t('blog.categories.lifestyle'),
-      image: "/images/drinkmate-machine.png",
-      readTime: `8 ${t('blog.blogPosts.readTime')}`,
-      tags: [t('blog.blogPosts.post7.tags.party'), t('blog.blogPosts.post7.tags.entertainment'), t('blog.blogPosts.post7.tags.social'), t('blog.blogPosts.post7.tags.lifestyle'), t('blog.blogPosts.post7.tags.carbonation')],
-      likes: 167,
-      comments: 39
-    }
-  ] */
-  
-  // Use the dynamic blogPost data instead of static data
-  const post = blogPost
   
   const handleLike = () => {
     if (!liked) {
@@ -381,6 +282,57 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
       case 'linkedin':
         window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`)
         break
+    }
+  }
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!newComment.trim() || !commentAuthor.trim() || !commentEmail.trim()) {
+      toast.error("Please fill in all fields")
+      return
+    }
+
+    if (!id) {
+      toast.error("Blog post not found")
+      return
+    }
+
+    setSubmittingComment(true)
+
+    try {
+      // Call the real API to save comment to database
+      const response = await blogAPI.addPublicComment(id, {
+        comment: newComment,
+        username: commentAuthor,
+        email: commentEmail
+      })
+
+      if (response.success) {
+        // Add the comment to the local state (it will be pending approval)
+        const newCommentData = {
+          _id: response.comment?._id || Math.random().toString(),
+          user: response.comment?.user || '',
+          username: response.comment?.username || 'Anonymous',
+          comment: response.comment?.comment || '',
+          isApproved: Boolean(response.comment?.isApproved),
+          createdAt: response.comment?.createdAt || response.comment?.date || new Date().toISOString()
+        }
+
+        setComments(prev => [newCommentData, ...prev])
+        setNewComment("")
+        setCommentAuthor("")
+        setCommentEmail("")
+        
+        toast.success("Comment submitted successfully! It will appear after admin approval.")
+      } else {
+        toast.error(response.message || "Failed to submit comment")
+      }
+    } catch (error) {
+      console.error('Error submitting comment:', error)
+      toast.error("Failed to submit comment. Please try again.")
+    } finally {
+      setSubmittingComment(false)
     }
   }
 
@@ -448,14 +400,18 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
               <span className={`text-sm text-gray-600 ${isRTL ? 'ml-2' : 'mr-2'} ${isRTL ? 'font-cairo' : 'font-montserrat'}`}>
                 {t('blog.blogPosts.tags')}:
               </span>
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className={`bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200 hover:bg-[#12d6fa] hover:text-white ${isRTL ? 'font-cairo' : 'font-montserrat'}`}
-                >
-                  #{tag}
-                </span>
-              ))}
+              {post.tags && Array.isArray(post.tags) && post.tags.map((tag, index) => {
+                // Ensure tag is a string
+                const tagString = typeof tag === 'string' ? tag : String(tag)
+                return (
+                  <span
+                    key={tagString || index}
+                    className={`bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200 hover:bg-[#12d6fa] hover:text-white ${isRTL ? 'font-cairo' : 'font-montserrat'}`}
+                  >
+                    #{tagString}
+                  </span>
+                )
+              })}
             </div>
 
             {/* Article Content */}
@@ -536,6 +492,154 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
             </div>
           </div>
         </article>
+
+        {/* Comments Section */}
+        <section className="py-16 bg-white">
+          <div className="max-w-4xl mx-auto px-4">
+            <h2 className={`text-2xl md:text-3xl font-bold text-gray-900 mb-8 ${isRTL ? 'font-cairo' : 'font-montserrat'}`}>
+              Comments ({comments.length})
+            </h2>
+
+            {/* Comment Form */}
+            <div className="bg-gray-50 rounded-2xl p-6 mb-8">
+              <h3 className={`text-lg font-semibold text-gray-900 mb-4 ${isRTL ? 'font-cairo' : 'font-montserrat'}`}>
+                Leave a Comment
+              </h3>
+              <form onSubmit={handleCommentSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="commentAuthor" className="text-sm font-medium text-gray-700">
+                      Name *
+                    </Label>
+                    <Input
+                      id="commentAuthor"
+                      type="text"
+                      value={commentAuthor}
+                      onChange={(e) => setCommentAuthor(e.target.value)}
+                      placeholder="Your name"
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="commentEmail" className="text-sm font-medium text-gray-700">
+                      Email *
+                    </Label>
+                    <Input
+                      id="commentEmail"
+                      type="email"
+                      value={commentEmail}
+                      onChange={(e) => setCommentEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="newComment" className="text-sm font-medium text-gray-700">
+                    Comment *
+                  </Label>
+                  <Textarea
+                    id="newComment"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Share your thoughts..."
+                    rows={4}
+                    required
+                    className="mt-1"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={submittingComment}
+                  className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-6 py-2"
+                >
+                  {submittingComment ? "Submitting..." : "Submit Comment"}
+                </Button>
+              </form>
+            </div>
+
+            {/* Comments List */}
+            <div className="space-y-6">
+              {commentsError ? (
+                <div className="text-center py-8 text-red-500">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-red-300" />
+                  <p>{commentsError}</p>
+                </div>
+              ) : comments.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>No comments yet. Be the first to comment!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {comments.map((comment, index) => {
+                    // Ensure we have a valid comment object
+                    if (!comment || typeof comment !== 'object') {
+                      return null
+                    }
+                    
+                    // Extract and validate all properties as primitive values
+                    const id = comment._id ? String(comment._id) : `comment-${index}`
+                    const user = comment.username ? String(comment.username) : 'Anonymous'
+                    const text = comment.comment ? String(comment.comment) : ''
+                    const approved = comment.isApproved === true
+                    const date = comment.createdAt ? String(comment.createdAt) : (comment.date ? String(comment.date) : new Date().toISOString())
+                    
+                    // Skip if we don't have essential data
+                    if (!user || !text) {
+                      return null
+                    }
+                    
+                    return (
+                      <div key={id} className={`rounded-2xl p-6 ${approved ? "bg-gray-50" : "bg-yellow-50 border border-yellow-200"}`}>
+                        <div className="flex items-start space-x-4">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${approved ? "bg-[#12d6fa]" : "bg-yellow-500"}`}>
+                            {user.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <h4 className={`font-semibold text-gray-900 ${isRTL ? 'font-cairo' : 'font-montserrat'}`}>
+                                {user}
+                              </h4>
+                              <span className="text-sm text-gray-500">
+                                {new Date(date).toLocaleDateString()}
+                              </span>
+                              {!approved && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                  Pending Approval
+                                </span>
+                              )}
+                            </div>
+                            <p className={`text-gray-700 ${isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
+                              {text}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            
+            {/* Comment Status Note */}
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <MessageCircle className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-blue-900 mb-1">Comment Moderation</h4>
+                  <p className="text-sm text-blue-700">
+                    All comments are moderated and will appear after admin approval. This helps maintain a respectful and relevant discussion.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Related Posts */}
         <section className="py-16 bg-white">

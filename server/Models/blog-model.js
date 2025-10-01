@@ -77,7 +77,8 @@ const BlogSchema = new Schema({
     comments: [{
         user: {
             type: Schema.Types.ObjectId,
-            ref: 'User'
+            ref: 'User',
+            required: false // Allow null for public comments
         },
         username: {
             type: String,

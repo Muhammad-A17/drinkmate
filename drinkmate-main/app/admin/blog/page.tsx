@@ -157,7 +157,7 @@ export default function BlogPage() {
   const fetchPosts = async () => {
     try {
       setLoading(true)
-      const response = await blogAPI.getPosts({ limit: 100 }) // Get all posts for admin
+      const response = await blogAPI.getPostsAdmin({ limit: 100 }) // Get all posts for admin with comments
       if (response.success) {
         setPosts(response.posts || [])
       }
@@ -261,6 +261,19 @@ export default function BlogPage() {
     } catch (error: any) {
       console.error("Error approving comment:", error)
       toast.error("Failed to approve comment")
+    }
+  }
+
+  const handleDeleteComment = async (postId: string, commentId: string) => {
+    if (!confirm("Are you sure you want to delete this comment?")) return
+
+    try {
+      await blogAPI.deleteComment(postId, commentId)
+      toast.success("Comment deleted successfully")
+      fetchPosts()
+    } catch (error: any) {
+      console.error("Error deleting comment:", error)
+      toast.error("Failed to delete comment")
     }
   }
 
@@ -715,18 +728,38 @@ export default function BlogPage() {
             </div>
           </div>
 
-          {/* Premium Comments Management */}
+          {/* Enhanced Comments Management */}
           <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl overflow-hidden">
             <div className="p-6 border-b border-gray-200/50">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
-                  <MessageSquare className="w-5 h-5 text-white" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
+                    <MessageSquare className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Comments Management</h3>
+                    <p className="text-sm text-gray-500">
+                      {posts.flatMap(post => post.comments.filter(comment => !comment.isApproved)).length} pending • {posts.flatMap(post => post.comments.filter(comment => comment.isApproved)).length} approved
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Comments Management</h3>
-                  <p className="text-sm text-gray-500">
-                    {posts.flatMap(post => post.comments.filter(comment => !comment.isApproved)).length} pending approval
-                  </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedStatus("pending")}
+                    className={selectedStatus === "pending" ? "bg-blue-100 text-blue-700 border-blue-300" : ""}
+                  >
+                    Pending ({posts.flatMap(post => post.comments.filter(comment => !comment.isApproved)).length})
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedStatus("approved")}
+                    className={selectedStatus === "approved" ? "bg-green-100 text-green-700 border-green-300" : ""}
+                  >
+                    Approved ({posts.flatMap(post => post.comments.filter(comment => comment.isApproved)).length})
+                  </Button>
                 </div>
               </div>
             </div>
@@ -734,54 +767,90 @@ export default function BlogPage() {
             <div className="p-6">
               <div className="space-y-4">
                 {posts.flatMap(post => 
-                  post.comments.filter(comment => !comment.isApproved)
-                ).slice(0, 10).map((comment, index) => (
-                  <div key={index} className="bg-gray-50/50 rounded-xl p-4 border border-gray-200/50 hover:bg-gray-100/50 transition-all duration-200">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-medium text-white">
-                              {comment.username.charAt(0).toUpperCase()}
-                            </span>
+                  post.comments.filter(comment => 
+                    selectedStatus === "pending" ? !comment.isApproved : comment.isApproved
+                  )
+                ).slice(0, 15).map((comment, index) => {
+                  const post = posts.find(p => p.comments.some(c => c._id === comment._id))
+                  return (
+                    <div key={index} className={`rounded-xl p-4 border transition-all duration-200 ${
+                      comment.isApproved 
+                        ? "bg-green-50/50 border-green-200/50 hover:bg-green-100/50" 
+                        : "bg-yellow-50/50 border-yellow-200/50 hover:bg-yellow-100/50"
+                    }`}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              comment.isApproved 
+                                ? "bg-gradient-to-br from-green-400 to-green-600" 
+                                : "bg-gradient-to-br from-yellow-400 to-orange-500"
+                            }`}>
+                              <span className="text-sm font-medium text-white">
+                                {comment.username.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="font-semibold text-gray-900">{comment.username}</span>
+                              <span className="text-sm text-gray-500 ml-2">on</span>
+                              <span className="font-medium text-blue-600 ml-1">{post?.title}</span>
+                              {comment.isApproved && (
+                                <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Approved
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <span className="font-semibold text-gray-900">{comment.username}</span>
-                            <span className="text-sm text-gray-500 ml-2">on</span>
-                            <span className="font-medium text-blue-600 ml-1">{posts.find(p => 
-                              p.comments.some(c => c._id === comment._id)
-                            )?.title}</span>
+                          <p className="text-gray-700 mb-3 leading-relaxed">{comment.comment}</p>
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
+                            <span>{new Date(comment.createdAt).toLocaleTimeString()}</span>
+                            <span className="text-blue-600">Post: {post?.title}</span>
                           </div>
                         </div>
-                        <p className="text-gray-700 mb-3 leading-relaxed">{comment.comment}</p>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
-                          <span>{new Date(comment.createdAt).toLocaleTimeString()}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <Button
-                          size="sm"
-                          onClick={() => handleApproveComment(
-                            posts.find(p => p.comments.some(c => c._id === comment._id))?._id || "",
-                            comment._id
+                        <div className="flex gap-2 ml-4">
+                          {!comment.isApproved && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleApproveComment(post?._id || "", comment._id)}
+                              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Approve
+                            </Button>
                           )}
-                          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                        >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Approve
-                        </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteComment(post?._id || "", comment._id)}
+                            className="shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Delete
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-                {posts.flatMap(post => post.comments.filter(comment => !comment.isApproved)).length === 0 && (
+                  )
+                })}
+                {posts.flatMap(post => 
+                  post.comments.filter(comment => 
+                    selectedStatus === "pending" ? !comment.isApproved : comment.isApproved
+                  )
+                ).length === 0 && (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <MessageSquare className="w-8 h-8 text-gray-400" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No pending comments</h3>
-                    <p className="text-gray-500">All comments have been approved</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {selectedStatus === "pending" ? "No pending comments" : "No approved comments"}
+                    </h3>
+                    <p className="text-gray-500">
+                      {selectedStatus === "pending" 
+                        ? "All comments have been approved" 
+                        : "No comments have been approved yet"}
+                    </p>
                   </div>
                 )}
               </div>
