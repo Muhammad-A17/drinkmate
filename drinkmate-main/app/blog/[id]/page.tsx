@@ -5,22 +5,80 @@ import { Calendar, User, ArrowLeft, Clock, Heart, MessageCircle, Facebook, Twitt
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useTranslation } from "@/lib/contexts/translation-context"
+import { blogAPI } from "@/lib/api"
+
+interface BlogPostData {
+  _id: string
+  title: string
+  content: string
+  excerpt: string
+  image: string
+  category: string
+  author: string
+  authorName: string
+  publishDate: string
+  readTime: number
+  views: number
+  likes: number
+  comments: number
+  tags: string[]
+  slug?: string
+}
 
 export default function BlogPost({ params }: { params: Promise<{ id: string }> }) {
   const { t, isRTL, isHydrated } = useTranslation()
   const [liked, setLiked] = useState(false)
   const [likesCount, setLikesCount] = useState(0)
   const [id, setId] = useState<string | null>(null)
+  const [blogPost, setBlogPost] = useState<BlogPostData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [relatedPosts, setRelatedPosts] = useState<BlogPostData[]>([])
   
   // Extract id from params when component mounts
   React.useEffect(() => {
     params.then(({ id }) => setId(id))
   }, [params])
+
+  // Fetch blog post data
+  useEffect(() => {
+    if (!id) return
+
+    const fetchBlogPost = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        const response = await blogAPI.getPost(id)
+        
+        if (response.success && response.post) {
+          setBlogPost(response.post)
+          setRelatedPosts(response.relatedPosts || [])
+        } else {
+          setError('Blog post not found')
+        }
+      } catch (err) {
+        console.error('Error fetching blog post:', err)
+        setError('Failed to load blog post')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBlogPost()
+  }, [id])
+
+  // Update likes count when blog post is loaded
+  useEffect(() => {
+    if (blogPost) {
+      setLikesCount(blogPost.likes || 0)
+    }
+  }, [blogPost])
   
-  // Don't render translated content until hydration is complete
-  if (!isHydrated || !id) {
+  // Show loading state
+  if (!isHydrated || !id || loading) {
     return (
       <PageLayout currentPage="blog">
         <div className="min-h-screen bg-gradient-to-b from-white to-[#f3f3f3]">
@@ -115,9 +173,30 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
       </PageLayout>
     )
   }
+
+  // Show error state
+  if (error || !blogPost) {
+    return (
+      <PageLayout currentPage="blog">
+        <div className="min-h-screen bg-gradient-to-b from-white to-[#f3f3f3] flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Blog Post Not Found</h1>
+            <p className="text-gray-600 mb-8">The blog post you're looking for doesn't exist or has been removed.</p>
+            <Link 
+              href="/blog" 
+              className="inline-flex items-center px-6 py-3 bg-[#12d6fa] text-white rounded-lg hover:bg-[#0fb8d4] transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Blog
+            </Link>
+          </div>
+        </div>
+      </PageLayout>
+    )
+  }
   
-  // Sample blog post data with proper translations
-  const blogPosts = [
+  // Static blog post data (replaced with dynamic API data)
+  /* const blogPosts = [
     {
       id: 1,
       title: t('blog.blogPosts.post1.title'),
@@ -276,17 +355,10 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
       likes: 167,
       comments: 39
     }
-  ]
+  ] */
   
-  const post = blogPosts.find(p => p.id === parseInt(id))
-  
-  if (!post) {
-    notFound()
-  }
-  
-  if (likesCount === 0) {
-    setLikesCount(post.likes)
-  }
+  // Use the dynamic blogPost data instead of static data
+  const post = blogPost
   
   const handleLike = () => {
     if (!liked) {
@@ -347,15 +419,15 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
             <div className={`flex flex-wrap items-center gap-6 text-gray-600 mb-8 ${isRTL ? 'font-noto-arabic' : 'font-noto-sans'}`}>
               <div className="flex items-center">
                 <User className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-                <span>{t('blog.blogPosts.author')}: {post.author}</span>
+                <span>{t('blog.blogPosts.author')}: {post.authorName}</span>
               </div>
               <div className="flex items-center">
                 <Calendar className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-                <span>{t('blog.blogPosts.publishedOn')} {post.date}</span>
+                <span>{t('blog.blogPosts.publishedOn')} {new Date(post.publishDate).toLocaleDateString()}</span>
               </div>
               <div className="flex items-center">
                 <Clock className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-                <span>{post.readTime}</span>
+                <span>{post.readTime} {t('blog.blogPosts.readTime')}</span>
               </div>
             </div>
 
@@ -472,11 +544,10 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
               {t('blog.blogPosts.relatedPosts')}
             </h2>
             <div className="grid md:grid-cols-2 gap-8">
-              {blogPosts
-                .filter(p => p.id !== post.id)
+              {relatedPosts
                 .slice(0, 2)
                 .map((relatedPost) => (
-                  <article key={relatedPost.id} className="bg-gray-50 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                  <article key={relatedPost._id} className="bg-gray-50 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                     <div className="relative h-48">
                       <Image
                         src={relatedPost.image}
@@ -501,9 +572,9 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
                         <span className={`text-sm text-gray-500 ${isRTL ? 'font-cairo' : 'font-montserrat'}`}>
                           {relatedPost.readTime}
                         </span>
-                        <Link href={`/blog/${relatedPost.id}`}>
+                        <Link href={`/blog/${relatedPost._id}`}>
                           <button 
-                            onClick={() => window.location.href = `/blog/${relatedPost.id}`}
+                            onClick={() => window.location.href = `/blog/${relatedPost._id}`}
                             className={`text-[#12d6fa] hover:text-[#0bc4e8] font-medium transition-all duration-200 hover:underline ${isRTL ? 'font-cairo' : 'font-montserrat'}`}
                           >
                             {t('blog.featuredPost.readMore')} {isRTL ? '←' : '→'}

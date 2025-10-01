@@ -72,6 +72,7 @@ import {
 } from "lucide-react"
 import { blogAPI } from "@/lib/api"
 import { toast } from "sonner"
+import CloudinaryImageUpload from "@/components/ui/cloudinary-image-upload"
 
 interface BlogPost {
   _id: string
@@ -98,6 +99,7 @@ interface BlogPost {
     createdAt: string
   }>
   language: string
+  slug?: string
   createdAt: string
 }
 
@@ -107,10 +109,10 @@ interface BlogFormData {
   content: string
   category: string
   tags: string[]
-  image: string
   isPublished: boolean
   isFeatured: boolean
   language: string
+  slug?: string
 }
 
 export default function BlogPage() {
@@ -123,6 +125,17 @@ export default function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [newTag, setNewTag] = useState("")
+  const [uploadedImages, setUploadedImages] = useState<string[]>([])
+
+  // Function to generate slug from title
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .trim()
+  }
 
   const [formData, setFormData] = useState<BlogFormData>({
     title: "",
@@ -130,10 +143,10 @@ export default function BlogPage() {
     content: "",
     category: "general",
     tags: [],
-    image: "",
     isPublished: false,
     isFeatured: false,
-    language: "en"
+    language: "en",
+    slug: ""
   })
 
   // Fetch posts on component mount
@@ -160,12 +173,41 @@ export default function BlogPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
+    // Validation
+    if (!formData.title.trim()) {
+      toast.error("Please enter a title")
+      setIsSubmitting(false)
+      return
+    }
+    if (!formData.excerpt.trim()) {
+      toast.error("Please enter an excerpt")
+      setIsSubmitting(false)
+      return
+    }
+    if (!formData.content.trim()) {
+      toast.error("Please enter content")
+      setIsSubmitting(false)
+      return
+    }
+    if (uploadedImages.length === 0) {
+      toast.error("Please upload a featured image")
+      setIsSubmitting(false)
+      return
+    }
+
     try {
+      // Prepare the data with image and slug
+      const postData = {
+        ...formData,
+        image: uploadedImages[0] || "", // Use the first uploaded image as the featured image
+        slug: formData.slug || generateSlug(formData.title), // Ensure slug is generated
+      }
+
       if (editingPost) {
-        await blogAPI.updatePost(editingPost._id, formData)
+        await blogAPI.updatePost(editingPost._id, postData)
         toast.success("Blog post updated successfully")
       } else {
-        await blogAPI.createPost(formData)
+        await blogAPI.createPost(postData)
         toast.success("Blog post created successfully")
       }
 
@@ -188,11 +230,13 @@ export default function BlogPage() {
       content: post.content,
       category: post.category,
       tags: post.tags,
-      image: post.image || "",
       isPublished: post.isPublished,
       isFeatured: post.isFeatured,
-      language: post.language
+      language: post.language,
+      slug: post.slug || generateSlug(post.title)
     })
+    // Set the uploaded images for editing
+    setUploadedImages(post.image ? [post.image] : [])
     setIsDialogOpen(true)
   }
 
@@ -227,11 +271,12 @@ export default function BlogPage() {
       content: "",
       category: "general",
       tags: [],
-      image: "",
       isPublished: false,
       isFeatured: false,
-      language: "en"
+      language: "en",
+      slug: ""
     })
+    setUploadedImages([])
     setEditingPost(null)
   }
 
@@ -769,11 +814,31 @@ export default function BlogPage() {
                       <Input
                         id="title"
                         value={formData.title}
-                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        onChange={(e) => {
+                          const newTitle = e.target.value
+                          setFormData({ 
+                            ...formData, 
+                            title: newTitle,
+                            slug: generateSlug(newTitle)
+                          })
+                        }}
                         required
                         className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
                         placeholder="Enter blog post title"
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="slug" className="text-sm font-medium text-gray-700">URL Slug</Label>
+                      <Input
+                        id="slug"
+                        value={formData.slug}
+                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                        className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                        placeholder="url-friendly-slug"
+                      />
+                      <p className="text-xs text-gray-500">
+                        This will be used in the URL. Auto-generated from title.
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="category" className="text-sm font-medium text-gray-700">Category *</Label>
@@ -820,17 +885,25 @@ export default function BlogPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="image" className="text-sm font-medium text-gray-700">Featured Image URL</Label>
-                      <Input
-                        id="image"
-                        value={formData.image}
-                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                        placeholder="https://example.com/image.jpg"
-                        className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                      <Label className="text-sm font-medium text-gray-700">Featured Image</Label>
+                      <CloudinaryImageUpload
+                        onImagesChange={(images) => {
+                          setUploadedImages(images)
+                        }}
+                        currentImages={uploadedImages}
+                        maxImages={1}
+                        disabled={isSubmitting}
+                        className="w-full"
                       />
+                      <p className="text-xs text-gray-500">
+                        Upload a featured image for your blog post. This will be displayed as the main image.
+                      </p>
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="language" className="text-sm font-medium text-gray-700">Language</Label>
                       <Select 

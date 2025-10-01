@@ -16,6 +16,7 @@ import { generateStructuredData } from "@/lib/seo"
 import Balancer from "react-wrap-balancer"
 import { useAutoPlayOnView } from "@/hooks/use-auto-play-on-view"
 import CarouselBanner from "@/components/ui/carousel-banner"
+import { useLatestBlogs } from "@/hooks/use-latest-blogs"
 
 // StepCard component for mobile-optimized cards
 function StepCard({ 
@@ -61,12 +62,72 @@ function StepCard({
   );
 }
 
+// BlogCard component for displaying blog posts
+function BlogCard({ 
+  blog, 
+  isRTL, 
+  index 
+}: { 
+  blog: {
+    _id: string
+    title: string
+    excerpt: string
+    image: string
+    category: string
+    publishDate: string
+    readTime: number
+    slug?: string
+  }
+  isRTL: boolean
+  index: number
+}) {
+  const router = useRouter()
+  
+  const handleClick = () => {
+    if (blog.slug) {
+      router.push(`/blog/${blog.slug}`)
+    } else {
+      router.push(`/blog/${blog._id}`)
+    }
+  }
+
+  return (
+    <div
+      className={`text-center animate-slide-in-up group cursor-pointer transition-all duration-500 hover:transform hover:-translate-y-3 hover:scale-[1.02] ${
+        index === 1 ? 'delay-200' : index === 2 ? 'delay-400' : ''
+      }`}
+      dir={isRTL ? "rtl" : "ltr"}
+      onClick={handleClick}
+    >
+      <div className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100/50 backdrop-blur-sm relative group-hover:border-[#12d6fa]/20">
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#12d6fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <Image
+          src={blog.image || "/images/placeholder.jpg"}
+          alt={blog.title}
+          width={300}
+          height={280}
+          className="object-cover w-full h-56 md:h-72 rounded-3xl group-hover:scale-110 transition-all duration-700 filter group-hover:brightness-105"
+        />
+      </div>
+      <h3
+        className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
+      >
+        {blog.title}
+      </h3>
+    </div>
+  )
+}
+
 export default function Home() {
   const { t, isRTL } = useTranslation()
   const router = useRouter()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [activeMachineColor, setActiveMachineColor] = useState("cyan") // Default to cyan
   const [isClient, setIsClient] = useState(false)
+  
+  // Fetch latest blog posts for the environmental section
+  const { blogs: latestBlogs, loading: blogsLoading, error: blogsError } = useLatestBlogs(3)
+  
 
   // Handle hydration
   useEffect(() => {
@@ -1637,70 +1698,169 @@ export default function Home() {
             </h2>
           </div>
 
-          {/* Three Cards */}
+          {/* Dynamic Blog Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <div
-              className="text-center animate-slide-in-up group cursor-pointer transition-all duration-500 hover:transform hover:-translate-y-3 hover:scale-[1.02]"
-              dir={isRTL ? "rtl" : "ltr"}
-            >
-              <div className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100/50 backdrop-blur-sm relative group-hover:border-[#12d6fa]/20">
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#12d6fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <Image
-                  src="/images/plastic-impact.png"
-                  alt="Our impact on One time plastic use"
-                  width={300}
-                  height={280}
-                  className="object-cover w-full h-56 md:h-72 rounded-3xl group-hover:scale-110 transition-all duration-700 filter group-hover:brightness-105"
-                />
-              </div>
-              <h3
-                className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
-              >
-                {t("home.environmental.plasticImpact")}
-              </h3>
-            </div>
+            {blogsLoading ? (
+              // Loading state
+              <>
+                {[1, 2, 3].map((index) => (
+                  <div
+                    key={index}
+                    className={`text-center animate-slide-in-up ${
+                      index === 1 ? 'delay-200' : index === 2 ? 'delay-400' : ''
+                    }`}
+                    dir={isRTL ? "rtl" : "ltr"}
+                  >
+                    <div className="bg-gray-200 rounded-3xl overflow-hidden mb-6 h-56 md:h-72 animate-pulse">
+                      <div className="w-full h-full bg-gray-300"></div>
+                    </div>
+                    <div className="h-6 bg-gray-200 rounded animate-pulse mx-2"></div>
+                  </div>
+                ))}
+              </>
+            ) : blogsError ? (
+              // Error state - fallback to static content
+              <>
+                <div
+                  className="text-center animate-slide-in-up group cursor-pointer transition-all duration-500 hover:transform hover:-translate-y-3 hover:scale-[1.02]"
+                  dir={isRTL ? "rtl" : "ltr"}
+                >
+                  <div className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100/50 backdrop-blur-sm relative group-hover:border-[#12d6fa]/20">
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#12d6fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <Image
+                      src="/images/plastic-impact.png"
+                      alt="Our impact on One time plastic use"
+                      width={300}
+                      height={280}
+                      className="object-cover w-full h-56 md:h-72 rounded-3xl group-hover:scale-110 transition-all duration-700 filter group-hover:brightness-105"
+                    />
+                  </div>
+                  <h3
+                    className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
+                  >
+                    {t("home.environmental.plasticImpact")}
+                  </h3>
+                </div>
 
-            <div
-              className="text-center animate-slide-in-up delay-200 group cursor-pointer transition-all duration-500 hover:transform hover:-translate-y-3 hover:scale-[1.02]"
-              dir={isRTL ? "rtl" : "ltr"}
-            >
-              <div className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100/50 backdrop-blur-sm relative group-hover:border-[#12d6fa]/20">
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#12d6fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <Image
-                  src="/images/natural-flavors.png"
-                  alt="How our natural flavors are made"
-                  width={300}
-                  height={280}
-                  className="object-cover w-full h-56 md:h-72 rounded-3xl group-hover:scale-110 transition-all duration-700 filter group-hover:brightness-105"
-                />
-              </div>
-              <h3
-                className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
-              >
-                {t("home.environmental.naturalFlavors")}
-              </h3>
-            </div>
+                <div
+                  className="text-center animate-slide-in-up delay-200 group cursor-pointer transition-all duration-500 hover:transform hover:-translate-y-3 hover:scale-[1.02]"
+                  dir={isRTL ? "rtl" : "ltr"}
+                >
+                  <div className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100/50 backdrop-blur-sm relative group-hover:border-[#12d6fa]/20">
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#12d6fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <Image
+                      src="/images/natural-flavors.png"
+                      alt="How our natural flavors are made"
+                      width={300}
+                      height={280}
+                      className="object-cover w-full h-56 md:h-72 rounded-3xl group-hover:scale-110 transition-all duration-700 filter group-hover:brightness-105"
+                    />
+                  </div>
+                  <h3
+                    className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
+                  >
+                    {t("home.environmental.naturalFlavors")}
+                  </h3>
+                </div>
 
-            <div
-              className="text-center animate-slide-in-up delay-400 group cursor-pointer transition-all duration-500 hover:transform hover:-translate-y-3 hover:scale-[1.02]"
-              dir={isRTL ? "rtl" : "ltr"}
-            >
-              <div className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100/50 backdrop-blur-sm relative group-hover:border-[#12d6fa]/20">
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#12d6fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <Image
-                  src="/images/health-benefits.png"
-                  alt="Health Benefits of sparkling water"
-                  width={300}
-                  height={280}
-                  className="object-cover w-full h-56 md:h-72 rounded-3xl group-hover:scale-110 transition-all duration-700 filter group-hover:brightness-105"
+                <div
+                  className="text-center animate-slide-in-up delay-400 group cursor-pointer transition-all duration-500 hover:transform hover:-translate-y-3 hover:scale-[1.02]"
+                  dir={isRTL ? "rtl" : "ltr"}
+                >
+                  <div className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100/50 backdrop-blur-sm relative group-hover:border-[#12d6fa]/20">
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#12d6fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <Image
+                      src="/images/health-benefits.png"
+                      alt="Health Benefits of sparkling water"
+                      width={300}
+                      height={280}
+                      className="object-cover w-full h-56 md:h-72 rounded-3xl group-hover:scale-110 transition-all duration-700 filter group-hover:brightness-105"
+                    />
+                  </div>
+                  <h3
+                    className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
+                  >
+                    {t("home.environmental.healthBenefits")}
+                  </h3>
+                </div>
+              </>
+            ) : latestBlogs.length > 0 ? (
+              // Dynamic blog content
+              latestBlogs.map((blog, index) => (
+                <BlogCard
+                  key={blog._id}
+                  blog={blog}
+                  isRTL={isRTL}
+                  index={index}
                 />
-              </div>
-              <h3
-                className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
-              >
-                {t("home.environmental.healthBenefits")}
-              </h3>
-            </div>
+              ))
+            ) : (
+              // No blogs available - fallback to static content
+              <>
+                <div
+                  className="text-center animate-slide-in-up group cursor-pointer transition-all duration-500 hover:transform hover:-translate-y-3 hover:scale-[1.02]"
+                  dir={isRTL ? "rtl" : "ltr"}
+                >
+                  <div className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100/50 backdrop-blur-sm relative group-hover:border-[#12d6fa]/20">
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#12d6fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <Image
+                      src="/images/plastic-impact.png"
+                      alt="Our impact on One time plastic use"
+                      width={300}
+                      height={280}
+                      className="object-cover w-full h-56 md:h-72 rounded-3xl group-hover:scale-110 transition-all duration-700 filter group-hover:brightness-105"
+                    />
+                  </div>
+                  <h3
+                    className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
+                  >
+                    {t("home.environmental.plasticImpact")}
+                  </h3>
+                </div>
+
+                <div
+                  className="text-center animate-slide-in-up delay-200 group cursor-pointer transition-all duration-500 hover:transform hover:-translate-y-3 hover:scale-[1.02]"
+                  dir={isRTL ? "rtl" : "ltr"}
+                >
+                  <div className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100/50 backdrop-blur-sm relative group-hover:border-[#12d6fa]/20">
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#12d6fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <Image
+                      src="/images/natural-flavors.png"
+                      alt="How our natural flavors are made"
+                      width={300}
+                      height={280}
+                      className="object-cover w-full h-56 md:h-72 rounded-3xl group-hover:scale-110 transition-all duration-700 filter group-hover:brightness-105"
+                    />
+                  </div>
+                  <h3
+                    className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
+                  >
+                    {t("home.environmental.naturalFlavors")}
+                  </h3>
+                </div>
+
+                <div
+                  className="text-center animate-slide-in-up delay-400 group cursor-pointer transition-all duration-500 hover:transform hover:-translate-y-3 hover:scale-[1.02]"
+                  dir={isRTL ? "rtl" : "ltr"}
+                >
+                  <div className="bg-white rounded-3xl overflow-hidden mb-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100/50 backdrop-blur-sm relative group-hover:border-[#12d6fa]/20">
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#12d6fa]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <Image
+                      src="/images/health-benefits.png"
+                      alt="Health Benefits of sparkling water"
+                      width={300}
+                      height={280}
+                      className="object-cover w-full h-56 md:h-72 rounded-3xl group-hover:scale-110 transition-all duration-700 filter group-hover:brightness-105"
+                    />
+                  </div>
+                  <h3
+                    className={`text-base md:text-lg font-medium text-gray-700 ${isRTL ? "font-cairo" : "font-montserrat"} group-hover:text-[#12d6fa] transition-all duration-300 tracking-wide leading-relaxed px-2`}
+                  >
+                    {t("home.environmental.healthBenefits")}
+                  </h3>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>

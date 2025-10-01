@@ -42,6 +42,23 @@ interface ProductFormProps {
   isSubmitting?: boolean
 }
 
+interface ProductSpecification {
+  key: string
+  value: string
+}
+
+interface ProductFeature {
+  title: string
+  description: string
+  icon?: string
+}
+
+interface ProductDocument {
+  name: string
+  url: string
+  type: string
+}
+
 export default function ProductForm({
   product,
   isBundle = false,
@@ -58,15 +75,37 @@ export default function ProductForm({
     price: product?.price || "",
     originalPrice: product?.originalPrice || "",
     stock: product?.stock || "",
+    minStock: product?.minStock || "",
     shortDescription: product?.shortDescription || "",
     fullDescription: product?.description || product?.fullDescription || "",
     sku: product?.sku || "",
+    brand: product?.brand || "",
+    type: product?.type || "",
+    material: product?.material || "",
+    capacity: product?.capacity || "",
+    status: product?.status || "active",
     colors: product?.colors ? product.colors.map((color: any) => typeof color === 'string' ? color : color.name) : [],
     isBestSeller: product?.isBestSeller || false,
     isNewProduct: product?.isNewProduct || false,
     isFeatured: product?.isFeatured || false,
+    isEcoFriendly: product?.isEcoFriendly || false,
     weight: product?.weight ? (typeof product.weight === 'string' ? product.weight : product.weight.value?.toString() || "") : "",
     dimensions: product?.dimensions ? (typeof product.dimensions === 'string' ? product.dimensions : `${product.dimensions.length || 0} x ${product.dimensions.width || 0} x ${product.dimensions.height || 0}`) : "",
+    warranty: product?.warranty || "",
+    // Advanced fields
+    features: product?.features || [],
+    specifications: product?.specifications || {},
+    safetyFeatures: product?.safetyFeatures || [],
+    compatibility: product?.compatibility || [],
+    certifications: product?.certifications || [],
+    tags: product?.tags || [],
+    // Media fields
+    videos: product?.videos || [],
+    youtubeLinks: product?.youtubeLinks || [],
+    documents: product?.documents || [],
+    // SEO fields
+    seoTitle: product?.seoTitle || "",
+    seoDescription: product?.seoDescription || "",
     // Bundle specific fields
     products: product?.products || [],
     bundleDiscount: product?.bundleDiscount || "",
@@ -84,6 +123,14 @@ export default function ProductForm({
       []) : []
   )
   const [newColor, setNewColor] = useState("")
+  const [newFeature, setNewFeature] = useState({ title: "", description: "" })
+  const [newSpecification, setNewSpecification] = useState({ key: "", value: "" })
+  const [newSafetyFeature, setNewSafetyFeature] = useState("")
+  const [newCompatibility, setNewCompatibility] = useState("")
+  const [newCertification, setNewCertification] = useState("")
+  const [newTag, setNewTag] = useState("")
+  const [newYoutubeLink, setNewYoutubeLink] = useState("")
+  const [newDocument, setNewDocument] = useState({ name: "", url: "", type: "" })
   const [categories, setCategories] = useState<any[]>([])
   const [subcategories, setSubcategories] = useState<any[]>([])
   const [hasAttemptedCategoryCreation, setHasAttemptedCategoryCreation] = useState(false)
@@ -122,15 +169,34 @@ export default function ProductForm({
         price: product.price || "",
         originalPrice: product.originalPrice || "",
         stock: product.stock || "",
+        minStock: product.minStock || "",
         shortDescription: product.shortDescription || "",
         fullDescription: product.description || product.fullDescription || "",
         sku: product.sku || "",
+        brand: product.brand || "",
+        type: product.type || "",
+        material: product.material || "",
+        capacity: product.capacity || "",
+        status: product.status || "active",
         colors: product.colors ? product.colors.map((color: any) => typeof color === 'string' ? color : color.name) : [],
         isBestSeller: product.bestSeller || product.isBestSeller || false,
         isNewProduct: product.newArrival || product.isNewProduct || false,
         isFeatured: product.featured || product.isFeatured || false,
+        isEcoFriendly: product.isEcoFriendly || false,
         weight: product.weight ? (typeof product.weight === 'string' ? product.weight : product.weight.value?.toString() || "") : "",
         dimensions: product.dimensions ? (typeof product.dimensions === 'string' ? product.dimensions : `${product.dimensions.length || 0} x ${product.dimensions.width || 0} x ${product.dimensions.height || 0}`) : "",
+        warranty: product.warranty || "",
+        features: product.features || [],
+        specifications: product.specifications || {},
+        safetyFeatures: product.safetyFeatures || [],
+        compatibility: product.compatibility || [],
+        certifications: product.certifications || [],
+        tags: product.tags || [],
+        videos: product.videos || [],
+        youtubeLinks: product.youtubeLinks || [],
+        documents: product.documents || [],
+        seoTitle: product.seoTitle || "",
+        seoDescription: product.seoDescription || "",
         products: product.products || [],
         bundleDiscount: product.bundleDiscount || "",
       })
@@ -234,6 +300,169 @@ export default function ProductForm({
     })
   }
 
+  // Feature management
+  const addFeature = () => {
+    if (newFeature.title && newFeature.description) {
+      setFormData({
+        ...formData,
+        features: [...formData.features, { ...newFeature }]
+      })
+      setNewFeature({ title: "", description: "" })
+    }
+  }
+
+  const removeFeature = (index: number) => {
+    const newFeatures = [...formData.features]
+    newFeatures.splice(index, 1)
+    setFormData({
+      ...formData,
+      features: newFeatures
+    })
+  }
+
+  // Specification management
+  const addSpecification = () => {
+    if (newSpecification.key && newSpecification.value) {
+      setFormData({
+        ...formData,
+        specifications: {
+          ...formData.specifications,
+          [newSpecification.key]: newSpecification.value
+        }
+      })
+      setNewSpecification({ key: "", value: "" })
+    }
+  }
+
+  const removeSpecification = (key: string) => {
+    const newSpecs = { ...formData.specifications }
+    delete newSpecs[key]
+    setFormData({
+      ...formData,
+      specifications: newSpecs
+    })
+  }
+
+  // Safety features management
+  const addSafetyFeature = () => {
+    if (newSafetyFeature) {
+      setFormData({
+        ...formData,
+        safetyFeatures: [...formData.safetyFeatures, newSafetyFeature]
+      })
+      setNewSafetyFeature("")
+    }
+  }
+
+  const removeSafetyFeature = (index: number) => {
+    const newFeatures = [...formData.safetyFeatures]
+    newFeatures.splice(index, 1)
+    setFormData({
+      ...formData,
+      safetyFeatures: newFeatures
+    })
+  }
+
+  // Compatibility management
+  const addCompatibility = () => {
+    if (newCompatibility) {
+      setFormData({
+        ...formData,
+        compatibility: [...formData.compatibility, newCompatibility]
+      })
+      setNewCompatibility("")
+    }
+  }
+
+  const removeCompatibility = (index: number) => {
+    const newCompat = [...formData.compatibility]
+    newCompat.splice(index, 1)
+    setFormData({
+      ...formData,
+      compatibility: newCompat
+    })
+  }
+
+  // Certification management
+  const addCertification = () => {
+    if (newCertification) {
+      setFormData({
+        ...formData,
+        certifications: [...formData.certifications, newCertification]
+      })
+      setNewCertification("")
+    }
+  }
+
+  const removeCertification = (index: number) => {
+    const newCerts = [...formData.certifications]
+    newCerts.splice(index, 1)
+    setFormData({
+      ...formData,
+      certifications: newCerts
+    })
+  }
+
+  // Tags management
+  const addTag = () => {
+    if (newTag) {
+      setFormData({
+        ...formData,
+        tags: [...formData.tags, newTag]
+      })
+      setNewTag("")
+    }
+  }
+
+  const removeTag = (index: number) => {
+    const newTags = [...formData.tags]
+    newTags.splice(index, 1)
+    setFormData({
+      ...formData,
+      tags: newTags
+    })
+  }
+
+  // YouTube links management
+  const addYoutubeLink = () => {
+    if (newYoutubeLink) {
+      setFormData({
+        ...formData,
+        youtubeLinks: [...formData.youtubeLinks, newYoutubeLink]
+      })
+      setNewYoutubeLink("")
+    }
+  }
+
+  const removeYoutubeLink = (index: number) => {
+    const newLinks = [...formData.youtubeLinks]
+    newLinks.splice(index, 1)
+    setFormData({
+      ...formData,
+      youtubeLinks: newLinks
+    })
+  }
+
+  // Document management
+  const addDocument = () => {
+    if (newDocument.name && newDocument.url && newDocument.type) {
+      setFormData({
+        ...formData,
+        documents: [...formData.documents, { ...newDocument }]
+      })
+      setNewDocument({ name: "", url: "", type: "" })
+    }
+  }
+
+  const removeDocument = (index: number) => {
+    const newDocs = [...formData.documents]
+    newDocs.splice(index, 1)
+    setFormData({
+      ...formData,
+      documents: newDocs
+    })
+  }
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
@@ -307,10 +536,12 @@ export default function ProductForm({
         </div>
 
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="media">Images</TabsTrigger>
+            <TabsTrigger value="specifications">Specifications</TabsTrigger>
+            <TabsTrigger value="media">Media</TabsTrigger>
+            <TabsTrigger value="seo">SEO</TabsTrigger>
             {isBundle && <TabsTrigger value="bundle">Bundle Items</TabsTrigger>}
             {!isBundle && <TabsTrigger value="variants">Variants</TabsTrigger>}
           </TabsList>
@@ -335,6 +566,18 @@ export default function ProductForm({
                   </div>
                   
                   <div className="space-y-2">
+                    <Label htmlFor="brand">Brand</Label>
+                    <Input
+                      id="brand"
+                      name="brand"
+                      value={formData.brand}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <Label htmlFor="category">Category</Label>
                     <Select 
                       value={formData.category} 
@@ -351,6 +594,16 @@ export default function ProductForm({
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Type</Label>
+                    <Input
+                      id="type"
+                      name="type"
+                      value={formData.type}
+                      onChange={handleChange}
+                    />
                   </div>
                 </div>
 
@@ -375,7 +628,7 @@ export default function ProductForm({
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="price">Price (﷼)</Label>
                     <Input
@@ -398,9 +651,27 @@ export default function ProductForm({
                       onChange={handleChange}
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status</Label>
+                    <Select 
+                      value={formData.status} 
+                      onValueChange={(value) => handleSelectChange("status", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="discontinued">Discontinued</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="stock">Stock</Label>
                     <Input
@@ -414,6 +685,17 @@ export default function ProductForm({
                   </div>
                   
                   <div className="space-y-2">
+                    <Label htmlFor="minStock">Min Stock</Label>
+                    <Input
+                      id="minStock"
+                      name="minStock"
+                      type="number"
+                      value={formData.minStock}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
                     <Label htmlFor="sku">SKU</Label>
                     <Input
                       id="sku"
@@ -421,6 +703,28 @@ export default function ProductForm({
                       value={formData.sku}
                       onChange={handleChange}
                       placeholder="Auto-generated if empty"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="material">Material</Label>
+                    <Input
+                      id="material"
+                      name="material"
+                      value={formData.material}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="capacity">Capacity</Label>
+                    <Input
+                      id="capacity"
+                      name="capacity"
+                      value={formData.capacity}
+                      onChange={handleChange}
                     />
                   </div>
                 </div>
@@ -472,6 +776,18 @@ export default function ProductForm({
                     />
                     <Label htmlFor="isFeatured">Featured</Label>
                   </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="isEcoFriendly" 
+                      name="isEcoFriendly"
+                      checked={formData.isEcoFriendly}
+                      onCheckedChange={(checked) => 
+                        setFormData({...formData, isEcoFriendly: checked === true})
+                      }
+                    />
+                    <Label htmlFor="isEcoFriendly">Eco Friendly</Label>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -518,6 +834,17 @@ export default function ProductForm({
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="warranty">Warranty</Label>
+                  <Input
+                    id="warranty"
+                    name="warranty"
+                    value={formData.warranty}
+                    onChange={handleChange}
+                    placeholder="e.g., 1 year manufacturer warranty"
+                  />
+                </div>
+
                 {isBundle && (
                   <div className="space-y-2">
                     <Label htmlFor="bundleDiscount">Bundle Discount (%)</Label>
@@ -534,8 +861,323 @@ export default function ProductForm({
             </Card>
           </TabsContent>
           
-          {/* Images Tab */}
+          {/* Specifications Tab */}
+          <TabsContent value="specifications">
+            <div className="space-y-6">
+              {/* Features */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Product Features</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Feature title"
+                      value={newFeature.title}
+                      onChange={(e) => setNewFeature({...newFeature, title: e.target.value})}
+                      className="max-w-xs"
+                    />
+                    <Input
+                      placeholder="Feature description"
+                      value={newFeature.description}
+                      onChange={(e) => setNewFeature({...newFeature, description: e.target.value})}
+                      className="max-w-xs"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={addFeature}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Feature
+                    </Button>
+                  </div>
+                  
+                  {formData.features.length > 0 ? (
+                    <div className="space-y-2">
+                      {formData.features.map((feature: any, index: number) => (
+                        <div 
+                          key={index} 
+                          className="flex items-center justify-between bg-gray-50 rounded-md p-3"
+                        >
+                          <div>
+                            <p className="font-medium">{feature.title}</p>
+                            <p className="text-sm text-gray-600">{feature.description}</p>
+                          </div>
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => removeFeature(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No features added yet</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Specifications */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Technical Specifications</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Specification key"
+                      value={newSpecification.key}
+                      onChange={(e) => setNewSpecification({...newSpecification, key: e.target.value})}
+                      className="max-w-xs"
+                    />
+                    <Input
+                      placeholder="Specification value"
+                      value={newSpecification.value}
+                      onChange={(e) => setNewSpecification({...newSpecification, value: e.target.value})}
+                      className="max-w-xs"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={addSpecification}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Spec
+                    </Button>
+                  </div>
+                  
+                  {Object.keys(formData.specifications).length > 0 ? (
+                    <div className="space-y-2">
+                      {Object.entries(formData.specifications).map(([key, value]) => (
+                        <div 
+                          key={key} 
+                          className="flex items-center justify-between bg-gray-50 rounded-md p-3"
+                        >
+                          <div className="flex items-center gap-4">
+                            <span className="font-medium">{key}:</span>
+                            <span className="text-gray-600">{String(value)}</span>
+                          </div>
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => removeSpecification(key)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No specifications added yet</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Safety Features */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Safety Features</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add safety feature"
+                      value={newSafetyFeature}
+                      onChange={(e) => setNewSafetyFeature(e.target.value)}
+                      className="max-w-xs"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={addSafetyFeature}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add
+                    </Button>
+                  </div>
+                  
+                  {formData.safetyFeatures.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {formData.safetyFeatures.map((feature: string, index: number) => (
+                        <div 
+                          key={index} 
+                          className="flex items-center bg-green-100 text-green-800 rounded-full pl-3 pr-2 py-1"
+                        >
+                          <span className="text-sm">{feature}</span>
+                          <button
+                            type="button"
+                            className="ml-2 text-green-600 hover:text-red-500"
+                            onClick={() => removeSafetyFeature(index)}
+                            aria-label={`Remove safety feature ${feature}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No safety features added yet</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Compatibility */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Compatibility</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add compatibility item"
+                      value={newCompatibility}
+                      onChange={(e) => setNewCompatibility(e.target.value)}
+                      className="max-w-xs"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={addCompatibility}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add
+                    </Button>
+                  </div>
+                  
+                  {formData.compatibility.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {formData.compatibility.map((item: string, index: number) => (
+                        <div 
+                          key={index} 
+                          className="flex items-center bg-blue-100 text-blue-800 rounded-full pl-3 pr-2 py-1"
+                        >
+                          <span className="text-sm">{item}</span>
+                          <button
+                            type="button"
+                            className="ml-2 text-blue-600 hover:text-red-500"
+                            onClick={() => removeCompatibility(index)}
+                            aria-label={`Remove compatibility item ${item}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No compatibility items added yet</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Certifications */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Certifications</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add certification"
+                      value={newCertification}
+                      onChange={(e) => setNewCertification(e.target.value)}
+                      className="max-w-xs"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={addCertification}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add
+                    </Button>
+                  </div>
+                  
+                  {formData.certifications.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {formData.certifications.map((cert: string, index: number) => (
+                        <div 
+                          key={index} 
+                          className="flex items-center bg-purple-100 text-purple-800 rounded-full pl-3 pr-2 py-1"
+                        >
+                          <span className="text-sm">{cert}</span>
+                          <button
+                            type="button"
+                            className="ml-2 text-purple-600 hover:text-red-500"
+                            onClick={() => removeCertification(index)}
+                            aria-label={`Remove certification ${cert}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No certifications added yet</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Tags */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Product Tags</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add tag"
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      className="max-w-xs"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={addTag}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add
+                    </Button>
+                  </div>
+                  
+                  {formData.tags.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {formData.tags.map((tag: string, index: number) => (
+                        <div 
+                          key={index} 
+                          className="flex items-center bg-gray-100 text-gray-800 rounded-full pl-3 pr-2 py-1"
+                        >
+                          <span className="text-sm">{tag}</span>
+                          <button
+                            type="button"
+                            className="ml-2 text-gray-600 hover:text-red-500"
+                            onClick={() => removeTag(index)}
+                            aria-label={`Remove tag ${tag}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No tags added yet</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          {/* Media Tab */}
           <TabsContent value="media">
+            <div className="space-y-6">
+              {/* Images */}
             <Card>
               <CardHeader>
                 <CardTitle>Product Images</CardTitle>
@@ -549,6 +1191,167 @@ export default function ProductForm({
                   maxImages={5}
                   disabled={isSubmitting}
                 />
+                </CardContent>
+              </Card>
+
+              {/* YouTube Videos */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>YouTube Videos</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="YouTube video URL"
+                      value={newYoutubeLink}
+                      onChange={(e) => setNewYoutubeLink(e.target.value)}
+                      className="max-w-xs"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={addYoutubeLink}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Video
+                    </Button>
+                  </div>
+                  
+                  {formData.youtubeLinks.length > 0 ? (
+                    <div className="space-y-2">
+                      {formData.youtubeLinks.map((link: string, index: number) => (
+                        <div 
+                          key={index} 
+                          className="flex items-center justify-between bg-gray-50 rounded-md p-3"
+                        >
+                          <span className="text-sm font-mono">{link}</span>
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => removeYoutubeLink(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No YouTube videos added yet</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Documents */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Product Documents</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Document name"
+                      value={newDocument.name}
+                      onChange={(e) => setNewDocument({...newDocument, name: e.target.value})}
+                      className="max-w-xs"
+                    />
+                    <Input
+                      placeholder="Document URL"
+                      value={newDocument.url}
+                      onChange={(e) => setNewDocument({...newDocument, url: e.target.value})}
+                      className="max-w-xs"
+                    />
+                    <Select 
+                      value={newDocument.type} 
+                      onValueChange={(value) => setNewDocument({...newDocument, type: value})}
+                    >
+                      <SelectTrigger className="max-w-xs">
+                        <SelectValue placeholder="Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="manual">Manual</SelectItem>
+                        <SelectItem value="warranty">Warranty</SelectItem>
+                        <SelectItem value="certificate">Certificate</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={addDocument}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add
+                    </Button>
+                  </div>
+                  
+                  {formData.documents.length > 0 ? (
+                    <div className="space-y-2">
+                      {formData.documents.map((doc: any, index: number) => (
+                        <div 
+                          key={index} 
+                          className="flex items-center justify-between bg-gray-50 rounded-md p-3"
+                        >
+                          <div>
+                            <p className="font-medium">{doc.name}</p>
+                            <p className="text-sm text-gray-600">{doc.type} - {doc.url}</p>
+                          </div>
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => removeDocument(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No documents added yet</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          {/* SEO Tab */}
+          <TabsContent value="seo">
+            <Card>
+              <CardHeader>
+                <CardTitle>SEO Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="seoTitle">SEO Title</Label>
+                  <Input
+                    id="seoTitle"
+                    name="seoTitle"
+                    value={formData.seoTitle}
+                    onChange={handleChange}
+                    placeholder="Custom title for search engines"
+                  />
+                  <p className="text-sm text-gray-500">
+                    {formData.seoTitle.length}/60 characters
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="seoDescription">SEO Description</Label>
+                  <Textarea
+                    id="seoDescription"
+                    name="seoDescription"
+                    value={formData.seoDescription}
+                    onChange={handleChange}
+                    rows={3}
+                    placeholder="Custom description for search engines"
+                  />
+                  <p className="text-sm text-gray-500">
+                    {formData.seoDescription.length}/160 characters
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
