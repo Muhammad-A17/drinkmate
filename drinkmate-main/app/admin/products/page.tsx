@@ -110,6 +110,16 @@ export default function ProductsPage() {
     },
     onSubmitError: (error) => {
       console.error('Submit error:', error)
+      console.error('Error details:', {
+        message: error?.message || 'Unknown error',
+        ...(error && 'response' in error && { 
+          response: (error as any).response?.data,
+          status: (error as any).response?.status,
+          statusText: (error as any).response?.statusText
+        }),
+        ...(error && 'name' in error && { name: (error as any).name }),
+        ...(error && 'stack' in error && { stack: (error as any).stack })
+      })
     }
   })
   
@@ -266,29 +276,29 @@ export default function ProductsPage() {
       
       // Prepare the product data for the API with proper sanitization
       const productPayload = {
-        name: sanitizeInput(productData.name),
-        slug: sanitizeInput(productData.name.toLowerCase().replace(/\s+/g, '-')),
-        description: sanitizeHtml(productData.fullDescription || productData.shortDescription || productData.name), // Backend expects 'description'
-        shortDescription: sanitizeInput(productData.shortDescription), // Add short description
-        fullDescription: sanitizeHtml(productData.fullDescription), // Add full description
-        price: parseFloat(productData.price),
+        name: sanitizeInput(productData.name?.trim() || ''),
+        slug: sanitizeInput(productData.name?.toLowerCase().replace(/\s+/g, '-') || ''),
+        description: sanitizeHtml(productData.fullDescription || productData.shortDescription || productData.name || ''), // Backend expects 'description'
+        shortDescription: sanitizeInput(productData.shortDescription?.trim() || ''), // Add short description
+        fullDescription: sanitizeHtml(productData.fullDescription?.trim() || ''), // Add full description
+        price: parseFloat(productData.price) || 0,
         originalPrice: productData.originalPrice ? parseFloat(productData.originalPrice) : undefined,
-        stock: parseInt(productData.stock),
-        category: sanitizeInput(productData.category), // Use the category string directly
-        subcategory: sanitizeInput(productData.subcategory),
-        images: productData.images.map((img: string, index: number) => ({
-          url: sanitizeInput(img),
-          alt: sanitizeInput(productData.name),
+        stock: parseInt(productData.stock) || 0,
+        category: sanitizeInput(productData.category?.trim() || 'energy-drink'), // Use the category string directly
+        subcategory: sanitizeInput(productData.subcategory?.trim() || ''),
+        images: Array.isArray(productData.images) ? productData.images.filter(img => img && img.trim() !== '').map((img: string, index: number) => ({
+          url: img.trim(), // Don't sanitize URLs as it breaks them
+          alt: sanitizeInput(productData.name?.trim()) || 'Product image',
           isPrimary: index === 0
-        })),
-        colors: productData.colors.map((color: string) => ({
-          name: sanitizeInput(color),
+        })) : [],
+        colors: Array.isArray(productData.colors) ? productData.colors.filter(color => color && color.trim() !== '').map((color: string) => ({
+          name: sanitizeInput(color.trim()),
           hexCode: '#000000',
           inStock: true
-        })),
-        bestSeller: productData.isBestSeller,
-        newArrival: productData.isNewProduct,
-        featured: productData.isFeatured,
+        })) : [],
+        isBestSeller: Boolean(productData.isBestSeller),
+        isNewProduct: Boolean(productData.isNewProduct),
+        isFeatured: Boolean(productData.isFeatured),
         sku: sanitizeInput(productData.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`),
         weight: productData.weight ? {
           value: parseFloat(productData.weight),
@@ -308,9 +318,9 @@ export default function ProductsPage() {
           } else if (typeof productData.dimensions === 'object' && productData.dimensions !== null) {
             const dims = productData.dimensions as any;
             return {
-              length: dims.length || 0,
-              width: dims.width || 0,
-              height: dims.height || 0,
+              length: dims.length ? parseFloat(dims.length) : 0,
+              width: dims.width ? parseFloat(dims.width) : 0,
+              height: dims.height ? parseFloat(dims.height) : 0,
               unit: dims.unit || 'cm'
             };
           }
@@ -329,6 +339,8 @@ export default function ProductsPage() {
       }
 
       const response = await adminAPI.createProduct(productPayload)
+      
+      console.log('Create product response:', response)
       
       if (response.success) {
         // Add the new product to the local state immediately
@@ -350,6 +362,7 @@ export default function ProductsPage() {
         setIsAddProductOpen(false)
         formErrorHandler.clearAllValidationErrors()
       } else {
+        console.error('Create product failed with response:', response)
         throw new Error(response.message || 'Failed to create product')
       }
     })
@@ -364,32 +377,32 @@ export default function ProductsPage() {
       setIsSubmitting(true)
       
       const productPayload = {
-        name: productData.name,
-        slug: productData.name.toLowerCase().replace(/\s+/g, '-'),
-        description: productData.fullDescription || productData.shortDescription || productData.name, // Backend expects 'description'
-        shortDescription: productData.shortDescription, // Add short description
-        fullDescription: productData.fullDescription, // Add full description
-        price: parseFloat(productData.price),
+        name: productData.name?.trim() || '',
+        slug: productData.name?.toLowerCase().replace(/\s+/g, '-') || '',
+        description: productData.fullDescription || productData.shortDescription || productData.name || '', // Backend expects 'description'
+        shortDescription: productData.shortDescription?.trim() || '',
+        fullDescription: productData.fullDescription?.trim() || '',
+        price: parseFloat(productData.price) || 0,
         originalPrice: productData.originalPrice ? parseFloat(productData.originalPrice) : undefined,
-        stock: parseInt(productData.stock),
-        category: productData.category,
-        subcategory: productData.subcategory,
-        images: productData.images.map((img: string, index: number) => ({
-          url: img,
-          alt: productData.name,
+        stock: parseInt(productData.stock) || 0,
+        category: productData.category?.trim() || 'energy-drink',
+        subcategory: productData.subcategory?.trim() || '',
+        images: Array.isArray(productData.images) ? productData.images.filter(img => img && img.trim() !== '').map((img: string, index: number) => ({
+          url: img.trim(), // Don't sanitize URLs as it breaks them
+          alt: productData.name?.trim() || 'Product image',
           isPrimary: index === 0
-        })),
-        colors: productData.colors.map((color: string) => ({
-          name: color,
+        })) : [],
+        colors: Array.isArray(productData.colors) ? productData.colors.filter(color => color && color.trim() !== '').map((color: string) => ({
+          name: color.trim(),
           hexCode: '#000000',
           inStock: true
-        })),
-        bestSeller: productData.isBestSeller,
-        newArrival: productData.isNewProduct,
-        featured: productData.isFeatured,
-        sku: productData.sku,
+        })) : [],
+        isBestSeller: Boolean(productData.isBestSeller),
+        isNewProduct: Boolean(productData.isNewProduct),
+        isFeatured: Boolean(productData.isFeatured),
+        sku: productData.sku?.trim() || '',
         weight: productData.weight ? {
-          value: parseFloat(productData.weight),
+          value: parseFloat(productData.weight) || 0,
           unit: 'g'
         } : undefined,
         dimensions: productData.dimensions ? (() => {
@@ -406,9 +419,9 @@ export default function ProductsPage() {
           } else if (typeof productData.dimensions === 'object' && productData.dimensions !== null) {
             const dims = productData.dimensions as any;
             return {
-              length: dims.length || 0,
-              width: dims.width || 0,
-              height: dims.height || 0,
+              length: dims.length ? parseFloat(dims.length) : 0,
+              width: dims.width ? parseFloat(dims.width) : 0,
+              height: dims.height ? parseFloat(dims.height) : 0,
               unit: dims.unit || 'cm'
             };
           }
@@ -418,6 +431,8 @@ export default function ProductsPage() {
 
       console.log('Sending update payload:', productPayload)
       const response = await adminAPI.updateProduct(editingProduct._id, productPayload)
+      
+      console.log('Update response:', response)
       
       if (response.success) {
         // Update the product in the local state immediately
@@ -440,6 +455,7 @@ export default function ProductsPage() {
         toast.success("Product updated successfully")
         setEditingProduct(null)
       } else {
+        console.error('Update failed with response:', response)
         throw new Error(response.message || 'Failed to update product')
       }
     } catch (error: any) {

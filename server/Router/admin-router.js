@@ -416,9 +416,13 @@ router.post('/upload-image', authMiddleware, adminMiddleware, upload.single('ima
 router.delete('/delete-image/:publicId', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const publicId = req.params.publicId;
+    console.log('Delete image request - Raw publicId:', publicId);
+    console.log('Delete image request - Decoded publicId:', decodeURIComponent(publicId));
     
-    // Delete image from Cloudinary
-    const result = await deleteImage(publicId);
+    // Delete image from Cloudinary (use decoded publicId)
+    const decodedPublicId = decodeURIComponent(publicId);
+    console.log('Using decoded publicId for Cloudinary:', decodedPublicId);
+    const result = await deleteImage(decodedPublicId);
     
     if (result.result === 'ok') {
       res.json({

@@ -279,8 +279,23 @@ exports.getProduct = async (req, res) => {
 // Create a new product
 exports.createProduct = async (req, res) => {
     try {
-        console.log('Creating product with data:', req.body);
+        console.log('Creating product with data:', JSON.stringify(req.body, null, 2));
         
+        // Validate required fields
+        if (!req.body.name || req.body.name.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                message: 'Product name is required'
+            });
+        }
+        
+        if (!req.body.price || isNaN(parseFloat(req.body.price)) || parseFloat(req.body.price) < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid price is required'
+            });
+        }
+
         // Check if product with same name or SKU already exists
         const existingProduct = await Product.findOne({
             $or: [
@@ -298,27 +313,34 @@ exports.createProduct = async (req, res) => {
         
         // Map frontend data to schema format
         const productData = {
-            name: req.body.name,
-            nameAr: req.body.nameAr,
-            description: req.body.description || req.body.shortDescription,
-            descriptionAr: req.body.descriptionAr,
-            shortDescription: req.body.shortDescription,
-            fullDescription: req.body.fullDescription,
-            sku: req.body.sku || undefined,
-            category: req.body.category,
-            subcategory: req.body.subcategory,
-            price: parseFloat(req.body.price) || 0,
+            name: req.body.name.trim(),
+            nameAr: req.body.nameAr?.trim(),
+            description: req.body.description || req.body.shortDescription || req.body.name,
+            descriptionAr: req.body.descriptionAr?.trim(),
+            shortDescription: req.body.shortDescription?.trim(),
+            fullDescription: req.body.fullDescription?.trim(),
+            sku: req.body.sku?.trim() || undefined,
+            category: req.body.category?.trim() || 'energy-drink',
+            subcategory: req.body.subcategory?.trim(),
+            price: parseFloat(req.body.price),
             originalPrice: req.body.originalPrice ? parseFloat(req.body.originalPrice) : undefined,
             currency: req.body.currency || 'SAR',
-            stock: req.body.stock !== undefined ? parseInt(req.body.stock) : undefined,
+            stock: req.body.stock !== undefined ? parseInt(req.body.stock) : 0,
             lowStockThreshold: req.body.lowStockThreshold ? parseInt(req.body.lowStockThreshold) : 10,
             trackInventory: req.body.trackInventory !== false,
             
             // Map images from array of strings to array of objects
-            images: Array.isArray(req.body.images) ? req.body.images.map((img, index) => {
+            images: Array.isArray(req.body.images) ? req.body.images.filter(img => {
+                if (typeof img === 'string') {
+                    return img && img.trim() !== '';
+                } else if (img && typeof img === 'object' && img.url) {
+                    return img.url && img.url.trim() !== '';
+                }
+                return false;
+            }).map((img, index) => {
                 if (typeof img === 'string') {
                     return {
-                        url: img,
+                        url: img.trim(),
                         alt: req.body.name || 'Product image',
                         isPrimary: index === 0
                     };
@@ -344,9 +366,9 @@ exports.createProduct = async (req, res) => {
             } : undefined,
             
             dimensions: req.body.dimensions ? {
-                length: parseFloat(req.body.dimensions.length || req.body.dimensions),
-                width: parseFloat(req.body.dimensions.width || 0),
-                height: parseFloat(req.body.dimensions.height || 0),
+                length: req.body.dimensions.length ? parseFloat(req.body.dimensions.length) : 0,
+                width: req.body.dimensions.width ? parseFloat(req.body.dimensions.width) : 0,
+                height: req.body.dimensions.height ? parseFloat(req.body.dimensions.height) : 0,
                 unit: req.body.dimensions.unit || 'cm'
             } : undefined,
             
@@ -372,6 +394,27 @@ exports.createProduct = async (req, res) => {
             console.log('Product created successfully:', product._id);
         } catch (saveError) {
             console.error('Save error:', saveError);
+            
+            // Handle specific validation errors
+            if (saveError.name === 'ValidationError') {
+                const validationErrors = Object.values(saveError.errors).map((err) => err.message);
+                console.error('Validation errors:', validationErrors);
+                return res.status(400).json({
+                    success: false,
+                    message: 'Validation failed',
+                    errors: validationErrors
+                });
+            }
+
+            // Handle duplicate key errors
+            if (saveError.code === 11000) {
+                const field = Object.keys(saveError.keyPattern)[0];
+                return res.status(400).json({
+                    success: false,
+                    message: `Product with this ${field} already exists`
+                });
+            }
+
             throw saveError;
         }
         
@@ -463,10 +506,17 @@ exports.updateProduct = async (req, res) => {
         
         // Map images from array of strings to array of objects
         if (req.body.images !== undefined) {
-            updateData.images = Array.isArray(req.body.images) ? req.body.images.map((img, index) => {
+            updateData.images = Array.isArray(req.body.images) ? req.body.images.filter(img => {
+                if (typeof img === 'string') {
+                    return img && img.trim() !== '';
+                } else if (img && typeof img === 'object' && img.url) {
+                    return img.url && img.url.trim() !== '';
+                }
+                return false;
+            }).map((img, index) => {
                 if (typeof img === 'string') {
                     return {
-                        url: img,
+                        url: img.trim(),
                         alt: req.body.name || product.name || 'Product image',
                         isPrimary: index === 0
                     };
@@ -498,9 +548,9 @@ exports.updateProduct = async (req, res) => {
         
         if (req.body.dimensions !== undefined) {
             updateData.dimensions = req.body.dimensions ? {
-                length: parseFloat(req.body.dimensions.length || req.body.dimensions),
-                width: parseFloat(req.body.dimensions.width || 0),
-                height: parseFloat(req.body.dimensions.height || 0),
+                length: req.body.dimensions.length ? parseFloat(req.body.dimensions.length) : 0,
+                width: req.body.dimensions.width ? parseFloat(req.body.dimensions.width) : 0,
+                height: req.body.dimensions.height ? parseFloat(req.body.dimensions.height) : 0,
                 unit: req.body.dimensions.unit || 'cm'
             } : undefined;
         }
@@ -529,6 +579,27 @@ exports.updateProduct = async (req, res) => {
             
         } catch (updateError) {
             console.error('Update error:', updateError);
+            
+            // Handle specific validation errors
+            if (updateError.name === 'ValidationError') {
+                const validationErrors = Object.values(updateError.errors).map((err) => err.message);
+                console.error('Validation errors:', validationErrors);
+                return res.status(400).json({
+                    success: false,
+                    message: 'Validation failed',
+                    errors: validationErrors
+                });
+            }
+
+            // Handle duplicate key errors
+            if (updateError.code === 11000) {
+                const field = Object.keys(updateError.keyPattern)[0];
+                return res.status(400).json({
+                    success: false,
+                    message: `Product with this ${field} already exists`
+                });
+            }
+
             throw updateError;
         }
         

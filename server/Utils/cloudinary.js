@@ -27,10 +27,20 @@ const storage = new CloudinaryStorage({
 // Helper function to delete image from Cloudinary
 const deleteImage = async (publicId) => {
   try {
+    console.log('Cloudinary deleteImage called with publicId:', publicId);
+    console.log('PublicId type:', typeof publicId);
+    console.log('PublicId length:', publicId.length);
+    
     const result = await cloudinary.uploader.destroy(publicId);
+    console.log('Cloudinary delete result:', result);
     return result;
   } catch (error) {
     console.error('Error deleting image from Cloudinary:', error);
+    console.error('Error details:', {
+      message: error.message,
+      http_code: error.http_code,
+      name: error.name
+    });
     throw error;
   }
 };

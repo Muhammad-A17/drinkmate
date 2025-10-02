@@ -57,13 +57,18 @@ export default function CloudinaryImageUpload({
   // Helper function to extract publicId from Cloudinary URL
   function extractPublicIdFromUrl(url: string): string {
     try {
+      console.log('=== EXTRACTING PUBLIC ID ===')
+      console.log('Input URL:', url)
+      
       // Guard against invalid inputs
       if (!url || typeof url !== 'string') {
+        console.log('Invalid URL input')
         return '';
       }
       
       // Check if it's a Cloudinary URL
       if (!url.includes('cloudinary.com')) {
+        console.log('Not a Cloudinary URL')
         return '';
       }
       
@@ -71,25 +76,31 @@ export default function CloudinaryImageUpload({
       if (url.includes('/upload/')) {
         // Get everything after /upload/
         const afterUpload = url.split('/upload/')[1];
+        console.log('After upload part:', afterUpload)
         
         // Handle URLs with transformations
         const parts = afterUpload.split('/');
+        console.log('URL parts after upload:', parts)
         
         // Get the last part which should be the filename
         const filename = parts[parts.length - 1];
+        console.log('Filename:', filename)
         
         // Remove file extension and query parameters
         const filenameWithoutExt = filename.split('.')[0].split('?')[0];
+        console.log('Filename without extension:', filenameWithoutExt)
         
         // If there are path parts before the filename, include them in the publicId
         if (parts.length > 1) {
-          const folderPath = parts.slice(0, -1).join('/');
-          const publicId = `${folderPath}/${filenameWithoutExt}`;
-          console.log('Extracted publicId with folder from URL:', publicId);
+          // Filter out version numbers (v followed by digits)
+          const folderPath = parts.slice(0, -1).filter(part => !part.match(/^v\d+$/)).join('/');
+          console.log('Folder path (filtered):', folderPath)
+          const publicId = folderPath ? `${folderPath}/${filenameWithoutExt}` : filenameWithoutExt;
+          console.log('Final publicId with folder:', publicId);
           return publicId;
         } else {
           const publicId = filenameWithoutExt;
-          console.log('Extracted publicId from URL:', publicId);
+          console.log('Final publicId:', publicId);
           return publicId;
         }
       } 
@@ -201,19 +212,32 @@ export default function CloudinaryImageUpload({
   const removeImage = async (index: number) => {
     const imageToRemove = uploadedImages[index]
     
-    // If we have a publicId, try to delete from Cloudinary
-    if (imageToRemove.publicId) {
-      try {
-        await adminAPI.deleteImage(imageToRemove.publicId)
-      } catch (error) {
-        console.error("Failed to delete from Cloudinary:", error)
-        // Continue with local removal even if Cloudinary deletion fails
-      }
-    }
+    console.log('=== IMAGE REMOVAL DEBUG ===')
+    console.log('Image to remove:', imageToRemove)
+    console.log('Image URL:', imageToRemove.url)
+    console.log('Extracted publicId:', imageToRemove.publicId)
+    console.log('PublicId type:', typeof imageToRemove.publicId)
+    console.log('PublicId length:', imageToRemove.publicId?.length)
+    console.log('=== END IMAGE REMOVAL DEBUG ===')
     
+    // Always remove locally first
     const updatedImages = uploadedImages.filter((_, i) => i !== index)
     setUploadedImages(updatedImages)
     onImagesChange(updatedImages.map(img => img.url))
+    
+    // If we have a publicId, try to delete from Cloudinary (but don't block the UI)
+    if (imageToRemove.publicId && imageToRemove.publicId !== 'unknown' && !imageToRemove.publicId.startsWith('unknown_')) {
+      try {
+        console.log('Attempting to delete image with publicId:', imageToRemove.publicId)
+        await adminAPI.deleteImage(imageToRemove.publicId)
+        console.log('Successfully deleted image from Cloudinary')
+      } catch (error) {
+        console.error("Failed to delete from Cloudinary:", error)
+        // Don't show error to user since image is already removed locally
+      }
+    } else {
+      console.log('No valid publicId found, skipping Cloudinary deletion')
+    }
   }
 
   const handleDrag = (e: React.DragEvent) => {

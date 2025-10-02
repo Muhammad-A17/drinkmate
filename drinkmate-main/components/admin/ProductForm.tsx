@@ -85,6 +85,7 @@ export default function ProductForm({
     capacity: product?.capacity || "",
     status: product?.status || "active",
     colors: product?.colors ? product.colors.map((color: any) => typeof color === 'string' ? color : color.name) : [],
+    images: [] as string[], // Explicitly type as string array
     isBestSeller: product?.isBestSeller || false,
     isNewProduct: product?.isNewProduct || false,
     isFeatured: product?.isFeatured || false,
@@ -178,6 +179,7 @@ export default function ProductForm({
         material: product.material || "",
         capacity: product.capacity || "",
         status: product.status || "active",
+        images: imageUrls,
         colors: product.colors ? product.colors.map((color: any) => typeof color === 'string' ? color : color.name) : [],
         isBestSeller: product.bestSeller || product.isBestSeller || false,
         isNewProduct: product.newArrival || product.isNewProduct || false,
@@ -474,17 +476,14 @@ export default function ProductForm({
       finalFormData.sku = `${nameSlug}-${timestamp}`
     }
     
-    // Create final data object with images
+    // Create final data object with images - use formData.images which should be array of strings
     const finalData = {
       ...finalFormData,
-      images: uploadedImages.filter((img: any) => {
-        if (typeof img === 'string') return img && img.trim() !== ''
-        if (img && typeof img === 'object') return img.url && img.url.trim() !== ''
-        return false
-      })
+      images: Array.isArray(finalFormData.images) ? finalFormData.images.filter((img: string) => img && img.trim() !== '') : []
     }
     
-            console.log('Original form data:', formData)
+        console.log('=== FORM SUBMISSION DEBUG ===')
+        console.log('Original form data:', formData)
         console.log('Final form data with SKU:', finalFormData)
         console.log('Uploaded images:', uploadedImages)
         console.log('Final data with images:', finalData)
@@ -495,6 +494,7 @@ export default function ProductForm({
             console.log(`Image ${index}:`, { value: img, type: typeof img, isString: typeof img === 'string', isObject: typeof img === 'object' })
           })
         }
+        console.log('=== END FORM SUBMISSION DEBUG ===')
         
         onSubmit(finalData)
   }
@@ -1186,6 +1186,11 @@ export default function ProductForm({
                 <CloudinaryImageUpload
                   onImagesChange={(images) => {
                     setUploadedImages(images)
+                    // Also update formData with image URLs
+                    setFormData(prev => ({
+                      ...prev,
+                      images: images
+                    }))
                   }}
                   currentImages={uploadedImages}
                   maxImages={5}

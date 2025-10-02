@@ -223,17 +223,7 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
   throw lastError || new Error('Retry mechanism failed');
 };
 
-// Request interceptor to add auth token to requests
-api.interceptors.request.use(
-  (config) => {
-    const token = getAuthToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// Note: Auth token interceptor is already added above (lines 73-88)
 
 // Response interceptor to handle common errors
 api.interceptors.response.use(
@@ -1384,9 +1374,15 @@ export const adminAPI = {
         };
       }
 
+      console.log('Creating product with data:', productData);
+      console.log('Auth token present:', !!getAuthToken());
+      
       const response = await api.post('/admin/products', productData);
+      console.log('API response:', response.data);
       return response.data;
     } catch (error: any) {
+      console.error('API error:', error);
+      console.error('Error response:', error.response?.data);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to create product',
@@ -1397,9 +1393,16 @@ export const adminAPI = {
 
   updateProduct: async (id: string, productData: any) => {
     try {
+      console.log('Updating product with ID:', id);
+      console.log('Update data:', productData);
+      console.log('Auth token present:', !!getAuthToken());
+      
       const response = await api.put(`/admin/products/${id}`, productData);
+      console.log('Update API response:', response.data);
       return response.data;
     } catch (error: any) {
+      console.error('Update API error:', error);
+      console.error('Update error response:', error.response?.data);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to update product',
@@ -1684,15 +1687,30 @@ export const adminAPI = {
   },
   
   deleteImage: async (publicId: string) => {
-    // Get auth token using the correct key
-    const token = getAuthToken();
-    
-    const response = await api.delete(`/admin/delete-image/${publicId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    return response.data;
+    try {
+      // Get auth token using the correct key
+      const token = getAuthToken();
+      console.log('Deleting image with publicId:', publicId);
+      console.log('PublicId type:', typeof publicId);
+      console.log('PublicId length:', publicId.length);
+      console.log('Auth token present:', !!token);
+      
+      // URL encode the publicId to handle forward slashes
+      const encodedPublicId = encodeURIComponent(publicId);
+      console.log('Encoded publicId:', encodedPublicId);
+      
+      const response = await api.delete(`/admin/delete-image/${encodedPublicId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      console.log('Delete image response:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Delete image error:', error);
+      console.error('Delete image error response:', error.response?.data);
+      throw error; // Re-throw to let the component handle it
+    }
   },
 
 

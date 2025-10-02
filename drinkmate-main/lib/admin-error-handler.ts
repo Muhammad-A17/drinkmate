@@ -56,7 +56,11 @@ export class AdminErrorHandler {
     this.logError(adminError)
     
     if (logToConsole) {
-      console.error(`[Admin Error] ${context}:`, adminError)
+      console.error(`[Admin Error] ${context}:`, {
+        message: adminError.message,
+        code: adminError.code,
+        details: adminError.details
+      })
     }
 
     // Show user-friendly message
