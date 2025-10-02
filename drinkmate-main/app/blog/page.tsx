@@ -23,6 +23,7 @@ interface BlogPost {
   readTime: number
   views: number
   likes: number
+  tags?: string[]
   comments?: Array<{
     _id: string
     user: string
@@ -41,10 +42,91 @@ export default function Blog() {
   const [error, setError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState("newest")
   const [currentPage, setCurrentPage] = useState(1)
   const [postsPerPage] = useState(6)
+  const [selectedTag, setSelectedTag] = useState("")
+  const [selectedAuthor, setSelectedAuthor] = useState("")
+  const [selectedReadTime, setSelectedReadTime] = useState("")
+  const [dateRange, setDateRange] = useState({ start: "", end: "" })
+  const [showFilters, setShowFilters] = useState(false)
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
   
+  // Get URL parameters for all filtering
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const tagParam = urlParams.get('tag')
+      const categoryParam = urlParams.get('category')
+      const authorParam = urlParams.get('author')
+      const readTimeParam = urlParams.get('readTime')
+      const searchParam = urlParams.get('search')
+      const sortParam = urlParams.get('sort')
+      const startDateParam = urlParams.get('startDate')
+      const endDateParam = urlParams.get('endDate')
+      
+      if (tagParam) setSelectedTag(tagParam)
+      if (categoryParam) setSelectedCategory(categoryParam)
+      if (authorParam) setSelectedAuthor(authorParam)
+      if (readTimeParam) setSelectedReadTime(readTimeParam)
+      if (searchParam) setSearchTerm(searchParam)
+      if (sortParam) setSortBy(sortParam)
+      if (startDateParam || endDateParam) {
+        setDateRange({ start: startDateParam || "", end: endDateParam || "" })
+      }
+    }
+  }, [])
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  // Generate search suggestions
+  useEffect(() => {
+    if (searchTerm.length > 2) {
+      const suggestions = [
+        ...new Set([
+          ...blogPosts.map(post => post.title),
+          ...blogPosts.map(post => post.authorName),
+          ...blogPosts.flatMap(post => post.tags || []),
+          ...blogPosts.map(post => post.category)
+        ])
+      ]
+        .filter(item => 
+          item.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .slice(0, 5)
+      
+      setSearchSuggestions(suggestions)
+      setShowSuggestions(true)
+    } else {
+      setSearchSuggestions([])
+      setShowSuggestions(false)
+    }
+  }, [searchTerm, blogPosts])
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (!target.closest('.search-container')) {
+        setShowSuggestions(false)
+      }
+    }
+
+    if (showSuggestions) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showSuggestions])
+
   // Fetch blog posts from API
   useEffect(() => {
     const fetchBlogPosts = async () => {
@@ -77,7 +159,26 @@ export default function Blog() {
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, selectedCategory, sortBy])
+  }, [debouncedSearchTerm, selectedCategory, sortBy, selectedTag, selectedAuthor, selectedReadTime, dateRange])
+
+  // Update URL when filters change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams()
+      
+      if (selectedTag) params.set('tag', selectedTag)
+      if (selectedCategory !== 'all') params.set('category', selectedCategory)
+      if (selectedAuthor) params.set('author', selectedAuthor)
+      if (selectedReadTime) params.set('readTime', selectedReadTime)
+      if (debouncedSearchTerm) params.set('search', debouncedSearchTerm)
+      if (sortBy !== 'newest') params.set('sort', sortBy)
+      if (dateRange.start) params.set('startDate', dateRange.start)
+      if (dateRange.end) params.set('endDate', dateRange.end)
+      
+      const newUrl = params.toString() ? `/blog?${params.toString()}` : '/blog'
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, [selectedTag, selectedCategory, selectedAuthor, selectedReadTime, debouncedSearchTerm, sortBy, dateRange])
   
   // Don't render translated content until hydration is complete or show loading
   if (!isHydrated || loading) {
@@ -169,11 +270,27 @@ export default function Blog() {
   const filteredAndSortedPosts = blogPosts
     .filter(post => {
       const matchesCategory = selectedCategory === "all" || post.category === selectedCategory
-      const matchesSearch = searchTerm === "" || 
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.authorName.toLowerCase().includes(searchTerm.toLowerCase())
-      return matchesCategory && matchesSearch
+      const matchesSearch = debouncedSearchTerm === "" || 
+        post.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        post.excerpt.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        post.authorName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        (post.tags && post.tags.some((tag: string) => 
+          tag.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+        ))
+      const matchesTag = selectedTag === "" || 
+        (post.tags && Array.isArray(post.tags) && post.tags.some((tag: string) => 
+          String(tag).toLowerCase().includes(selectedTag.toLowerCase())
+        ))
+      const matchesAuthor = selectedAuthor === "" || post.authorName === selectedAuthor
+      const matchesReadTime = selectedReadTime === "" || 
+        (selectedReadTime === "short" && post.readTime <= 5) ||
+        (selectedReadTime === "medium" && post.readTime > 5 && post.readTime <= 10) ||
+        (selectedReadTime === "long" && post.readTime > 10)
+      const matchesDateRange = !dateRange.start || !dateRange.end || 
+        (new Date(post.publishDate) >= new Date(dateRange.start) && 
+         new Date(post.publishDate) <= new Date(dateRange.end))
+      
+      return matchesCategory && matchesSearch && matchesTag && matchesAuthor && matchesReadTime && matchesDateRange
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -183,8 +300,16 @@ export default function Blog() {
           return new Date(a.publishDate).getTime() - new Date(b.publishDate).getTime()
         case "popular":
           return (b.views + b.likes) - (a.views + a.likes)
+        case "most-liked":
+          return b.likes - a.likes
+        case "most-viewed":
+          return b.views - a.views
+        case "most-commented":
+          return (b.comments?.length || 0) - (a.comments?.length || 0)
         case "title":
           return a.title.localeCompare(b.title)
+        case "read-time":
+          return a.readTime - b.readTime
         default:
           return 0
       }
@@ -200,8 +325,34 @@ export default function Blog() {
   const endIndex = startIndex + postsPerPage
   const paginatedPosts = regularPosts.slice(startIndex, endIndex)
 
-  // Get unique categories for filter
+  // Get unique values for filters
   const categories = ["all", ...Array.from(new Set(blogPosts.map(post => post.category)))]
+  const authors = Array.from(new Set(blogPosts.map(post => post.authorName)))
+  const allTags = Array.from(new Set(blogPosts.flatMap(post => post.tags || [])))
+  
+  // Get active filters count
+  const activeFiltersCount = [
+    selectedCategory !== "all",
+    selectedTag !== "",
+    selectedAuthor !== "",
+    selectedReadTime !== "",
+    dateRange.start !== "" || dateRange.end !== "",
+    debouncedSearchTerm !== ""
+  ].filter(Boolean).length
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedCategory("all")
+    setSelectedTag("")
+    setSelectedAuthor("")
+    setSelectedReadTime("")
+    setDateRange({ start: "", end: "" })
+    setSearchTerm("")
+    setDebouncedSearchTerm("")
+    setSortBy("newest")
+    setCurrentPage(1)
+    window.history.replaceState({}, '', '/blog')
+  }
 
 
   return (
@@ -228,59 +379,276 @@ export default function Blog() {
           <div className="max-w-7xl mx-auto px-4">
             {/* Search and Filter Controls */}
             <div className="mb-8 space-y-6">
-              {/* Search Bar */}
-              <div className="max-w-md mx-auto">
-                <div className="relative">
+              {/* Enhanced Search Bar with Suggestions */}
+              <div className="max-w-2xl mx-auto">
+                <div className="relative search-container">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
                     type="text"
-                    placeholder="Search blog posts..."
+                    placeholder="Search posts, authors, tags, categories..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    onFocus={() => setShowSuggestions(searchTerm.length > 2)}
                     className="pl-10 pr-4 py-3 w-full border-2 border-gray-200 focus:border-[#12d6fa] focus:ring-2 focus:ring-[#12d6fa]/20 rounded-xl"
                   />
+                  
+                  {/* Search Suggestions Dropdown */}
+                  {showSuggestions && searchSuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto">
+                      {searchSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setSearchTerm(suggestion)
+                            setShowSuggestions(false)
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center space-x-2"
+                        >
+                          <Search className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-700">{suggestion}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Sort and Filter Controls */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <div className="flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-700">Sort by:</span>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-40 border-2 border-gray-200 focus:border-[#12d6fa]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="newest">Newest First</SelectItem>
-                      <SelectItem value="oldest">Oldest First</SelectItem>
-                      <SelectItem value="popular">Most Popular</SelectItem>
-                      <SelectItem value="title">Title A-Z</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {/* Enhanced Filter Controls */}
+              <div className="space-y-4">
+                {/* Filter Toggle and Results Summary */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <Button
+                      onClick={() => setShowFilters(!showFilters)}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <Filter className="w-4 h-4" />
+                      Filters
+                      {activeFiltersCount > 0 && (
+                        <span className="bg-[#12d6fa] text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center">
+                          {activeFiltersCount}
+                        </span>
+                      )}
+                    </Button>
+                    
+                    <div className="text-sm text-gray-600">
+                      {filteredAndSortedPosts.length} post{filteredAndSortedPosts.length !== 1 ? 's' : ''} found
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">Sort by:</span>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger className="w-48 border-2 border-gray-200 focus:border-[#12d6fa]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">Newest First</SelectItem>
+                        <SelectItem value="oldest">Oldest First</SelectItem>
+                        <SelectItem value="popular">Most Popular</SelectItem>
+                        <SelectItem value="most-liked">Most Liked</SelectItem>
+                        <SelectItem value="most-viewed">Most Viewed</SelectItem>
+                        <SelectItem value="most-commented">Most Commented</SelectItem>
+                        <SelectItem value="title">Title A-Z</SelectItem>
+                        <SelectItem value="read-time">Read Time</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                
-                <div className="text-sm text-gray-600">
-                  {filteredAndSortedPosts.length} post{filteredAndSortedPosts.length !== 1 ? 's' : ''} found
-                </div>
-                
-                {(searchTerm || selectedCategory !== "all" || sortBy !== "newest") && (
-                  <Button
-                    onClick={() => {
-                      setSearchTerm("")
-                      setSelectedCategory("all")
-                      setSortBy("newest")
-                      setCurrentPage(1)
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="text-gray-600 hover:text-[#12d6fa] hover:border-[#12d6fa]"
-                  >
-                    Reset Filters
-                  </Button>
+
+                {/* Advanced Filters Panel */}
+                {showFilters && (
+                  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* Author Filter */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Author</label>
+                        <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="All Authors" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All Authors</SelectItem>
+                            {authors.map(author => (
+                              <SelectItem key={author} value={author}>{author}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Read Time Filter */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Read Time</label>
+                        <Select value={selectedReadTime} onValueChange={setSelectedReadTime}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Any Length" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Any Length</SelectItem>
+                            <SelectItem value="short">Short (≤5 min)</SelectItem>
+                            <SelectItem value="medium">Medium (6-10 min)</SelectItem>
+                            <SelectItem value="long">Long (&gt;10 min)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Date Range Filter */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                        <Input
+                          type="date"
+                          value={dateRange.start}
+                          onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                        <Input
+                          type="date"
+                          value={dateRange.end}
+                          onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Clear All Filters */}
+                    {activeFiltersCount > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <Button
+                          onClick={clearAllFilters}
+                          variant="outline"
+                          size="sm"
+                          className="text-gray-600 hover:text-red-600 hover:border-red-600"
+                        >
+                          Clear All Filters
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Active Filters Display */}
+                {activeFiltersCount > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCategory !== "all" && (
+                      <div className="bg-[#12d6fa]/10 border border-[#12d6fa]/20 rounded-full px-3 py-1 flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Category:</span>
+                        <span className="text-sm font-medium text-[#12d6fa]">{selectedCategory}</span>
+                        <button
+                          onClick={() => setSelectedCategory("all")}
+                          className="text-gray-500 hover:text-red-500"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+                    
+                    {selectedTag && (
+                      <div className="bg-[#12d6fa]/10 border border-[#12d6fa]/20 rounded-full px-3 py-1 flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Tag:</span>
+                        <span className="text-sm font-medium text-[#12d6fa]">#{selectedTag}</span>
+                        <button
+                          onClick={() => setSelectedTag("")}
+                          className="text-gray-500 hover:text-red-500"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+
+                    {selectedAuthor && (
+                      <div className="bg-[#12d6fa]/10 border border-[#12d6fa]/20 rounded-full px-3 py-1 flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Author:</span>
+                        <span className="text-sm font-medium text-[#12d6fa]">{selectedAuthor}</span>
+                        <button
+                          onClick={() => setSelectedAuthor("")}
+                          className="text-gray-500 hover:text-red-500"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+
+                    {selectedReadTime && (
+                      <div className="bg-[#12d6fa]/10 border border-[#12d6fa]/20 rounded-full px-3 py-1 flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Read Time:</span>
+                        <span className="text-sm font-medium text-[#12d6fa]">
+                          {selectedReadTime === "short" ? "≤5 min" : 
+                           selectedReadTime === "medium" ? "6-10 min" : "&gt;10 min"}
+                        </span>
+                        <button
+                          onClick={() => setSelectedReadTime("")}
+                          className="text-gray-500 hover:text-red-500"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+
+                    {(dateRange.start || dateRange.end) && (
+                      <div className="bg-[#12d6fa]/10 border border-[#12d6fa]/20 rounded-full px-3 py-1 flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Date:</span>
+                        <span className="text-sm font-medium text-[#12d6fa]">
+                          {dateRange.start && dateRange.end 
+                            ? `${dateRange.start} - ${dateRange.end}`
+                            : dateRange.start || dateRange.end}
+                        </span>
+                        <button
+                          onClick={() => setDateRange({ start: "", end: "" })}
+                          className="text-gray-500 hover:text-red-500"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+
+                    {debouncedSearchTerm && (
+                      <div className="bg-[#12d6fa]/10 border border-[#12d6fa]/20 rounded-full px-3 py-1 flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Search:</span>
+                        <span className="text-sm font-medium text-[#12d6fa]">"{debouncedSearchTerm}"</span>
+                        <button
+                          onClick={() => {
+                            setSearchTerm("")
+                            setDebouncedSearchTerm("")
+                          }}
+                          className="text-gray-500 hover:text-red-500"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
+
+            {/* Active Tag Filter Display */}
+            {selectedTag && (
+              <div className="flex items-center justify-center mb-6">
+                <div className="bg-[#12d6fa]/10 border border-[#12d6fa]/20 rounded-full px-4 py-2 flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Filtering by tag:</span>
+                  <span className="bg-[#12d6fa] text-white text-sm font-medium px-3 py-1 rounded-full">
+                    #{selectedTag}
+                  </span>
+                  <button
+                    onClick={() => {
+                      setSelectedTag("")
+                      window.history.pushState({}, '', '/blog')
+                    }}
+                    className="text-gray-500 hover:text-red-500 transition-colors"
+                    title="Remove tag filter"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Category Filter */}
             <div className="flex flex-wrap justify-center gap-3 mb-12">
@@ -298,6 +666,28 @@ export default function Blog() {
                 </button>
               ))}
             </div>
+
+            {/* Popular Tags */}
+            {allTags.length > 0 && (
+              <div className="mb-12">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Popular Tags</h3>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {allTags.slice(0, 10).map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => setSelectedTag(tag)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                        selectedTag === tag
+                          ? 'bg-[#12d6fa] text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-[#12d6fa]/10 hover:text-[#12d6fa]'
+                      }`}
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Featured Post */}
             {featuredPost && (
