@@ -6,8 +6,14 @@ import { useCart } from '@/hooks/use-cart'
 import { useCartSettings } from '@/lib/contexts/cart-settings-context'
 
 export default function CartHeader() {
-  const { totalPrice } = useCart()
+  const { totalPrice, clearCart } = useCart()
   const { settings, getFreeShippingText, getUnlockedText, getText } = useCartSettings()
+  
+  const handleClearCart = () => {
+    if (window.confirm('Are you sure you want to clear your cart? This action cannot be undone.')) {
+      clearCart()
+    }
+  }
   
   const freeShippingThreshold = settings.freeShipping.threshold
   const freeShippingProgress = Math.min(1, totalPrice / freeShippingThreshold)
@@ -47,7 +53,12 @@ export default function CartHeader() {
       )}
 
       <div className="mt-4 flex gap-3">
-        <button className="text-danger hover:underline text-sm">{getText('general.clearCartEn')}</button>
+        <button 
+          onClick={handleClearCart}
+          className="text-danger hover:underline text-sm cursor-pointer"
+        >
+          {getText('general.clearCartEn')}
+        </button>
         <Link href="/shop" className="text-brand hover:underline text-sm">{getText('general.continueShoppingEn')}</Link>
       </div>
     </header>

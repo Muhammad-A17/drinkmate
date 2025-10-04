@@ -9,6 +9,7 @@ import { ProductGridProps, Product } from '@/lib/types'
 import { useCart } from '@/hooks/use-cart'
 import { useCartAnimations } from '@/hooks/use-cart-animations'
 import { getProductImageUrl, getImageUrl } from '@/lib/utils/image-utils'
+import { getCategoryName } from '@/lib/utils/category-utils'
 
 const EmptyState = ({ onRetry, isRTL }: { onRetry?: () => void; isRTL?: boolean }) => (
   <div className="text-center py-16">
@@ -173,7 +174,7 @@ export default function ProductGrid({
       price: product.price,
       quantity: payload.qty,
       image: displayImage, // Use the processed image URL
-      category: typeof product.category === 'string' ? product.category : product.category?.name || 'Product',
+      category: getCategoryName(product.category),
       productId: isBundle ? undefined : payload.productId, // Include product ID for regular products
       bundleId: isBundle ? payload.productId : undefined, // Include bundle ID for bundles
       productType: isBundle ? 'bundle' as const : 'product' as const,

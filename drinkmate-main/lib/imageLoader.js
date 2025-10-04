@@ -12,7 +12,7 @@ export default function imageLoader({ src, width, quality }) {
     
     // Add Cloudinary transformations for optimization
     const transformations = [
-      `w_${width}`,
+      width ? `w_${width}` : 'w_auto',
       `q_${quality || 80}`,
       'f_auto', // Auto format selection
       'c_limit', // Limit dimensions
@@ -29,7 +29,7 @@ export default function imageLoader({ src, width, quality }) {
  * Image loader with retry logic and timeout handling
  * This function can be used for client-side image loading with fallbacks
  */
-export async function loadImageWithRetry(src, maxRetries = 3, timeout = 10000) {
+export async function loadImageWithRetry(src, maxRetries = parseInt(process.env.NEXT_PUBLIC_API_RETRY_ATTEMPTS) || 3, timeout = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT) || 10000) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const controller = new AbortController();

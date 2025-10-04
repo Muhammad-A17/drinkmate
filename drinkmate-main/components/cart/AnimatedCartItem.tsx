@@ -9,6 +9,7 @@ import Image from 'next/image'
 import { cn, isValidImageUrl } from '@/lib/utils'
 import { Currency } from '@/utils/currency'
 import { getImageUrl } from '@/lib/utils/image-utils'
+import { getCategoryName } from '@/lib/utils/category-utils'
 
 interface AnimatedCartItemProps {
   item: CartItem
@@ -154,7 +155,7 @@ export default function AnimatedCartItem({
               <h3 className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                 {item.name}
               </h3>
-              <p className="text-sm text-gray-500 capitalize">{item.category}</p>
+              <p className="text-sm text-gray-500 capitalize">{getCategoryName(item.category)}</p>
               
               {/* Price */}
               <motion.div

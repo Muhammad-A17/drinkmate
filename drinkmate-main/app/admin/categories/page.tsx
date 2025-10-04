@@ -506,33 +506,35 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  // Duplicate functionality
-  const handleDuplicateCategory = (category: Category) => {
-    setCategoryForm({
-      name: `${category.name} (Copy)`,
-      description: category.description,
-      image: category.image,
-      icon: category.icon,
-      color: category.color,
-      sortOrder: category.sortOrder + 1,
-      parentCategory: category.parentCategory || ''
-    });
-    setEditingCategory(null);
-    setIsCategoryDialogOpen(true);
-  };
-
-  const handleDuplicateSubcategory = (subcategory: Subcategory) => {
-    setSubcategoryForm({
-      name: `${subcategory.name} (Copy)`,
-      description: subcategory.description,
-      image: subcategory.image,
-      icon: subcategory.icon,
-      color: subcategory.color,
-      sortOrder: subcategory.sortOrder + 1,
-      category: typeof subcategory.category === 'string' ? subcategory.category : subcategory.category?._id || ''
-    });
-    setEditingSubcategory(null);
-    setIsSubcategoryDialogOpen(true);
+  // Consolidated duplicate functionality
+  const handleDuplicateItem = (item: Category | Subcategory) => {
+    if (activeTab === 'categories') {
+      const category = item as Category;
+      setCategoryForm({
+        name: `${category.name} (Copy)`,
+        description: category.description,
+        image: category.image,
+        icon: category.icon,
+        color: category.color,
+        sortOrder: category.sortOrder + 1,
+        parentCategory: category.parentCategory || ''
+      });
+      setEditingCategory(null);
+      setIsCategoryDialogOpen(true);
+    } else {
+      const subcategory = item as Subcategory;
+      setSubcategoryForm({
+        name: `${subcategory.name} (Copy)`,
+        description: subcategory.description,
+        image: subcategory.image,
+        icon: subcategory.icon,
+        color: subcategory.color,
+        sortOrder: subcategory.sortOrder + 1,
+        category: typeof subcategory.category === 'string' ? subcategory.category : subcategory.category?._id || ''
+      });
+      setEditingSubcategory(null);
+      setIsSubcategoryDialogOpen(true);
+    }
   };
 
   // ==================== ADVANCED FUNCTIONALITIES ====================

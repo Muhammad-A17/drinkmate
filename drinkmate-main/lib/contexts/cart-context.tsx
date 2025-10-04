@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo } from 'react'
+import { getCategoryName } from '@/lib/utils/category-utils'
 
 export interface CartItem {
   id: string | number
@@ -50,6 +51,14 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
+
+// Helper function to fix category names in cart items
+const fixCartItemCategories = (items: CartItem[]): CartItem[] => {
+  return items.map(item => ({
+    ...item,
+    category: getCategoryName(item.category)
+  }))
+}
 
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
@@ -156,12 +165,14 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     }
     
     case 'LOAD_CART': {
-      const newTotal = action.payload.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-      const newItemCount = action.payload.reduce((sum, item) => sum + item.quantity, 0)
+      // Fix category names when loading cart items
+      const fixedItems = fixCartItemCategories(action.payload)
+      const newTotal = fixedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      const newItemCount = fixedItems.reduce((sum, item) => sum + item.quantity, 0)
       
       return {
         ...state,
-        items: action.payload,
+        items: fixedItems,
         total: newTotal,
         itemCount: newItemCount
       }

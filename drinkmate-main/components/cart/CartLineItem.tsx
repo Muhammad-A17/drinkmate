@@ -8,6 +8,7 @@ import SaudiRiyalSymbol from "@/components/ui/SaudiRiyalSymbol"
 import QuantityControl from "./QuantityControl"
 import { toast } from "sonner"
 import { getImageUrl } from "@/lib/utils/image-utils"
+import { getCategoryName } from "@/lib/utils/category-utils"
 
 interface CartLineItemProps {
   item: {
@@ -82,7 +83,7 @@ export default function CartLineItem({
           {item.name}
         </h3>
         <div className="text-sm text-black/60 mt-1">
-          {item.category && `${item.category} • `}
+          {item.category && `${getCategoryName(item.category)} • `}
           Unit price: <span className="flex items-center gap-1">
             {fmt(item.price, 'SAR')} <SaudiRiyalSymbol size="xs" />
           </span>

@@ -54,7 +54,7 @@ const defaultSettings: ContactSettings = {
   responseTime: 'Within 1 business day',
   autoReply: 'Thank you for contacting us. We will get back to you soon.',
   notificationEmail: 'admin@drinkmates.com',
-  maxConcurrentChats: 10,
+  maxConcurrentChats: parseInt(process.env.NEXT_PUBLIC_MAX_CONCURRENT_CHATS) || 10,
   whatsapp: {
     enabled: true,
     number: '+966501234567',
@@ -81,7 +81,7 @@ const defaultSettings: ContactSettings = {
     enabled: true,
     requiredFields: ['name', 'email', 'reason', 'message'],
     maxAttachments: 3,
-    maxFileSize: 10,
+    maxFileSize: parseInt(process.env.NEXT_PUBLIC_MAX_FILE_SIZE_MB) || 10,
     allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'text/plain'],
     askOrderNumber: ['order', 'billing', 'refund']
   },

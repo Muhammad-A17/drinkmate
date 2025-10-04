@@ -63,6 +63,13 @@ interface AdminChatDashboardProps {
 export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboardProps) {
   const { user } = useAuth()
   const { socket, isConnected, joinChat, leaveChat, sendMessage: socketSendMessage, assignChat: socketAssignChat, updateChatStatus: socketUpdateChatStatus } = useSocket()
+  
+  // Fallback socket if context socket is not available
+  const [fallbackSocket, setFallbackSocket] = useState<any>(null)
+  const [fallbackConnected, setFallbackConnected] = useState(false)
+  
+  const activeSocket = socket || fallbackSocket
+  const isSocketConnected = isConnected || fallbackConnected
   const [isLoading, setIsLoading] = useState(false)
   const [chats, setChats] = useState<Chat[]>([])
   const [activeChat, setActiveChat] = useState<Chat | null>(null)
@@ -273,9 +280,16 @@ export default function AdminChatDashboard({ isOpen, onClose }: AdminChatDashboa
       const data = await response.json()
       console.log('Stats API response data:', data)
       
-      if (data.success && data.stats) {
-        console.log('Setting stats:', data.stats)
-        setStats(data.stats)
+      if (data.success && data.data) {
+        console.log('Setting stats:', data.data)
+        // Map the API response to the expected format
+        setStats({
+          total: data.data.total || 0,
+          open: data.data.active || 0,
+          inProgress: data.data.waiting || 0,
+          resolved: data.data.resolved || 0,
+          closed: data.data.closed || 0
+        })
       } else {
         console.error('Stats API returned error:', data)
         // Keep existing stats or reset to default values

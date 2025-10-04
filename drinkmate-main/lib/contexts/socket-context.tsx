@@ -44,7 +44,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
     }
 
     // Initialize socket connection
-    if (isConnectingRef.current) {
+    if (isConnectingRef.current || (socket && socket.connected)) {
+      console.log('🔥 Socket already connecting or connected, skipping')
       return
     }
 
@@ -174,16 +175,18 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
   // Call connectSocket when user or token changes
   useEffect(() => {
-    if (user && token) {
+    if (user && token && !isConnectingRef.current) {
       console.log('🔥 SocketProvider: User and token available, connecting socket')
       console.log('🔥 SocketProvider: User ID:', user._id)
       console.log('🔥 SocketProvider: Token length:', token.length)
       // Add a small delay to ensure the socket connection is established
       const timer = setTimeout(() => {
-        connectSocket()
+        if (!isConnectingRef.current) {
+          connectSocket()
+        }
       }, 1000) // Increased delay to ensure everything is ready
       return () => clearTimeout(timer)
-    } else {
+    } else if (!user || !token) {
       console.log('🔥 SocketProvider: No user or token, disconnecting socket')
       console.log('🔥 SocketProvider: User:', !!user, 'Token:', !!token)
       disconnectSocket()

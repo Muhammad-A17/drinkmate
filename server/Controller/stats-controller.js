@@ -72,20 +72,20 @@ const getAdminStats = async (req, res) => {
       ])
     ]);
 
-    // Calculate growth percentages
+    // Calculate growth percentages (rounded to 1 decimal place)
     const userGrowth = lastMonthUsers > 0 
-      ? ((monthlyUsers - lastMonthUsers) / lastMonthUsers) * 100 
+      ? Math.round(((monthlyUsers - lastMonthUsers) / lastMonthUsers) * 100 * 10) / 10
       : 0;
     
     const orderGrowth = lastMonthOrders > 0 
-      ? ((monthlyOrders - lastMonthOrders) / lastMonthOrders) * 100 
+      ? Math.round(((monthlyOrders - lastMonthOrders) / lastMonthOrders) * 100 * 10) / 10
       : 0;
 
     // Calculate revenue
     const currentRevenue = monthlyRevenue[0]?.total || 0;
     const lastMonthRev = lastMonthRevenue[0]?.total || 0;
     const revenueGrowth = lastMonthRev > 0 
-      ? ((currentRevenue - lastMonthRev) / lastMonthRev) * 100 
+      ? Math.round(((currentRevenue - lastMonthRev) / lastMonthRev) * 100 * 10) / 10
       : 0;
 
     const stats = {

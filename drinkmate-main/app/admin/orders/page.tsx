@@ -19,6 +19,8 @@ import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { AdminErrorBoundary } from "@/lib/admin-error-handler"
 import { useAdminErrorHandler, useAsyncOperation } from "@/hooks/use-admin-error-handler"
+import RefreshButton from "@/components/admin/RefreshButton"
+import ActionButton from "@/components/admin/ActionButton"
 import { 
   Package,
   DollarSign,
@@ -484,7 +486,7 @@ export default function OrdersPage() {
     if (!confirm(`Are you sure you want to delete order ${order.orderNumber}? This action cannot be undone.`)) return
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
       const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
         method: 'DELETE',
         headers: {
@@ -1381,15 +1383,15 @@ export default function OrdersPage() {
                         </Button>
                       </div>
                     )}
-                    <Button 
-                      onClick={fetchOrders}
+                    <RefreshButton
+                      onRefresh={fetchOrders}
+                      isLoading={loading}
                       variant="outline"
                       size="sm"
                       className="text-xs px-4 py-2 bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-lg transition-all duration-300"
                     >
-                      <RefreshCw className="h-4 w-4 mr-2" />
                       Refresh
-                    </Button>
+                    </RefreshButton>
                   </div>
                 </div>
               </div>

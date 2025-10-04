@@ -6,8 +6,7 @@ import { useAuth } from "@/lib/contexts/auth-context"
 import { useAdminTranslation } from "@/lib/use-admin-translation"
 import { useTranslation } from "@/lib/contexts/translation-context"
 import AdminLayout from "@/components/layout/AdminLayout"
-import { Button } from "@/components/ui/button"
-import { RefreshCw, MessageSquare, LayoutDashboard } from "lucide-react"
+import { LayoutDashboard } from "lucide-react"
 import AdminChatDashboard from "@/components/chat/AdminChatDashboard"
 import StatsCards from "@/components/admin/dashboard/StatsCards"
 import ChartsSection from "@/components/admin/dashboard/ChartsSection"
@@ -73,47 +72,6 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       <div className="space-y-8 p-4 md:p-6 relative z-10">
-        {/* Header */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20"></div>
-          <div className="relative p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
-                    <LayoutDashboard className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                      {t('admin.dashboard.title')}
-                    </h1>
-                    <p className="text-gray-600">
-                      {t('admin.dashboard.subtitle')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  onClick={refresh}
-                  disabled={isDataLoading}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isDataLoading ? 'animate-spin' : ''}`} />
-                  {t('admin.dashboard.refresh')}
-                </Button>
-                <Button
-                  onClick={() => setIsChatOpen(true)}
-                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                >
-                  <MessageSquare className="h-4 w-4" />
-                  {t('admin.dashboard.chat')}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Error Message */}
         {error && (

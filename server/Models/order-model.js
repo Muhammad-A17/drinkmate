@@ -178,9 +178,7 @@ const orderSchema = new mongoose.Schema({
   shipping: {
     // Aramex specific fields
     aramexWaybillNumber: {
-      type: String,
-      unique: true,
-      sparse: true // Allow null values but ensure uniqueness when present
+      type: String
     },
     aramexLabelUrl: String,
     trackingUrl: String,
@@ -274,7 +272,7 @@ orderSchema.index({ 'shippingAddress.email': 1 });
 // Additional performance indexes
 orderSchema.index({ createdAt: -1 }); // For recent orders queries
 orderSchema.index({ updatedAt: -1 }); // For order updates
-orderSchema.index({ 'shipping.aramexWaybillNumber': 1 }, { sparse: true }); // For tracking
+orderSchema.index({ 'shipping.aramexWaybillNumber': 1 }, { unique: true, sparse: true }); // For tracking
 orderSchema.index({ 'shipping.status': 1, createdAt: -1 }); // For shipping status queries
 orderSchema.index({ total: 1, createdAt: -1 }); // For revenue analysis
 orderSchema.index({ isGuestOrder: 1, createdAt: -1 }); // For guest order analysis

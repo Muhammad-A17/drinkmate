@@ -48,6 +48,8 @@ import { toast } from "sonner"
 import { backendImageService, uploadImageWithProgress } from "@/lib/cloud-storage"
 import { fetchWithRetry } from "@/lib/utils/fetch-utils"
 import { co2API } from "@/lib/api"
+import RefreshButton from "@/components/admin/RefreshButton"
+import ActionButton from "@/components/admin/ActionButton"
 import api from "@/lib/api"
 import { YouTubeVideo, isYouTubeUrl } from "@/components/ui/youtube-video"
 
@@ -55,7 +57,7 @@ import { YouTubeVideo, isYouTubeUrl } from "@/components/ui/youtube-video"
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 
   (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:3000' 
-    : 'https://drinkmates.onrender.com')
+    : 'http://localhost:3000')
 
 // Force localhost for development testing
 const FORCE_LOCAL_API = true;
@@ -182,39 +184,7 @@ export default function CO2CylindersPage() {
     fetchCylinders()
   }, [user, router])
 
-  const initializeSampleData = () => {
-    const sampleCylinders = [
-      {
-        _id: "1",
-        slug: "premium-co2-cylinder",
-        name: "Premium CO2 Cylinder",
-        brand: "DrinkMate",
-        type: "new",
-        price: 199.99,
-        originalPrice: 249.99,
-        discount: 20,
-        capacity: 80,
-        material: "steel",
-        stock: 25,
-        minStock: 5,
-        status: "active",
-        isBestSeller: true,
-        isFeatured: true,
-        description: "Premium CO2 cylinder with extended capacity",
-        features: ["Extended capacity", "Premium quality", "Fast delivery"],
-        image: "/images/co2-premium.jpg",
-        images: ["/images/co2-premium.jpg", "/placeholder.svg"],
-        videos: [],
-        createdAt: new Date().toISOString()
-      }
-    ]
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('co2-cylinders', JSON.stringify(sampleCylinders))
-    }
-    setCylinders(sampleCylinders)
-    setLoading(false)
-    console.log('Sample data initialized:', sampleCylinders)
-  }
+  // This function is no longer needed as we fetch from API
 
   // Function to get progress bar width class
   const getProgressBarWidth = (progress: number) => {
@@ -879,8 +849,8 @@ export default function CO2CylindersPage() {
                   <Settings className="w-4 h-4 mr-2" />
                   Init Sample Data
                 </Button>
-                <Button 
-                  onClick={() => {
+                <RefreshButton
+                  onRefresh={() => {
                     console.log('Force refresh - current state:', { loading, cylinders: cylinders.length, user: user?.email })
                     if (typeof window !== 'undefined') {
                       localStorage.removeItem('co2-cylinders')
@@ -888,12 +858,11 @@ export default function CO2CylindersPage() {
                     }
                     fetchCylinders()
                   }}
-                  variant="outline"
+                  isLoading={loading}
                   className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all duration-300"
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" />
                   Force Refresh
-                </Button>
+                </RefreshButton>
               </div>
             </div>
           </div>

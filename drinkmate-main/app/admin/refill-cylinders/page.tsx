@@ -181,50 +181,7 @@ export default function RefillCylindersPage() {
     }
   }
 
-  const getMockCylinders = (): RefillCylinder[] => [
-    {
-      _id: "1",
-      name: "Standard CO2 Refill",
-      brand: "DrinkMate",
-      type: "Standard",
-      refillPrice: 29.99,
-      originalPrice: 89.99,
-      discount: 15,
-      capacity: 60,
-      material: "steel",
-      availableForRefill: 25,
-      minStock: 10,
-      status: "active",
-      isBestSeller: true,
-      isFeatured: true,
-      description: "Standard CO2 cylinder refill service for all DrinkMate machines",
-      features: ["Quick refill", "Quality tested", "Safe handling"],
-      image: "/images/co2-refill-standard.jpg",
-      refillInstructions: "Bring your empty cylinder to any authorized refill station",
-      createdAt: new Date().toISOString()
-    },
-    {
-      _id: "2",
-      name: "Premium CO2 Refill",
-      brand: "DrinkMate",
-      type: "Premium",
-      refillPrice: 39.99,
-      originalPrice: 119.99,
-      discount: 20,
-      capacity: 80,
-      material: "aluminum",
-      availableForRefill: 15,
-      minStock: 5,
-      status: "active",
-      isBestSeller: false,
-      isFeatured: true,
-      description: "Premium CO2 cylinder refill with extended capacity",
-      features: ["Extended capacity", "Premium quality", "Fast service"],
-      image: "/images/co2-refill-premium.jpg",
-      refillInstructions: "Premium refill service with extended capacity and quality guarantee",
-      createdAt: new Date(Date.now() - 86400000).toISOString()
-    }
-  ]
+  // Mock data removed - now using real API data
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

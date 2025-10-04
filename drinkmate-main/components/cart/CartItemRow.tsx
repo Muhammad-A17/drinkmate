@@ -6,6 +6,7 @@ import { useCart } from '@/hooks/use-cart'
 import { useCartSettings } from '@/lib/contexts/cart-settings-context'
 import { useState } from 'react'
 import { getImageUrl } from '@/lib/utils/image-utils'
+import { getCategoryName } from '@/lib/utils/category-utils'
 
 interface CartItem {
   id: string | number
@@ -60,7 +61,7 @@ export default function CartItemRow({ item }: CartItemRowProps) {
               Unit price: <Currency amount={item.price} />
             </p>
             {item.category && (
-              <p className="text-xs text-ink-500 mt-0.5">{item.category}</p>
+              <p className="text-xs text-ink-500 mt-0.5">{getCategoryName(item.category)}</p>
             )}
           </div>
 

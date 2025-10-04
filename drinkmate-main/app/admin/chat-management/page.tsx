@@ -123,6 +123,46 @@ export default function ChatManagementPage() {
   const socket = contextSocket || fallbackSocket
   const isConnected = contextConnected || fallbackConnected
   
+  // Initialize fallback socket if context socket is not available
+  useEffect(() => {
+    if (!contextSocket && user && isAuthenticated && !fallbackSocket) {
+      const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000', {
+        auth: {
+          token: localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+        },
+        transports: ['websocket', 'polling'],
+        timeout: 20000,
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: 15,
+        forceNew: true,
+        upgrade: true,
+        rememberUpgrade: false,
+        autoConnect: true,
+        multiplex: false,
+        closeOnBeforeunload: false
+      })
+      
+      newSocket.on('connect', () => {
+        console.log('🔥 Fallback socket connected:', newSocket.id)
+        setFallbackConnected(true)
+      })
+      
+      newSocket.on('disconnect', () => {
+        console.log('🔥 Fallback socket disconnected')
+        setFallbackConnected(false)
+      })
+      
+      newSocket.on('connect_error', (error) => {
+        console.error('🔥 Fallback socket connection error:', error)
+        setFallbackConnected(false)
+      })
+      
+      setFallbackSocket(newSocket)
+    }
+  }, [contextSocket, user, isAuthenticated, fallbackSocket])
+  
   // State
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)

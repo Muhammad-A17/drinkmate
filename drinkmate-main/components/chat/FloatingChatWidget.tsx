@@ -378,7 +378,25 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
       }
     } catch (err) {
       console.error('Error creating/getting chat session:', err)
-      setError(err instanceof Error ? err.message : 'Failed to start chat. Please try again.')
+      let errorMessage = 'Failed to start chat. Please try again.'
+      
+      if (err instanceof Error) {
+        if (err.message.includes('401') || err.message.includes('Unauthorized')) {
+          errorMessage = 'Please log in to start a chat session.'
+        } else if (err.message.includes('403') || err.message.includes('Forbidden')) {
+          errorMessage = 'You do not have permission to start a chat session.'
+        } else if (err.message.includes('404') || err.message.includes('Not Found')) {
+          errorMessage = 'Chat service is temporarily unavailable. Please try again later.'
+        } else if (err.message.includes('500') || err.message.includes('Internal Server Error')) {
+          errorMessage = 'Server error occurred. Please try again later.'
+        } else if (err.message.includes('NetworkError') || err.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.'
+        } else {
+          errorMessage = err.message
+        }
+      }
+      
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -409,7 +427,25 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
       })
     } catch (err) {
       console.error('Error sending message:', err)
-      setError('Failed to send message. Please try again.')
+      let errorMessage = 'Failed to send message. Please try again.'
+      
+      if (err instanceof Error) {
+        if (err.message.includes('401') || err.message.includes('Unauthorized')) {
+          errorMessage = 'Session expired. Please refresh the page and try again.'
+        } else if (err.message.includes('403') || err.message.includes('Forbidden')) {
+          errorMessage = 'You do not have permission to send messages to this chat.'
+        } else if (err.message.includes('404') || err.message.includes('Not Found')) {
+          errorMessage = 'Chat session not found. Please refresh the page.'
+        } else if (err.message.includes('500') || err.message.includes('Internal Server Error')) {
+          errorMessage = 'Server error occurred. Please try again later.'
+        } else if (err.message.includes('NetworkError') || err.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.'
+        } else {
+          errorMessage = err.message
+        }
+      }
+      
+      setError(errorMessage)
       // Restore message if sending failed
       setNewMessage(messageContent)
     }

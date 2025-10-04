@@ -60,7 +60,7 @@ export function SafeImage({
     // Use the deployed URL or the current origin if in browser
     setBaseUrl(typeof window !== 'undefined' 
       ? window.location.origin 
-      : (process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'))
+      : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'))
   }, [])
   
   const [imageSrc, setImageSrc] = useState<string>(() => {

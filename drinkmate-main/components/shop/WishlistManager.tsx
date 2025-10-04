@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Product } from '@/lib/types'
 import Image from 'next/image'
+import { getCategoryName } from '@/lib/utils/category-utils'
 
 interface WishlistManagerProps {
   products: Product[]
@@ -67,7 +68,7 @@ export default function WishlistManager({
       price: product.price,
       quantity: 1,
       image: product.image || (typeof product.images?.[0] === 'string' ? product.images[0] : product.images?.[0]?.url || '/placeholder.svg'),
-      category: typeof product.category === 'string' ? product.category : product.category?.name || 'Product',
+      category: getCategoryName(product.category),
       productId: product.id || product._id,
       productType: 'product' as const
     }

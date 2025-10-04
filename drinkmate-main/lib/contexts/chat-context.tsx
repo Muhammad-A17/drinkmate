@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react'
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAuth } from './auth-context'
 import { useSocket } from './socket-context'
 import { Message, ChatSession, Conversation } from '@/types/chat'
@@ -24,7 +24,7 @@ interface ChatState {
   unreadCount: number
   
   // Typing indicators
-  typingUsers: Set<string>
+  typingUsers: string[]
   
   // Connection state
   isConnected: boolean
@@ -45,6 +45,7 @@ type ChatAction =
   | { type: 'SET_UNREAD_COUNT'; payload: number }
   | { type: 'ADD_TYPING_USER'; payload: string }
   | { type: 'REMOVE_TYPING_USER'; payload: string }
+  | { type: 'SET_TYPING_USERS'; payload: string[] }
   | { type: 'SET_CONNECTION_STATE'; payload: { isConnected: boolean; isReconnecting: boolean } }
   | { type: 'CLEAR_CHAT' }
 
@@ -58,7 +59,7 @@ const initialState: ChatState = {
   error: null,
   messages: [],
   unreadCount: 0,
-  typingUsers: new Set(),
+  typingUsers: [],
   isConnected: false,
   isReconnecting: false
 }
@@ -113,13 +114,22 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'ADD_TYPING_USER':
       return {
         ...state,
-        typingUsers: new Set([...state.typingUsers, action.payload])
+        typingUsers: state.typingUsers.includes(action.payload) 
+          ? state.typingUsers 
+          : [...state.typingUsers, action.payload]
       }
     
     case 'REMOVE_TYPING_USER':
-      const newTypingUsers = new Set(state.typingUsers)
-      newTypingUsers.delete(action.payload)
-      return { ...state, typingUsers: newTypingUsers }
+      return {
+        ...state,
+        typingUsers: state.typingUsers.filter(user => user !== action.payload)
+      }
+    
+    case 'SET_TYPING_USERS':
+      return {
+        ...state,
+        typingUsers: action.payload
+      }
     
     case 'SET_CONNECTION_STATE':
       return {
@@ -134,7 +144,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         currentChat: null,
         messages: [],
         unreadCount: 0,
-        typingUsers: new Set()
+        typingUsers: []
       }
     
     default:
@@ -524,7 +534,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [state.unreadCount])
 
   const isTyping = useCallback((userId: string) => {
-    return state.typingUsers.has(userId)
+    return state.typingUsers.includes(userId)
   }, [state.typingUsers])
 
   // Update message status
@@ -587,11 +597,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }
         
         // Only check by content and timestamp if IDs don't match and content is identical
-        if (msg.content === data.message.content && data.message.content) {
+        if (msg.content === data.message.content && data.message.content && msg.content.length > 0) {
           const msgTime = new Date(msg.timestamp).getTime()
           const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
-          // If timestamps are within 2 seconds, consider it a duplicate (reduced from 5 seconds)
-          return Math.abs(msgTime - dataTime) < 2000
+          // If timestamps are within 1 second, consider it a duplicate
+          return Math.abs(msgTime - dataTime) < 1000
         }
         
         return false
@@ -671,6 +681,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       socket.off('typing_start', handleTypingStart)
       socket.off('typing_stop', handleTypingStop)
       socket.off('test_event', testHandler)
+      
+      // Clear typing users on cleanup
+      dispatch({ type: 'SET_TYPING_USERS', payload: [] })
     }
   }, [socket, isConnected]) // Added isConnected to dependencies to re-register when connection state changes
 
@@ -716,8 +729,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       console.log('🔥 ChatProvider: Cleaning up on unmount')
       // Leave current chat if connected
       if (socket && state.currentChat) {
-        console.log('🔥 ChatProvider: Leaving chat on cleanup:', state.currentChat)
-        socket.emit('leave_chat', state.currentChat)
+        console.log('🔥 ChatProvider: Leaving chat on cleanup:', state.currentChat._id)
+        socket.emit('leave_chat', state.currentChat._id)
       }
     }
   }, [socket, state.currentChat])
@@ -728,12 +741,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (document.hidden) {
         console.log('🔥 ChatProvider: Page hidden, leaving chat if connected')
         if (socket && state.currentChat) {
-          socket.emit('leave_chat', state.currentChat)
+          socket.emit('leave_chat', state.currentChat._id)
         }
       } else {
         console.log('🔥 ChatProvider: Page visible, rejoining chat if connected')
         if (socket && state.currentChat) {
-          socket.emit('join_chat', state.currentChat)
+          socket.emit('join_chat', state.currentChat._id)
         }
       }
     }
@@ -745,7 +758,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [socket, state.currentChat])
 
-  const value: ChatContextType = {
+  const value: ChatContextType = useMemo(() => ({
     state,
     dispatch,
     openChat,
@@ -760,7 +773,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     updateMessageStatus,
     getUnreadCount,
     isTyping
-  }
+  }), [
+    state,
+    openChat,
+    closeChat,
+    toggleMinimize,
+    sendMessage,
+    loadChat,
+    createNewChat,
+    markAsRead,
+    startTyping,
+    stopTyping,
+    updateMessageStatus,
+    getUnreadCount,
+    isTyping
+  ])
 
   return (
     <ChatContext.Provider value={value}>

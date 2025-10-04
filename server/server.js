@@ -114,7 +114,7 @@ app.use((req, res, next) => {
 
 // Simple in-memory response cache for hot GET endpoints
 const responseCache = new Map();
-const CACHE_MAX = 100; // entries
+const CACHE_MAX = parseInt(process.env.CACHE_MAX_ENTRIES) || 100; // entries
 const cacheablePrefixes = [
   '/shop/products',
   '/shop/bundles',
@@ -455,9 +455,9 @@ setTimeout(() => {
   const server = http.createServer(app);
   
   // Set server timeouts
-  server.timeout = 120000; // 2 minutes for server timeout
-  server.keepAliveTimeout = 65000; // 65 seconds for keep-alive timeout
-  server.headersTimeout = 66000; // 66 seconds for headers timeout
+  server.timeout = parseInt(process.env.SERVER_TIMEOUT_MS) || 120000; // 2 minutes for server timeout
+  server.keepAliveTimeout = parseInt(process.env.SERVER_KEEP_ALIVE_TIMEOUT_MS) || 65000; // 65 seconds for keep-alive timeout
+  server.headersTimeout = parseInt(process.env.SERVER_HEADERS_TIMEOUT_MS) || 66000; // 66 seconds for headers timeout
   
   // Initialize Socket.io
   const io = new Server(server, {

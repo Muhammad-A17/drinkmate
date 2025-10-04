@@ -24,7 +24,7 @@ import { Message } from '@/types/chat'
 import VirtualizedMessageList from './VirtualizedMessageList'
 
 const ModernChatWidget: React.FC = () => {
-  const { state, openChat, closeChat, toggleMinimize, sendMessage, createNewChat, markAsRead, startTyping, stopTyping } = useChat()
+  const { state, dispatch, openChat, closeChat, toggleMinimize, sendMessage, createNewChat, markAsRead, startTyping, stopTyping } = useChat()
   const { user, isAuthenticated } = useAuth()
   const { chatStatus } = useChatStatus()
   
@@ -33,6 +33,10 @@ const ModernChatWidget: React.FC = () => {
   const [responseETA, setResponseETA] = useState<SimpleETA | null>(null)
   const [etaLoading, setEtaLoading] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  
+  const setError = (error: string) => {
+    dispatch({ type: 'SET_ERROR', payload: error })
+  }
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -77,11 +81,13 @@ const ModernChatWidget: React.FC = () => {
 
     // If no current chat, create one
     if (!state.currentChat) {
-      await createNewChat()
-      // Wait a bit for chat to be created, then send message
-      setTimeout(() => {
-        sendMessage(messageContent)
-      }, 500)
+      const newChat = await createNewChat()
+      if (newChat) {
+        // Send message after chat is created
+        await sendMessage(messageContent)
+      } else {
+        setError('Failed to create chat session. Please try again.')
+      }
     } else {
       await sendMessage(messageContent)
     }
@@ -356,7 +362,7 @@ const ModernChatWidget: React.FC = () => {
                 )}
                 
                 {/* Typing indicator */}
-                {state.typingUsers.size > 0 && (
+                {state.typingUsers.length > 0 && (
                   <div className="absolute bottom-20 left-4 right-4">
                     <div className="flex justify-start">
                       <div className="bg-white text-gray-900 shadow-sm border border-gray-200 px-4 py-3 rounded-2xl">
@@ -367,7 +373,7 @@ const ModernChatWidget: React.FC = () => {
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                           </div>
                           <span className="text-xs text-gray-500 ml-2">
-                            {Array.from(state.typingUsers).join(', ')} typing...
+                            {state.typingUsers.join(', ')} typing...
                           </span>
                         </div>
                       </div>

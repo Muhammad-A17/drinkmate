@@ -1,27 +1,36 @@
 const Chat = require('../Models/chat-model');
-const Message = require('../Models/message-model');
 const User = require('../Models/user-model');
 
 class ChatService {
-  // Check if chat is within business hours (9 AM - 12 AM Saudi time) - Extended for testing
+  // Check if chat is within business hours (configurable via environment variables)
   static isWithinBusinessHours() {
     const now = new Date();
-    const saudiTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Riyadh"}));
-    const hour = saudiTime.getHours();
+    const timezone = process.env.CHAT_TIMEZONE || 'Asia/Riyadh';
+    const businessStart = parseInt(process.env.CHAT_BUSINESS_HOURS_START) || 9;
+    const businessEnd = parseInt(process.env.CHAT_BUSINESS_HOURS_END) || 24;
     
-    return hour >= 9 && hour < 24; // 9 AM to 12 AM (midnight)
+    const localTime = new Date(now.toLocaleString("en-US", {timeZone: timezone}));
+    const hour = localTime.getHours();
+    
+    return hour >= businessStart && hour < businessEnd;
   }
 
   // Get business hours message
   static getBusinessHoursMessage() {
     const now = new Date();
-    const saudiTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Riyadh"}));
-    const hour = saudiTime.getHours();
+    const timezone = process.env.CHAT_TIMEZONE || 'Asia/Riyadh';
+    const businessStart = parseInt(process.env.CHAT_BUSINESS_HOURS_START) || 9;
+    const businessEnd = parseInt(process.env.CHAT_BUSINESS_HOURS_END) || 24;
     
-    if (hour < 9) {
-      return "Our live chat is available from 9:00 AM to 12:00 AM Saudi time. Please come back at 9:00 AM.";
-    } else if (hour >= 24) {
-      return "Our live chat is available from 9:00 AM to 12:00 AM Saudi time. Please come back tomorrow at 9:00 AM.";
+    const localTime = new Date(now.toLocaleString("en-US", {timeZone: timezone}));
+    const hour = localTime.getHours();
+    
+    if (hour < businessStart) {
+      const startTime = businessStart === 0 ? '12 AM' : businessStart < 12 ? `${businessStart} AM` : businessStart === 12 ? '12 PM' : `${businessStart - 12} PM`;
+      return `Our live chat is available from ${startTime} to ${businessEnd === 0 ? '12 AM' : businessEnd < 12 ? `${businessEnd} AM` : businessEnd === 12 ? '12 PM' : `${businessEnd - 12} PM`} (${timezone}). Please come back at ${startTime}.`;
+    } else if (hour >= businessEnd) {
+      const startTime = businessStart === 0 ? '12 AM' : businessStart < 12 ? `${businessStart} AM` : businessStart === 12 ? '12 PM' : `${businessStart - 12} PM`;
+      return `Our live chat is available from ${startTime} to ${businessEnd === 0 ? '12 AM' : businessEnd < 12 ? `${businessEnd} AM` : businessEnd === 12 ? '12 PM' : `${businessEnd - 12} PM`} (${timezone}). Please come back tomorrow at ${startTime}.`;
     }
     
     return null; // Within business hours
@@ -33,7 +42,7 @@ class ChatService {
       // Check if customer already has an open chat
       const existingChat = await Chat.findOne({
         customer: customerId,
-        status: { $in: ['open', 'in_progress'] }
+        status: { $in: ['active', 'waiting'] }
       });
 
       if (existingChat) {
@@ -49,38 +58,14 @@ class ChatService {
         subject,
         category,
         priority,
-        status: 'open'
+        status: 'active'
       });
+
+      // Add initial messages to the chat
+      await chat.addMessage('customer', customerId, `Hello! I need help with: ${subject}`, 'text', []);
+      await chat.addMessage('system', null, 'Chat created. Our team will respond shortly.', 'system', []);
 
       await chat.save();
-
-      // Create welcome message
-      const welcomeMessage = new Message({
-        chat: chat._id,
-        sender: customerId,
-        content: `Hello! I need help with: ${subject}`,
-        type: 'text',
-        isSystem: false
-      });
-
-      await welcomeMessage.save();
-
-      // Create system message
-      const systemMessage = new Message({
-        chat: chat._id,
-        sender: customerId,
-        content: 'Chat created. Our team will respond shortly.',
-        type: 'system',
-        isSystem: true,
-        metadata: {
-          systemAction: 'chat_created'
-        }
-      });
-
-      await systemMessage.save();
-
-      // Update chat with last message
-      await chat.updateLastMessage();
 
       return {
         success: true,
@@ -131,23 +116,12 @@ class ChatService {
         return { success: false, message: 'Chat not found' };
       }
 
-      chat.admin = adminId;
-      chat.status = 'in_progress';
+      chat.assignedTo = adminId;
+      chat.status = 'active';
+      // Add system message about assignment
+      await chat.addMessage('system', null, 'Admin has been assigned to your chat.', 'system', []);
+      
       await chat.save();
-
-      // Create system message
-      const systemMessage = new Message({
-        chat: chatId,
-        sender: adminId,
-        content: 'Admin has been assigned to your chat.',
-        type: 'system',
-        isSystem: true,
-        metadata: {
-          systemAction: 'admin_assigned'
-        }
-      });
-
-      await systemMessage.save();
 
       return {
         success: true,
@@ -180,28 +154,16 @@ class ChatService {
         return { success: false, message: 'Unauthorized to send message to this chat' };
       }
 
-      const message = new Message({
-        chat: chatId,
-        sender: senderId,
-        content,
-        type,
-        attachments,
-        isFromAdmin: isAdmin
-      });
-
-      await message.save();
-
-      // Update chat last message time
-      await chat.updateLastMessage();
+      // Add message to chat using the chat's addMessage method
+      await chat.addMessage(isAdmin ? 'admin' : 'customer', senderId, content, type, attachments);
 
       // Mark messages as read for the sender
-      await Message.markAllAsRead(chatId, senderId);
+      await chat.markAsRead(senderId);
 
       return {
         success: true,
         message: 'Message sent successfully',
-        messageData: await Message.findById(message._id)
-          .populate('sender', 'username email firstName lastName isAdmin')
+        messageData: chat.messages[chat.messages.length - 1]
       };
     } catch (error) {
       console.error('Error sending message:', error);
@@ -216,17 +178,17 @@ class ChatService {
   // Get messages for a chat
   static async getChatMessages(chatId, limit = 50, skip = 0) {
     try {
-      const messages = await Message.getMessagesByChat(chatId, limit, skip);
-      
-      // Ensure messages is an array before calling reverse
-      if (!Array.isArray(messages)) {
-        console.error('Messages is not an array:', messages);
+      const chat = await Chat.findById(chatId);
+      if (!chat) {
         return {
           success: false,
-          message: 'Failed to get messages - invalid data format',
-          error: 'Messages data is not an array'
+          message: 'Chat not found',
+          error: 'Chat not found'
         };
       }
+      
+      // Get messages from the chat's embedded messages array
+      const messages = chat.messages.slice(skip, skip + limit);
       
       return {
         success: true,
@@ -245,13 +207,17 @@ class ChatService {
   // Mark messages as read
   static async markMessagesAsRead(chatId, userId) {
     try {
-      await Message.markAllAsRead(chatId, userId);
+      const chat = await Chat.findById(chatId);
+      if (!chat) {
+        return { success: false, message: 'Chat not found' };
+      }
+      
+      await chat.markAsRead(userId);
       
       // Update last seen time
-      const chat = await Chat.findById(chatId);
-      if (chat.customer.toString() === userId.toString()) {
+      if (chat.customer.userId && chat.customer.userId.toString() === userId.toString()) {
         await chat.updateCustomerSeen();
-      } else if (chat.admin && chat.admin.toString() === userId.toString()) {
+      } else if (chat.assignedTo && chat.assignedTo.toString() === userId.toString()) {
         await chat.updateAdminSeen();
       }
 
@@ -276,20 +242,6 @@ class ChatService {
 
       await chat.closeChat(adminId, resolutionNotes);
 
-      // Create system message
-      const systemMessage = new Message({
-        chat: chatId,
-        sender: adminId,
-        content: 'Chat has been closed.',
-        type: 'system',
-        isSystem: true,
-        metadata: {
-          systemAction: 'chat_closed'
-        }
-      });
-
-      await systemMessage.save();
-
       return {
         success: true,
         message: 'Chat closed successfully',
@@ -309,8 +261,8 @@ class ChatService {
   static async getChatStats() {
     try {
       const totalChats = await Chat.countDocuments();
-      const openChats = await Chat.countDocuments({ status: 'open' });
-      const inProgressChats = await Chat.countDocuments({ status: 'in_progress' });
+      const activeChats = await Chat.countDocuments({ status: 'active' });
+      const waitingChats = await Chat.countDocuments({ status: 'waiting' });
       const resolvedChats = await Chat.countDocuments({ status: 'resolved' });
       const closedChats = await Chat.countDocuments({ status: 'closed' });
 
@@ -318,8 +270,8 @@ class ChatService {
         success: true,
         stats: {
           total: totalChats,
-          open: openChats,
-          inProgress: inProgressChats,
+          active: activeChats,
+          waiting: waitingChats,
           resolved: resolvedChats,
           closed: closedChats
         }

@@ -12,22 +12,22 @@ console.log('🔍 MongoDB URI:', printableUri);
 
 // Set longer connection timeout for better reliability
 const connectOptions = {
-    connectTimeoutMS: 30000,
-    socketTimeoutMS: 30000,
-    serverSelectionTimeoutMS: 30000,
-    maxPoolSize: 10,
-    heartbeatFrequencyMS: 10000,
-    maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
+    connectTimeoutMS: parseInt(process.env.DB_CONNECT_TIMEOUT_MS) || 30000,
+    socketTimeoutMS: parseInt(process.env.DB_SOCKET_TIMEOUT_MS) || 30000,
+    serverSelectionTimeoutMS: parseInt(process.env.DB_SERVER_SELECTION_TIMEOUT_MS) || 30000,
+    maxPoolSize: parseInt(process.env.DB_MAX_POOL_SIZE) || 10,
+    heartbeatFrequencyMS: parseInt(process.env.DB_HEARTBEAT_FREQUENCY_MS) || 10000,
+    maxIdleTimeMS: parseInt(process.env.DB_MAX_IDLE_TIME_MS) || 30000, // Close connections after 30 seconds of inactivity
     retryWrites: true,
     retryReads: true,
     readPreference: 'primary',
     w: 'majority',
-    j: true // Journal acknowledgment
+    journal: true // Journal acknowledgment (replaces deprecated 'j' option)
 };
 
 let isConnected = false;
 let connectionRetries = 0;
-const maxRetries = 3;
+const maxRetries = parseInt(process.env.DB_MAX_RETRIES) || 3;
 
 const connect = async () => {
     try {
@@ -51,17 +51,7 @@ const connect = async () => {
         mongoose.connection.on('reconnected', () => {
             console.log('✅ MongoDB reconnected');
             isConnected = true;
-            
-            // Start session timeout service if it's not already running
-            try {
-                const sessionTimeoutService = require('../Services/session-timeout-service');
-                if (!sessionTimeoutService.isRunning) {
-                    console.log('🔄 Starting session timeout service after reconnection');
-                    sessionTimeoutService.start();
-                }
-            } catch (error) {
-                console.log('⚠️ Could not start session timeout service:', error.message);
-            }
+            // Session timeout service is already running, no need to restart
         });
         
         // Create admin user if it doesn't exist

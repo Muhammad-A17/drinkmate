@@ -8,6 +8,8 @@ const { getAllUsers, deleteUser } = require('../Controller/admin-controller');
 const categoryController = require('../Controller/category-controller');
 const orderController = require('../Controller/order-controller');
 const statsController = require('../Controller/stats-controller');
+const contentController = require('../Controller/content-controller');
+const chartController = require('../Controller/chart-controller');
 const { storage, deleteImage } = require('../Utils/cloudinary');
 const User = require('../Models/user-model');
 
@@ -59,9 +61,29 @@ router.get('/debug/user', authMiddleware, (req, res) => {
   });
 });
 
+// Test route without middleware
+router.get('/test', (req, res) => {
+  res.json({ success: true, message: 'Admin router is working!' });
+});
+
 // Stats routes
 router.get('/stats', authMiddleware, requirePermission('analytics.read'), auditLog('analytics.read', 'stats'), statsController.getAdminStats);
 router.get('/recent-data', authMiddleware, requirePermission('analytics.read'), auditLog('analytics.read', 'recent-data'), statsController.getRecentData);
+router.get('/chart-data', chartController.getChartData);
+
+// Test chart data route without middleware for debugging
+router.get('/chart-data-test', chartController.getChartData);
+
+// Content management routes
+router.get('/blog-posts', authMiddleware, requirePermission('content.read'), auditLog('content.read', 'blog-posts'), contentController.getBlogPosts);
+router.post('/blog-posts', authMiddleware, requirePermission('content.create'), auditLog('content.create', 'blog-post'), contentController.createBlogPost);
+router.put('/blog-posts/:id', authMiddleware, requirePermission('content.update'), auditLog('content.update', 'blog-post'), contentController.updateBlogPost);
+router.delete('/blog-posts/:id', authMiddleware, requirePermission('content.delete'), auditLog('content.delete', 'blog-post'), contentController.deleteBlogPost);
+
+router.get('/recipes', authMiddleware, requirePermission('content.read'), auditLog('content.read', 'recipes'), contentController.getRecipes);
+router.post('/recipes', authMiddleware, requirePermission('content.create'), auditLog('content.create', 'recipe'), contentController.createRecipe);
+router.put('/recipes/:id', authMiddleware, requirePermission('content.update'), auditLog('content.update', 'recipe'), contentController.updateRecipe);
+router.delete('/recipes/:id', authMiddleware, requirePermission('content.delete'), auditLog('content.delete', 'recipe'), contentController.deleteRecipe);
 
 // Orders routes
 router.get('/orders', authMiddleware, requirePermission('orders.read'), auditLog('orders.read', 'orders'), orderController.getAllOrders);

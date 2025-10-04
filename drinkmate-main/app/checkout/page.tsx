@@ -657,7 +657,7 @@ export default function CheckoutPage() {
         console.log('🚀 URWAYS payment response status:', paymentResponse.status, paymentResponse.statusText)
       } else if (selectedGateway === "tabby") {
         // Call backend API for Tabby
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://drinkmates.onrender.com'
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
         paymentResponse = await fetch(`${backendUrl}/payments/tabby`, {
           method: 'POST',
           headers: { 
@@ -668,7 +668,7 @@ export default function CheckoutPage() {
         })
       } else if (selectedGateway === "tap") {
         // Call backend API for Tap
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://drinkmates.onrender.com'
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
         paymentResponse = await fetch(`${backendUrl}/payments/tap`, {
           method: 'POST',
           headers: { 

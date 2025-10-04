@@ -117,18 +117,18 @@ const authenticateToken = async (req, res, next) => {
         });
       }
       
-      // Update last activity
-      user.lastLogin = new Date();
-      
-      // Ensure required fields exist before saving
-      if (!user.firstName) {
-        user.firstName = user.username || 'User';
-      }
-      if (!user.lastName) {
-        user.lastName = 'Name';
-      }
-      
-      await user.save();
+      // Update last activity without triggering validation
+      await User.updateOne(
+        { _id: user._id },
+        { 
+          lastLogin: new Date(),
+          $setOnInsert: {
+            firstName: user.firstName || user.username || 'User',
+            lastName: user.lastName || 'Name'
+          }
+        },
+        { upsert: false, runValidators: false }
+      );
       
       req.user = user;
       next();
@@ -186,12 +186,15 @@ const authenticateToken = async (req, res, next) => {
 };
 
 const isAdmin = async (req, res, next) => {
-  console.log('isAdmin middleware check:', {
-    hasUser: !!req.user,
-    userRole: req.user ? (req.user.role || 'no role') : 'no user',
-    isAdmin: req.user ? (req.user.isAdmin || false) : false,
-    userId: req.user ? (req.user._id || 'unknown') : 'no user'
-  });
+  // Only log admin checks for failed attempts
+  if (!req.user || !req.user.isAdmin) {
+    console.log('isAdmin middleware check:', {
+      hasUser: !!req.user,
+      userRole: req.user ? (req.user.role || 'no role') : 'no user',
+      isAdmin: req.user ? (req.user.isAdmin || false) : false,
+      userId: req.user ? (req.user._id || 'unknown') : 'no user'
+    });
+  }
 
   if (!req.user) {
     console.log('Admin check failed: No user in request');

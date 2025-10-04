@@ -21,18 +21,8 @@ class SocketService {
         console.log('Socket auth attempt - auth object:', socket.handshake.auth);
         
         if (!token) {
-          console.log('No token provided for socket connection - allowing as guest');
-          // Allow connection as guest user
-          socket.userId = null;
-          socket.user = {
-            _id: null,
-            username: 'Guest',
-            email: null,
-            firstName: 'Guest',
-            lastName: 'User',
-            isAdmin: false
-          };
-          return next();
+          console.log('No token provided for socket connection - rejecting connection');
+          return next(new Error('Authentication required'));
         }
 
         // Check if token is a demo token
@@ -63,19 +53,7 @@ class SocketService {
           
           if (!user) {
             console.log('User not found for token:', decoded.id);
-            // Allow connection as guest if user not found
-            socket.userId = null;
-            socket.user = {
-              _id: null,
-              username: 'Guest',
-              email: null,
-              firstName: 'Guest',
-              lastName: 'User',
-              fullName: 'Guest User',
-              name: 'Guest User',
-              isAdmin: false
-            };
-            return next();
+            return next(new Error('User not found'));
           }
 
           console.log('User found for socket connection:', user.email);
@@ -83,39 +61,12 @@ class SocketService {
           socket.user = user;
           next();
         } catch (jwtError) {
-          if (jwtError.message === 'Invalid token format') {
-            console.log('Authentication error: Invalid token format');
-          } else {
-            console.log('JWT verification failed, allowing as guest:', jwtError.message);
-          }
-          // Allow connection as guest if JWT is invalid
-          socket.userId = null;
-          socket.user = {
-            _id: null,
-            username: 'Guest',
-            email: null,
-            firstName: 'Guest',
-            lastName: 'User',
-            fullName: 'Guest User',
-            name: 'Guest User',
-            isAdmin: false
-          };
-          next();
+          console.log('JWT verification failed:', jwtError.message);
+          return next(new Error('Invalid token'));
         }
       } catch (error) {
         console.error('Socket authentication error:', error);
-        console.error('Error details:', error.message);
-        // Allow connection as guest even on error
-        socket.userId = null;
-        socket.user = {
-          _id: null,
-          username: 'Guest',
-          email: null,
-          firstName: 'Guest',
-          lastName: 'User',
-          isAdmin: false
-        };
-        next();
+        return next(new Error('Authentication failed'));
       }
     });
   }
@@ -151,9 +102,17 @@ class SocketService {
       });
 
       // Handle leaving chat room
-      socket.on('leave_chat', (chatId) => {
-        socket.leave(`chat_${chatId}`);
-        console.log(`User ${socket.user.email || socket.user.username} left chat ${chatId}`);
+      socket.on('leave_chat', (data) => {
+        console.log('🔥 Socket Service: leave_chat received data:', typeof data, data);
+        // Handle both string chatId and object with chatId property
+        const chatId = typeof data === 'string' ? data : (data?._id || data?.chatId);
+        console.log('🔥 Socket Service: extracted chatId:', chatId);
+        if (chatId) {
+          socket.leave(`chat_${chatId}`);
+          console.log(`User ${socket.user.email || socket.user.username} left chat ${chatId}`);
+        } else {
+          console.log(`User ${socket.user.email || socket.user.username} left chat - invalid chatId:`, data);
+        }
       });
 
       // Handle test connection

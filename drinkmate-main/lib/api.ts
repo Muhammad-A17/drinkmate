@@ -4,26 +4,15 @@ import { getAuthToken } from './contexts/auth-context';
 import { fallbackCylinders, fallbackFlavors, fallbackProducts } from './fallback-data';
 import { withErrorHandler, createSuccessResponse, createErrorResponse } from './error-handler';
 import { checkAdminRateLimit } from './api/protected-api';
+import { API_CONFIG } from './constants';
 
 // Re-export getAuthToken for other modules to use from this single import
 export { getAuthToken };
 
 // Base API URL - should be set in environment variables
 // For local development, use localhost:3000 where the backend server is running
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 
-  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:3000' 
-    : 'https://drinkmates.onrender.com');
-
-// Force local development URL when running locally
-const isLocalDev = typeof window !== 'undefined' && 
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
-  (window.location.port === '3002' || window.location.port === '3001' || window.location.port === '3000');
-
-// For production, use the environment variable or fallback to production URL
-const FINAL_API_URL = process.env.NODE_ENV === 'production' 
-  ? (process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com')
-  : (isLocalDev ? 'http://localhost:3000' : API_URL);
+// API Configuration - Use environment variable or fallback
+const FINAL_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 
 // Cache configuration - Reduced for better synchronization
@@ -94,6 +83,7 @@ api.interceptors.response.use(
     // Log security errors but not in production to avoid leaking sensitive info
     if (process.env.NODE_ENV !== 'production' && error.response) {
       if (error.response.status === 401 || error.response.status === 403) {
+        console.warn(`Security error: ${error.response.status} - ${error.response.statusText}`);
       }
     }
     
@@ -109,6 +99,7 @@ export const invalidateCache = (pattern?: string) => {
       if (key.includes(pattern)) {
         apiCache.delete(key);
         if (process.env.NODE_ENV === 'development') {
+          console.log(`Cache invalidated: ${key}`);
         }
       }
     }
@@ -116,23 +107,26 @@ export const invalidateCache = (pattern?: string) => {
     // Clear all cache
     apiCache.clear();
     if (process.env.NODE_ENV === 'development') {
+      console.log('All cache cleared');
     }
   }
 };
 
 // Helper function to implement retry mechanism with caching
-export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = 3, delay = 1000): Promise<any> => {
+export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = API_CONFIG.RETRY_ATTEMPTS, delay = API_CONFIG.RETRY_DELAY): Promise<any> => {
   // Check cache first if cacheKey is provided
   if (cacheKey && apiCache.has(cacheKey)) {
     const cachedData = apiCache.get(cacheKey);
     if (cachedData.timestamp > Date.now() - CACHE_TTL) {
       if (process.env.NODE_ENV === 'development') {
+        console.log(`Cache hit: ${cacheKey}`);
       }
       return cachedData.data;
     } else {
       // Cache expired
       apiCache.delete(cacheKey);
       if (process.env.NODE_ENV === 'development') {
+        console.log(`Cache expired: ${cacheKey}`);
       }
     }
   }
@@ -144,6 +138,7 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
       : true; // Assume online if we can't detect
       
     if (process.env.NODE_ENV === 'development' && !isOnline) {
+      console.warn('Device is offline, API calls may fail');
     }
     
     return isOnline;
@@ -162,6 +157,7 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
     
     try {
       if (retries > 0 && process.env.NODE_ENV === 'development') {
+        console.log(`Retrying API call (attempt ${retries + 1}/${maxRetries})`);
       }
       
       const result = await apiCall();
@@ -180,6 +176,7 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
       retries++;
       
       if (process.env.NODE_ENV === 'development') {
+        console.error(`API call failed (attempt ${retries}/${maxRetries}):`, error.message);
       }
       
       // Don't retry for certain error codes
@@ -195,6 +192,7 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
       // If we've used all retries, throw the error
       if (retries >= maxRetries) {
         if (process.env.NODE_ENV === 'development') {
+          console.error(`Max retries (${maxRetries}) exceeded, giving up`);
         }
         throw error;
       }
@@ -207,6 +205,7 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
         waitTime = Math.min(20000, waitTime * 2);
         
         if (process.env.NODE_ENV === 'development') {
+          console.warn(`Network error detected, increasing wait time to ${waitTime}ms`);
         }
       }
       
@@ -232,7 +231,7 @@ api.interceptors.response.use(
     if (process.env.NODE_ENV === 'development') {
       const contentEncoding = response.headers['content-encoding'];
       if (contentEncoding) {
-        // Response compressed successfully
+        console.log(`Response compressed with ${contentEncoding}`);
       }
     }
     return response;
@@ -288,6 +287,7 @@ api.interceptors.response.use(
         
         // Check if the error is likely due to backend not running
         if (error.code === 'ECONNREFUSED' || error.message?.includes('refused')) {
+          console.error('Backend server appears to be down:', diagnosticInfo);
         }
       }
     }
@@ -304,6 +304,7 @@ export const authAPI = {
       return response.data;
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
+        console.error('Login failed:', error.message);
       }
       throw error;
     }
@@ -315,6 +316,7 @@ export const authAPI = {
       return response.data;
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
+        console.error('Registration failed:', error.message);
       }
       throw error;
     }

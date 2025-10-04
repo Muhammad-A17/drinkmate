@@ -1,5 +1,4 @@
 // Chat Settings Service - handles API calls for chat settings
-import { getAuthToken } from '../contexts/auth-context';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -51,9 +50,10 @@ class ChatSettingsService {
   private readonly CACHE_DURATION = 30000; // 30 seconds
   private readonly STATUS_CACHE_DURATION = 30000; // 30 seconds for status (increased from 10s)
 
-  // Get auth token from auth context
+  // Get auth token from localStorage or sessionStorage
   private getAuthToken(): string | null {
-    return getAuthToken();
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token');
   }
 
   // Check if cache is still valid
