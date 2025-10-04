@@ -15,15 +15,18 @@ export function Toaster() {
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+      {toasts.map(function ({ id, title, description, action, open, onOpenChange, type, duration }) {
         return (
           <Toast 
             key={id} 
             id={id}
-            {...props}
+            open={open}
+            onOpenChange={onOpenChange}
             title={title}
             description={description}
             action={action}
+            type={type}
+            duration={duration}
           />
         )
       })}

@@ -68,7 +68,7 @@ export default function SodamakersPage() {
   async function fetchProducts() {
     try {
       setIsLoading(true)
-      setError(null)
+      setError("")
 
       // Fetch bundles for sodamakers category only
       const bundlesResponse = await shopAPI.getBundles({

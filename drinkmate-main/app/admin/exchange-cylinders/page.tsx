@@ -130,7 +130,7 @@ export default function ExchangeCylindersAdmin() {
         toast({
           title: "Error",
           description: "Failed to load exchange cylinders",
-          variant: "destructive"
+          type: "error"
         })
       }
     } catch (error) {
@@ -138,7 +138,7 @@ export default function ExchangeCylindersAdmin() {
       toast({
         title: "Error",
         description: "Failed to load exchange cylinders",
-        variant: "destructive"
+        type: "error"
       })
     } finally {
       setLoading(false)
@@ -263,7 +263,7 @@ export default function ExchangeCylindersAdmin() {
       toast({
         title: "Validation Error",
         description: "Name is required",
-        variant: "destructive"
+        type: "error"
       })
       return
     }
@@ -272,7 +272,7 @@ export default function ExchangeCylindersAdmin() {
       toast({
         title: "Validation Error",
         description: "Slug is required",
-        variant: "destructive"
+        type: "error"
       })
       return
     }
@@ -281,7 +281,7 @@ export default function ExchangeCylindersAdmin() {
       toast({
         title: "Validation Error",
         description: "Price must be greater than 0",
-        variant: "destructive"
+        type: "error"
       })
       return
     }
@@ -290,7 +290,7 @@ export default function ExchangeCylindersAdmin() {
       toast({
         title: "Validation Error",
         description: "Capacity must be greater than 0",
-        variant: "destructive"
+        type: "error"
       })
       return
     }
@@ -299,7 +299,7 @@ export default function ExchangeCylindersAdmin() {
       toast({
         title: "Validation Error",
         description: "Description is required",
-        variant: "destructive"
+        type: "error"
       })
       return
     }
@@ -308,7 +308,7 @@ export default function ExchangeCylindersAdmin() {
       toast({
         title: "Validation Error",
         description: "Material is required",
-        variant: "destructive"
+        type: "error"
       })
       return
     }
@@ -318,7 +318,7 @@ export default function ExchangeCylindersAdmin() {
       toast({
         title: "Validation Error",
         description: "Slug must contain only lowercase letters, numbers, and hyphens",
-        variant: "destructive"
+        type: "error"
       })
       return
     }
@@ -328,7 +328,7 @@ export default function ExchangeCylindersAdmin() {
       toast({
         title: "Validation Error",
         description: "Weight must be greater than 0",
-        variant: "destructive"
+        type: "error"
       })
       return
     }
@@ -343,7 +343,7 @@ export default function ExchangeCylindersAdmin() {
     //   toast({
     //     title: "Validation Error",
     //     description: "Please upload at least one image",
-    //     variant: "destructive"
+    //     type: "error"
     //   })
     //   return
     // }
@@ -357,7 +357,7 @@ export default function ExchangeCylindersAdmin() {
         toast({
           title: "Authentication Error",
           description: "Please log in to create exchange cylinders",
-          variant: "destructive"
+          type: "error"
         })
         return
       }
@@ -367,7 +367,7 @@ export default function ExchangeCylindersAdmin() {
         toast({
           title: "Authentication Error",
           description: "Invalid authentication token. Please log in again.",
-          variant: "destructive"
+          type: "error"
         })
         return
       }
@@ -534,7 +534,7 @@ export default function ExchangeCylindersAdmin() {
       toast({
         title: "Error",
         description: errorMessage,
-        variant: "destructive"
+        type: "error"
       })
       
       // Log detailed error for debugging
@@ -598,7 +598,7 @@ export default function ExchangeCylindersAdmin() {
         toast({
           title: "Authentication Error",
           description: "Please log in first",
-          variant: "destructive"
+          type: "error"
         })
         return
       }
@@ -615,7 +615,7 @@ export default function ExchangeCylindersAdmin() {
         toast({
           title: "API Connection Error",
           description: `API connection test failed: ${connectionTest.error || 'Unknown error'}`,
-          variant: "destructive"
+          type: "error"
         })
         setLoading(false)
         return
@@ -683,7 +683,7 @@ export default function ExchangeCylindersAdmin() {
         toast({
           title: "Test Failed",
           description: result.message || "Failed to create test cylinder",
-          variant: "destructive"
+          type: "error"
         })
       }
     } catch (error) {
@@ -691,7 +691,7 @@ export default function ExchangeCylindersAdmin() {
       toast({
         title: "Test Error",
         description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive"
+        type: "error"
       })
     }
   }
@@ -720,7 +720,7 @@ export default function ExchangeCylindersAdmin() {
           toast({
             title: "Authentication Error",
             description: "Please log in to delete exchange cylinders",
-            variant: "destructive"
+            type: "error"
           })
           return
         }
@@ -742,7 +742,7 @@ export default function ExchangeCylindersAdmin() {
         toast({
           title: "Error",
           description: error instanceof Error ? error.message : "Failed to delete exchange cylinder",
-          variant: "destructive"
+          type: "error"
         })
       } finally {
         setLoading(false)

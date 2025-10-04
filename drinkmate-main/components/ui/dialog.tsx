@@ -18,18 +18,22 @@ interface DialogContentProps {
 
 interface DialogHeaderProps {
   children: React.ReactNode
+  className?: string
 }
 
 interface DialogTitleProps {
   children: React.ReactNode
+  className?: string
 }
 
 interface DialogDescriptionProps {
   children: React.ReactNode
+  className?: string
 }
 
 interface DialogFooterProps {
   children: React.ReactNode
+  className?: string
 }
 
 const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
@@ -76,26 +80,26 @@ const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
 )
 DialogContent.displayName = "DialogContent"
 
-const DialogHeader = ({ children }: DialogHeaderProps) => (
-  <div className="flex flex-col space-y-1.5 p-6 pb-4">
+const DialogHeader = ({ children, className }: DialogHeaderProps) => (
+  <div className={cn("flex flex-col space-y-1.5 p-6 pb-4", className)}>
     {children}
   </div>
 )
 
-const DialogTitle = ({ children }: DialogTitleProps) => (
-  <h2 className="text-lg font-semibold leading-none tracking-tight text-gray-900">
+const DialogTitle = ({ children, className }: DialogTitleProps) => (
+  <h2 className={cn("text-lg font-semibold leading-none tracking-tight text-gray-900", className)}>
     {children}
   </h2>
 )
 
-const DialogDescription = ({ children }: DialogDescriptionProps) => (
-  <p className="text-sm text-gray-600">
+const DialogDescription = ({ children, className }: DialogDescriptionProps) => (
+  <p className={cn("text-sm text-gray-600", className)}>
     {children}
   </p>
 )
 
-const DialogFooter = ({ children }: DialogFooterProps) => (
-  <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 p-6 pt-4">
+const DialogFooter = ({ children, className }: DialogFooterProps) => (
+  <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 p-6 pt-4", className)}>
     {children}
   </div>
 )

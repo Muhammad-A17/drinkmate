@@ -178,7 +178,7 @@ export default function CloudinaryImageUpload({
         toast({
           title: "File too large",
           description: `${file.name} is too large. Maximum size is 5MB.`,
-          variant: "destructive"
+          type: "error"
         })
         return false
       }
@@ -188,7 +188,7 @@ export default function CloudinaryImageUpload({
         toast({
           title: "Invalid file type",
           description: `${file.name} is not an image file.`,
-          variant: "destructive"
+          type: "error"
         })
         return false
       }
@@ -203,7 +203,7 @@ export default function CloudinaryImageUpload({
       toast({
         title: "Too many images",
         description: `Maximum ${maxImages} images allowed.`,
-        variant: "destructive"
+        type: "error"
       })
       return
     }
@@ -277,14 +277,14 @@ export default function CloudinaryImageUpload({
         toast({
           title: "Server is starting up",
           description: "The server is currently starting up. Please wait 30-60 seconds and try uploading again.",
-          variant: "destructive",
+          type: "error",
           duration: 10000
         })
       } else {
         toast({
           title: "Upload failed",
           description: error.message || "Failed to upload images. Please try again.",
-          variant: "destructive"
+          type: "error"
         })
       }
     } finally {

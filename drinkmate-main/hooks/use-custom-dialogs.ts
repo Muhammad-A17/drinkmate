@@ -21,18 +21,19 @@ export const useCustomDialogs = () => {
   }
 
   // Custom confirm function to replace window.confirm
-  const customConfirm = async (message: string, variant: "default" | "destructive" = "default"): Promise<boolean> => {
-    // Split message into title and description if it contains newlines
-    const parts = message.split('\n')
-    const title = parts[0] || "Confirm"
-    const description = parts.slice(1).join('\n') || message
-    
+  const customConfirm = async (options: {
+    title: string
+    description: string
+    variant?: "default" | "destructive"
+    confirmText?: string
+    cancelText?: string
+  }): Promise<boolean> => {
     return await confirm({
-      title,
-      description,
-      variant,
-      confirmText: "Confirm",
-      cancelText: "Cancel"
+      title: options.title,
+      description: options.description,
+      variant: options.variant || "default",
+      confirmText: options.confirmText || "Confirm",
+      cancelText: options.cancelText || "Cancel"
     })
   }
 

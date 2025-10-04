@@ -51,7 +51,7 @@ interface Subcategory {
 }
 
 export default function AdminCategoriesPage() {
-  const { confirm, showSuccess, showError } = useCustomDialogs();
+  const { confirm: customConfirm, showSuccess, showError } = useCustomDialogs();
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -244,7 +244,7 @@ export default function AdminCategoriesPage() {
   };
 
   const handleDeleteSubcategory = async (subcategoryId: string) => {
-    const confirmed = await confirm({
+    const confirmed = await customConfirm({
       title: 'Delete Subcategory',
       description: 'Are you sure you want to delete this subcategory? This action cannot be undone.',
       variant: 'destructive',
@@ -478,7 +478,7 @@ export default function AdminCategoriesPage() {
   const handleBulkDelete = async () => {
     if (selectedItems.length === 0) return;
     
-    const confirmed = await confirm({
+    const confirmed = await customConfirm({
       title: 'Bulk Delete',
       description: `Are you sure you want to delete ${selectedItems.length} ${activeTab}? This action cannot be undone.`,
       variant: 'destructive',
