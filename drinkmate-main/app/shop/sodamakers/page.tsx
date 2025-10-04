@@ -68,23 +68,18 @@ export default function SodamakersPage() {
   async function fetchProducts() {
     try {
       setIsLoading(true)
+      setError(null)
 
       // Fetch bundles for sodamakers category only
-      console.log("Fetching bundles for sodamakers category...")
       const bundlesResponse = await shopAPI.getBundles({
         category: "sodamakers",
         limit: 4,
       })
-      console.log("Sodamakers bundles response:", bundlesResponse)
-      console.log("Sodamakers bundles array:", bundlesResponse.bundles)
-      console.log("Number of sodamakers bundles found:", bundlesResponse.bundles?.length || 0)
 
       // Format bundles data - only use sodamakers bundles
       const bundlesToUse = bundlesResponse.bundles || []
-      console.log("Using sodamakers bundles:", bundlesToUse.length, "bundles")
       
       const formattedBundles = bundlesToUse.map((bundle: any) => {
-        console.log("Processing bundle:", bundle.name, "Full bundle object:", bundle)
         return {
         _id: bundle._id,
         id: bundle._id,
@@ -94,7 +89,6 @@ export default function SodamakersPage() {
         originalPrice: bundle.originalPrice,
         subcategory: bundle.subcategory || "Bundles & Promotions of Soda Makers",
         image: (() => {
-          console.log("Bundle image data:", bundle.images)
           if (bundle.images && bundle.images.length > 0) {
             // Handle different image formats
             const firstImage = bundle.images[0]
@@ -114,7 +108,6 @@ export default function SodamakersPage() {
       })
 
       setBundles(formattedBundles)
-      console.log("Formatted bundles for sodamakers:", formattedBundles)
 
       // Organize bundles by subcategory
       const bundleBySubcategory: Record<string, Bundle[]> = {}
@@ -133,7 +126,6 @@ export default function SodamakersPage() {
       }))
       
       setBundleSubcategorySections(bundleSections)
-      console.log("Bundle subcategory sections:", bundleSections)
 
       // Fetch categories and find Soda Makers category
       const categoriesResp = await shopAPI.getCategories()
@@ -141,20 +133,19 @@ export default function SodamakersPage() {
       const sodaMakersCat = categoriesWithSubs.find((c: any) => {
         const name = (c.name || '').toLowerCase()
         const slug = (c.slug || '').toLowerCase()
-        return name.includes('soda') || name.includes('machine') || slug.includes('sodamaker') || slug.includes('machine') || slug === 'sodamakers'
+        return name.includes('soda') || name.includes('machine') || slug.includes('sodamaker') || slug.includes('machine') || slug === 'sodamakers' || slug === 'starter-kits' || slug === 'accessories'
       })
       const sodaMakersSlug = sodaMakersCat?.slug || 'sodamakers'
-      
-      console.log('🔍 Found soda makers category:', sodaMakersCat)
-      console.log('🔍 Using slug:', sodaMakersSlug)
 
       // Fetch products by category (returns subcategory field)
-      console.log('🔍 Fetching products by category:', sodaMakersSlug);
-      const byCategoryResp = await shopAPI.getProductsByCategory(sodaMakersSlug, { limit: 100 })
-      console.log('📦 Category response:', byCategoryResp);
-      const sodaMakerProducts = byCategoryResp.products || []
-      console.log('📦 Soda maker products:', sodaMakerProducts);
-      console.log('📦 Number of products:', sodaMakerProducts.length);
+      let sodaMakerProducts = [];
+      try {
+        const byCategoryResp = await shopAPI.getProductsByCategory(sodaMakersSlug, { limit: 100 })
+        sodaMakerProducts = byCategoryResp.products || byCategoryResp.data?.products || []
+      } catch (apiError) {
+        console.error('API Error:', apiError);
+        sodaMakerProducts = [];
+      }
 
       // Helper to pick first/primary image
       const pickImage = (imgs: any): string => {
@@ -182,38 +173,17 @@ export default function SodamakersPage() {
       }))
 
       setAllSodaMakers(formattedSodaMakers)
-      console.log('📦 Formatted soda makers:', formattedSodaMakers);
-      console.log('📦 Formatted soda makers slugs:', formattedSodaMakers.map((p: any) => ({ name: p.name, slug: p.slug })));
 
-      // Build sections by subcategory
-      const subs = (sodaMakersCat?.subcategories || []) as Array<{ _id: string; name: string }>
-      console.log('🔍 Available subcategories:', subs)
-      
-      const bySubId: Record<string, Product[]> = {}
-      for (const p of formattedSodaMakers) {
-        const sid = p.subcategory || ''
-        if (!bySubId[sid]) bySubId[sid] = []
-        bySubId[sid].push(p)
-      }
-      console.log('🔍 Products grouped by subcategory ID:', bySubId)
-      
+      // Since subcategories are not available in the regular API, display all products in one section
       const sections: Array<{ _id: string; name: string; products: Product[] }> = []
-      for (const sc of subs) {
-        const products = bySubId[sc._id] || []
-        if (products.length > 0) {
-          sections.push({ _id: sc._id, name: sc.name, products })
-        }
+      if (formattedSodaMakers.length > 0) {
+        sections.push({ 
+          _id: 'all-sodamakers', 
+          name: 'Soda Makers', 
+          products: formattedSodaMakers 
+        })
       }
       
-      // Add products that don't match any subcategory
-      const otherProducts = Object.entries(bySubId)
-        .filter(([sid]) => !subs.find(s => s._id === sid))
-        .flatMap(([_, arr]) => arr)
-      if (otherProducts.length > 0) {
-        sections.push({ _id: 'others', name: 'Other Soda Makers', products: otherProducts })
-      }
-      
-      console.log('🔍 Final sections:', sections)
       setSubcategorySections(sections)
     } catch (error) {
       console.error("Error fetching products:", error)
@@ -275,6 +245,7 @@ export default function SodamakersPage() {
   useEffect(() => {
     fetchProducts()
   }, []) // Empty dependency array means this effect runs once on mount
+
 
   function handleAddToCart(product: Product | Bundle) {
     addItem({
@@ -502,15 +473,23 @@ export default function SodamakersPage() {
 
 
             {/* Product Sections */}
+            {console.log('🔍 Rendering - subcategorySections:', subcategorySections)}
+            {console.log('🔍 Rendering - subcategorySections.length:', subcategorySections.length)}
             {subcategorySections.length > 0 ? (
-              subcategorySections.filter(section => section.products.length > 0).map((section) => (
-                <div key={section._id} className="mb-12 sm:mb-16">
-                  <h2 className="text-lg sm:text-xl font-medium mb-4 sm:mb-6 text-gray-900">{section.name}</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                    {section.products.map((product) => renderProductCard(product))}
+              subcategorySections.filter(section => section.products.length > 0).map((section) => {
+                console.log('🔍 Rendering section:', section.name, 'with', section.products.length, 'products');
+                return (
+                  <div key={section._id} className="mb-12 sm:mb-16">
+                    <h2 className="text-lg sm:text-xl font-medium mb-4 sm:mb-6 text-gray-900">{section.name}</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                      {section.products.map((product) => {
+                        console.log('🔍 Rendering product:', product.name);
+                        return renderProductCard(product);
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">No products found in this category.</p>

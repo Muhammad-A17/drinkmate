@@ -4,14 +4,25 @@ import { Lock } from 'lucide-react'
 import Link from 'next/link'
 import { useCart } from '@/hooks/use-cart'
 import { useCartSettings } from '@/lib/contexts/cart-settings-context'
+import { useCustomDialogs } from '@/hooks/use-custom-dialogs'
 
 export default function CartHeader() {
   const { totalPrice, clearCart } = useCart()
   const { settings, getFreeShippingText, getUnlockedText, getText } = useCartSettings()
+  const { confirm, showSuccess } = useCustomDialogs()
   
-  const handleClearCart = () => {
-    if (window.confirm('Are you sure you want to clear your cart? This action cannot be undone.')) {
+  const handleClearCart = async () => {
+    const confirmed = await confirm({
+      title: 'Clear Cart',
+      description: 'Are you sure you want to clear your cart? This action cannot be undone.',
+      variant: 'destructive',
+      confirmText: 'Clear Cart',
+      cancelText: 'Keep Items'
+    })
+    
+    if (confirmed) {
       clearCart()
+      showSuccess('Cart cleared successfully')
     }
   }
   

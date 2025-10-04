@@ -39,6 +39,7 @@ export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextRes
       // Verify JWT token
       const jwtSecret = process.env.JWT_SECRET
       if (!jwtSecret) {
+        console.error('JWT_SECRET not found in environment variables')
         return NextResponse.json(
           { 
             error: 'JWT secret not configured',
@@ -46,6 +47,10 @@ export function withAuth(handler: (req: AuthenticatedRequest) => Promise<NextRes
           },
           { status: 500 }
         )
+      }
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('JWT_SECRET found:', jwtSecret.substring(0, 10) + '...')
       }
       let decoded: JWTPayload
       

@@ -3,56 +3,39 @@
 import * as React from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { AlertCircle, CheckCircle, Info, AlertTriangle } from "lucide-react"
+import { AlertTriangle } from "lucide-react"
 
-interface AlertDialogProps {
+interface ConfirmationDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
   description: string
-  type?: "info" | "success" | "warning" | "error"
   confirmText?: string
+  cancelText?: string
   onConfirm?: () => void
+  onCancel?: () => void
+  variant?: "default" | "destructive"
 }
 
-const AlertDialog = ({
+const ConfirmationDialog = ({
   open,
   onOpenChange,
   title,
   description,
-  type = "info",
-  confirmText = "OK",
-  onConfirm
-}: AlertDialogProps) => {
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  onConfirm,
+  onCancel,
+  variant = "default"
+}: ConfirmationDialogProps) => {
   const handleConfirm = () => {
     onConfirm?.()
     onOpenChange(false)
   }
 
-  const getIcon = () => {
-    switch (type) {
-      case "success":
-        return <CheckCircle className="h-6 w-6 text-green-600" />
-      case "warning":
-        return <AlertTriangle className="h-6 w-6 text-yellow-600" />
-      case "error":
-        return <AlertCircle className="h-6 w-6 text-red-600" />
-      default:
-        return <Info className="h-6 w-6 text-blue-600" />
-    }
-  }
-
-  const getButtonVariant = () => {
-    switch (type) {
-      case "success":
-        return "default"
-      case "warning":
-        return "default"
-      case "error":
-        return "destructive"
-      default:
-        return "default"
-    }
+  const handleCancel = () => {
+    onCancel?.()
+    onOpenChange(false)
   }
 
   return (
@@ -60,17 +43,24 @@ const AlertDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center space-x-3">
-            {getIcon()}
+            <AlertTriangle className="h-6 w-6 text-yellow-600" />
             <DialogTitle className="text-left">{title}</DialogTitle>
           </div>
           <DialogDescription className="text-left">
             {description}
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
+        <DialogFooter className="gap-2">
+          <Button
+            onClick={handleCancel}
+            variant="outline"
+            className="w-full sm:w-auto"
+          >
+            {cancelText}
+          </Button>
           <Button
             onClick={handleConfirm}
-            variant={getButtonVariant()}
+            variant={variant === "destructive" ? "destructive" : "default"}
             className="w-full sm:w-auto"
           >
             {confirmText}
@@ -81,4 +71,4 @@ const AlertDialog = ({
   )
 }
 
-export { AlertDialog }
+export { ConfirmationDialog }

@@ -38,7 +38,7 @@ async function getUserOrders(req: AuthenticatedRequest) {
 
     // Call backend API
     const response = await makeAuthenticatedRequest(
-      `/orders/user/${userId}?page=${page}&limit=${limit}${status ? `&status=${status}` : ''}`,
+      `/checkout/orders?page=${page}&limit=${limit}${status ? `&status=${status}` : ''}`,
       { method: 'GET' },
       authToken
     )

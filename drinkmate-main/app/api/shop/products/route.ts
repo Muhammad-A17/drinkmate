@@ -7,7 +7,9 @@ import {
   createPaginatedResponse 
 } from '@/lib/error-handler'
 
+export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const maxDuration = 300
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url)

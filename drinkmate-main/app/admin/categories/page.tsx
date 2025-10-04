@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { adminAPI } from '@/lib/api';
 import { toast } from 'sonner';
+import { useCustomDialogs } from '@/hooks/use-custom-dialogs';
 import { Plus, Edit, Trash2, Eye, EyeOff, FolderOpen, Tag, Settings, Package, Search, Filter, SortAsc, SortDesc, Copy, MoreHorizontal, CheckSquare, Square, Download, Upload, X, FileText, BarChart3, Save, RotateCcw, Calendar, Hash, Zap, Layers, History, BookOpen, Keyboard, RefreshCw } from 'lucide-react';
 
 interface Category {
@@ -50,6 +51,7 @@ interface Subcategory {
 }
 
 export default function AdminCategoriesPage() {
+  const { confirm, showSuccess, showError } = useCustomDialogs();
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -242,7 +244,15 @@ export default function AdminCategoriesPage() {
   };
 
   const handleDeleteSubcategory = async (subcategoryId: string) => {
-    if (!confirm('Are you sure you want to delete this subcategory? This action cannot be undone.')) {
+    const confirmed = await confirm({
+      title: 'Delete Subcategory',
+      description: 'Are you sure you want to delete this subcategory? This action cannot be undone.',
+      variant: 'destructive',
+      confirmText: 'Delete Subcategory',
+      cancelText: 'Cancel'
+    });
+    
+    if (!confirmed) {
       return;
     }
     
@@ -468,8 +478,15 @@ export default function AdminCategoriesPage() {
   const handleBulkDelete = async () => {
     if (selectedItems.length === 0) return;
     
-    const confirmMessage = `Are you sure you want to delete ${selectedItems.length} ${activeTab}? This action cannot be undone.`;
-    if (!confirm(confirmMessage)) return;
+    const confirmed = await confirm({
+      title: 'Bulk Delete',
+      description: `Are you sure you want to delete ${selectedItems.length} ${activeTab}? This action cannot be undone.`,
+      variant: 'destructive',
+      confirmText: 'Delete All',
+      cancelText: 'Cancel'
+    });
+    
+    if (!confirmed) return;
 
     try {
       for (const itemId of selectedItems) {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/contexts/auth-context"
 import { SafeImage } from "@/components/ui/safe-image"
 import AdminLayout from "@/components/layout/AdminLayout"
+import { useCustomDialogs } from "@/hooks/use-custom-dialogs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { LoadingButton } from "@/components/ui/LoadingButton"
@@ -97,6 +98,7 @@ interface ProductFormData {
 export default function ProductsPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const router = useRouter()
+  const { confirm, showSuccess, showError } = useCustomDialogs()
   
   // Error handling
   const errorHandler = useAdminErrorHandler({
@@ -468,7 +470,15 @@ export default function ProductsPage() {
 
   // Delete product
   const handleDeleteProduct = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return
+    const confirmed = await confirm({
+      title: 'Delete Product',
+      description: 'Are you sure you want to delete this product? This action cannot be undone.',
+      variant: 'destructive',
+      confirmText: 'Delete Product',
+      cancelText: 'Cancel'
+    })
+    
+    if (!confirmed) return
     
     try {
       console.log('Deleting product with ID:', id)
@@ -478,13 +488,13 @@ export default function ProductsPage() {
         // Remove the product from the local state immediately
         setProducts(prevProducts => prevProducts.filter(p => p._id !== id))
         
-        toast.success("Product deleted successfully")
+        showSuccess("Product deleted successfully")
       } else {
         throw new Error(response.message || 'Failed to delete product')
       }
     } catch (error: any) {
       console.error('Error deleting product:', error)
-      toast.error(error.message || "Failed to delete product")
+      showError(error.message || "Failed to delete product")
     }
   }
 
@@ -879,9 +889,17 @@ export default function ProductsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => {
+                              onClick={async () => {
                                 console.log('Delete button clicked for product:', product)
-                                if (confirm(`Are you sure you want to delete "${product.name}"?`)) {
+                                const confirmed = await confirm({
+                                  title: 'Delete Product',
+                                  description: `Are you sure you want to delete "${product.name}"? This action cannot be undone.`,
+                                  variant: 'destructive',
+                                  confirmText: 'Delete Product',
+                                  cancelText: 'Cancel'
+                                })
+                                
+                                if (confirmed) {
                                   handleDeleteProduct(product._id)
                                 }
                               }}
