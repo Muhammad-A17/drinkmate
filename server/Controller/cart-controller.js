@@ -47,8 +47,8 @@ const getCart = async (req, res) => {
       cart: {
         _id: cart._id,
         items: cart.items.map(item => ({
-          id: item.product._id,
-          productId: item.product._id,
+          id: item.product._id.toString(),
+          productId: item.product._id.toString(),
           name: item.productSnapshot?.name || item.product.name,
           nameAr: item.productSnapshot?.nameAr || item.product.nameAr,
           price: item.unitPrice,
@@ -179,8 +179,8 @@ const addToCart = async (req, res) => {
       cart: {
         _id: cart._id,
         items: cart.items.map(item => ({
-          id: item.product._id,
-          productId: item.product._id,
+          id: item.product._id.toString(),
+          productId: item.product._id.toString(),
           name: item.productSnapshot?.name || item.product.name,
           price: item.unitPrice,
           quantity: item.quantity,
@@ -283,8 +283,8 @@ const updateCartItem = async (req, res) => {
       cart: {
         _id: cart._id,
         items: cart.items.map(item => ({
-          id: item.product._id,
-          productId: item.product._id,
+          id: item.product._id.toString(),
+          productId: item.product._id.toString(),
           name: item.productSnapshot?.name || item.product.name,
           price: item.unitPrice,
           quantity: item.quantity,
@@ -348,8 +348,8 @@ const removeFromCart = async (req, res) => {
       cart: {
         _id: cart._id,
         items: cart.items.map(item => ({
-          id: item.product._id,
-          productId: item.product._id,
+          id: item.product._id.toString(),
+          productId: item.product._id.toString(),
           name: item.productSnapshot?.name || item.product.name,
           price: item.unitPrice,
           quantity: item.quantity,
@@ -504,8 +504,8 @@ const syncCart = async (req, res) => {
       cart: {
         _id: cart._id,
         items: cart.items.map(item => ({
-          id: item.product._id,
-          productId: item.product._id,
+          id: item.product._id.toString(),
+          productId: item.product._id.toString(),
           name: item.productSnapshot?.name || item.product.name,
           price: item.unitPrice,
           quantity: item.quantity,
