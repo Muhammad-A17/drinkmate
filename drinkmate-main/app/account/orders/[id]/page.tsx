@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/contexts/translation-context'
 import { useCart } from '@/hooks/use-cart'
-import { Order, OrderLineItem, Shipment, Invoice } from '@/types/account'
+import { Order, Invoice } from '@/types/account'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,16 +20,10 @@ import {
   Clock,
   RefreshCw,
   MapPin,
-  Phone,
-  Mail,
   MessageCircle,
   Copy,
   ExternalLink,
-  Calendar,
-  User,
   Loader2,
-  AlertCircle,
-  Star,
   TrendingUp,
   Eye,
   X
@@ -279,7 +273,7 @@ export default function OrderDetailPage() {
           quantity: item.quantity,
           image: item.image,
           category: 'reorder',
-          color: item.variant || undefined
+          color: item.variant || ''
         }
         addItem(cartItem)
       }

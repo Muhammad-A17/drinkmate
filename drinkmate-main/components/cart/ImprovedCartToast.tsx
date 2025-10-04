@@ -131,6 +131,8 @@ export default function ImprovedCartToast({
       document.addEventListener('keydown', handleKeyDown)
       return () => document.removeEventListener('keydown', handleKeyDown)
     }
+    
+    return undefined
   }, [toastStack.length, onClose])
 
   // Focus management

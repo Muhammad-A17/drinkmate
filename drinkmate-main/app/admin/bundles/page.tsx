@@ -232,7 +232,7 @@ export default function BundlesPage() {
     if (categories.length > 0 && !formData.category) {
       setFormData(prev => ({
         ...prev,
-        category: categories[0]._id
+        category: categories[0]?._id || ''
       }))
     }
   }, [categories, formData.category])
@@ -1503,7 +1503,7 @@ export default function BundlesPage() {
                         type="button" 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => handleCategoryChange(categories[0]._id)}
+                        onClick={() => handleCategoryChange(categories[0]?._id || '')}
                       >
                         Test First Category
                       </Button>

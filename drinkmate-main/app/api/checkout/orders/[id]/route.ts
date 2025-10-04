@@ -1,38 +1,41 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
+import { 
+  withErrorHandler, 
+  createSuccessResponse, 
+  createNotFoundError, 
+  createNetworkError,
+  createValidationError 
+} from '@/lib/error-handler'
 
-export async function GET(
+export const GET = withErrorHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params
+) => {
+  const { id } = await params
 
-    // Make request to backend
-    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/checkout/orders/${id}`
-    
-    const response = await fetch(backendUrl, {
-      headers: {
-        'Authorization': request.headers.get('Authorization') || '',
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`Backend responded with status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    
-    return NextResponse.json(data)
-  } catch (error) {
-    console.error('Error fetching order details:', error)
-    return NextResponse.json(
-      { 
-        success: false, 
-        message: 'Failed to fetch order details',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
+  // Validate order ID
+  if (!id || typeof id !== 'string') {
+    throw createValidationError('Invalid order ID provided')
   }
-}
+
+  // Make request to backend
+  const backendUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/checkout/orders/${id}`
+  
+  const response = await fetch(backendUrl, {
+    headers: {
+      'Authorization': request.headers.get('Authorization') || '',
+      'Content-Type': 'application/json'
+    }
+  })
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw createNotFoundError('Order')
+    }
+    throw createNetworkError(`Backend responded with status: ${response.status}`)
+  }
+
+  const data = await response.json()
+  
+  return createSuccessResponse(data, 'Order details retrieved successfully')
+})

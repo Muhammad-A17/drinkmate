@@ -670,7 +670,9 @@ export default function CartSettingsPage() {
                           value={product.name}
                           onChange={(e) => {
                             const updated = [...freeGiftProducts]
-                            updated[index].name = e.target.value
+                            if (updated[index]) {
+                              updated[index].name = e.target.value
+                            }
                             setFreeGiftProducts(updated)
                           }}
                           placeholder="Product name"
@@ -681,7 +683,9 @@ export default function CartSettingsPage() {
                             value={product.originalPrice}
                             onChange={(e) => {
                               const updated = [...freeGiftProducts]
-                              updated[index].originalPrice = Number(e.target.value)
+                              if (updated[index]) {
+                                updated[index].originalPrice = Number(e.target.value)
+                              }
                               setFreeGiftProducts(updated)
                             }}
                             placeholder="Original price"
@@ -692,7 +696,9 @@ export default function CartSettingsPage() {
                               checked={product.isActive}
                               onCheckedChange={(checked) => {
                                 const updated = [...freeGiftProducts]
-                                updated[index].isActive = checked
+                                if (updated[index]) {
+                                  updated[index].isActive = checked
+                                }
                                 setFreeGiftProducts(updated)
                               }}
                             />

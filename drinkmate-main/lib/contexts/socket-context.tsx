@@ -188,6 +188,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
       console.log('🔥 SocketProvider: User:', !!user, 'Token:', !!token)
       disconnectSocket()
     }
+    
+    return undefined
   }, [user, token]) // Removed connectSocket and disconnectSocket from dependencies to prevent loops
 
   const joinChat = (chatId: string) => {

@@ -174,6 +174,8 @@ export default function FloatingChatWidget({ isOnline }: FloatingChatWidgetProps
       document.addEventListener('keydown', handleKeyDown)
       return () => document.removeEventListener('keydown', handleKeyDown)
     }
+    
+    return undefined
   }, [isOpen])
 
   // Scroll to bottom when new messages arrive

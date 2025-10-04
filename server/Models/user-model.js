@@ -22,7 +22,14 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minlength: 8
+    minlength: 12,
+    validate: {
+      validator: function(v) {
+        // Password must be at least 12 characters with at least one uppercase, lowercase, number, and special character
+        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/.test(v);
+      },
+      message: 'Password must be at least 12 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+    }
   },
   
   // Personal Information
@@ -165,6 +172,16 @@ userSchema.virtual('fullName').get(function() {
 // Indexes for better performance (email and username already have unique indexes)
 userSchema.index({ status: 1 });
 userSchema.index({ createdAt: -1 });
+
+// Additional performance indexes
+userSchema.index({ isAdmin: 1, status: 1 }); // For admin queries
+userSchema.index({ lastLoginAt: -1 }); // For user activity tracking
+userSchema.index({ city: 1, status: 1 }); // For location-based queries
+userSchema.index({ phone: 1 }); // For phone number lookups
+userSchema.index({ 'addresses.city': 1 }); // For address-based queries
+userSchema.index({ updatedAt: -1 }); // For user updates
+userSchema.index({ email: 1, status: 1 }); // For email-based queries with status
+userSchema.index({ username: 1, status: 1 }); // For username-based queries with status
 
 // Pre-save middleware
 userSchema.pre('save', async function(next) {

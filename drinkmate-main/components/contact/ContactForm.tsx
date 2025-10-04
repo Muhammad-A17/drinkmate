@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { User, Mail, Phone, MessageSquare, Upload, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -304,9 +305,9 @@ export default function ContactForm({ user, isAuthenticated, selectedTopic, onTo
           </p>
           <div className="space-x-4">
             <Button asChild variant="outline">
-              <a href="/track-order">
+              <Link href="/track-order">
                 {isRTL ? 'تتبع التذكرة' : 'Track my ticket'}
-              </a>
+              </Link>
             </Button>
             <Button onClick={() => setTicketId('')}>
               {isRTL ? 'إرسال طلب آخر' : 'Submit another request'}

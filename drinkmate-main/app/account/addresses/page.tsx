@@ -4,16 +4,12 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from '@/lib/contexts/translation-context'
 import { Address } from '@/types/account'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
 import { MapPin, Plus, Edit, Trash2, Star, ArrowLeft } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import AddressForm from '@/components/account/AddressForm'
 import Link from 'next/link'
 
 export default function AddressesPage() {
-  const { language, isRTL } = useTranslation()
+  const { language, isRTL: _isRTL } = useTranslation() // _isRTL for future RTL implementation
   const [addresses, setAddresses] = useState<Address[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)

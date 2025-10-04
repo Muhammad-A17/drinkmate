@@ -304,15 +304,17 @@ export default function CO2CylindersPage() {
       // Validate each file
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
-        if (!file.type.startsWith('image/')) {
-          toast.error(`File ${file.name} is not a valid image`)
+        if (!file?.type?.startsWith('image/')) {
+          toast.error(`File ${file?.name || 'unknown'} is not a valid image`)
           continue
         }
-        if (file.size > 10 * 1024 * 1024) {
-          toast.error(`Image ${file.name} size should be less than 10MB`)
+        if (file?.size && file.size > 10 * 1024 * 1024) {
+          toast.error(`Image ${file?.name || 'unknown'} size should be less than 10MB`)
           continue
         }
-        validFiles.push(file)
+        if (file) {
+          validFiles.push(file)
+        }
       }
       
       if (validFiles.length === 0) return
@@ -560,10 +562,10 @@ export default function CO2CylindersPage() {
           const dims = formData.dimensions.split(',').map(d => d.trim());
           if (dims.length === 4) {
             parsedDimensions = {
-              width: parseFloat(dims[0]),
-              height: parseFloat(dims[1]),
-              depth: parseFloat(dims[2]),
-              weight: parseFloat(dims[3])
+              width: parseFloat(dims[0] || '0'),
+              height: parseFloat(dims[1] || '0'),
+              depth: parseFloat(dims[2] || '0'),
+              weight: parseFloat(dims[3] || '0')
             };
           }
         } catch (e) {

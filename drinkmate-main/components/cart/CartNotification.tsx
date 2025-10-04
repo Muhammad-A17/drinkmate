@@ -37,6 +37,8 @@ export default function CartNotification({
 
       return () => clearTimeout(timer)
     }
+    
+    return undefined
   }, [isVisible, item, onClose])
 
   if (!item) return null

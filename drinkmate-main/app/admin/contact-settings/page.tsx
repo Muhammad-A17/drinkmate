@@ -422,7 +422,8 @@ function ContactSettingsPageContent() {
                                 ...settings.copy, 
                                 'page.title': { 
                                   ...settings.copy['page.title'], 
-                                  en: e.target.value 
+                                  en: e.target.value,
+                                  ar: settings.copy['page.title']?.ar || ''
                                 }
                               }
                             })
@@ -442,7 +443,8 @@ function ContactSettingsPageContent() {
                                 ...settings.copy, 
                                 'page.title': { 
                                   ...settings.copy['page.title'], 
-                                  ar: e.target.value 
+                                  ar: e.target.value,
+                                  en: settings.copy['page.title']?.en || ''
                                 }
                               }
                             })

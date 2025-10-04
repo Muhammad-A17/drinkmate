@@ -3,9 +3,9 @@ const nextConfig = {
   // Security: Enable strict mode
   reactStrictMode: true,
   
-  // Skip TypeScript checking during build (we'll handle this separately)
+  // TypeScript checking enabled
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   
   // Performance: Font optimization is now handled automatically in Next.js 15
@@ -88,12 +88,12 @@ const nextConfig = {
     ];
   },
   
-  // Development settings (disable in production)
+  // Development settings
   eslint: {
-    ignoreDuringBuilds: process.env.NODE_ENV === 'development',
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: process.env.NODE_ENV === 'development',
+    ignoreBuildErrors: false,
   },
   
   // Image optimization with security
@@ -187,6 +187,11 @@ const nextConfig = {
   
   // Performance optimizations
   compress: true,
+  
+  // Bundle optimization
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'framer-motion'],
+  },
   
   // Security: Disable source maps in production
   productionBrowserSourceMaps: false,

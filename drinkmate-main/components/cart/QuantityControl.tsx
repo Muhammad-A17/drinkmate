@@ -107,6 +107,8 @@ export default function QuantityControl({
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
+    
+    return undefined
   }, [confirmOpen])
 
   return (

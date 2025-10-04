@@ -504,6 +504,8 @@ export default function ChatManagementPage() {
         }
       }
     }
+    
+    return undefined
   }, [contextSocket, user, fallbackSocket])
 
   useEffect(() => {
@@ -590,7 +592,7 @@ export default function ChatManagementPage() {
               updatedConv.assignee = {
                 id: user._id,
                 name: user.name || 'Support',
-                avatar: user.avatar
+                avatar: user.avatar || '' || ''
               }
             }
             
@@ -626,7 +628,7 @@ export default function ChatManagementPage() {
             updatedConv.assignee = {
               id: user._id,
               name: user.name || 'Support',
-              avatar: user.avatar
+              avatar: user.avatar || ''
             }
           }
           
@@ -875,7 +877,7 @@ export default function ChatManagementPage() {
             updatedConv.assignee = {
               id: user._id,
               name: user.name || 'Support',
-              avatar: user.avatar
+              avatar: user.avatar || ''
             }
           }
           
@@ -898,7 +900,7 @@ export default function ChatManagementPage() {
               updatedConv.assignee = {
                 id: user._id,
                 name: user.name || 'Support',
-                avatar: user.avatar
+                avatar: user.avatar || '' || ''
               }
             }
             
@@ -946,7 +948,7 @@ export default function ChatManagementPage() {
       // Decode token to check admin status (without logging sensitive data)
       if (token) {
         try {
-          const payload = JSON.parse(atob(token.split('.')[1]))
+          const payload = JSON.parse(atob(token.split('.')[1] || ''))
           // Only log non-sensitive information
           console.log('Token validation successful')
         } catch (e) {

@@ -218,6 +218,15 @@ chatSchema.index({ assignedTo: 1, status: 1 });
 chatSchema.index({ category: 1, status: 1 });
 chatSchema.index({ priority: 1, status: 1 });
 
+// Additional performance indexes
+chatSchema.index({ createdAt: -1 }); // For recent chats
+chatSchema.index({ updatedAt: -1 }); // For chat updates
+chatSchema.index({ 'customer.userId': 1, status: 1 }); // For user-specific chats
+chatSchema.index({ lastMessageAt: -1, status: 1 }); // For active chat sorting
+chatSchema.index({ tags: 1, status: 1 }); // For tag-based queries
+chatSchema.index({ resolvedAt: -1 }); // For resolved chat analysis
+chatSchema.index({ 'customer.phone': 1 }); // For phone-based lookups
+
 // Virtual for unread message count
 chatSchema.virtual('unreadCount').get(function() {
   return this.messages.filter(msg => !msg.isRead && msg.sender === 'customer').length;
