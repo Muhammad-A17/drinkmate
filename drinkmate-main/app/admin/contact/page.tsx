@@ -441,7 +441,7 @@ export default function ContactPage() {
         toast.success("Assigned to you")
         break
       case "schedule_followup":
-        setFollowUpDate(new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        setFollowUpDate(new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '')
         toast.success("Follow-up scheduled")
         break
       case "add_note":

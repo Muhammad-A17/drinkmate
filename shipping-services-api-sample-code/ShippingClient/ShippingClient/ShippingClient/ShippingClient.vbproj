@@ -1,0 +1,253 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{0C28884A-52A6-4CD8-85E2-F2F7971F44ED}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>ShippingClient.My.MyApplication</StartupObject>
+    <RootNamespace>ShippingClient</RootNamespace>
+    <AssemblyName>ShippingClient</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>WindowsForms</MyType>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>ShippingClient.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>ShippingClient.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>Off</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Drawing" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Windows.Forms" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CancelPickup\frmCancelPickup.Designer.vb">
+      <DependentUpon>frmCancelPickup.vb</DependentUpon>
+    </Compile>
+    <Compile Include="CancelPickup\frmCancelPickup.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CancelPickup\frmCancelPickupCallResponse.Designer.vb">
+      <DependentUpon>frmCancelPickupCallResponse.vb</DependentUpon>
+    </Compile>
+    <Compile Include="CancelPickup\frmCancelPickupCallResponse.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CreatePickup\frmPickup.Designer.vb">
+      <DependentUpon>frmPickup.vb</DependentUpon>
+    </Compile>
+    <Compile Include="CreatePickup\frmPickup.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CreatePickup\frmPickupCallResponse.Designer.vb">
+      <DependentUpon>frmPickupCallResponse.vb</DependentUpon>
+    </Compile>
+    <Compile Include="CreatePickup\frmPickupCallResponse.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CreatePickup\frmPickupShipments.Designer.vb">
+      <DependentUpon>frmPickupShipments.vb</DependentUpon>
+    </Compile>
+    <Compile Include="CreatePickup\frmPickupShipments.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CreateShipments\Form1.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CreateShipments\Form1.Designer.vb">
+      <DependentUpon>Form1.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CreateShipments\Form2.Designer.vb">
+      <DependentUpon>Form2.vb</DependentUpon>
+    </Compile>
+    <Compile Include="CreateShipments\Form2.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmMain.Designer.vb">
+      <DependentUpon>frmMain.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmMain.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PrintLabel\frmPrintLabel.Designer.vb">
+      <DependentUpon>frmPrintLabel.vb</DependentUpon>
+    </Compile>
+    <Compile Include="PrintLabel\frmPrintLabel.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PrintLabel\frmPrintLabelCallResponse.Designer.vb">
+      <DependentUpon>frmPrintLabelCallResponse.vb</DependentUpon>
+    </Compile>
+    <Compile Include="PrintLabel\frmPrintLabelCallResponse.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Service References\ShippingReference\Reference.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="CancelPickup\frmCancelPickup.resx">
+      <DependentUpon>frmCancelPickup.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CancelPickup\frmCancelPickupCallResponse.resx">
+      <DependentUpon>frmCancelPickupCallResponse.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CreatePickup\frmPickup.resx">
+      <DependentUpon>frmPickup.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CreatePickup\frmPickupCallResponse.resx">
+      <DependentUpon>frmPickupCallResponse.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CreatePickup\frmPickupShipments.resx">
+      <DependentUpon>frmPickupShipments.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CreateShipments\Form1.resx">
+      <DependentUpon>Form1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CreateShipments\Form2.resx">
+      <DependentUpon>Form2.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmMain.resx">
+      <DependentUpon>frmMain.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PrintLabel\frmPrintLabel.resx">
+      <DependentUpon>frmPrintLabel.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PrintLabel\frmPrintLabelCallResponse.resx">
+      <DependentUpon>frmPrintLabelCallResponse.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="Service References\ShippingReference\Service_1_0.wsdl" />
+    <None Include="Service References\ShippingReference\ShippingClient.ShippingReference.LabelPrintingResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShippingReference\ShippingClient.ShippingReference.PickupCancelationResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShippingReference\ShippingClient.ShippingReference.PickupCreationResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\ShippingReference\ShippingClient.ShippingReference.ShipmentCreationResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\1304582255_box.png" />
+    <None Include="Resources\1304582222_marked_price.png" />
+    <None Include="Resources\1304836018_exit.png" />
+    <None Include="Resources\1304926520_autoship.png" />
+    <None Include="Resources\1306757232_tow_truck.png" />
+    <None Include="Resources\1307341992_diagram_v2-32.png" />
+    <None Include="Service References\ShippingReference\configuration91.svcinfo" />
+    <None Include="Service References\ShippingReference\configuration.svcinfo" />
+    <None Include="Service References\ShippingReference\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.vb</LastGenOutput>
+    </None>
+    <Content Include="XMLFile1.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Service References\ShippingReference\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

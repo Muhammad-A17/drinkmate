@@ -52,6 +52,7 @@
     "speakeasy": "^2.0.0",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
+    "xml2js": "^0.6.2",
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {

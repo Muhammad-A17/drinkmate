@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { getAuthToken } from './contexts/auth-context';
 import { fallbackCylinders, fallbackFlavors, fallbackProducts } from './fallback-data';
-import { ErrorHandler, createApiResponse } from './error-handler';
+import { withErrorHandler, createSuccessResponse, createErrorResponse } from './error-handler';
 import { checkAdminRateLimit } from './api/protected-api';
 
 // Re-export getAuthToken for other modules to use from this single import
@@ -1344,8 +1344,8 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      const apiError = ErrorHandler.handle(error, 'Admin API - getProducts');
-      return createApiResponse(false, [], apiError.message, apiError.code);
+      console.error('Admin API - getProducts error:', error);
+      return createErrorResponse(new Error('Failed to fetch products'));
     }
   },
 

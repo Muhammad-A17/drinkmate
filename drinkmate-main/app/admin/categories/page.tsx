@@ -619,12 +619,12 @@ export default function AdminCategoriesPage() {
 
   const parseCSV = (csv: string) => {
     const lines = csv.split('\n');
-    const headers = lines[0].split(',').map(h => h.replace(/"/g, ''));
+    const headers = lines[0]?.split(',').map(h => h.replace(/"/g, '')) || [];
     const data = [];
     
     for (let i = 1; i < lines.length; i++) {
-      if (lines[i].trim()) {
-        const values = lines[i].split(',').map(v => v.replace(/"/g, ''));
+      if (lines[i]?.trim()) {
+        const values = lines[i]?.split(',').map(v => v.replace(/"/g, '')) || [];
         const item: any = {};
         headers.forEach((header, index) => {
           item[header] = values[index];

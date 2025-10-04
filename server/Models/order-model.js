@@ -174,6 +174,57 @@ const orderSchema = new mongoose.Schema({
     }
   }],
   
+  // Aramex Shipping Integration
+  shipping: {
+    // Aramex specific fields
+    aramexWaybillNumber: {
+      type: String,
+      unique: true,
+      sparse: true // Allow null values but ensure uniqueness when present
+    },
+    aramexLabelUrl: String,
+    trackingUrl: String,
+    status: {
+      type: String,
+      enum: ['pending', 'shipped', 'in_transit', 'delivered', 'exception'],
+      default: 'pending'
+    },
+    shippedAt: Date,
+    deliveredAt: Date,
+    lastTrackingUpdate: Date,
+    currentStatus: String,
+    
+    // Tracking history from Aramex
+    trackingHistory: [{
+      waybillNumber: String,
+      updateCode: String,
+      updateDescription: String,
+      updateDateTime: Date,
+      updateLocation: String,
+      comments: String,
+      problemCode: String
+    }],
+    
+    // Shipping method and details
+    method: {
+      type: String,
+      default: 'aramex'
+    },
+    serviceType: {
+      type: String,
+      default: 'ONX' // Aramex service type
+    },
+    estimatedDelivery: Date,
+    
+    // Delivery confirmation
+    deliveryConfirmation: {
+      deliveredBy: String,
+      deliveryNotes: String,
+      recipientName: String,
+      deliveryPhoto: String
+    }
+  },
+  
   // Notes and Comments
   notes: {
     customer: String,
@@ -219,6 +270,18 @@ orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ 'paymentDetails.paymentStatus': 1 });
 orderSchema.index({ 'shippingAddress.email': 1 });
+
+// Additional performance indexes
+orderSchema.index({ createdAt: -1 }); // For recent orders queries
+orderSchema.index({ updatedAt: -1 }); // For order updates
+orderSchema.index({ 'shipping.aramexWaybillNumber': 1 }, { sparse: true }); // For tracking
+orderSchema.index({ 'shipping.status': 1, createdAt: -1 }); // For shipping status queries
+orderSchema.index({ total: 1, createdAt: -1 }); // For revenue analysis
+orderSchema.index({ isGuestOrder: 1, createdAt: -1 }); // For guest order analysis
+orderSchema.index({ 'items.product': 1 }); // For product-based queries
+orderSchema.index({ 'items.bundle': 1 }); // For bundle-based queries
+orderSchema.index({ 'shippingAddress.city': 1, createdAt: -1 }); // For location-based queries
+orderSchema.index({ 'shippingAddress.country': 1, createdAt: -1 }); // For country-based queries
 
 // Pre-save middleware
 orderSchema.pre('save', function(next) {

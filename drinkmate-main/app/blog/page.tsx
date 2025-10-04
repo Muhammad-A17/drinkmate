@@ -125,6 +125,8 @@ export default function Blog() {
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
+    
+    return undefined
   }, [showSuggestions])
 
   // Fetch blog posts from API

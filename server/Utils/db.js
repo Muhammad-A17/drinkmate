@@ -68,33 +68,37 @@ const connect = async () => {
         const User = require('../Models/user-model');
         const adminExists = await User.findOne({ email: 'admin@drinkmate.com' });
         
-        if (!adminExists) {
+        if (!adminExists && process.env.ADMIN_PASSWORD) {
             const admin = new User({
                 username: 'admin',
                 email: 'admin@drinkmate.com',
-                password: process.env.ADMIN_PASSWORD || 'admin123',
+                password: process.env.ADMIN_PASSWORD,
                 firstName: 'Admin',
                 lastName: 'User',
                 isAdmin: true
             });
             await admin.save();
             console.log('👤 Admin user created');
+        } else if (!adminExists) {
+            console.log('⚠️ Admin user not created - ADMIN_PASSWORD not set in environment');
         }
         
         // Create test user if it doesn't exist
         const testUserExists = await User.findOne({ email: 'test@example.com' });
         
-        if (!testUserExists) {
+        if (!testUserExists && process.env.TEST_PASSWORD) {
             const testUser = new User({
                 username: 'testuser',
                 email: 'test@example.com',
-                password: process.env.TEST_PASSWORD || 'test123',
+                password: process.env.TEST_PASSWORD,
                 firstName: 'Test',
                 lastName: 'User',
                 isAdmin: false
             });
             await testUser.save();
             console.log('👤 Test user created');
+        } else if (!testUserExists) {
+            console.log('⚠️ Test user not created - TEST_PASSWORD not set in environment');
         }
         
         // Start session timeout service after successful connection

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { useTranslation } from '@/lib/contexts/translation-context'
-import AccountNav from '@/components/account/AccountNav'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import { Loader2 } from 'lucide-react'
@@ -14,8 +13,8 @@ interface AccountLayoutProps {
 }
 
 export default function AccountLayout({ children }: AccountLayoutProps) {
-  const { user, isAuthenticated, isLoading } = useAuth()
-  const { isRTL } = useTranslation()
+  const { user: _user, isAuthenticated, isLoading } = useAuth()
+  const { isRTL: _isRTL } = useTranslation()
   const router = useRouter()
   const [isClient, setIsClient] = useState(false)
 

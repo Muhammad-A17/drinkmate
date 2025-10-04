@@ -195,7 +195,7 @@ export default function WishlistPage() {
                 <div className="mt-2">
                   <Price 
                     value={item.product.price} 
-                    compareAt={item.product.originalPrice}
+                    compareAt={item.product.originalPrice || 0}
                   />
                 </div>
                 <div className="flex items-center text-sm text-gray-500 mt-2">

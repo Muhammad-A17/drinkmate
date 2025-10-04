@@ -1,0 +1,32 @@
+C:\Users\michaelgh\AppData\Local\Temporary Projects\ShippingClient\bin\Debug\ShippingClient.exe
+C:\Users\michaelgh\AppData\Local\Temporary Projects\ShippingClient\bin\Debug\ShippingClient.pdb
+C:\Users\michaelgh\AppData\Local\Temporary Projects\ShippingClient\bin\Debug\ShippingClient.xml
+C:\Users\michaelgh\AppData\Local\Temporary Projects\ShippingClient\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\michaelgh\AppData\Local\Temporary Projects\ShippingClient\obj\x86\Debug\ShippingClient.Form1.resources
+C:\Users\michaelgh\AppData\Local\Temporary Projects\ShippingClient\obj\x86\Debug\ShippingClient.Resources.resources
+C:\Users\michaelgh\AppData\Local\Temporary Projects\ShippingClient\obj\x86\Debug\GenerateResource.read.1.tlog
+C:\Users\michaelgh\AppData\Local\Temporary Projects\ShippingClient\obj\x86\Debug\GenerateResource.write.1.tlog
+C:\Users\michaelgh\AppData\Local\Temporary Projects\ShippingClient\obj\x86\Debug\ShippingClient.exe
+C:\Users\michaelgh\AppData\Local\Temporary Projects\ShippingClient\obj\x86\Debug\ShippingClient.xml
+C:\Users\michaelgh\AppData\Local\Temporary Projects\ShippingClient\obj\x86\Debug\ShippingClient.pdb
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.exe
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.xml
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.pdb
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.Form1.resources
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.Resources.resources
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\GenerateResource.read.1.tlog
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\GenerateResource.write.1.tlog
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\bin\Debug\ShippingClient.exe
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\bin\Debug\ShippingClient.pdb
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\bin\Debug\ShippingClient.xml
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\bin\Debug\ShippingClient.exe.config
+C:\Users\michaelgh\documents\visual studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.Form2.resources
+C:\Users\michaelgh\Documents\Visual Studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.frmMain.resources
+C:\Users\michaelgh\Documents\Visual Studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.frmPrintLabel.resources
+C:\Users\michaelgh\Documents\Visual Studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.frmPrintLabelCallResponse.resources
+C:\Users\michaelgh\Documents\Visual Studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.frmPickup.resources
+C:\Users\michaelgh\Documents\Visual Studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.frmPickupCallResponse.resources
+C:\Users\michaelgh\Documents\Visual Studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.frmPickupShipments.resources
+C:\Users\michaelgh\Documents\Visual Studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.frmCancelPickup.resources
+C:\Users\michaelgh\Documents\Visual Studio 2010\Projects\ShippingClient\ShippingClient\obj\x86\Debug\ShippingClient.frmCancelPickupCallResponse.resources

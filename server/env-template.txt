@@ -14,7 +14,7 @@ PORT=3000
 # SECURITY CONFIGURATION
 # ===========================================
 # Generate strong JWT secret (minimum 32 characters)
-JWT_SECRET=292991a5850e2a5819393a9b547f06b97ec40016c1ddf04ebf8c1e5618c71b67
+JWT_SECRET=your_jwt_secret_here_minimum_32_characters
 SESSION_SECRET=your_session_secret_here_minimum_32_characters
 JWT_EXPIRES_IN=24h
 REFRESH_TOKEN_EXPIRES_IN=7d
@@ -27,7 +27,7 @@ RATE_LIMIT_MAX_REQUESTS=100
 # DATABASE CONFIGURATION
 # ===========================================
 # MongoDB Atlas
-MONGODB_URI=mongodb+srv://test1234:IhpDHsYWshrvtLQc@cluster0.y205sfi.mongodb.net/drinkmate?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=your_mongodb_connection_string_here
 
 # ===========================================
 # FRONTEND CONFIGURATION
@@ -38,17 +38,17 @@ CORS_ORIGIN=https://drinkmates.vercel.app
 # ===========================================
 # CLOUDINARY CONFIGURATION
 # ===========================================
-CLOUDINARY_CLOUD_NAME=da6dzmflp
-CLOUDINARY_API_KEY=694537626126534
-CLOUDINARY_API_SECRET=elu06tzJWrK_Yb_M8H2bmGNfUL0
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
 # ===========================================
 # EMAIL CONFIGURATION
 # ===========================================
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=devops.drinkmate@gmail.com
-SMTP_PASS=ejfo bcdu fmmr wfwj
+SMTP_USER=your_email_address
+SMTP_PASS=your_app_password
 
 # Alternative email variables (for backward compatibility)
 EMAIL_USER=${SMTP_USER}
@@ -69,6 +69,19 @@ TAP_API_KEY=your_tap_api_key
 TAP_SECRET_KEY=your_tap_secret_key
 TAP_MERCHANT_ID=your_tap_merchant_id
 TAP_ENVIRONMENT=production
+
+# ===========================================
+# ARAMEX SHIPPING CONFIGURATION
+# ===========================================
+# Aramex Testing Account Details
+ARAMEX_ACCOUNT_COUNTRY_CODE=SA
+ARAMEX_ACCOUNT_ENTITY=RUH
+ARAMEX_ACCOUNT_NUMBER=4004636
+ARAMEX_ACCOUNT_PIN=432432
+ARAMEX_USERNAME=testingapi@aramex.com
+ARAMEX_PASSWORD=R123456789$r
+ARAMEX_VERSION=1.0
+ARAMEX_API_URL=http://ws.sbx.aramex.net/shippingapi/shipping/service_1_0.svc
 
 # ===========================================
 # ADMIN CREDENTIALS
