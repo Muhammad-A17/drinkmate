@@ -84,6 +84,7 @@ import LazyChatWidget from '@/components/chat/LazyChatWidget'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useCustomDialogs } from '@/hooks/use-custom-dialogs'
 import { Message, Conversation } from '@/types/chat'
 import { simpleETAService, SimpleETA } from '@/lib/services/simple-eta-service'
 
@@ -114,6 +115,7 @@ export default function ChatManagementPage() {
   const { user, isAuthenticated } = useAuth()
   const { isRTL } = useTranslation()
   const { socket: contextSocket, isConnected: contextConnected } = useSocket()
+  const { confirm } = useCustomDialogs()
   
   // Fallback socket connection
   const [fallbackSocket, setFallbackSocket] = useState<any>(null)
@@ -964,7 +966,15 @@ export default function ChatManagementPage() {
 
   // Handle conversation deletion
   const handleDeleteConversation = async (conversationId: string) => {
-    if (!confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
+    const confirmed = await confirm({
+      title: 'Delete Conversation',
+      description: 'Are you sure you want to delete this conversation? This action cannot be undone.',
+      variant: 'destructive',
+      confirmText: 'Delete Conversation',
+      cancelText: 'Cancel'
+    })
+    
+    if (!confirmed) {
       return
     }
 
@@ -996,10 +1006,14 @@ export default function ChatManagementPage() {
         }
       }
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${conversationId}`, {
+      const deleteUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/chat/${conversationId}`
+      console.log('Delete URL:', deleteUrl)
+      
+      const response = await fetch(deleteUrl, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       })
 
@@ -1035,7 +1049,7 @@ export default function ChatManagementPage() {
         
         toast.success('Conversation deleted successfully')
       } else {
-        let errorMessage = 'Failed to delete conversation'
+        let errorMessage = `Failed to delete conversation (Status: ${response.status})`
         try {
           // Try to get error details from response
           const contentType = response.headers.get('content-type')
@@ -1044,8 +1058,16 @@ export default function ChatManagementPage() {
           if (contentType && contentType.includes('application/json')) {
             const errorData = await response.json()
             console.error('Delete error response:', errorData)
+            console.log('Error data type:', typeof errorData)
+            console.log('Error data keys:', Object.keys(errorData || {}))
+            console.log('Error data length:', Object.keys(errorData || {}).length)
+            
             if (errorData && Object.keys(errorData).length > 0) {
               errorMessage = errorData.message || errorData.error || errorMessage
+            } else {
+              // Handle empty JSON response
+              console.warn('Received empty JSON response from server')
+              errorMessage = `Server returned empty response (Status: ${response.status})`
             }
           } else {
             // Try to get text response
@@ -1053,11 +1075,14 @@ export default function ChatManagementPage() {
             console.error('Raw error response:', errorText)
             if (errorText && errorText.trim()) {
               errorMessage = errorText
+            } else {
+              console.warn('Received empty text response from server')
+              errorMessage = `Server returned empty response (Status: ${response.status})`
             }
           }
         } catch (parseError) {
           console.error('Error parsing delete error response:', parseError)
-          // Use default error message
+          errorMessage = `Failed to parse server response (Status: ${response.status})`
         }
         
         toast.error(errorMessage)
@@ -1338,9 +1363,17 @@ export default function ChatManagementPage() {
                           variant="ghost"
                           size="sm"
                           className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50"
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.stopPropagation()
-                            if (confirm('Are you sure you want to delete this conversation?')) {
+                            const confirmed = await confirm({
+                              title: 'Delete Conversation',
+                              description: 'Are you sure you want to delete this conversation?',
+                              variant: 'destructive',
+                              confirmText: 'Delete',
+                              cancelText: 'Cancel'
+                            })
+                            
+                            if (confirmed) {
                               handleDeleteConversation(conversation.id)
                             }
                           }}
