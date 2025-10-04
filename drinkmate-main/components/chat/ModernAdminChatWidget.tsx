@@ -87,7 +87,7 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
   
   // Hooks
   const { user } = useAuth()
-  const { socket, isConnected, sendMessage: socketSendMessage } = useSocket()
+  const { socket, isConnected, sendMessage: socketSendMessage, joinChat, leaveChat } = useSocket()
 
   // Utility functions
   const scrollToBottom = useCallback(() => {
@@ -132,13 +132,19 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
     }
   }, [])
 
-  // Load messages when conversation changes
+  // Load messages when conversation changes AND join the socket room
   useEffect(() => {
     const loadMessages = async () => {
       if (!selectedConversation) {
         setMessages([])
         setFilteredMessages([])
         return
+      }
+
+      // CRITICAL: Join the socket room IMMEDIATELY when conversation is selected
+      if (socket && isConnected) {
+        console.log(`🔥 ModernAdminChatWidget: Joining socket room for chat: ${selectedConversation.id}`)
+        joinChat(selectedConversation.id)
       }
 
       try {
@@ -181,6 +187,7 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
             status: message.status || 'sent'
           }))
           
+          console.log(`🔥 ModernAdminChatWidget: Setting ${processedMessages.length} messages`)
           setMessages(processedMessages)
           setFilteredMessages(processedMessages)
         } else {
@@ -195,7 +202,15 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
     }
 
     loadMessages()
-  }, [selectedConversation])
+    
+    // Cleanup: Leave the socket room when conversation changes or unmounts
+    return () => {
+      if (selectedConversation && socket) {
+        console.log(`🔥 ModernAdminChatWidget: Leaving socket room for chat: ${selectedConversation.id}`)
+        leaveChat(selectedConversation.id)
+      }
+    }
+  }, [selectedConversation, socket, isConnected, joinChat, leaveChat])
 
   // Filter messages based on search query
   useEffect(() => {
@@ -214,11 +229,26 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
     scrollToBottom()
   }, [filteredMessages, scrollToBottom])
 
+  // Rejoin socket room if socket reconnects
+  useEffect(() => {
+    if (socket && isConnected && selectedConversation) {
+      console.log(`🔥 ModernAdminChatWidget: Socket reconnected, rejoining room for chat: ${selectedConversation.id}`)
+      joinChat(selectedConversation.id)
+    }
+  }, [socket, isConnected, selectedConversation, joinChat])
+
   // Socket event listeners
   useEffect(() => {
     if (!socket || !isConnected || !selectedConversation) {
+      console.log('🔥 ModernAdminChatWidget: Not setting up socket listeners -', {
+        hasSocket: !!socket,
+        isConnected,
+        hasConversation: !!selectedConversation
+      })
       return
     }
+
+    console.log(`🔥 ModernAdminChatWidget: Setting up socket listeners for chat: ${selectedConversation.id}`)
 
     const handleNewMessage = (data: { chatId: string; message: any }) => {
       console.log('🔥 ModernAdminChatWidget: New message received:', data)
@@ -231,31 +261,56 @@ const ModernAdminChatWidget: React.FC<ModernAdminChatWidgetProps> = ({
       
       if (data.chatId === selectedConversation.id) {
         setMessages(prev => {
-          // Check for duplicates
+          const realMessageId = (data.message as any)._id || data.message.id
+          
+          // Check for duplicates by real database ID only
           const messageExists = prev.some(msg => {
-            // Check by real ID
-            if (msg.id === data.message.id || msg.id === (data.message as any)._id) {
+            if (realMessageId && (msg.id === realMessageId)) {
               return true
             }
-            
-            // Check by content and timestamp (for temporary messages)
-            if (msg.content === data.message.content) {
-              const msgTime = new Date(msg.timestamp).getTime()
-              const dataTime = new Date((data.message as any).createdAt || data.message.timestamp).getTime()
-              // If timestamps are within 5 seconds, consider it a duplicate
-              return Math.abs(msgTime - dataTime) < 5000
+            // For temporary IDs, never consider them duplicates
+            if (msg.id.toString().startsWith('temp_')) {
+              return false
             }
-            
             return false
           })
 
           if (messageExists) {
-            console.log('🔥 ModernAdminChatWidget: Duplicate message detected, skipping')
+            console.log('🔥 ModernAdminChatWidget: Message with ID already exists, skipping:', realMessageId)
             return prev
           }
 
+          // Check if we need to replace a temporary message (within last 5 seconds)
+          const tempMessageIndex = prev.findIndex(msg => {
+            if (!msg.id.toString().startsWith('temp_')) {
+              return false
+            }
+            
+            const isSameSender = msg.sender === (data.message.sender === 'admin' || data.message.sender === 'agent' ? 'agent' : 'customer')
+            const isSameContent = msg.content === data.message.content
+            
+            // Check if it's within last 5 seconds (to avoid replacing old temp messages)
+            const messageTime = new Date(msg.timestamp).getTime()
+            const nowTime = Date.now()
+            const isRecent = (nowTime - messageTime) < 5000
+            
+            return isSameSender && isSameContent && isRecent
+          })
+
+          if (tempMessageIndex !== -1) {
+            console.log('🔥 ModernAdminChatWidget: Replacing temporary message with real message')
+            const updatedMessages = [...prev]
+            updatedMessages[tempMessageIndex] = {
+              ...updatedMessages[tempMessageIndex],
+              id: realMessageId,
+              timestamp: (data.message as any).createdAt || data.message.timestamp || new Date().toISOString(),
+              status: data.message.status || 'delivered'
+            }
+            return updatedMessages
+          }
+
           const newMessage: Message = {
-            id: data.message._id || data.message.id || `temp_${Date.now()}`,
+            id: realMessageId || `temp_${Date.now()}`,
             content: data.message.content || '',
             sender: data.message.sender === 'admin' || data.message.sender === 'agent' ? 'agent' : 'customer',
             timestamp: (data.message as any).createdAt || data.message.timestamp || new Date().toISOString(),

@@ -744,8 +744,7 @@ export default function CO2() {
               {/* Enhanced Premium Cylinder Brand Selection */}
               <div className="space-y-8">
                 <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#12d6fa]/20 to-[#0bc4e8]/20 rounded-3xl blur-lg group-hover:blur-xl transition-all duration-500"></div>
-                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 shadow-2xl group-hover:shadow-3xl transition-all duration-500 overflow-hidden">
+                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 transition-all duration-500 overflow-hidden">
                     <Select value={selectedCylinder} onValueChange={setSelectedCylinder}>
                       <SelectTrigger className="w-full h-16 border-0 bg-transparent text-lg font-semibold focus:ring-0 focus:outline-none px-6 hover:bg-gradient-to-r hover:from-[#12d6fa]/5 hover:to-[#0bc4e8]/5 transition-all duration-300 group-hover:scale-[1.01]">
                         <div className="flex items-center justify-between w-full">
@@ -1017,8 +1016,7 @@ export default function CO2() {
                 </div>
                 
                 <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#12d6fa]/20 to-[#0bc4e8]/20 rounded-3xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
-                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 shadow-2xl p-8 group-hover:shadow-3xl transition-all duration-300">
+                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 p-8 transition-all duration-300">
                     {/* Quantity Selection Form */}
                     <div className="mb-8">
                       <label className="block text-lg font-semibold text-gray-900 mb-4">
@@ -1066,12 +1064,12 @@ export default function CO2() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                         quantity >= 2 
-                          ? 'bg-gradient-to-br from-[#a8f387]/20 to-[#9ae374]/20 border-[#a8f387] shadow-lg scale-105' 
+                          ? 'bg-gradient-to-br from-[#a8f387]/20 to-[#9ae374]/20 border-[#a8f387] scale-105' 
                           : 'bg-gradient-to-br from-[#a8f387]/10 to-[#9ae374]/10 border-[#a8f387]/20'
                       }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
                           quantity >= 2 
-                            ? 'bg-[#a8f387] shadow-lg scale-110' 
+                            ? 'bg-[#a8f387] scale-110' 
                             : 'bg-[#a8f387]/70'
                         }`}>
                           <span className="text-black font-black text-sm">2+</span>
@@ -1088,12 +1086,12 @@ export default function CO2() {
                       </div>
                       <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                         quantity >= 3 
-                          ? 'bg-gradient-to-br from-blue-600/20 to-[#0bc4e8]/20 border-[#12d6fa] shadow-lg scale-105' 
+                          ? 'bg-gradient-to-br from-blue-600/20 to-[#0bc4e8]/20 border-[#12d6fa] scale-105' 
                           : 'bg-gradient-to-br from-blue-600/10 to-[#0bc4e8]/10 border-blue-200'
                       }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
                           quantity >= 3 
-                            ? 'bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] shadow-lg scale-110' 
+                            ? 'bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] scale-110' 
                             : 'bg-gradient-to-r from-[#12d6fa]/70 to-[#0bc4e8]/70'
                         }`}>
                           <span className="text-white font-black text-sm">3+</span>
@@ -1110,12 +1108,12 @@ export default function CO2() {
                       </div>
                       <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                         quantity >= 4 
-                          ? 'bg-gradient-to-br from-blue-600/20 to-indigo-700/20 border-[#12d6fa] shadow-lg scale-105' 
+                          ? 'bg-gradient-to-br from-blue-600/20 to-indigo-700/20 border-[#12d6fa] scale-105' 
                           : 'bg-gradient-to-br from-blue-600/10 to-indigo-700/10 border-blue-200'
                       }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
                           quantity >= 4 
-                            ? 'bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] shadow-lg scale-110' 
+                            ? 'bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] scale-110' 
                             : 'bg-gradient-to-r from-[#12d6fa]/70 to-[#0bc4e8]/70'
                         }`}>
                           <span className="text-white font-black text-sm">4+</span>
@@ -1138,10 +1136,9 @@ export default function CO2() {
               {/* Enhanced Premium CTAs */}
               <div className="space-y-6">
                 <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-3xl blur-lg group-hover:blur-xl opacity-75 transition-all duration-300"></div>
                   <Button
                     onClick={handleAddToCart}
-                    className="relative w-full bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#12d6fa] text-white px-10 py-6 rounded-3xl font-black text-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 border-0 group-hover:shadow-3xl"
+                    className="relative w-full bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#12d6fa] text-white px-10 py-6 rounded-3xl font-black text-xl transition-all duration-300 hover:scale-105 border-0"
                   >
                     <ShoppingCart className="w-6 h-6 mr-4 group-hover:animate-bounce" />
                     Add Premium Cylinders to Cart

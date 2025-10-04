@@ -158,11 +158,27 @@ class SocketService {
           const isCustomer = chat.customer.userId && chat.customer.userId.toString() === socket.userId;
           const isAdmin = chat.assignedTo && chat.assignedTo.toString() === socket.userId;
           
+          console.log('🔥 Socket message access check:', {
+            chatId,
+            userId: socket.userId,
+            customerUserId: chat.customer.userId?.toString(),
+            assignedTo: chat.assignedTo?.toString(),
+            isCustomer,
+            isAdmin,
+            isAdminUser: socket.user.isAdmin
+          });
+          
+          // Allow if:
+          // 1. User is the customer who created the chat
+          // 2. User is the assigned admin
+          // 3. User is any admin (for admins who want to join/view any chat)
           if (!isCustomer && !isAdmin && !socket.user.isAdmin) {
-            console.log('🔥 Access denied for socket message:', { userId: socket.userId, isCustomer, isAdmin, isAdminUser: socket.user.isAdmin });
-            socket.emit('error', { message: 'Access denied' });
+            console.log('🔥 Access denied for socket message - user is not authorized');
+            socket.emit('message_error', { message: 'Access denied' });
             return;
           }
+          
+          console.log('🔥 Socket message access granted');
 
           // Determine sender type based on user role
           const senderType = (isAdmin || socket.user.isAdmin) ? 'admin' : 'customer';
@@ -213,8 +229,12 @@ class SocketService {
           }
 
         } catch (error) {
-          console.error('Error sending message:', error);
-          socket.emit('error', { message: 'Failed to send message' });
+          console.error('🔥 Error sending message via socket:', error);
+          console.error('🔥 Error details:', error.message, error.stack);
+          socket.emit('message_error', { 
+            message: 'Failed to send message',
+            error: error.message 
+          });
         }
       });
 

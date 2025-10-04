@@ -82,18 +82,20 @@ export function SocketProvider({ children }: SocketProviderProps) {
       auth: {
         token: token
       },
-      transports: ['websocket', 'polling'],
-      timeout: 20000,
+      transports: ['polling', 'websocket'], // Try polling first, then upgrade to websocket
+      timeout: 30000, // Increased timeout to 30 seconds
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      reconnectionAttempts: 15, // Increased attempts
+      reconnectionAttempts: 20, // Increased attempts
       forceNew: true,
       upgrade: true,
-      rememberUpgrade: false,
+      rememberUpgrade: true, // Remember successful upgrades
       autoConnect: true,
       multiplex: false,
-      closeOnBeforeunload: false
+      closeOnBeforeunload: false,
+      withCredentials: true, // Enable credentials for CORS
+      path: '/socket.io/' // Explicit path
     })
     
 
@@ -149,6 +151,14 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
     newSocket.on('error', (error) => {
       console.error('🔥 Socket error event:', error)
+      console.error('🔥 Socket error type:', typeof error)
+      console.error('🔥 Socket error keys:', error ? Object.keys(error) : 'null')
+    })
+    
+    newSocket.on('connect_error', (error) => {
+      console.error('🔥 Socket connect_error:', error)
+      console.error('🔥 Connect error message:', error.message)
+      console.error('🔥 Connect error description:', (error as any).description)
     })
 
     setSocket(newSocket)

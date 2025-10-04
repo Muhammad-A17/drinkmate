@@ -188,7 +188,7 @@ export default function AccountDashboard() {
     }
 
     if (isAuthenticated && user) {
-      fetchAccountData()
+    fetchAccountData()
     } else {
       setLoading(false)
     }
@@ -409,12 +409,12 @@ export default function AccountDashboard() {
       )
 
       // Reset form
-      setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      })
-      setIsChangingPassword(false)
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    })
+    setIsChangingPassword(false)
 
     } catch (error) {
       console.error('Error changing password:', error)

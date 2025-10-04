@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       hasCustomerEmail: !!customerEmail,
       hasCustomerName: !!customerName
     })
-
+    
     // Validate required fields
     if (!amount || !currency || !orderId || !customerEmail || !customerName) {
       console.error('🚀 URWAYS API - Validation failed:', {
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
     } catch (e) {
       console.error('❌ URWAYS API call failed:', e)
       return addSecurityHeaders(NextResponse.json({
-        success: false,
+          success: false, 
         message: 'Payment initiation failed',
         response: urwaysResponse,
         error: sanitizeErrorMessage(e instanceof Error ? e.message : 'Unknown error'),

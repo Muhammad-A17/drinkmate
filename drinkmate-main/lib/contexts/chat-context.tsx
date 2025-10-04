@@ -439,8 +439,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     try {
       const chatData = await loadChatData(chatId)
       if (chatData) {
+        console.log('🔥 ChatProvider: Chat loaded successfully, messages count:', chatData.messages.length)
         dispatch({ type: 'SET_CURRENT_CHAT', payload: chatData })
-        joinChat(chatId)
+        
+        // Join the socket room immediately
+        if (socket && isConnected) {
+          console.log('🔥 ChatProvider: Joining socket room for chat:', chatId)
+          joinChat(chatId)
+        } else {
+          console.log('🔥 ChatProvider: Cannot join socket room - socket:', !!socket, 'connected:', isConnected)
+        }
       } else {
         dispatch({ type: 'SET_ERROR', payload: 'No chat data found' })
       }
@@ -449,7 +457,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }, [loadChatData, joinChat])
+  }, [loadChatData, joinChat, socket, isConnected])
 
   const createNewChat = useCallback(async () => {
     if (!user) return
@@ -561,6 +569,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.currentChat, getAuthToken])
 
+  // Rejoin chat room when socket reconnects
+  useEffect(() => {
+    if (socket && isConnected && state.currentChat) {
+      console.log('🔥 ChatProvider: Socket reconnected, rejoining chat:', state.currentChat._id)
+      joinChat(state.currentChat._id)
+    }
+  }, [socket, isConnected, state.currentChat, joinChat])
+
   // Socket event listeners
   useEffect(() => {
     if (!socket || !isConnected) {
@@ -571,6 +587,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     console.log('🔥 ChatProvider: Setting up socket event listeners')
     console.log('🔥 ChatProvider: Socket connected:', socket.connected)
     console.log('🔥 ChatProvider: Socket ID:', socket.id)
+    console.log('🔥 ChatProvider: Current chat:', state.currentChat?._id)
 
     const handleNewMessage = (data: { chatId: string; message: any }) => {
       console.log('🔥 ChatProvider: New message received:', data)
@@ -590,25 +607,60 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Check if message already exists to prevent duplicates
+      const realMessageId = data.message._id || data.message.id
       const messageExists = stateRef.current.messages.some((msg: Message) => {
-        // Check by real ID first (most reliable)
-        if (msg.id === data.message._id || msg.id === data.message.id) {
+        // Only check by real database ID - this is the most reliable method
+        // Don't check by content/timestamp as that can cause legitimate messages to be skipped
+        if (realMessageId && (msg.id === realMessageId)) {
           return true
         }
         
-        // Only check by content and timestamp if IDs don't match and content is identical
-        if (msg.content === data.message.content && data.message.content && msg.content.length > 0) {
-          const msgTime = new Date(msg.timestamp).getTime()
-          const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
-          // If timestamps are within 1 second, consider it a duplicate
-          return Math.abs(msgTime - dataTime) < 1000
+        // For temporary IDs (starting with 'temp_'), never consider them duplicates
+        // They will be replaced when the real message comes through
+        if (msg.id.toString().startsWith('temp_')) {
+          return false
         }
         
         return false
       })
       
       if (messageExists) {
-        console.log('🔥 ChatProvider: Message already exists, skipping duplicate')
+        console.log('🔥 ChatProvider: Message with ID already exists, skipping duplicate:', realMessageId)
+        return
+      }
+      
+      // If we have a temporary message with the same content within last 5 seconds, replace it with the real one
+      const tempMessageIndex = stateRef.current.messages.findIndex((msg: Message) => {
+        if (!msg.id.toString().startsWith('temp_')) {
+          return false
+        }
+        
+        const isSameSender = msg.sender === (data.message.sender === 'admin' || data.message.sender === 'agent' ? 'agent' : 'customer')
+        const isSameContent = msg.content === data.message.content
+        
+        // Check if it's within last 5 seconds (to avoid replacing old temp messages)
+        const messageTime = new Date(msg.timestamp).getTime()
+        const nowTime = Date.now()
+        const isRecent = (nowTime - messageTime) < 5000
+        
+        return isSameSender && isSameContent && isRecent
+      })
+      
+      if (tempMessageIndex !== -1) {
+        console.log('🔥 ChatProvider: Replacing temporary message with real message')
+        const tempId = stateRef.current.messages[tempMessageIndex].id
+        dispatch({ 
+          type: 'UPDATE_MESSAGE', 
+          payload: { 
+            id: tempId, 
+            updates: {
+              id: realMessageId,
+              timestamp: data.message.createdAt || data.message.timestamp,
+              status: 'delivered'
+            }
+          } 
+        })
+        // IMPORTANT: Return here since we updated the existing message
         return
       }
       

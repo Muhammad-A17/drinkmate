@@ -40,7 +40,7 @@ function MenuTile({
   return (
     <Link 
       href={href} 
-      className={`tile group relative block rounded-2xl p-4 sm:p-5 bg-white border border-slate-200/50 overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-[#12d6fa]/40 hover:-translate-y-2 min-h-[110px] sm:min-h-[120px] ${className}`}
+      className={`tile group relative block rounded-2xl p-2.5 sm:p-3 bg-white border border-slate-200/50 overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-[#12d6fa]/40 hover:-translate-y-2 min-h-[110px] sm:min-h-[120px] ${className}`}
       onMouseEnter={onMouseEnter}
       onClick={onClick}
     >
@@ -49,18 +49,18 @@ function MenuTile({
           {badge}
         </span>
       )}
-      <div className="flex items-center justify-center mb-2 sm:mb-3 h-16 sm:h-18">
+      <div className="flex items-center justify-center mb-1 sm:mb-1.5 h-28 sm:h-32">
         <Image
           src={img}
           alt={alt}
-          width={70}
-          height={70}
-          className="object-contain group-hover:scale-110 transition-transform duration-300 w-16 h-16 sm:w-18 sm:h-18 drop-shadow-sm"
+          width={120}
+          height={120}
+          className="object-contain group-hover:scale-110 transition-transform duration-300 w-28 h-28 sm:w-32 sm:h-32 drop-shadow-sm"
           priority={false}
         />
       </div>
       <div className="text-center">
-        <span className="title block text-sm font-bold text-slate-900 mb-2 group-hover:text-[#12d6fa] transition-colors duration-200">
+        <span className="title block text-sm font-bold text-slate-900 mb-0 group-hover:text-[#12d6fa] transition-colors duration-200">
           {title}
         </span>
         <span className="subcta opacity-0 group-hover:opacity-100 transition-all duration-200 text-xs text-slate-500 font-medium flex items-center justify-center">
@@ -189,7 +189,7 @@ export default function ShopMegaMenu({ isOpen, onOpenChange, isRTL }: ShopMegaMe
               <MenuTile
                 href="/shop/flavor"
                 title="Flavors"
-                img="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892917/italian-strawberry-lemon-syrup_x0cz9h.png"
+                img="https://res.cloudinary.com/dw2h8hejn/image/upload/v1759593778/italian-strawberry-lemon-syrup_rjg0tk_c_crop_ar_9_16_ulj06x.png"
                 alt="Flavors"
                 onMouseEnter={() => handlePrefetch("/shop/flavor")}
                 onClick={() => onOpenChange(false)}
