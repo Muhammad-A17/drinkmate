@@ -1026,7 +1026,7 @@ export default function Home() {
                 {/* Multiple Machine Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <ImageWithFallback
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/Machines_y2di07.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1759588037/B-PNG_1_lkxkf7.png"
                     alt="Soda Makers"
                     width={180}
                     height={225}
@@ -1054,7 +1054,7 @@ export default function Home() {
                 {/* Multiple CO2 Images in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <ImageWithFallback
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/CO2_bodgrh.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1759584073/gg_oywyzh.png"
                     alt="CO2"
                     width={180}
                     height={225}
@@ -1082,7 +1082,7 @@ export default function Home() {
                 {/* Multiple Flavor Images from Flavors Folder in Row */}
                 <div className="flex justify-center items-end space-x-2 h-full">
                   <ImageWithFallback
-                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1756561290/Flavor__ecscmb.png"
+                    src="https://res.cloudinary.com/dw2h8hejn/image/upload/v1759588058/kk_ydccdb.png"
                     alt="Premium Italian Flavors"
                     width={180}
                     height={225}

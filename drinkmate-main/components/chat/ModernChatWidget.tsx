@@ -81,13 +81,9 @@ const ModernChatWidget: React.FC = () => {
 
     // If no current chat, create one
     if (!state.currentChat) {
-      const newChat = await createNewChat()
-      if (newChat) {
-        // Send message after chat is created
-        await sendMessage(messageContent)
-      } else {
-        setError('Failed to create chat session. Please try again.')
-      }
+      await createNewChat()
+      // Send message after chat is created
+      await sendMessage(messageContent)
     } else {
       await sendMessage(messageContent)
     }

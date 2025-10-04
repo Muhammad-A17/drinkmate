@@ -9,7 +9,7 @@
  * @param maxRetries Maximum number of retry attempts
  * @returns Promise with the fetch response
  */
-export async function fetchWithRetry(url: string, options = {}, maxRetries = parseInt(process.env.NEXT_PUBLIC_API_RETRY_ATTEMPTS) || 3) {
+export async function fetchWithRetry(url: string, options = {}, maxRetries = parseInt(process.env.NEXT_PUBLIC_API_RETRY_ATTEMPTS || '3') || 3) {
   let retries = 0;
   let lastError;
   

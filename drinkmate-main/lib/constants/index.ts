@@ -3,9 +3,9 @@
 // API Configuration
 export const API_CONFIG = {
   BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
-  TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT) || 30000,
-  RETRY_ATTEMPTS: parseInt(process.env.NEXT_PUBLIC_API_RETRY_ATTEMPTS) || 3,
-  RETRY_DELAY: parseInt(process.env.NEXT_PUBLIC_API_RETRY_DELAY) || 1000,
+  TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000') || 30000,
+  RETRY_ATTEMPTS: parseInt(process.env.NEXT_PUBLIC_API_RETRY_ATTEMPTS || '3') || 3,
+  RETRY_DELAY: parseInt(process.env.NEXT_PUBLIC_API_RETRY_DELAY || '1000') || 1000,
 } as const
 
 // Application Configuration

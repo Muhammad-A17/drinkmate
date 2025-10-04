@@ -651,6 +651,104 @@ export default function CO2CylindersPage() {
     }
   }
 
+  const initializeSampleData = async () => {
+    try {
+      const sampleCylinders = [
+        {
+          name: "Standard CO2 Cylinder 5kg",
+          brand: "DrinkMate",
+          type: "Standard",
+          price: 150,
+          originalPrice: 180,
+          discount: 30,
+          compatibility: ["DrinkMate Pro", "DrinkMate Elite"],
+          capacity: 5,
+          material: "steel",
+          stock: 50,
+          minStock: 10,
+          isAvailable: true,
+          status: "active",
+          isBestSeller: true,
+          isFeatured: true,
+          isNewProduct: false,
+          isEcoFriendly: true,
+          description: "High-quality 5kg CO2 cylinder perfect for home use",
+          features: ["Durable construction", "Easy to refill", "Long-lasting"],
+          specifications: { "Weight": "5kg", "Pressure": "200 bar", "Material": "Steel" },
+          safetyFeatures: ["Pressure relief valve", "Tamper-proof seal"],
+          certifications: ["CE", "ISO 9001"],
+          dimensions: "15x15x60",
+          weight: 5.2,
+          color: "#3B82F6",
+          icon: "cylinder",
+          sortOrder: 1,
+          parentCategory: "",
+          images: [],
+          videos: [],
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          name: "Premium CO2 Cylinder 10kg",
+          brand: "DrinkMate",
+          type: "Premium",
+          price: 280,
+          originalPrice: 320,
+          discount: 40,
+          compatibility: ["DrinkMate Pro", "DrinkMate Elite", "DrinkMate Commercial"],
+          capacity: 10,
+          material: "aluminum",
+          stock: 25,
+          minStock: 5,
+          isAvailable: true,
+          status: "active",
+          isBestSeller: false,
+          isFeatured: true,
+          isNewProduct: true,
+          isEcoFriendly: true,
+          description: "Premium 10kg CO2 cylinder for commercial and heavy home use",
+          features: ["Lightweight aluminum", "Commercial grade", "Extended capacity"],
+          specifications: { "Weight": "10kg", "Pressure": "200 bar", "Material": "Aluminum" },
+          safetyFeatures: ["Double safety valve", "Pressure gauge", "Tamper-proof seal"],
+          certifications: ["CE", "ISO 9001", "FDA Approved"],
+          dimensions: "20x20x80",
+          weight: 10.5,
+          color: "#10B981",
+          icon: "cylinder",
+          sortOrder: 2,
+          parentCategory: "",
+          images: [],
+          videos: [],
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+
+      // Add sample cylinders one by one
+      for (const cylinderData of sampleCylinders) {
+        try {
+          const response = await co2API.createCylinder(cylinderData);
+          if (response.success) {
+            console.log('Sample cylinder created:', cylinderData.name);
+          }
+        } catch (error) {
+          console.error('Error creating sample cylinder:', cylinderData.name, error);
+        }
+      }
+
+      // Refresh the cylinders list
+      await fetchCylinders();
+      
+      // Show success message
+      alert('Sample data initialized successfully!');
+    } catch (error) {
+      console.error('Error initializing sample data:', error);
+      alert('Error initializing sample data. Please try again.');
+    }
+  };
+
   const handleEdit = (cylinder: CO2Cylinder) => {
     console.log('handleEdit called for cylinder:', cylinder.name)
     setEditingCylinder(cylinder)

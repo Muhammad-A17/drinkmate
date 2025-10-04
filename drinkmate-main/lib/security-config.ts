@@ -103,10 +103,10 @@ export const SECURITY_CONFIG = {
     // Request size limits
     maxRequestSize: '10mb',
     // Timeout settings
-    timeout: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT) || 30000, // 30 seconds
+    timeout: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000') || 30000, // 30 seconds
     // Retry settings
-    maxRetries: parseInt(process.env.NEXT_PUBLIC_API_RETRY_ATTEMPTS) || 3,
-    retryDelay: parseInt(process.env.NEXT_PUBLIC_API_RETRY_DELAY) || 1000 // 1 second
+    maxRetries: parseInt(process.env.NEXT_PUBLIC_API_RETRY_ATTEMPTS || '3') || 3,
+    retryDelay: parseInt(process.env.NEXT_PUBLIC_API_RETRY_DELAY || '1000') || 1000 // 1 second
   }
 }
 

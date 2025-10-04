@@ -1176,7 +1176,7 @@ export default function AdminCategoriesPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDuplicateCategory(category)}
+                          onClick={() => handleDuplicateItem(category)}
                           title="Duplicate Category"
                         >
                           <Copy className="w-4 h-4" />
@@ -1320,7 +1320,7 @@ export default function AdminCategoriesPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDuplicateSubcategory(subcategory)}
+                          onClick={() => handleDuplicateItem(subcategory)}
                           title="Duplicate Subcategory"
                         >
                           <Copy className="w-4 h-4" />

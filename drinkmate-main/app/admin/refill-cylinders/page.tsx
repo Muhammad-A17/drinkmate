@@ -174,8 +174,8 @@ export default function RefillCylindersPage() {
     } catch (error) {
       console.error("Error fetching refill cylinders:", error)
       toast.error("Failed to fetch refill cylinders")
-      // Fallback to mock data if API fails
-      setCylinders(getMockCylinders())
+      // Set empty array if API fails
+      setCylinders([])
     } finally {
       setLoading(false)
     }
