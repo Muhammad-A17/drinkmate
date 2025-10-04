@@ -856,6 +856,178 @@ export const shopAPI = {
   },
 };
 
+// Cart API
+export const cartAPI = {
+  // Get user's cart from database
+  getCart: async () => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        return {
+          success: false,
+          message: 'Authentication required',
+          cart: null
+        };
+      }
+
+      const response = await api.get('/cart', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error getting cart from API:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to get cart',
+        cart: null
+      };
+    }
+  },
+
+  // Add item to cart (saves to database)
+  addToCart: async (productId: string, quantity: number = 1, variants: any[] = []) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        return {
+          success: false,
+          message: 'Authentication required'
+        };
+      }
+
+      const response = await api.post('/cart/add', 
+        { productId, quantity, variants },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error adding to cart:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to add item to cart'
+      };
+    }
+  },
+
+  // Update item quantity in cart
+  updateCartItem: async (productId: string, quantity: number) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        return {
+          success: false,
+          message: 'Authentication required'
+        };
+      }
+
+      const response = await api.put('/cart/update',
+        { productId, quantity },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating cart item:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to update cart item'
+      };
+    }
+  },
+
+  // Remove item from cart
+  removeFromCart: async (productId: string) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        return {
+          success: false,
+          message: 'Authentication required'
+        };
+      }
+
+      const response = await api.delete(`/cart/remove/${productId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error removing from cart:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to remove item from cart'
+      };
+    }
+  },
+
+  // Clear entire cart
+  clearCart: async () => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        return {
+          success: false,
+          message: 'Authentication required'
+        };
+      }
+
+      const response = await api.delete('/cart/clear', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error clearing cart:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to clear cart'
+      };
+    }
+  },
+
+  // Sync localStorage cart with database (merge)
+  syncCart: async (items: any[]) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        return {
+          success: false,
+          message: 'Authentication required',
+          cart: null
+        };
+      }
+
+      const response = await api.post('/cart/sync',
+        { items },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error syncing cart:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to sync cart',
+        cart: null
+      };
+    }
+  },
+};
+
 // Order API
 export const orderAPI = {
   // Create order (authenticated users)

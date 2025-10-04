@@ -53,6 +53,7 @@ const recipeRouter = require('./Router/recipe-router');
 const recommendationRouter = require('./Router/recommendation-router');
 const wishlistRouter = require('./Router/wishlist-router');
 const aramexRouter = require('./Router/aramex-router');
+const cartRouter = require('./Router/cart-router');
 const { Server } = require('socket.io');
 const http = require('http');
 
@@ -186,6 +187,7 @@ app.use('/recipes', generalLimiter, recipeRouter);
 app.use('/recommendations', generalLimiter, recommendationRouter);
 app.use('/wishlist', generalLimiter, wishlistRouter);
 app.use('/aramex', generalLimiter, aramexRouter);
+app.use('/cart', generalLimiter, cartRouter);
 
 // API prefix routes for frontend compatibility
 app.use('/api/admin', generalLimiter, adminRouter);
@@ -204,6 +206,7 @@ app.use('/api/recipes', generalLimiter, recipeRouter);
 app.use('/api/recommendations', generalLimiter, recommendationRouter);
 app.use('/api/wishlist', generalLimiter, wishlistRouter);
 app.use('/api/aramex', generalLimiter, aramexRouter);
+app.use('/api/cart', generalLimiter, cartRouter);
 
 // Agents endpoint (placeholder for frontend compatibility)
 app.get('/agents', generalLimiter, authenticateToken, isAdmin, (req, res) => {

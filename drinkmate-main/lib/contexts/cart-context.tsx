@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo, useRef } from 'react'
 import { getCategoryName } from '@/lib/utils/category-utils'
+import { cartAPI } from '@/lib/api'
 
 export interface CartItem {
   id: string | number
@@ -48,6 +49,8 @@ interface CartContextType {
   switchUserCart: (userId?: string | null) => void
   showToast: (item: CartItem) => void
   hideToast: () => void
+  syncWithDatabase: () => Promise<void>
+  loadCartFromDatabase: () => Promise<void>
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -210,6 +213,7 @@ const initialState: CartState = {
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState)
   const currentUserIdRef = useRef<string | null>(null)
+  const currentCartItemsRef = useRef<CartItem[]>([])
 
   // Helper function to get user-specific cart key
   const getCartKey = useCallback((userId?: string | null) => {
@@ -285,6 +289,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [state.items])
 
+  // Keep track of current cart items in a ref
+  useEffect(() => {
+    currentCartItemsRef.current = state.items
+  }, [state.items])
+
   // Save cart to localStorage whenever it changes
   // Using a debounced effect to avoid frequent localStorage writes
   useEffect(() => {
@@ -338,6 +347,61 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'HIDE_TOAST' })
   }, [])
 
+  // Load cart from database
+  const loadCartFromDatabase = useCallback(async () => {
+    if (typeof window === 'undefined') return
+    
+    const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+    if (!token) {
+      console.log('No auth token, skipping database cart load')
+      return
+    }
+    
+    try {
+      console.log('Loading cart from database...')
+      const response = await cartAPI.getCart()
+      
+      if (response.success && response.cart) {
+        const dbItems = response.cart.items || []
+        console.log('Loaded cart from database - items:', dbItems.length)
+        dispatch({ type: 'LOAD_CART', payload: dbItems })
+      }
+    } catch (error) {
+      console.error('Error loading cart from database:', error)
+    }
+  }, [])
+
+  // Sync current cart with database
+  const syncWithDatabase = useCallback(async () => {
+    if (typeof window === 'undefined') return
+    
+    const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+    if (!token) {
+      console.log('No auth token, skipping database sync')
+      return
+    }
+    
+    try {
+      const currentItems = currentCartItemsRef.current
+      if (currentItems.length === 0) {
+        console.log('Cart is empty, skipping sync')
+        return
+      }
+      
+      console.log('Syncing cart with database - items:', currentItems.length)
+      const response = await cartAPI.syncCart(currentItems)
+      
+      if (response.success && response.cart) {
+        console.log('Cart synced successfully')
+        // Update local state with merged cart from database
+        const dbItems = response.cart.items || []
+        dispatch({ type: 'LOAD_CART', payload: dbItems })
+      }
+    } catch (error) {
+      console.error('Error syncing cart with database:', error)
+    }
+  }, [])
+
   const switchUserCart = useCallback((userId?: string | null) => {
     if (typeof window === 'undefined') return
     
@@ -351,41 +415,39 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     console.log('Switching cart from', currentUserIdRef.current, 'to', newUserId)
     
-    // Save current cart before switching
-    if (currentUserIdRef.current !== null) {
-      const currentCartKey = getCartKey(currentUserIdRef.current)
-      localStorage.setItem(currentCartKey, JSON.stringify(state.items))
-      console.log('Saved cart for user:', currentUserIdRef.current)
-    } else if (currentUserIdRef.current === null) {
-      // Save guest cart
-      const guestCartKey = getCartKey(null)
-      localStorage.setItem(guestCartKey, JSON.stringify(state.items))
-      console.log('Saved guest cart')
-    }
+    // Save current cart before switching using the ref (which has the latest items)
+    const currentCartKey = getCartKey(currentUserIdRef.current)
+    const currentItems = currentCartItemsRef.current
+    localStorage.setItem(currentCartKey, JSON.stringify(currentItems))
+    console.log('Saved cart for user/guest:', currentUserIdRef.current, '- items:', currentItems.length)
     
     // Update the ref BEFORE dispatching to prevent re-triggering
     currentUserIdRef.current = newUserId
     
-    // Load new user's cart
-    const newCartKey = getCartKey(newUserId)
-    const savedCart = localStorage.getItem(newCartKey)
-    
-    if (savedCart) {
-      try {
-        const parsedCart = JSON.parse(savedCart)
-        const validItems = parsedCart.filter((item: any) => item.id !== undefined && item.id !== null)
-        console.log('Loading cart for user:', newUserId, '- items:', validItems.length)
-        dispatch({ type: 'LOAD_CART', payload: validItems })
-      } catch (error) {
-        console.error('Error loading new user cart:', error)
+    if (newUserId) {
+      // User logged in - load cart from database
+      loadCartFromDatabase()
+    } else {
+      // User logged out - load guest cart from localStorage
+      const newCartKey = getCartKey(null)
+      const savedCart = localStorage.getItem(newCartKey)
+      
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart)
+          const validItems = parsedCart.filter((item: any) => item.id !== undefined && item.id !== null)
+          console.log('Loading guest cart - items:', validItems.length)
+          dispatch({ type: 'LOAD_CART', payload: validItems })
+        } catch (error) {
+          console.error('Error loading guest cart:', error)
+          dispatch({ type: 'LOAD_CART', payload: [] })
+        }
+      } else {
+        console.log('No guest cart found, starting with empty cart')
         dispatch({ type: 'LOAD_CART', payload: [] })
       }
-    } else {
-      // No saved cart for this user, start with empty cart
-      console.log('No saved cart for user:', newUserId, '- starting with empty cart')
-      dispatch({ type: 'LOAD_CART', payload: [] })
     }
-  }, [getCartKey])
+  }, [getCartKey, loadCartFromDatabase])
 
   // Memoize the context value to prevent unnecessary re-renders
   const value = useMemo(() => ({
@@ -398,8 +460,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     getItemQuantity,
     switchUserCart,
     showToast,
-    hideToast
-  }), [state, addItem, removeItem, updateQuantity, clearCart, isInCart, getItemQuantity, switchUserCart, showToast, hideToast])
+    hideToast,
+    syncWithDatabase,
+    loadCartFromDatabase
+  }), [state, addItem, removeItem, updateQuantity, clearCart, isInCart, getItemQuantity, switchUserCart, showToast, hideToast, syncWithDatabase, loadCartFromDatabase])
 
   return (
     <CartContext.Provider value={value}>
