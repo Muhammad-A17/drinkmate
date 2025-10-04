@@ -227,14 +227,14 @@ export default function CloudinaryImageUpload({
           
           const response = await adminAPI.uploadImage(compressedFile)
           
-          if (response.success) {
+          if (response.success && response.imageUrl && response.publicId && response.filename) {
             return {
               url: response.imageUrl,
               publicId: response.publicId,
               filename: response.filename
             }
           } else {
-            throw new Error(response.message || 'Upload failed')
+            throw new Error(response.message || 'Upload failed - missing required data')
           }
         } catch (error: any) {
           console.error(`Error uploading ${file.name}:`, error)

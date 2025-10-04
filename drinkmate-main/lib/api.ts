@@ -1670,7 +1670,14 @@ export const adminAPI = {
   },
   
   // Image management
-  uploadImage: async (file: File, retryCount = 0) => {
+  uploadImage: async (file: File, retryCount = 0): Promise<{
+    success: boolean;
+    message: string;
+    imageUrl?: string;
+    publicId?: string;
+    filename?: string;
+    error?: string;
+  }> => {
     const formData = new FormData();
     formData.append('image', file);
     
