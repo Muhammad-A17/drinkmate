@@ -44,6 +44,7 @@ interface CartContextType {
   clearCart: () => void
   isInCart: (id: string | number) => boolean
   getItemQuantity: (id: string | number) => number
+  switchUserCart: (userId?: string | null) => void
   showToast: (item: CartItem) => void
   hideToast: () => void
 }
@@ -198,10 +199,47 @@ const initialState: CartState = {
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState)
 
+  // Helper function to get user-specific cart key
+  const getCartKey = (userId?: string | null) => {
+    if (userId) {
+      return `drinkmate-cart-${userId}`
+    }
+    return 'drinkmate-cart-guest'
+  }
+
   // Load cart from localStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedCart = localStorage.getItem('drinkmate-cart')
+      // Try to get user ID from auth token
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      let userId = null
+      
+      if (token) {
+        try {
+          // Decode JWT token to get user ID
+          const payload = JSON.parse(atob(token.split('.')[1]))
+          userId = payload.id
+        } catch (error) {
+          console.warn('Could not decode auth token for cart loading:', error)
+        }
+      }
+      
+      const cartKey = getCartKey(userId)
+      let savedCart = localStorage.getItem(cartKey)
+      
+      // Migration: If no user-specific cart exists, try to migrate from old shared cart
+      if (!savedCart && userId) {
+        const oldCartKey = 'drinkmate-cart'
+        const oldCart = localStorage.getItem(oldCartKey)
+        if (oldCart) {
+          console.log('Migrating cart from old shared key to user-specific key')
+          localStorage.setItem(cartKey, oldCart)
+          // Remove old cart to prevent confusion
+          localStorage.removeItem(oldCartKey)
+          savedCart = oldCart
+        }
+      }
+      
       if (savedCart) {
         try {
           const parsedCart = JSON.parse(savedCart)
@@ -237,7 +275,22 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (typeof window === 'undefined') return
     
     const timeoutId = setTimeout(() => {
-      localStorage.setItem('drinkmate-cart', JSON.stringify(state.items))
+      // Get current user ID for cart key
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      let userId = null
+      
+      if (token) {
+        try {
+          // Decode JWT token to get user ID
+          const payload = JSON.parse(atob(token.split('.')[1]))
+          userId = payload.id
+        } catch (error) {
+          console.warn('Could not decode auth token for cart saving:', error)
+        }
+      }
+      
+      const cartKey = getCartKey(userId)
+      localStorage.setItem(cartKey, JSON.stringify(state.items))
     }, 300) // 300ms debounce
     
     return () => clearTimeout(timeoutId)
@@ -280,6 +333,46 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'HIDE_TOAST' })
   }, [])
 
+  const switchUserCart = useCallback((userId?: string | null) => {
+    if (typeof window === 'undefined') return
+    
+    // Save current cart before switching
+    const currentToken = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+    let currentUserId = null
+    
+    if (currentToken) {
+      try {
+        const payload = JSON.parse(atob(currentToken.split('.')[1]))
+        currentUserId = payload.id
+      } catch (error) {
+        console.warn('Could not decode current auth token for cart switching:', error)
+      }
+    }
+    
+    if (currentUserId) {
+      const currentCartKey = getCartKey(currentUserId)
+      localStorage.setItem(currentCartKey, JSON.stringify(state.items))
+    }
+    
+    // Load new user's cart
+    const newCartKey = getCartKey(userId)
+    const savedCart = localStorage.getItem(newCartKey)
+    
+    if (savedCart) {
+      try {
+        const parsedCart = JSON.parse(savedCart)
+        const validItems = parsedCart.filter((item: any) => item.id !== undefined && item.id !== null)
+        dispatch({ type: 'LOAD_CART', payload: validItems })
+      } catch (error) {
+        console.error('Error loading new user cart:', error)
+        dispatch({ type: 'LOAD_CART', payload: [] })
+      }
+    } else {
+      // No saved cart for this user, start with empty cart
+      dispatch({ type: 'LOAD_CART', payload: [] })
+    }
+  }, [state.items, getCartKey])
+
   // Memoize the context value to prevent unnecessary re-renders
   const value = useMemo(() => ({
     state,
@@ -289,9 +382,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     clearCart,
     isInCart,
     getItemQuantity,
+    switchUserCart,
     showToast,
     hideToast
-  }), [state, addItem, removeItem, updateQuantity, clearCart, isInCart, getItemQuantity, showToast, hideToast])
+  }), [state, addItem, removeItem, updateQuantity, clearCart, isInCart, getItemQuantity, switchUserCart, showToast, hideToast])
 
   return (
     <CartContext.Provider value={value}>

@@ -28,6 +28,15 @@ export interface AdminTranslations {
   // Dashboard
   dashboard: {
     title: string;
+    subtitle: string;
+    refresh: string;
+    error: {
+      title: string;
+    };
+    chat: {
+      title: string;
+      label: string;
+    };
     totalRevenue: string;
     totalOrders: string;
     totalUsers: string;
@@ -305,6 +314,15 @@ export const adminTranslations: Record<Language, AdminTranslations> = {
     },
     dashboard: {
       title: "Admin Dashboard",
+      subtitle: "Welcome to your admin control panel. Monitor your business performance and manage your store.",
+      refresh: "Refresh Data",
+      chat: {
+        title: "Live Chat Support",
+        label: "Live Chat"
+      },
+      error: {
+        title: "Error Loading Dashboard"
+      },
       totalRevenue: "Total Revenue",
       totalOrders: "Total Orders",
       totalUsers: "Total Users",
@@ -568,6 +586,15 @@ export const adminTranslations: Record<Language, AdminTranslations> = {
     },
     dashboard: {
       title: "لوحة تحكم المشرف",
+      subtitle: "مرحباً بك في لوحة تحكم المشرف. راقب أداء عملك وأدر متجرك.",
+      refresh: "تحديث البيانات",
+      chat: {
+        title: "دعم الدردشة المباشرة",
+        label: "الدردشة المباشرة"
+      },
+      error: {
+        title: "خطأ في تحميل لوحة التحكم"
+      },
       totalRevenue: "إجمالي الإيرادات",
       totalOrders: "إجمالي الطلبات",
       totalUsers: "إجمالي المستخدمين",

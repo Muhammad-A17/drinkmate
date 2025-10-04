@@ -71,7 +71,7 @@ interface Order {
 
 export default function AccountDashboard() {
   const { language, isRTL } = useTranslation()
-  const { user, refreshUser } = useAuth()
+  const { user, refreshUser, isAuthenticated } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -138,49 +138,48 @@ export default function AccountDashboard() {
       try {
         setLoading(true)
         
-        // Mock orders data
-        const mockOrders: Order[] = [
-            {
-              id: '1',
-              number: 'DM-2024-001',
-              createdAt: '2024-01-15T10:30:00Z',
-              status: 'delivered',
-              total: 299.99,
-            itemsCount: 3,
-            items: [
-              { name: 'DrinkMate OmniFizz', quantity: 1, price: 199.99 },
-              { name: 'CO₂ Cylinder', quantity: 2, price: 50.00 }
-            ]
-            },
-            {
-              id: '2',
-              number: 'DM-2024-002',
-              createdAt: '2024-01-10T14:20:00Z',
-              status: 'shipped',
-              total: 149.99,
-            itemsCount: 1,
-            items: [
-              { name: 'Premium Flavor Pack', quantity: 1, price: 149.99 }
-            ]
-            },
-            {
-              id: '3',
-              number: 'DM-2024-003',
-              createdAt: '2024-01-05T09:15:00Z',
-              status: 'processing',
-              total: 89.99,
-            itemsCount: 2,
-            items: [
-              { name: 'Extra CO₂ Cylinder', quantity: 2, price: 89.99 }
-            ]
-          }
-        ]
+        // Get auth token
+        const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+        if (!token) {
+          setError('Not authenticated')
+          return
+        }
 
-        
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        setOrders(mockOrders)
+        // Fetch real orders from API
+        const ordersResponse = await fetch('/api/user/orders?limit=10', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (ordersResponse.ok) {
+          const ordersData = await ordersResponse.json()
+          if (ordersData.success && ordersData.data) {
+            // Transform API data to match our Order interface
+            const transformedOrders: Order[] = ordersData.data.orders?.map((order: any) => ({
+              id: order._id || order.id,
+              number: order.orderNumber || order.order_number || `DM-${order._id?.slice(-8) || 'N/A'}`,
+              createdAt: order.createdAt || order.created_at || new Date().toISOString(),
+              status: order.status || 'pending',
+              total: order.totalAmount || order.total_amount || 0,
+              itemsCount: order.items?.length || 0,
+              items: order.items?.map((item: any) => ({
+                name: item.name || 'Unknown Item',
+                quantity: item.quantity || 1,
+                price: item.price || 0
+              })) || []
+            })) || []
+            
+            setOrders(transformedOrders)
+          } else {
+            // If no orders found, set empty array
+            setOrders([])
+          }
+        } else {
+          // If API fails, fall back to empty array
+          console.warn('Failed to fetch orders, using empty array')
+          setOrders([])
+        }
       } catch (err) {
         setError('Failed to load account data')
       } finally {
@@ -188,8 +187,12 @@ export default function AccountDashboard() {
       }
     }
 
-    fetchAccountData()
-  }, [])
+    if (isAuthenticated && user) {
+      fetchAccountData()
+    } else {
+      setLoading(false)
+    }
+  }, [isAuthenticated, user])
 
   const handleProfileSave = async () => {
     try {
@@ -348,15 +351,77 @@ export default function AccountDashboard() {
     }
   }
 
-  const handlePasswordChange = () => {
-    // Here you would typically make an API call to change the password
-    console.log('Changing password:', passwordData)
-    setPasswordData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    })
-    setIsChangingPassword(false)
+  const handlePasswordChange = async () => {
+    try {
+      // Basic validation
+      if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+        toast.error(
+          language === 'AR' ? 'جميع الحقول مطلوبة' : 'All fields are required'
+        )
+        return
+      }
+
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        toast.error(
+          language === 'AR' ? 'كلمة المرور الجديدة غير متطابقة' : 'New passwords do not match'
+        )
+        return
+      }
+
+      if (passwordData.newPassword.length < 8) {
+        toast.error(
+          language === 'AR' ? 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' : 'Password must be at least 8 characters'
+        )
+        return
+      }
+
+      // Get auth token
+      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+      if (!token) {
+        toast.error(
+          language === 'AR' ? 'غير مسجل الدخول' : 'Not authenticated'
+        )
+        return
+      }
+
+      // Call API to change password
+      const response = await fetch('/api/user/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to change password')
+      }
+
+      // Success
+      toast.success(
+        language === 'AR' ? 'تم تغيير كلمة المرور بنجاح' : 'Password changed successfully'
+      )
+
+      // Reset form
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      })
+      setIsChangingPassword(false)
+
+    } catch (error) {
+      console.error('Error changing password:', error)
+      toast.error(
+        language === 'AR' ? 'حدث خطأ في تغيير كلمة المرور' : 'Error changing password'
+      )
+    }
   }
 
   const handleViewOrder = (orderId: string) => {
