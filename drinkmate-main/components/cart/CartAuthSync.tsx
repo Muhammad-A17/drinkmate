@@ -22,17 +22,23 @@ export default function CartAuthSync() {
     lastUserIdRef.current = currentUserId
     
     if (isAuthenticated && user) {
-      console.log('User logged in, switching to user cart and syncing with database')
+      console.log('User logged in, switching to user cart')
+      
+      // Save current guest cart before switching
+      const guestCartKey = 'drinkmate-cart-guest'
+      const guestCart = localStorage.getItem(guestCartKey)
+      const guestItems = guestCart ? JSON.parse(guestCart) : []
       
       // Switch to user cart (this will load from database)
       switchUserCart(user._id)
       
-      // If there were items in guest cart (localStorage), sync them with database
-      if (!hasLoggedInRef.current && state.items.length > 0) {
-        console.log('Syncing guest cart with database on login')
+      // If there were items in guest cart, merge them with database cart after a delay
+      if (!hasLoggedInRef.current && guestItems.length > 0) {
+        console.log('Guest cart has items, will merge after user cart loads')
         setTimeout(() => {
+          console.log('Merging guest cart with database cart')
           syncWithDatabase()
-        }, 500) // Small delay to ensure switchUserCart completes
+        }, 1000) // Longer delay to ensure switchUserCart completes
       }
       
       hasLoggedInRef.current = true
@@ -42,7 +48,7 @@ export default function CartAuthSync() {
       switchUserCart(null)
       hasLoggedInRef.current = false
     }
-  }, [isAuthenticated, user, switchUserCart, syncWithDatabase, state.items.length])
+  }, [isAuthenticated, user, switchUserCart, syncWithDatabase])
 
   // This component doesn't render anything
   return null

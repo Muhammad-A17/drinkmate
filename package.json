@@ -2,7 +2,9 @@
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",
     "axios": "^1.12.2",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "node-fetch": "^3.3.2",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "eslint": "^9.36.0"

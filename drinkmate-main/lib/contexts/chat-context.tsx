@@ -609,18 +609,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // Check if message already exists to prevent duplicates
       const realMessageId = data.message._id || data.message.id
       const messageExists = stateRef.current.messages.some((msg: Message) => {
-        // Only check by real database ID - this is the most reliable method
-        // Don't check by content/timestamp as that can cause legitimate messages to be skipped
-        if (realMessageId && (msg.id === realMessageId)) {
-          return true
-        }
-        
-        // For temporary IDs (starting with 'temp_'), never consider them duplicates
-        // They will be replaced when the real message comes through
-        if (msg.id.toString().startsWith('temp_')) {
-          return false
-        }
-        
+        if (realMessageId && (msg.id === realMessageId)) return true
+        if (msg.id.toString().startsWith('temp_')) return false // Never consider temp IDs as duplicates
         return false
       })
       
@@ -631,18 +621,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       
       // If we have a temporary message with the same content within last 5 seconds, replace it with the real one
       const tempMessageIndex = stateRef.current.messages.findIndex((msg: Message) => {
-        if (!msg.id.toString().startsWith('temp_')) {
-          return false
-        }
-        
+        if (!msg.id.toString().startsWith('temp_')) return false
         const isSameSender = msg.sender === (data.message.sender === 'admin' || data.message.sender === 'agent' ? 'agent' : 'customer')
         const isSameContent = msg.content === data.message.content
-        
-        // Check if it's within last 5 seconds (to avoid replacing old temp messages)
         const messageTime = new Date(msg.timestamp).getTime()
         const nowTime = Date.now()
-        const isRecent = (nowTime - messageTime) < 5000
-        
+        const isRecent = (nowTime - messageTime) < 5000 // Only replace recent temp messages
         return isSameSender && isSameContent && isRecent
       })
       
@@ -660,8 +644,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             }
           } 
         })
-        // IMPORTANT: Return here since we updated the existing message
-        return
+        return // IMPORTANT: Return after updating
       }
       
       const message: Message = {

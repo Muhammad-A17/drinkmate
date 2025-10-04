@@ -481,6 +481,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     if (newUserId) {
       // User logged in - load cart from database
+      console.log('Loading user cart from database for user:', newUserId)
       loadCartFromDatabase()
     } else {
       // User logged out - load guest cart from localStorage
