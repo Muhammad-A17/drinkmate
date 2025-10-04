@@ -40,10 +40,10 @@ type CartAction =
 
 interface CartContextType {
   state: CartState
-  addItem: (item: CartItem) => void
-  removeItem: (id: string | number) => void
-  updateQuantity: (id: string | number, quantity: number) => void
-  clearCart: () => void
+  addItem: (item: CartItem) => Promise<void>
+  removeItem: (id: string | number) => Promise<void>
+  updateQuantity: (id: string | number, quantity: number) => Promise<void>
+  clearCart: () => Promise<void>
   isInCart: (id: string | number) => boolean
   getItemQuantity: (id: string | number) => number
   switchUserCart: (userId?: string | null) => void
@@ -311,23 +311,78 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [state.items, getCartKey])
 
   // Memoize cart operations to prevent unnecessary re-renders
-  const addItem = useCallback((item: CartItem) => {
+  const addItem = useCallback(async (item: CartItem) => {
     console.log('Cart context - adding item:', item)
     console.log('Cart context - item image:', item.image)
     console.log('Cart context - item image type:', typeof item.image)
+    
+    // Add to local state immediately for instant UI feedback
     dispatch({ type: 'ADD_ITEM', payload: item })
+    
+    // If user is authenticated, also save to database
+    const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+    if (token) {
+      try {
+        console.log('Saving item to database...')
+        const productId = item.productId || item.id
+        await cartAPI.addToCart(String(productId), item.quantity, [])
+        console.log('Item saved to database successfully')
+      } catch (error) {
+        console.error('Error saving item to database:', error)
+        // Continue anyway - item is already in localStorage
+      }
+    }
   }, [])
 
-  const removeItem = useCallback((id: string | number) => {
+  const removeItem = useCallback(async (id: string | number) => {
+    // Remove from local state immediately
     dispatch({ type: 'REMOVE_ITEM', payload: id })
+    
+    // If user is authenticated, also remove from database
+    const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+    if (token) {
+      try {
+        console.log('Removing item from database...')
+        await cartAPI.removeFromCart(String(id))
+        console.log('Item removed from database successfully')
+      } catch (error) {
+        console.error('Error removing item from database:', error)
+      }
+    }
   }, [])
 
-  const updateQuantity = useCallback((id: string | number, quantity: number) => {
+  const updateQuantity = useCallback(async (id: string | number, quantity: number) => {
+    // Update local state immediately
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } })
+    
+    // If user is authenticated, also update in database
+    const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+    if (token) {
+      try {
+        console.log('Updating item quantity in database...')
+        await cartAPI.updateCartItem(String(id), quantity)
+        console.log('Item quantity updated in database successfully')
+      } catch (error) {
+        console.error('Error updating item quantity in database:', error)
+      }
+    }
   }, [])
 
-  const clearCart = useCallback(() => {
+  const clearCart = useCallback(async () => {
+    // Clear local state immediately
     dispatch({ type: 'CLEAR_CART' })
+    
+    // If user is authenticated, also clear database cart
+    const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+    if (token) {
+      try {
+        console.log('Clearing cart in database...')
+        await cartAPI.clearCart()
+        console.log('Cart cleared in database successfully')
+      } catch (error) {
+        console.error('Error clearing cart in database:', error)
+      }
+    }
   }, [])
 
   const isInCart = useCallback((id: string | number): boolean => {
