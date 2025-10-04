@@ -16,10 +16,6 @@ import { Providers } from "@/components/providers"
 import { suppressHydrationWarnings } from "@/lib/suppress-hydration-warnings"
 import FloatingCartButton from "@/components/cart/FloatingCartButton"
 import CartToastWrapper from "@/components/cart/CartToastWrapper"
-import CartAuthSync from "@/components/cart/CartAuthSync"
-import CartIsolationTest from "@/components/cart/CartIsolationTest"
-import ChatSystemTest from "@/components/chat/ChatSystemTest"
-import WishlistTest from "@/components/wishlist/WishlistTest"
 import { NavigationLoader } from "@/components/ui/NavigationLoader"
 
 // Suppress hydration warnings caused by browser extensions - run immediately
@@ -418,7 +414,6 @@ export default function RootLayout({
               <NavigationLoader />
               <CartProvider>
                 <AuthProvider>
-                  <CartAuthSync />
                   <SocketProvider>
                     <SWRProvider>
                       <ChatStatusProvider>
@@ -427,9 +422,6 @@ export default function RootLayout({
                             <div suppressHydrationWarning>{children}</div>
                             <FloatingCartButton />
                             <CartToastWrapper />
-                            <CartIsolationTest />
-                            <ChatSystemTest />
-                            <WishlistTest />
                           </Providers>
                           <ChatProvider />
                         </ChatContextProvider>
