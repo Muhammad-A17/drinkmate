@@ -1,0 +1,27 @@
+/* Image Zoom Modal Styles */
+.imageContainer {
+  transform-origin: center center;
+}
+
+.imageContainer img {
+  max-width: none;
+  max-height: none;
+  width: auto;
+  height: auto;
+}
+
+.transformContainer {
+  transform-origin: center center;
+}
+
+.instructions {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.instructions span {
+  font-size: 0.75rem;
+}

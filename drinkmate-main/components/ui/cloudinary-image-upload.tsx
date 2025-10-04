@@ -121,19 +121,63 @@ export default function CloudinaryImageUpload({
   }
   const [isUploading, setIsUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
+
+  // Helper function to compress image
+  const compressImage = (file: File, maxWidth: number = 1000, quality: number = 0.8): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = new Image()
+      
+      img.onload = () => {
+        // Calculate new dimensions
+        let { width, height } = img
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width
+          width = maxWidth
+        }
+        
+        canvas.width = width
+        canvas.height = height
+        
+        // Draw and compress
+        ctx?.drawImage(img, 0, 0, width, height)
+        
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name, {
+                type: file.type,
+                lastModified: Date.now()
+              })
+              resolve(compressedFile)
+            } else {
+              resolve(file) // Fallback to original file
+            }
+          },
+          file.type,
+          quality
+        )
+      }
+      
+      img.src = URL.createObjectURL(file)
+    })
+  }
 
   const handleImageUpload = async (files: FileList) => {
     if (disabled || isUploading) return
     
     const fileArray = Array.from(files)
     const validFiles = fileArray.filter(file => {
-      // Check file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
+      // Check file size (5MB limit for faster uploads)
+      if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "File too large",
-          description: `${file.name} is too large. Maximum size is 10MB.`,
+          description: `${file.name} is too large. Maximum size is 5MB.`,
           variant: "destructive"
         })
         return false
@@ -165,11 +209,23 @@ export default function CloudinaryImageUpload({
     }
 
     setIsUploading(true)
+    setUploadError(null)
+    
+    // Show initial upload toast
+    toast({
+      title: "Uploading images...",
+      description: "Please wait while we upload your images to Cloudinary.",
+      duration: 5000
+    })
     
     try {
       const uploadPromises = validFiles.map(async (file) => {
         try {
-          const response = await adminAPI.uploadImage(file)
+          // Compress image before upload for faster transfer
+          const compressedFile = await compressImage(file, 1000, 0.8)
+          console.log(`Compressed ${file.name}: ${file.size} -> ${compressedFile.size} bytes`)
+          
+          const response = await adminAPI.uploadImage(compressedFile)
           
           if (response.success) {
             return {
@@ -182,7 +238,19 @@ export default function CloudinaryImageUpload({
           }
         } catch (error: any) {
           console.error(`Error uploading ${file.name}:`, error)
-          throw new Error(`Failed to upload ${file.name}: ${error.message}`)
+          
+          // Provide more specific error messages
+          if (error.message?.includes('Server is starting up')) {
+            throw new Error(`Server is starting up. Please wait a moment and try uploading ${file.name} again.`)
+          } else if (error.message?.includes('timeout') || error.code === 'ECONNABORTED') {
+            throw new Error(`Upload timeout for ${file.name}. Please check your connection and try again.`)
+          } else if (error.response?.data?.error === 'FILE_TOO_LARGE') {
+            throw new Error(`File ${file.name} is too large. Maximum size is 5MB.`)
+          } else if (error.response?.data?.error === 'UPLOAD_TIMEOUT') {
+            throw new Error(`Upload timeout for ${file.name}. Please try again.`)
+          } else {
+            throw new Error(`Failed to upload ${file.name}: ${error.message}`)
+          }
         }
       })
 
@@ -199,13 +267,34 @@ export default function CloudinaryImageUpload({
       
     } catch (error: any) {
       console.error("Error uploading images:", error)
-      toast({
-        title: "Upload failed",
-        description: error.message || "Failed to upload images",
-        variant: "destructive"
-      })
+      
+      // Set error state for retry functionality
+      setUploadError(error.message || "Failed to upload images")
+      setRetryCount(prev => prev + 1)
+      
+      // Check if it's a server startup error and provide helpful guidance
+      if (error.message?.includes('Server is starting up')) {
+        toast({
+          title: "Server is starting up",
+          description: "The server is currently starting up. Please wait 30-60 seconds and try uploading again.",
+          variant: "destructive",
+          duration: 10000
+        })
+      } else {
+        toast({
+          title: "Upload failed",
+          description: error.message || "Failed to upload images. Please try again.",
+          variant: "destructive"
+        })
+      }
     } finally {
       setIsUploading(false)
+    }
+  }
+
+  const handleRetry = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
     }
   }
 
@@ -315,7 +404,7 @@ export default function CloudinaryImageUpload({
             <span className="font-medium">Click to upload</span> or drag and drop
           </div>
           <div className="text-xs text-muted-foreground">
-            PNG, JPG, GIF up to 10MB
+            PNG, JPG, WebP, GIF up to 5MB (auto-compressed)
           </div>
           <div className="text-xs text-muted-foreground">
             {uploadedImages.length}/{maxImages} images
@@ -407,6 +496,43 @@ export default function CloudinaryImageUpload({
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span>Uploading images to Cloudinary...</span>
+        </div>
+      )}
+
+      {/* Error State with Retry */}
+      {uploadError && !isUploading && (
+        <div className="flex flex-col space-y-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center space-x-2 text-red-700">
+            <AlertCircle className="h-4 w-4" />
+            <span className="font-medium">Upload failed</span>
+          </div>
+          <p className="text-sm text-red-600">{uploadError}</p>
+          <div className="flex space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleRetry}
+              className="text-red-700 border-red-300 hover:bg-red-100"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Retry Upload
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setUploadError(null)}
+              className="text-red-600 hover:bg-red-100"
+            >
+              Dismiss
+            </Button>
+          </div>
+          {retryCount > 0 && (
+            <p className="text-xs text-red-500">
+              Retry attempt: {retryCount}
+            </p>
+          )}
         </div>
       )}
 

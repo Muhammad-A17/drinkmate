@@ -65,7 +65,7 @@ export const api = axios.create({
     'X-Requested-With': 'XMLHttpRequest',
     'Accept': 'application/json',
   },
-  timeout: 15000, // Reduced to 15 seconds for better UX
+  timeout: 45000, // Increased to 45 seconds to handle server startup time
   withCredentials: true, // Include cookies with cross-origin requests when needed
 });
 
@@ -1670,20 +1670,31 @@ export const adminAPI = {
   },
   
   // Image management
-  uploadImage: async (file: File) => {
+  uploadImage: async (file: File, retryCount = 0) => {
     const formData = new FormData();
     formData.append('image', file);
     
     // Get auth token using the correct key
     const token = getAuthToken();
     
-    const response = await api.post('/admin/upload-image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.post('/admin/upload-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`,
+        },
+        timeout: 60000, // 60 seconds for image uploads specifically
+      });
+      return response.data;
+    } catch (error: any) {
+      // Check if it's a server startup error and retry
+      if (error.message?.includes('Server is starting up') && retryCount < 3) {
+        console.log(`Server starting up, retrying upload in ${(retryCount + 1) * 10} seconds... (attempt ${retryCount + 1}/3)`);
+        await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 10000)); // Wait 10, 20, 30 seconds
+        return adminAPI.uploadImage(file, retryCount + 1);
+      }
+      throw error;
+    }
   },
   
   deleteImage: async (publicId: string) => {

@@ -20,6 +20,7 @@ import { Star, ShoppingCart, Heart, Eye, Zap, Award, Shield } from "lucide-react
 import { Button } from "@/components/ui/button"
 import SaudiRiyal from "@/components/ui/SaudiRiyal"
 import { getProductImageUrl } from "@/lib/utils/image-utils"
+import styles from "@/components/ui/product-image-zoom.module.css"
 
 // Helper function to generate correct product URL based on category
 const getProductUrl = (product: Product): string => {
@@ -195,12 +196,12 @@ export default function BundleStyleProductCard({
       {/* Image Container */}
       <div className="relative">
         <Link href={getProductUrl(product)} className="block">
-          <div className="relative h-[220px] sm:h-[260px] lg:h-[320px] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden p-3 sm:p-4">
+          <div className={`relative h-[220px] sm:h-[260px] lg:h-[320px] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden p-3 sm:p-4 ${styles.productImageContainer}`}>
             <Image
               src={getBestImage()}
               alt={product.title || product.name || 'Product image'}
               fill
-              className="object-contain object-center transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
+              className={`object-contain object-top transition-all duration-500 hover:scale-150 cursor-zoom-in ${styles.productImageZoom}`}
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               onError={() => setImageLoadError(true)}
               onLoad={() => setImageLoadError(false)}
@@ -275,6 +276,7 @@ export default function BundleStyleProductCard({
                 })}
               </div>
             )}
+
           </div>
         </Link>
 
@@ -437,6 +439,7 @@ export default function BundleStyleProductCard({
           </div>
         </div>
       </div>
+
     </div>
   )
 }

@@ -133,7 +133,7 @@ export default function ProductCard({
             src={getImageUrl(product.images?.[0] || product.image)}
             alt={product.name}
             fill
-            className={`object-cover object-top transition-all duration-700 group-hover:scale-110 ${
+            className={`object-cover object-top transition-all duration-500 group-hover:scale-150 cursor-zoom-in ${
               imageLoaded ? 'opacity-100' : 'opacity-0'
             }`}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

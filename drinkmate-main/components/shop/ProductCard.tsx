@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils"
 import { Heart, Eye, ShoppingCart, Star, Zap, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import YouTubeThumbnail from "@/components/ui/YouTubeThumbnail"
+import styles from "@/components/ui/product-image-zoom.module.css"
 
 // Helper function to generate correct product URL based on category
 const getProductUrl = (product: Product): string => {
@@ -183,7 +184,7 @@ export default function ProductCard({
     >
       {/* Image Container - Covering Upper Side */}
       <Link href={getProductUrl(product)} className="block">
-        <div className="relative h-80 bg-gray-50 overflow-hidden mb-6">
+        <div className={`relative h-80 bg-gray-50 overflow-hidden mb-6 ${styles.productImageContainer}`}>
           {(() => {
             // Use the improved image selection logic
             const imageUrl = activeImage;
@@ -200,12 +201,12 @@ export default function ProductCard({
             // If we have a valid URL and no previous error, use YouTubeThumbnail, otherwise show placeholder
             if (isValidUrl && !imageLoadError) {
               return (
-                <YouTubeThumbnail
-                  url={imageUrl}
-                  alt={product.title || product.name || 'Product image'}
-                  fill
-                  className="object-cover transition-transform duration-300 hover:scale-105"
-                  showPlayButton={true}
+            <YouTubeThumbnail
+              url={imageUrl}
+              alt={product.title || product.name || 'Product image'}
+              fill
+              className={`object-cover object-top transition-transform duration-500 hover:scale-150 cursor-zoom-in ${styles.productImageZoom}`}
+              showPlayButton={true}
                   onError={(e) => {
                     const errorInfo = {
                       activeImage,
@@ -251,6 +252,7 @@ export default function ProductCard({
               </span>
             </div>
           )}
+
 
           {/* Product Badges */}
           {product.badges && product.badges.length > 0 && (
@@ -378,6 +380,7 @@ export default function ProductCard({
           setShowQuickView(false)
         }}
       />
+
     </div>
   )
 }

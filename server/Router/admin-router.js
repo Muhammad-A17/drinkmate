@@ -11,16 +11,24 @@ const statsController = require('../Controller/stats-controller');
 const { storage, deleteImage } = require('../Utils/cloudinary');
 const User = require('../Models/user-model');
 
-// Configure multer with Cloudinary storage
+// Configure multer with Cloudinary storage - Optimized for speed
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit (Cloudinary can handle larger files)
+    fileSize: 5 * 1024 * 1024, // 5MB limit for faster uploads
+    files: 1, // Single file upload
+    fieldSize: 1024 * 1024 // 1MB field size limit
   },
   fileFilter: function (req, file, cb) {
     // Check file type
     if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
+      // Additional validation for supported formats
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only JPEG, PNG, WebP, and GIF images are allowed!'), false);
+      }
     } else {
       cb(new Error('Only image files are allowed!'), false);
     }
@@ -377,6 +385,9 @@ router.post('/create-default-categories', authMiddleware, adminMiddleware, async
 // Image upload endpoint
 router.post('/upload-image', authMiddleware, adminMiddleware, upload.single('image'), (req, res) => {
   try {
+    // Set a timeout for this specific request
+    req.setTimeout(60000); // 60 seconds timeout for upload
+    
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -404,6 +415,24 @@ router.post('/upload-image', authMiddleware, adminMiddleware, upload.single('ima
     });
   } catch (error) {
     console.error('Image upload error:', error);
+    
+    // Handle specific error types
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        message: 'File too large. Maximum size is 5MB.',
+        error: 'FILE_TOO_LARGE'
+      });
+    }
+    
+    if (error.message && error.message.includes('timeout')) {
+      return res.status(408).json({
+        success: false,
+        message: 'Upload timeout. Please try again.',
+        error: 'UPLOAD_TIMEOUT'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Failed to upload image to Cloudinary',
@@ -424,15 +453,23 @@ router.delete('/delete-image/:publicId', authMiddleware, adminMiddleware, async 
     console.log('Using decoded publicId for Cloudinary:', decodedPublicId);
     const result = await deleteImage(decodedPublicId);
     
-    if (result.result === 'ok') {
+    console.log('Cloudinary delete result:', result);
+    
+    // Handle different Cloudinary response types
+    if (result.result === 'ok' || result.result === 'not found') {
+      // 'not found' is also considered success since the image is effectively deleted
       res.json({
         success: true,
-        message: 'Image deleted successfully from Cloudinary'
+        message: result.result === 'not found' 
+          ? 'Image was already deleted or not found' 
+          : 'Image deleted successfully from Cloudinary'
       });
     } else {
+      console.warn('Unexpected Cloudinary delete result:', result);
       res.status(400).json({
         success: false,
-        message: 'Failed to delete image from Cloudinary'
+        message: 'Failed to delete image from Cloudinary',
+        details: result
       });
     }
   } catch (error) {

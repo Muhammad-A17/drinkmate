@@ -210,7 +210,7 @@ function ProductCard({ product, onAdd }: { product: RecommendationItem; onAdd: (
               alt={product.name} 
               width={320} 
               height={320} 
-              className="rounded-md object-cover aspect-[4/5] transition-transform duration-300 group-hover:scale-105" 
+              className="rounded-md object-cover object-top aspect-[4/5] transition-transform duration-500 hover:scale-150 cursor-zoom-in" 
             />
           );
         })()}

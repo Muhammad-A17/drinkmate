@@ -11,16 +11,22 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET || 'your_api_secret'
 });
 
-// Configure Cloudinary storage for multer
+// Configure Cloudinary storage for multer - Optimized for speed
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'drinkmate', // Folder name in Cloudinary
     allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'], // Allowed image formats
+    // Minimal processing during upload for speed
     transformation: [
-      { width: 1000, height: 1000, crop: 'limit' }, // Resize images to max 1000x1000
-      { quality: 'auto:good' } // Optimize quality
-    ]
+      { quality: 'auto:low' }, // Faster processing with lower quality during upload
+      { fetch_format: 'auto' } // Auto-format selection for better compression
+    ],
+    // Upload optimizations
+    resource_type: 'image',
+    use_filename: true,
+    unique_filename: true,
+    overwrite: false
   }
 });
 
@@ -58,9 +64,40 @@ const getImageUrl = (publicId, options = {}) => {
   return cloudinary.url(publicId, finalOptions);
 };
 
+// Helper function to get optimized image URL for display
+const getOptimizedImageUrl = (publicId, options = {}) => {
+  const defaultOptions = {
+    width: 1000,
+    height: 1000,
+    crop: 'limit', // Don't crop, just resize
+    quality: 'auto:good', // Better quality for display
+    fetch_format: 'auto', // Auto-format for better compression
+    flags: 'progressive' // Progressive loading
+  };
+  
+  const finalOptions = { ...defaultOptions, ...options };
+  return cloudinary.url(publicId, finalOptions);
+};
+
+// Helper function to get thumbnail URL
+const getThumbnailUrl = (publicId, options = {}) => {
+  const defaultOptions = {
+    width: 200,
+    height: 200,
+    crop: 'fill',
+    quality: 'auto:low',
+    fetch_format: 'auto'
+  };
+  
+  const finalOptions = { ...defaultOptions, ...options };
+  return cloudinary.url(publicId, finalOptions);
+};
+
 module.exports = {
   cloudinary,
   storage,
   deleteImage,
-  getImageUrl
+  getImageUrl,
+  getOptimizedImageUrl,
+  getThumbnailUrl
 };

@@ -1,0 +1,33 @@
+/* Product Image Zoom Styles - Complete Image Display */
+.productImageZoom {
+  object-position: center center; /* Center the complete image */
+  transform-origin: center center;
+  object-fit: contain; /* Show complete image without cropping */
+  width: 100%; /* Ensure full width coverage */
+  height: 100%; /* Ensure full height coverage */
+  /* Show complete image without any cropping */
+}
+
+.productImageZoom:hover {
+  object-position: center center; /* Maintain center positioning on hover */
+  transform-origin: center center;
+  /* Scale up on hover while maintaining complete image */
+  transform: scale(1.5);
+  object-fit: contain; /* Maintain complete image on hover */
+  width: 100%; /* Ensure full width coverage on hover */
+  height: 100%; /* Ensure full height coverage on hover */
+}
+
+/* Container for complete image display */
+.productImageContainer {
+  overflow: visible; /* Allow full image to be visible */
+  position: relative;
+  /* Allow natural aspect ratio for complete image */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.productImageContainer:hover {
+  overflow: visible; /* Keep visible on hover for zoom effect */
+}

@@ -448,8 +448,13 @@ killProcessOnPort(3000);
 
 // Wait a moment for the port to be freed
 setTimeout(() => {
-  // Create HTTP server
+  // Create HTTP server with timeout configuration
   const server = http.createServer(app);
+  
+  // Set server timeouts
+  server.timeout = 120000; // 2 minutes for server timeout
+  server.keepAliveTimeout = 65000; // 65 seconds for keep-alive timeout
+  server.headersTimeout = 66000; // 66 seconds for headers timeout
   
   // Initialize Socket.io
   const io = new Server(server, {
