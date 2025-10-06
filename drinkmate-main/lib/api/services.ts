@@ -138,19 +138,21 @@ export const authAPI = {
 export const cartAPI = {
   // Get cart
   getCart: async () => {
-    return apiClient.get<{ items: any[] }>(API_ENDPOINTS.CART)
+    return apiClient.get(API_ENDPOINTS.CART)
   },
 
   // Add to cart
-  addToCart: async (item: any) => {
-    return apiClient.post(API_ENDPOINTS.ADD_TO_CART, item)
+  addToCart: async (productId: string, quantity: number = 1, variants: any[] = []) => {
+    return apiClient.post(API_ENDPOINTS.ADD_TO_CART, { 
+      productId, 
+      quantity, 
+      variants 
+    })
   },
 
   // Remove from cart
   removeFromCart: async (productId: string) => {
-    return apiClient.delete(API_ENDPOINTS.REMOVE_FROM_CART, {
-      params: { productId }
-    })
+    return apiClient.delete(`${API_ENDPOINTS.REMOVE_FROM_CART}/${productId}`)
   },
 
   // Update cart item
@@ -161,6 +163,11 @@ export const cartAPI = {
   // Clear cart
   clearCart: async () => {
     return apiClient.delete(API_ENDPOINTS.CLEAR_CART)
+  },
+
+  // Sync cart with localStorage (merge localStorage cart with DB cart)
+  syncCart: async (items: any[]) => {
+    return apiClient.post(API_ENDPOINTS.SYNC_CART, { items })
   }
 }
 

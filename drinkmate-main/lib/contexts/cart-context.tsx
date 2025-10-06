@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo, useRef } from 'react'
 import { getCategoryName } from '@/lib/utils/category-utils'
-import { cartAPI } from '@/lib/api'
+import { cartAPI } from '@/lib/api/services'
 
 export interface CartItem {
   id: string | number
@@ -223,58 +223,123 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return 'drinkmate-cart-guest'
   }, [])
 
-  // Load cart from localStorage on mount
+  // Load cart from database (defined before first use to avoid TDZ errors)
+  const loadCartFromDatabase = useCallback(async () => {
+    if (typeof window === 'undefined') return
+    
+    const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+    if (!token) {
+      console.log('No auth token, skipping database cart load')
+      return
+    }
+    
+    try {
+      console.log('Loading cart from database...')
+      const response = await cartAPI.getCart()
+      
+      // Handle the wrapped response from apiClient
+      if (response.success && response.data) {
+        const cartData = response.data
+        if (cartData.success && cartData.cart) {
+          const dbItems = cartData.cart.items || []
+          console.log('Loaded cart from database - items:', dbItems.length)
+          
+          // Only update if database has items, otherwise keep current local cart
+          if (dbItems.length > 0) {
+            dispatch({ type: 'LOAD_CART', payload: dbItems })
+          } else {
+            console.log('Database cart is empty, keeping current local cart')
+            // Sync current local cart to database instead
+            const currentItems = currentCartItemsRef.current
+            if (currentItems.length > 0) {
+              console.log('Syncing local cart to database...')
+              await syncWithDatabase()
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading cart from database:', error)
+    }
+  }, [])
+
+  // Load cart on mount: if authenticated, load from database; otherwise from localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // Try to get user ID from auth token
-      const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-      let userId = null
-      
-      if (token) {
-        try {
-          // Decode JWT token to get user ID
-          const payload = JSON.parse(atob(token.split('.')[1]))
-          userId = payload.id
-        } catch (error) {
-          console.warn('Could not decode auth token for cart loading:', error)
+    if (typeof window === 'undefined') return
+    
+    const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+    let userId: string | null = null
+    
+    if (token) {
+      try {
+        const parts = token.split('.')
+        if (parts.length >= 2) {
+          const base64Url = parts[1]
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+          const jsonPayload = typeof window !== 'undefined'
+            ? decodeURIComponent(atob(base64).split('').map(c => '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''))
+            : Buffer.from(base64, 'base64').toString('utf-8')
+          const payload = JSON.parse(jsonPayload)
+          userId = payload.id || payload.userId || null
         }
+      } catch (error) {
+        console.warn('Could not decode auth token for cart loading:', error)
       }
-      
-      // Initialize the current user ref
-      currentUserIdRef.current = userId
-      console.log('Initial cart load for user:', userId)
-      
+    }
+    
+    // Initialize the current user ref
+    currentUserIdRef.current = userId
+    console.log('Initial cart load for user:', userId)
+    
+    if (userId && token) {
+      // Authenticated: first try localStorage, then sync with database
       const cartKey = getCartKey(userId)
-      let savedCart = localStorage.getItem(cartKey)
-      
-      // Migration: If no user-specific cart exists, try to migrate from old shared cart
-      if (!savedCart && userId) {
-        const oldCartKey = 'drinkmate-cart'
-        const oldCart = localStorage.getItem(oldCartKey)
-        if (oldCart) {
-          console.log('Migrating cart from old shared key to user-specific key')
-          localStorage.setItem(cartKey, oldCart)
-          // Remove old cart to prevent confusion
-          localStorage.removeItem(oldCartKey)
-          savedCart = oldCart
-        }
-      }
+      const savedCart = localStorage.getItem(cartKey)
       
       if (savedCart) {
         try {
           const parsedCart = JSON.parse(savedCart)
-          // Filter out any items with undefined or null IDs
           const validItems = parsedCart.filter((item: any) => item.id !== undefined && item.id !== null)
-          if (validItems.length !== parsedCart.length) {
-            console.warn('Cart cleanup: Removed items with undefined IDs', {
-              original: parsedCart.length,
-              cleaned: validItems.length
-            })
-          }
+          console.log('Loading user cart from localStorage on mount - items:', validItems.length)
           dispatch({ type: 'LOAD_CART', payload: validItems })
+          
+          // Then sync with database in background
+          setTimeout(() => {
+            loadCartFromDatabase()
+          }, 100)
         } catch (error) {
-          console.error('Error loading cart from localStorage:', error)
+          console.error('Error loading user cart from localStorage on mount:', error)
+          // Fallback to database
+          setTimeout(() => {
+            loadCartFromDatabase()
+          }, 0)
         }
+      } else {
+        // No local cart, load from database
+        console.log('No local user cart found on mount, loading from database')
+        setTimeout(() => {
+          loadCartFromDatabase()
+        }, 0)
+      }
+      return
+    }
+    
+    // Guest: load from guest localStorage
+    const cartKey = getCartKey(null)
+    const savedCart = localStorage.getItem(cartKey)
+    if (savedCart) {
+      try {
+        const parsedCart = JSON.parse(savedCart)
+        const validItems = parsedCart.filter((item: any) => item.id !== undefined && item.id !== null)
+        if (validItems.length !== parsedCart.length) {
+          console.warn('Cart cleanup: Removed items with undefined IDs', {
+            original: parsedCart.length,
+            cleaned: validItems.length
+          })
+        }
+        dispatch({ type: 'LOAD_CART', payload: validItems })
+      } catch (error) {
+        console.error('Error loading cart from localStorage:', error)
       }
     }
   }, [getCartKey])
@@ -402,29 +467,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'HIDE_TOAST' })
   }, [])
 
-  // Load cart from database
-  const loadCartFromDatabase = useCallback(async () => {
-    if (typeof window === 'undefined') return
-    
-    const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-    if (!token) {
-      console.log('No auth token, skipping database cart load')
-      return
-    }
-    
-    try {
-      console.log('Loading cart from database...')
-      const response = await cartAPI.getCart()
-      
-      if (response.success && response.cart) {
-        const dbItems = response.cart.items || []
-        console.log('Loaded cart from database - items:', dbItems.length)
-        dispatch({ type: 'LOAD_CART', payload: dbItems })
-      }
-    } catch (error) {
-      console.error('Error loading cart from database:', error)
-    }
-  }, [])
+  
 
   // Sync current cart with database
   const syncWithDatabase = useCallback(async () => {
@@ -446,11 +489,15 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('Syncing cart with database - items:', currentItems.length)
       const response = await cartAPI.syncCart(currentItems)
       
-      if (response.success && response.cart) {
-        console.log('Cart synced successfully')
-        // Update local state with merged cart from database
-        const dbItems = response.cart.items || []
-        dispatch({ type: 'LOAD_CART', payload: dbItems })
+      // Handle the wrapped response from apiClient
+      if (response.success && response.data) {
+        const cartData = response.data
+        if (cartData.success && cartData.cart) {
+          console.log('Cart synced successfully')
+          // Update local state with merged cart from database
+          const dbItems = cartData.cart.items || []
+          dispatch({ type: 'LOAD_CART', payload: dbItems })
+        }
       }
     } catch (error) {
       console.error('Error syncing cart with database:', error)
@@ -480,9 +527,31 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     currentUserIdRef.current = newUserId
     
     if (newUserId) {
-      // User logged in - load cart from database
-      console.log('Loading user cart from database for user:', newUserId)
-      loadCartFromDatabase()
+      // User logged in - first try to load from localStorage, then sync with database
+      const userCartKey = getCartKey(newUserId)
+      const savedUserCart = localStorage.getItem(userCartKey)
+      
+      if (savedUserCart) {
+        try {
+          const parsedCart = JSON.parse(savedUserCart)
+          const validItems = parsedCart.filter((item: any) => item.id !== undefined && item.id !== null)
+          console.log('Loading user cart from localStorage - items:', validItems.length)
+          dispatch({ type: 'LOAD_CART', payload: validItems })
+          
+          // Then sync with database in background to ensure consistency
+          setTimeout(() => {
+            loadCartFromDatabase()
+          }, 100)
+        } catch (error) {
+          console.error('Error loading user cart from localStorage:', error)
+          // Fallback to database
+          loadCartFromDatabase()
+        }
+      } else {
+        // No local cart, load from database
+        console.log('No local user cart found, loading from database for user:', newUserId)
+        loadCartFromDatabase()
+      }
     } else {
       // User logged out - load guest cart from localStorage
       const newCartKey = getCartKey(null)
@@ -503,7 +572,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         dispatch({ type: 'LOAD_CART', payload: [] })
       }
     }
-  }, [getCartKey, loadCartFromDatabase])
+  }, [getCartKey])
 
   // Memoize the context value to prevent unnecessary re-renders
   const value = useMemo(() => ({

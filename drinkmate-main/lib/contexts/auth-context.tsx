@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { authAPI } from '../api';
+import { useCart } from './cart-context';
 
 interface User {
   _id: string;
@@ -53,6 +54,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading: true,
   });
 
+  // Get cart context for user switching
+  const { switchUserCart } = useCart();
+
   // Check for saved token on mount
   useEffect(() => {
     const loadUser = async () => {
@@ -74,6 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               isAuthenticated: true,
               isLoading: false,
             });
+            
+            // Switch to user's cart when loading from saved token
+            switchUserCart(data.user._id);
           } else {
             throw new Error("Invalid user data from token verification");
           }
@@ -140,6 +147,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           setAuthState(newAuthState);
           
+          // Switch to user's cart after successful login
+          switchUserCart(data.user._id);
           
           return { success: true, message: data.message || "Login successful" };
         } catch (error: any) {
@@ -214,6 +223,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await authAPI.register(fullName, email, password);
       
       localStorage.setItem(TOKEN_KEY, data.token);
+      // Set flag to indicate this is a new account for cart sync
+      localStorage.setItem('is-new-account', 'true');
       setAuthState({
         user: data.user,
         token: data.token,
@@ -236,6 +247,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const demoToken = 'demo_token_' + Date.now();
         
         localStorage.setItem(TOKEN_KEY, demoToken);
+        // Set flag to indicate this is a new account for cart sync
+        localStorage.setItem('is-new-account', 'true');
         
         setAuthState({
           user: demoUser,
@@ -263,6 +276,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: false,
       isLoading: false,
     });
+    
+    // Switch to guest cart after logout
+    switchUserCart(null);
   };
 
   const forgotPassword = async (email: string) => {

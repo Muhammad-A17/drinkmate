@@ -55,7 +55,6 @@ export default function CO2() {
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState("faqs")
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
-  const [selectedImage, setSelectedImage] = useState(0)
 
   // Slideshow navigation
   const nextRefillSlide = () => {
@@ -257,7 +256,6 @@ export default function CO2() {
 
   const selectedCylinderData = getCylinderData(selectedCylinder)
   
-  
   // Dynamic pricing based on quantity and brand
   const getCylinderPrice = () => {
     if (!selectedCylinderData) return 65.00
@@ -321,7 +319,7 @@ export default function CO2() {
     return (
       <PageLayout currentPage="co2">
         <div className="flex flex-col items-center justify-center h-64 p-8">
-          <div className="w-12 h-12 border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin mb-4"></div>
+          <div className="w-12 h-12 border-4 border-t-[#12d6fa] border-gray-200 rounded-full animate-spin mb-4"></div>
           <div className="text-lg font-medium">Loading CO2 cylinders...</div>
           <p className="text-gray-500 text-sm mt-2 text-center">Please wait while we retrieve the latest cylinder information.</p>
         </div>
@@ -353,10 +351,10 @@ export default function CO2() {
     <PageLayout currentPage="refill-cylinder">
       {/* Enhanced Refill Section Carousel */}
       <section className="py-8 md:py-16">
-        <div className="max-w-7xl mx-auto bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-3xl relative h-[280px] md:h-[320px] flex items-center justify-between px-4 md:px-6 overflow-hidden shadow-2xl">
+        <div className="max-w-7xl mx-auto bg-gradient-to-br from-[#f8fafc] via-[#f3f3f3] to-[#e2e8f0] rounded-3xl relative h-[280px] md:h-[320px] flex items-center justify-between px-4 md:px-6 overflow-hidden shadow-2xl">
           {/* Enhanced Left Navigation Button */}
           <Button
-            className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-white bg-white/90 text-gray-700 shadow-lg z-10 hover:bg-white hover:border-blue-600 hover:scale-110 transition-all duration-300 backdrop-blur-sm"
+            className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-white bg-white/90 text-gray-700 shadow-lg z-10 hover:bg-white hover:border-[#12d6fa] hover:scale-110 transition-all duration-300 backdrop-blur-sm"
             onClick={prevRefillSlide}
           >
             <ChevronLeft className="w-6 h-6" />
@@ -366,12 +364,12 @@ export default function CO2() {
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-8">
             <div className="text-center space-y-6">
               <div className="space-y-4">
-                <h2 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-white to-gray-100 bg-clip-text text-transparent leading-tight animate-fade-in">
+                <h2 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-[#12d6fa] to-[#a8f387] bg-clip-text text-transparent leading-tight animate-fade-in">
                   {refillSlides[currentRefillSlide].headline}
                 </h2>
-                <p className="text-white text-base md:text-lg max-w-xl mx-auto leading-relaxed">
+                <p className="text-gray-700 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
                   {refillSlides[currentRefillSlide].headline === "REFILL MORE. SAVE MORE." ? (
-                    <>Now refill 4 cylinders all together for the price of <SaudiRiyal amount={55} size="sm" className="font-bold text-white" /> each cylinder.</>
+                    <>Now refill 4 cylinders all together for the price of <SaudiRiyal amount={55} size="sm" className="font-bold text-[#12d6fa]" /> each cylinder.</>
                   ) : (
                     refillSlides[currentRefillSlide].description
                   )}
@@ -381,14 +379,14 @@ export default function CO2() {
                 {refillSlides[currentRefillSlide].buttonText && (
                   <Button 
                     onClick={() => window.location.href = refillSlides[currentRefillSlide].buttonText === "Refill Now" ? "/co2" : "/shop"}
-                    className="bg-gradient-to-r from-white to-gray-100 hover:from-gray-100 hover:to-gray-200 text-[#12d6fa] font-bold px-8 py-4 rounded-full text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                    className="bg-gradient-to-r from-[#a8f387] to-[#9ae374] hover:from-[#9ae374] hover:to-[#8dd663] text-black font-bold px-8 py-4 rounded-full text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                   >
                     {refillSlides[currentRefillSlide].buttonText}
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 )}
                 {refillSlides[currentRefillSlide].offerText && (
-                  <span className="text-sm text-white bg-white/20 px-4 py-2 rounded-full border border-white/30 backdrop-blur-sm">
+                  <span className="text-sm text-gray-600 bg-white/80 px-4 py-2 rounded-full border border-gray-200 backdrop-blur-sm">
                     {refillSlides[currentRefillSlide].offerText}
                   </span>
                 )}
@@ -399,7 +397,7 @@ export default function CO2() {
 
           {/* Enhanced Right Navigation Button */}
           <Button
-            className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-white bg-white/90 text-gray-700 shadow-lg z-10 hover:bg-white hover:border-blue-600 hover:scale-110 transition-all duration-300 backdrop-blur-sm"
+            className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-white bg-white/90 text-gray-700 shadow-lg z-10 hover:bg-white hover:border-[#12d6fa] hover:scale-110 transition-all duration-300 backdrop-blur-sm"
             onClick={nextRefillSlide}
           >
             <ChevronRight className="w-6 h-6" />
@@ -413,7 +411,7 @@ export default function CO2() {
                 onClick={() => setCurrentRefillSlide(index)}
                 className={`w-4 h-4 rounded-full transition-all duration-300 ${
                   index === currentRefillSlide 
-                    ? "bg-white scale-125 shadow-lg" 
+                    ? "bg-gradient-to-r from-[#12d6fa] to-[#a8f387] scale-125 shadow-lg" 
                     : "bg-white/60 hover:bg-white/80 hover:scale-110"
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
@@ -439,220 +437,36 @@ export default function CO2() {
                 
                 {/* Main Content */}
                 <div className="relative bg-white rounded-3xl border border-gray-200 shadow-2xl p-8">
-                  <div className="relative group h-full min-h-[500px]">
+                  <div className="relative">
                     <Image
                       src="https://res.cloudinary.com/da6dzmflp/image/upload/v1757353811/drinkmate/tgxojr9o5oiihkf6tv21.png"
                       alt="CO2 Cylinders"
-                      fill
-                      className="object-cover rounded-3xl drop-shadow-2xl group-hover:scale-105 transition-transform duration-300"
+                      width={600}
+                      height={845}
+                      className="w-full h-auto object-contain drop-shadow-2xl"
                       priority
                     />
-                    {/* Image overlay with title */}
-                    <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <p className="text-sm font-semibold">Premium CO2 Cylinders</p>
-                    </div>
                   </div>
-                </div>
-              </div>
-              
-              {/* Multi Image Gallery */}
-              <div className="mt-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Product Gallery</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {/* Image 1 - CO2 Refill Process */}
-                  <div 
-                    className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg cursor-pointer ${
-                      selectedImage === 1 
-                        ? 'border-[#12d6fa] shadow-lg scale-105' 
-                        : 'border-gray-200 hover:border-[#12d6fa]'
-                    }`}
-                    onClick={() => setSelectedImage(1)}
-                  >
-                    <Image
-                      src="https://res.cloudinary.com/da6dzmflp/image/upload/v1757330656/drinkmate/kibeocchocao4ludclqd.png"
-                      alt="CO2 Refill Process"
-                      width={300}
-                      height={200}
-                      className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-2 left-2 text-white text-sm font-semibold">
-                        Refill Process
-                      </div>
-                    </div>
-                    {selectedImage === 1 && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-[#12d6fa] rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Image 2 - Quality Assurance */}
-                  <div 
-                    className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg cursor-pointer ${
-                      selectedImage === 2 
-                        ? 'border-[#12d6fa] shadow-lg scale-105' 
-                        : 'border-gray-200 hover:border-[#12d6fa]'
-                    }`}
-                    onClick={() => setSelectedImage(2)}
-                  >
-                    <Image
-                      src="https://res.cloudinary.com/da6dzmflp/image/upload/v1757330656/drinkmate/gg3enlia8jca76l6vjk5.png"
-                      alt="Quality Assurance"
-                      width={300}
-                      height={200}
-                      className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-2 left-2 text-white text-sm font-semibold">
-                        Quality Check
-                      </div>
-                    </div>
-                    {selectedImage === 2 && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-[#12d6fa] rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Image 3 - Delivery Service */}
-                  <div 
-                    className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg cursor-pointer ${
-                      selectedImage === 3 
-                        ? 'border-[#12d6fa] shadow-lg scale-105' 
-                        : 'border-gray-200 hover:border-[#12d6fa]'
-                    }`}
-                    onClick={() => setSelectedImage(3)}
-                  >
-                    <Image
-                      src="https://res.cloudinary.com/da6dzmflp/image/upload/v1757353812/drinkmate/rlubiyqfhs0b5ah66vtc.png"
-                      alt="Delivery Service"
-                      width={300}
-                      height={200}
-                      className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-2 left-2 text-white text-sm font-semibold">
-                        Home Delivery
-                      </div>
-                    </div>
-                    {selectedImage === 3 && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-[#12d6fa] rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Image 4 - Different Cylinder Types */}
-                  <div 
-                    className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg cursor-pointer ${
-                      selectedImage === 4 
-                        ? 'border-[#12d6fa] shadow-lg scale-105' 
-                        : 'border-gray-200 hover:border-[#12d6fa]'
-                    }`}
-                    onClick={() => setSelectedImage(4)}
-                  >
-                    <Image
-                      src="https://res.cloudinary.com/da6dzmflp/image/upload/v1757323126/drinkmate/auduhssssg19ptgknm2d.png"
-                      alt="Different Cylinder Types"
-                      width={300}
-                      height={200}
-                      className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-2 left-2 text-white text-sm font-semibold">
-                        All Brands
-                      </div>
-                    </div>
-                    {selectedImage === 4 && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-[#12d6fa] rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Image 5 - Safety Standards */}
-                  <div 
-                    className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg cursor-pointer ${
-                      selectedImage === 5 
-                        ? 'border-[#12d6fa] shadow-lg scale-105' 
-                        : 'border-gray-200 hover:border-[#12d6fa]'
-                    }`}
-                    onClick={() => setSelectedImage(5)}
-                  >
-                    <Image
-                      src="https://res.cloudinary.com/da6dzmflp/image/upload/v1757323126/drinkmate/auduhssssg19ptgknm2d.png"
-                      alt="Safety Standards"
-                      width={300}
-                      height={200}
-                      className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-2 left-2 text-white text-sm font-semibold">
-                        Safety First
-                      </div>
-                    </div>
-                    {selectedImage === 5 && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-[#12d6fa] rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Image 6 - Customer Satisfaction */}
-                  <div 
-                    className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg cursor-pointer ${
-                      selectedImage === 6 
-                        ? 'border-[#12d6fa] shadow-lg scale-105' 
-                        : 'border-gray-200 hover:border-[#12d6fa]'
-                    }`}
-                    onClick={() => setSelectedImage(6)}
-                  >
-                    <Image
-                      src="https://res.cloudinary.com/da6dzmflp/image/upload/v1757323126/drinkmate/auduhssssg19ptgknm2d.png"
-                      alt="Customer Satisfaction"
-                      width={300}
-                      height={200}
-                      className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-2 left-2 text-white text-sm font-semibold">
-                        Happy Customers
-                      </div>
-                    </div>
-                    {selectedImage === 6 && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-[#12d6fa] rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Gallery Description */}
-                <div className="mt-6 text-center">
-                  <p className="text-gray-600 text-sm">
-                    See our complete CO2 refill process, quality assurance, and delivery service in action
-                  </p>
                 </div>
               </div>
               
               {/* Order Summary - Hidden on mobile, shown on desktop under image */}
               <div className="mt-8 hidden lg:block">
-                <div className="bg-white rounded-3xl border-2 border-blue-200 shadow-2xl p-6">
+                <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/20 shadow-2xl p-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Order Summary</h3>
                   
                   {/* Selected Cylinder Info */}
                   {selectedCylinderData && (
-                    <div className="mb-6 p-4 bg-gradient-to-r from-blue-600/10 to-indigo-700/10 rounded-2xl border border-blue-200">
+                    <div className="mb-6 p-4 bg-gradient-to-r from-[#12d6fa]/10 to-[#a8f387]/10 rounded-2xl border border-[#12d6fa]/20">
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-xl flex items-center justify-center">
                           <span className="text-white font-bold text-lg">
                             {selectedCylinderData.name.charAt(0)}
                           </span>
                         </div>
                         <div>
-                          <h4 className="font-bold text-gray-900 text-lg">{selectedCylinderData.name}</h4>
-                          <p className="text-sm text-gray-600 font-medium">CO2 Cylinder Refill/Exchange</p>
+                          <h4 className="font-bold text-gray-900">{selectedCylinderData.name}</h4>
+                          <p className="text-sm text-gray-600">CO2 Cylinder Refill/Exchange</p>
                         </div>
                       </div>
                     </div>
@@ -670,7 +484,7 @@ export default function CO2() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-700">Delivery time:</span>
-                      <span className="font-semibold text-blue-600">3-5 business days</span>
+                      <span className="font-semibold text-[#12d6fa]">3-5 business days</span>
                     </div>
                   </div>
                   
@@ -708,7 +522,7 @@ export default function CO2() {
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between items-center">
                       <span className="text-xl font-bold text-gray-900">Total:</span>
-                      <span className="text-2xl font-black text-blue-600">
+                      <span className="text-2xl font-black text-[#12d6fa]">
                         <SaudiRiyal amount={total} size="lg" />
                       </span>
                     </div>
@@ -729,12 +543,12 @@ export default function CO2() {
               {/* Enhanced Select a cylinder header */}
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Select Your Cylinder</h2>
-                  <p className="text-gray-600 mt-2 text-lg">Choose from our premium collection of CO2 cylinders</p>
+                  <h2 className="text-3xl font-black text-black tracking-tight">Select Your Cylinder</h2>
+                  <p className="text-gray-600 mt-2">Choose from our premium collection</p>
                 </div>
                 <a 
                   href="/contact" 
-                  className="inline-flex items-center space-x-2 text-blue-600 text-sm font-semibold hover:text-blue-700 transition-colors duration-200 bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-100"
+                  className="inline-flex items-center space-x-2 text-[#12d6fa] text-sm font-semibold hover:text-[#0bc4e8] transition-colors duration-200 bg-[#12d6fa]/10 px-4 py-2 rounded-full hover:bg-[#12d6fa]/20"
                 >
                   <Info className="w-4 h-4" />
                   <span>Need Help?</span>
@@ -744,220 +558,91 @@ export default function CO2() {
               {/* Enhanced Premium Cylinder Brand Selection */}
               <div className="space-y-8">
                 <div className="relative group">
-                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 transition-all duration-500 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#12d6fa]/20 to-[#a8f387]/20 rounded-3xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
+                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 shadow-2xl group-hover:shadow-3xl transition-all duration-300">
                     <Select value={selectedCylinder} onValueChange={setSelectedCylinder}>
-                      <SelectTrigger className="w-full h-16 border-0 bg-transparent text-lg font-semibold focus:ring-0 focus:outline-none px-6 hover:bg-gradient-to-r hover:from-[#12d6fa]/5 hover:to-[#0bc4e8]/5 transition-all duration-300 group-hover:scale-[1.01]">
-                        <div className="flex items-center justify-between w-full">
-                          <div className="text-left">
-                            <div className="text-lg font-bold text-gray-900">
-                              {selectedCylinderData?.name || 'Choose Your Cylinder'}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {selectedCylinderData?.description || 'Select from premium collection'}
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <div className="text-right">
-                              <div className="text-lg font-bold text-[#12d6fa]">
-                                <SaudiRiyal amount={selectedCylinderData?.price || 0} size="sm" />
-                              </div>
-                              {selectedCylinderData?.originalPrice && selectedCylinderData.originalPrice > selectedCylinderData.price && (
-                                <div className="text-xs text-gray-400 line-through">
-                                  <SaudiRiyal amount={selectedCylinderData.originalPrice} size="sm" />
-                                </div>
-                              )}
-                            </div>
-                            <ChevronDown className="w-5 h-5 text-[#12d6fa] transition-transform duration-300 group-hover:rotate-180" />
-                          </div>
-                        </div>
+                      <SelectTrigger className="w-full h-16 border-0 bg-transparent text-lg font-semibold focus:ring-0 focus:outline-none px-8 hover:bg-gray-50/50 transition-colors duration-200">
+                        <SelectValue placeholder="Choose your premium cylinder brand" />
                       </SelectTrigger>
-                      <SelectContent className="border-0 shadow-2xl rounded-2xl max-h-96 overflow-y-auto bg-white/95 backdrop-blur-sm">
-                        <SelectItem value="drinkmate" className="py-4 hover:bg-gradient-to-r hover:from-[#12d6fa]/5 hover:to-[#0bc4e8]/5 transition-all duration-200 group/item">
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900 group-hover/item:text-[#12d6fa] transition-colors duration-200">Drinkmate</div>
+                      <SelectContent className="border-0 shadow-2xl rounded-2xl max-h-96 overflow-y-auto">
+                        <SelectItem value="drinkmate" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-full flex items-center justify-center text-white font-bold text-sm">D</div>
+                            <div>
+                              <div className="font-semibold">Drinkmate</div>
                               <div className="text-sm text-gray-500">Premium Original</div>
                             </div>
-                            <div className="flex items-center space-x-3 ml-6">
-                              <div className="text-right">
-                                <div className="font-bold text-[#12d6fa]">
-                                  <SaudiRiyal amount={65} size="sm" />
-                                </div>
-                                <div className="text-xs text-gray-400 line-through">
-                                  <SaudiRiyal amount={75} size="sm" />
-                                </div>
-                              </div>
-                              <div className="w-6 h-6 bg-[#a8f387] rounded-full flex items-center justify-center">
-                                <span className="text-black text-xs font-bold">13%</span>
-                              </div>
-                            </div>
                           </div>
                         </SelectItem>
-                        <SelectItem value="sodastream" className="py-4 hover:bg-gradient-to-r hover:from-[#a8f387]/5 hover:to-[#9ae374]/5 transition-all duration-200 group/item">
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900 group-hover/item:text-[#a8f387] transition-colors duration-200">SodaStream</div>
+                        <SelectItem value="sodastream" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#a8f387] to-[#9ae374] rounded-full flex items-center justify-center text-black font-bold text-sm">S</div>
+                            <div>
+                              <div className="font-semibold">SodaStream</div>
                               <div className="text-sm text-gray-500">Classic Choice</div>
                             </div>
-                            <div className="flex items-center space-x-3 ml-6">
-                              <div className="text-right">
-                                <div className="font-bold text-[#a8f387]">
-                                  <SaudiRiyal amount={72} size="sm" />
-                                </div>
-                                <div className="text-xs text-gray-400 line-through">
-                                  <SaudiRiyal amount={85} size="sm" />
-                                </div>
-                              </div>
-                              <div className="w-6 h-6 bg-[#a8f387] rounded-full flex items-center justify-center">
-                                <span className="text-black text-xs font-bold">15%</span>
-                              </div>
-                            </div>
                           </div>
                         </SelectItem>
-                        <SelectItem value="errva" className="py-4 hover:bg-gradient-to-r hover:from-[#12d6fa]/5 hover:to-[#0bc4e8]/5 transition-all duration-200 group/item">
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900 group-hover/item:text-[#12d6fa] transition-colors duration-200">Errva</div>
+                        <SelectItem value="errva" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-full flex items-center justify-center text-white font-bold text-sm">E</div>
+                            <div>
+                              <div className="font-semibold">Errva</div>
                               <div className="text-sm text-gray-500">Reliable Brand</div>
                             </div>
-                            <div className="flex items-center space-x-3 ml-6">
-                              <div className="text-right">
-                                <div className="font-bold text-[#12d6fa]">
-                                  <SaudiRiyal amount={68} size="sm" />
-                                </div>
-                                <div className="text-xs text-gray-400 line-through">
-                                  <SaudiRiyal amount={78} size="sm" />
-                                </div>
-                              </div>
-                              <div className="w-6 h-6 bg-[#a8f387] rounded-full flex items-center justify-center">
-                                <span className="text-black text-xs font-bold">13%</span>
-                              </div>
-                            </div>
                           </div>
                         </SelectItem>
-                        <SelectItem value="fawwar" className="py-4 hover:bg-gradient-to-r hover:from-[#12d6fa]/5 hover:to-[#0bc4e8]/5 transition-all duration-200 group/item">
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900 group-hover/item:text-[#12d6fa] transition-colors duration-200">Fawwar</div>
+                        <SelectItem value="fawwar" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#a8f387] to-[#12d6fa] rounded-full flex items-center justify-center text-white font-bold text-sm">F</div>
+                            <div>
+                              <div className="font-semibold">Fawwar</div>
                               <div className="text-sm text-gray-500">Quality Assured</div>
                             </div>
-                            <div className="flex items-center space-x-3 ml-6">
-                              <div className="text-right">
-                                <div className="font-bold text-[#12d6fa]">
-                                  <SaudiRiyal amount={70} size="sm" />
-                                </div>
-                                <div className="text-xs text-gray-400 line-through">
-                                  <SaudiRiyal amount={82} size="sm" />
-                                </div>
-                              </div>
-                              <div className="w-6 h-6 bg-[#a8f387] rounded-full flex items-center justify-center">
-                                <span className="text-black text-xs font-bold">15%</span>
-                              </div>
-                            </div>
                           </div>
                         </SelectItem>
-                        <SelectItem value="phillips" className="py-4 hover:bg-gradient-to-r hover:from-[#12d6fa]/5 hover:to-[#0bc4e8]/5 transition-all duration-200 group/item">
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900 group-hover/item:text-[#12d6fa] transition-colors duration-200">Phillips</div>
+                        <SelectItem value="phillips" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-full flex items-center justify-center text-white font-bold text-sm">P</div>
+                            <div>
+                              <div className="font-semibold">Phillips</div>
                               <div className="text-sm text-gray-500">Professional Grade</div>
                             </div>
-                            <div className="flex items-center space-x-3 ml-6">
-                              <div className="text-right">
-                                <div className="font-bold text-[#12d6fa]">
-                                  <SaudiRiyal amount={75} size="sm" />
-                                </div>
-                                <div className="text-xs text-gray-400 line-through">
-                                  <SaudiRiyal amount={90} size="sm" />
-                                </div>
-                              </div>
-                              <div className="w-6 h-6 bg-[#a8f387] rounded-full flex items-center justify-center">
-                                <span className="text-black text-xs font-bold">17%</span>
-                              </div>
-                            </div>
                           </div>
                         </SelectItem>
-                        <SelectItem value="ultima-cosa" className="py-4 hover:bg-gradient-to-r hover:from-[#a8f387]/5 hover:to-[#9ae374]/5 transition-all duration-200 group/item">
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900 group-hover/item:text-[#a8f387] transition-colors duration-200">Ultima Cosa</div>
+                        <SelectItem value="ultima-cosa" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#a8f387] to-[#9ae374] rounded-full flex items-center justify-center text-black font-bold text-sm">U</div>
+                            <div>
+                              <div className="font-semibold">Ultima Cosa</div>
                               <div className="text-sm text-gray-500">Premium Italian</div>
                             </div>
-                            <div className="flex items-center space-x-3 ml-6">
-                              <div className="text-right">
-                                <div className="font-bold text-[#a8f387]">
-                                  <SaudiRiyal amount={80} size="sm" />
-                                </div>
-                                <div className="text-xs text-gray-400 line-through">
-                                  <SaudiRiyal amount={95} size="sm" />
-                                </div>
-                              </div>
-                              <div className="w-6 h-6 bg-[#a8f387] rounded-full flex items-center justify-center">
-                                <span className="text-black text-xs font-bold">16%</span>
-                              </div>
-                            </div>
                           </div>
                         </SelectItem>
-                        <SelectItem value="bubble-bro" className="py-4 hover:bg-gradient-to-r hover:from-[#12d6fa]/5 hover:to-[#0bc4e8]/5 transition-all duration-200 group/item">
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900 group-hover/item:text-[#12d6fa] transition-colors duration-200">Bubble Bro</div>
+                        <SelectItem value="bubble-bro" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-full flex items-center justify-center text-white font-bold text-sm">B</div>
+                            <div>
+                              <div className="font-semibold">Bubble Bro</div>
                               <div className="text-sm text-gray-500">Modern Design</div>
                             </div>
-                            <div className="flex items-center space-x-3 ml-6">
-                              <div className="text-right">
-                                <div className="font-bold text-[#12d6fa]">
-                                  <SaudiRiyal amount={73} size="sm" />
-                                </div>
-                                <div className="text-xs text-gray-400 line-through">
-                                  <SaudiRiyal amount={88} size="sm" />
-                                </div>
-                              </div>
-                              <div className="w-6 h-6 bg-[#a8f387] rounded-full flex items-center justify-center">
-                                <span className="text-black text-xs font-bold">17%</span>
-                              </div>
-                            </div>
                           </div>
                         </SelectItem>
-                        <SelectItem value="yoco-cosa" className="py-4 hover:bg-gradient-to-r hover:from-[#12d6fa]/5 hover:to-[#0bc4e8]/5 transition-all duration-200 group/item">
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900 group-hover/item:text-[#12d6fa] transition-colors duration-200">Yoco Cosa</div>
+                        <SelectItem value="yoco-cosa" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#a8f387] to-[#12d6fa] rounded-full flex items-center justify-center text-white font-bold text-sm">Y</div>
+                            <div>
+                              <div className="font-semibold">Yoco Cosa</div>
                               <div className="text-sm text-gray-500">Artisan Quality</div>
                             </div>
-                            <div className="flex items-center space-x-3 ml-6">
-                              <div className="text-right">
-                                <div className="font-bold text-[#12d6fa]">
-                                  <SaudiRiyal amount={78} size="sm" />
-                                </div>
-                                <div className="text-xs text-gray-400 line-through">
-                                  <SaudiRiyal amount={92} size="sm" />
-                                </div>
-                              </div>
-                              <div className="w-6 h-6 bg-[#a8f387] rounded-full flex items-center justify-center">
-                                <span className="text-black text-xs font-bold">15%</span>
-                              </div>
-                            </div>
                           </div>
                         </SelectItem>
-                        <SelectItem value="other-brand" className="py-4 hover:bg-gradient-to-r hover:from-gray-500/5 hover:to-gray-700/5 transition-all duration-200 group/item">
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900 group-hover/item:text-gray-700 transition-colors duration-200">Other Brand Cylinders</div>
+                        <SelectItem value="other-brand" className="text-lg py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-700 rounded-full flex items-center justify-center text-white font-bold text-sm">O</div>
+                            <div>
+                              <div className="font-semibold">Other Brand Cylinders</div>
                               <div className="text-sm text-gray-500">Universal Compatibility</div>
-                            </div>
-                            <div className="flex items-center space-x-3 ml-6">
-                              <div className="text-right">
-                                <div className="font-bold text-gray-700">
-                                  <SaudiRiyal amount={85} size="sm" />
-                                </div>
-                                <div className="text-xs text-gray-400 line-through">
-                                  <SaudiRiyal amount={100} size="sm" />
-                                </div>
-                              </div>
-                              <div className="w-6 h-6 bg-[#a8f387] rounded-full flex items-center justify-center">
-                                <span className="text-black text-xs font-bold">15%</span>
-                              </div>
                             </div>
                           </div>
                         </SelectItem>
@@ -970,16 +655,16 @@ export default function CO2() {
               {/* Premium Selected Cylinder Info */}
               {selectedCylinderData && (
                 <div className="relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#12d6fa]/10 to-[#0bc4e8]/10 rounded-3xl"></div>
-                  <div className="relative p-6 border border-[#12d6fa]/30 rounded-3xl shadow-lg backdrop-blur-sm">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#12d6fa]/10 via-[#a8f387]/10 to-[#12d6fa]/5 rounded-3xl"></div>
+                  <div className="relative p-6 border border-[#12d6fa]/20 rounded-3xl shadow-lg backdrop-blur-sm">
                     <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-2xl flex items-center justify-center flex-shrink-0">
                         <Info className="w-6 h-6 text-white" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-2">
                           <h4 className="text-xl font-bold text-gray-900">{selectedCylinderData.name}</h4>
-                          <div className="px-3 py-1 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] text-white text-xs font-semibold rounded-full">
+                          <div className="px-3 py-1 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white text-xs font-semibold rounded-full">
                             PREMIUM
                           </div>
                         </div>
@@ -994,7 +679,7 @@ export default function CO2() {
                             <span className="text-gray-600">60L Capacity</span>
                           </div>
                           <div className="flex items-center space-x-1">
-                            <div className="w-2 h-2 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-full"></div>
+                            <div className="w-2 h-2 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] rounded-full"></div>
                             <span className="text-gray-600">Premium Quality</span>
                           </div>
                         </div>
@@ -1016,7 +701,8 @@ export default function CO2() {
                 </div>
                 
                 <div className="relative group">
-                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 p-8 transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#a8f387]/20 to-[#12d6fa]/20 rounded-3xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
+                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 shadow-2xl p-8 group-hover:shadow-3xl transition-all duration-300">
                     {/* Quantity Selection Form */}
                     <div className="mb-8">
                       <label className="block text-lg font-semibold text-gray-900 mb-4">
@@ -1032,7 +718,7 @@ export default function CO2() {
                         >
                           <Minus className="w-5 h-5" />
                         </button>
-                        <div className="w-20 h-12 bg-gradient-to-r from-[#12d6fa]/10 to-[#0bc4e8]/10 rounded-xl flex items-center justify-center border-2 border-[#12d6fa]/30">
+                        <div className="w-20 h-12 bg-gradient-to-r from-[#12d6fa]/10 to-[#a8f387]/10 rounded-xl flex items-center justify-center border-2 border-[#12d6fa]/30">
                           <span className="text-2xl font-bold text-gray-900">{quantity}</span>
                         </div>
                         <button
@@ -1051,7 +737,7 @@ export default function CO2() {
                     </div>
                     
                     {/* Delivery Information */}
-                    <div className="bg-gradient-to-r from-[#12d6fa]/10 to-[#0bc4e8]/10 rounded-2xl p-4 mb-6 border border-[#12d6fa]/30">
+                    <div className="bg-gradient-to-r from-[#12d6fa]/10 to-[#a8f387]/10 rounded-2xl p-4 mb-6 border border-[#12d6fa]/20">
                       <div className="flex items-center justify-center space-x-2">
                         <Truck className="w-5 h-5 text-[#12d6fa]" />
                         <span className="text-sm font-semibold text-gray-700">
@@ -1064,12 +750,12 @@ export default function CO2() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                         quantity >= 2 
-                          ? 'bg-gradient-to-br from-[#a8f387]/20 to-[#9ae374]/20 border-[#a8f387] scale-105' 
+                          ? 'bg-gradient-to-br from-[#a8f387]/20 to-[#9ae374]/20 border-[#a8f387] shadow-lg scale-105' 
                           : 'bg-gradient-to-br from-[#a8f387]/10 to-[#9ae374]/10 border-[#a8f387]/20'
                       }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
                           quantity >= 2 
-                            ? 'bg-[#a8f387] scale-110' 
+                            ? 'bg-[#a8f387] shadow-lg scale-110' 
                             : 'bg-[#a8f387]/70'
                         }`}>
                           <span className="text-black font-black text-sm">2+</span>
@@ -1086,13 +772,13 @@ export default function CO2() {
                       </div>
                       <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                         quantity >= 3 
-                          ? 'bg-gradient-to-br from-blue-600/20 to-[#0bc4e8]/20 border-[#12d6fa] scale-105' 
-                          : 'bg-gradient-to-br from-blue-600/10 to-[#0bc4e8]/10 border-blue-200'
+                          ? 'bg-gradient-to-br from-[#12d6fa]/20 to-[#0bc4e8]/20 border-[#12d6fa] shadow-lg scale-105' 
+                          : 'bg-gradient-to-br from-[#12d6fa]/10 to-[#0bc4e8]/10 border-[#12d6fa]/20'
                       }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
                           quantity >= 3 
-                            ? 'bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] scale-110' 
-                            : 'bg-gradient-to-r from-[#12d6fa]/70 to-[#0bc4e8]/70'
+                            ? 'bg-[#12d6fa] shadow-lg scale-110' 
+                            : 'bg-[#12d6fa]/70'
                         }`}>
                           <span className="text-white font-black text-sm">3+</span>
                         </div>
@@ -1108,13 +794,13 @@ export default function CO2() {
                       </div>
                       <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                         quantity >= 4 
-                          ? 'bg-gradient-to-br from-blue-600/20 to-indigo-700/20 border-[#12d6fa] scale-105' 
-                          : 'bg-gradient-to-br from-blue-600/10 to-indigo-700/10 border-blue-200'
+                          ? 'bg-gradient-to-br from-[#12d6fa]/20 to-[#a8f387]/20 border-[#12d6fa] shadow-lg scale-105' 
+                          : 'bg-gradient-to-br from-[#12d6fa]/10 to-[#a8f387]/10 border-[#12d6fa]/20'
                       }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
                           quantity >= 4 
-                            ? 'bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] scale-110' 
-                            : 'bg-gradient-to-r from-[#12d6fa]/70 to-[#0bc4e8]/70'
+                            ? 'bg-gradient-to-r from-[#12d6fa] to-[#a8f387] shadow-lg scale-110' 
+                            : 'bg-gradient-to-r from-[#12d6fa]/70 to-[#a8f387]/70'
                         }`}>
                           <span className="text-white font-black text-sm">4+</span>
                         </div>
@@ -1136,9 +822,10 @@ export default function CO2() {
               {/* Enhanced Premium CTAs */}
               <div className="space-y-6">
                 <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] rounded-3xl blur-lg group-hover:blur-xl opacity-75 transition-all duration-300"></div>
                   <Button
                     onClick={handleAddToCart}
-                    className="relative w-full bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] hover:from-[#0bc4e8] hover:to-[#12d6fa] text-white px-10 py-6 rounded-3xl font-black text-xl transition-all duration-300 hover:scale-105 border-0"
+                    className="relative w-full bg-gradient-to-r from-[#12d6fa] to-[#a8f387] hover:from-[#0bc4e8] hover:to-[#9ae374] text-white px-10 py-6 rounded-3xl font-black text-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 border-0 group-hover:shadow-3xl"
                   >
                     <ShoppingCart className="w-6 h-6 mr-4 group-hover:animate-bounce" />
                     Add Premium Cylinders to Cart
@@ -1188,14 +875,14 @@ export default function CO2() {
 
                 {/* Order Summary - Mobile only, appears under Why Choose Our Premium Service */}
                 <div className="lg:hidden mt-6">
-                  <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/30 shadow-2xl p-6">
+                  <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/20 shadow-2xl p-6">
                     <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Order Summary</h3>
                     
                     {/* Selected Cylinder Info */}
                     {selectedCylinderData && (
-                      <div className="mb-6 p-4 bg-gradient-to-r from-[#12d6fa]/10 to-[#0bc4e8]/10 rounded-2xl border border-[#12d6fa]/30">
+                      <div className="mb-6 p-4 bg-gradient-to-r from-[#12d6fa]/10 to-[#a8f387]/10 rounded-2xl border border-[#12d6fa]/20">
                         <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-xl flex items-center justify-center">
+                          <div className="w-12 h-12 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-xl flex items-center justify-center">
                             <span className="text-white font-bold text-lg">
                               {selectedCylinderData.name.charAt(0)}
                             </span>
@@ -1295,9 +982,9 @@ export default function CO2() {
               {/* Step 1 */}
               <div className="text-center group">
                 <div className="relative mb-8">
-                  <div className="w-full h-80 bg-gradient-to-r from-[#12d6fa]/10 to-[#0bc4e8]/5 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-[#12d6fa]/30">
+                  <div className="w-full h-80 bg-gradient-to-br from-[#12d6fa]/10 to-[#12d6fa]/5 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-[#12d6fa]/20">
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
                         <ShoppingCart className="w-12 h-12 text-white" />
                       </div>
                       <p className="text-[#12d6fa] font-bold text-lg">Order Online</p>
@@ -1313,7 +1000,7 @@ export default function CO2() {
               {/* Step 2 */}
               <div className="text-center group">
                 <div className="relative mb-8">
-                  <div className="w-full h-80 bg-gradient-to-br from-[#a8f387]/10 to-indigo-700/5 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-[#a8f387]/20">
+                  <div className="w-full h-80 bg-gradient-to-br from-[#a8f387]/10 to-[#a8f387]/5 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-[#a8f387]/20">
                     <div className="text-center">
                       <div className="w-24 h-24 bg-gradient-to-br from-[#a8f387] to-[#9ae374] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
                         <Truck className="w-12 h-12 text-black" />
@@ -1331,9 +1018,9 @@ export default function CO2() {
               {/* Step 3 */}
               <div className="text-center group">
                 <div className="relative mb-8">
-                  <div className="w-full h-80 bg-gradient-to-r from-[#12d6fa]/10 to-[#0bc4e8]/10 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-[#12d6fa]/30">
+                  <div className="w-full h-80 bg-gradient-to-br from-[#12d6fa]/10 to-[#a8f387]/10 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-[#12d6fa]/20">
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-24 h-24 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
                         <Shield className="w-12 h-12 text-white" />
                       </div>
                       <p className="text-[#12d6fa] font-bold text-lg">Receive Refilled</p>
@@ -1361,7 +1048,7 @@ export default function CO2() {
                   onClick={() => setActiveTab("faqs")}
                   className={`flex-1 py-4 px-8 font-bold text-center transition-all duration-300 rounded-xl ${
                     activeTab === "faqs" 
-                      ? "bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] text-white shadow-lg scale-105" 
+                      ? "bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white shadow-lg scale-105" 
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                   }`}
                 >
@@ -1374,7 +1061,7 @@ export default function CO2() {
                   onClick={() => setActiveTab("description")}
                   className={`flex-1 py-4 px-8 font-bold text-center transition-all duration-300 rounded-xl ${
                     activeTab === "description" 
-                      ? "bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] text-white shadow-lg scale-105" 
+                      ? "bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white shadow-lg scale-105" 
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                   }`}
                 >
@@ -1387,7 +1074,7 @@ export default function CO2() {
                   onClick={() => setActiveTab("reviews")}
                   className={`flex-1 py-4 px-8 font-bold text-center transition-all duration-300 rounded-xl ${
                     activeTab === "reviews" 
-                      ? "bg-gradient-to-r from-[#12d6fa] to-[#0bc4e8] text-white shadow-lg scale-105" 
+                      ? "bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white shadow-lg scale-105" 
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                   }`}
                 >
@@ -1429,10 +1116,10 @@ export default function CO2() {
                           answer: "We offer tiered pricing: 5% off for 2+ cylinders, 10% off for 3+ cylinders, and 15% off for 4+ cylinders. Plus, orders of 4+ cylinders get FREE delivery!"
                         }
                       ].map((faq, index) => (
-                        <div key={index} className="border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-blue-600/30 transition-all duration-300 group">
+                        <div key={index} className="border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#12d6fa]/30 transition-all duration-300 group">
                           <button
                             onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
-                            className="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-gradient-to-r hover:from-[#12d6fa]/5 hover:to-[#0bc4e8]/5 transition-all duration-300 group-hover:scale-[1.02]"
+                            className="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-gradient-to-r hover:from-[#12d6fa]/5 hover:to-[#a8f387]/5 transition-all duration-300 group-hover:scale-[1.02]"
                           >
                             <span className="font-bold text-black text-xl group-hover:text-[#12d6fa] transition-colors duration-300">{faq.question}</span>
                             <ChevronDown 

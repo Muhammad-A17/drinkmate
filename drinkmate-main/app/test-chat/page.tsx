@@ -82,7 +82,7 @@ export default function TestChatPage() {
               
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Typing Users:</span>
-                <span className="text-sm text-gray-600">{state.typingUsers.length}</span>
+                <span className="text-sm text-gray-600">{state.typingUsers.size}</span>
               </div>
             </CardContent>
           </Card>

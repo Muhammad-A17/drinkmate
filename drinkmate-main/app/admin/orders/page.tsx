@@ -18,10 +18,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { AdminErrorBoundary } from "@/lib/admin-error-handler"
-import { useCustomDialogs } from "@/hooks/use-custom-dialogs"
 import { useAdminErrorHandler, useAsyncOperation } from "@/hooks/use-admin-error-handler"
-import RefreshButton from "@/components/admin/RefreshButton"
-import ActionButton from "@/components/admin/ActionButton"
 import { 
   Package,
   DollarSign,
@@ -123,7 +120,6 @@ interface OrderFilters {
 export default function OrdersPage() {
   const { user, isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
-  const { confirm, showSuccess, showError } = useCustomDialogs()
   
   // Error handling
   const errorHandler = useAdminErrorHandler({
@@ -485,18 +481,10 @@ export default function OrdersPage() {
   }
 
   const handleDeleteOrder = async (order: Order) => {
-    const confirmed = await confirm({
-      title: 'Delete Order',
-      description: `Are you sure you want to delete order ${order.orderNumber}? This action cannot be undone.`,
-      variant: 'destructive',
-      confirmText: 'Delete Order',
-      cancelText: 'Cancel'
-    })
-    
-    if (!confirmed) return
+    if (!confirm(`Are you sure you want to delete order ${order.orderNumber}? This action cannot be undone.`)) return
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'
       const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
         method: 'DELETE',
         headers: {
@@ -638,15 +626,7 @@ export default function OrdersPage() {
   }
 
   const handleCancelOrder = async (order: Order) => {
-    const confirmed = await confirm({
-      title: 'Cancel Order',
-      description: `Are you sure you want to cancel order ${order.orderNumber}?`,
-      variant: 'destructive',
-      confirmText: 'Cancel Order',
-      cancelText: 'Keep Order'
-    })
-    
-    if (!confirmed) return
+    if (!confirm(`Are you sure you want to cancel order ${order.orderNumber}?`)) return
 
     try {
       const { orderAPI } = await import('@/lib/api');
@@ -667,15 +647,7 @@ export default function OrdersPage() {
   }
 
   const handleRefundOrder = async (order: Order) => {
-    const confirmed = await confirm({
-      title: 'Refund Order',
-      description: `Are you sure you want to refund order ${order.orderNumber}?`,
-      variant: 'destructive',
-      confirmText: 'Process Refund',
-      cancelText: 'Cancel'
-    })
-    
-    if (!confirmed) return
+    if (!confirm(`Are you sure you want to refund order ${order.orderNumber}?`)) return
 
     try {
       const { orderAPI } = await import('@/lib/api');
@@ -701,15 +673,7 @@ export default function OrdersPage() {
   }
 
   const handleBulkCancel = async () => {
-    const confirmed = await confirm({
-      title: 'Bulk Cancel Orders',
-      description: `Are you sure you want to cancel ${selectedRows.length} orders?`,
-      variant: 'destructive',
-      confirmText: 'Cancel Orders',
-      cancelText: 'Keep Orders'
-    })
-    
-    if (!confirmed) return
+    if (!confirm(`Cancel ${selectedRows.length} orders?`)) return
     
     try {
       setCancellingOrders(true)
@@ -1417,15 +1381,15 @@ export default function OrdersPage() {
                         </Button>
                       </div>
                     )}
-                    <RefreshButton
-                      onRefresh={fetchOrders}
-                      isLoading={loading}
+                    <Button 
+                      onClick={fetchOrders}
                       variant="outline"
                       size="sm"
                       className="text-xs px-4 py-2 bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-lg transition-all duration-300"
                     >
+                      <RefreshCw className="h-4 w-4 mr-2" />
                       Refresh
-                    </RefreshButton>
+                    </Button>
                   </div>
                 </div>
               </div>

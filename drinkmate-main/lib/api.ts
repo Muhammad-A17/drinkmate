@@ -2,17 +2,28 @@
 import axios from 'axios';
 import { getAuthToken } from './contexts/auth-context';
 import { fallbackCylinders, fallbackFlavors, fallbackProducts } from './fallback-data';
-import { withErrorHandler, createSuccessResponse, createErrorResponse } from './error-handler';
+import { ErrorHandler, createApiResponse } from './error-handler';
 import { checkAdminRateLimit } from './api/protected-api';
-import { API_CONFIG } from './constants';
 
 // Re-export getAuthToken for other modules to use from this single import
 export { getAuthToken };
 
 // Base API URL - should be set in environment variables
 // For local development, use localhost:3000 where the backend server is running
-// API Configuration - Use environment variable or fallback
-const FINAL_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3000' 
+    : 'https://drinkmates.onrender.com');
+
+// Force local development URL when running locally
+const isLocalDev = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+  (window.location.port === '3002' || window.location.port === '3001' || window.location.port === '3000');
+
+// For production, use the environment variable or fallback to production URL
+const FINAL_API_URL = process.env.NODE_ENV === 'production' 
+  ? (process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com')
+  : (isLocalDev ? 'http://localhost:3000' : API_URL);
 
 
 // Cache configuration - Reduced for better synchronization
@@ -54,7 +65,7 @@ export const api = axios.create({
     'X-Requested-With': 'XMLHttpRequest',
     'Accept': 'application/json',
   },
-  timeout: 45000, // Increased to 45 seconds to handle server startup time
+  timeout: 15000, // Reduced to 15 seconds for better UX
   withCredentials: true, // Include cookies with cross-origin requests when needed
 });
 
@@ -83,7 +94,6 @@ api.interceptors.response.use(
     // Log security errors but not in production to avoid leaking sensitive info
     if (process.env.NODE_ENV !== 'production' && error.response) {
       if (error.response.status === 401 || error.response.status === 403) {
-        console.warn(`Security error: ${error.response.status} - ${error.response.statusText}`);
       }
     }
     
@@ -99,7 +109,6 @@ export const invalidateCache = (pattern?: string) => {
       if (key.includes(pattern)) {
         apiCache.delete(key);
         if (process.env.NODE_ENV === 'development') {
-          console.log(`Cache invalidated: ${key}`);
         }
       }
     }
@@ -107,26 +116,23 @@ export const invalidateCache = (pattern?: string) => {
     // Clear all cache
     apiCache.clear();
     if (process.env.NODE_ENV === 'development') {
-      console.log('All cache cleared');
     }
   }
 };
 
 // Helper function to implement retry mechanism with caching
-export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = API_CONFIG.RETRY_ATTEMPTS, delay = API_CONFIG.RETRY_DELAY): Promise<any> => {
+export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: string, maxRetries = 3, delay = 1000): Promise<any> => {
   // Check cache first if cacheKey is provided
   if (cacheKey && apiCache.has(cacheKey)) {
     const cachedData = apiCache.get(cacheKey);
     if (cachedData.timestamp > Date.now() - CACHE_TTL) {
       if (process.env.NODE_ENV === 'development') {
-        console.log(`Cache hit: ${cacheKey}`);
       }
       return cachedData.data;
     } else {
       // Cache expired
       apiCache.delete(cacheKey);
       if (process.env.NODE_ENV === 'development') {
-        console.log(`Cache expired: ${cacheKey}`);
       }
     }
   }
@@ -138,7 +144,6 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
       : true; // Assume online if we can't detect
       
     if (process.env.NODE_ENV === 'development' && !isOnline) {
-      console.warn('Device is offline, API calls may fail');
     }
     
     return isOnline;
@@ -157,7 +162,6 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
     
     try {
       if (retries > 0 && process.env.NODE_ENV === 'development') {
-        console.log(`Retrying API call (attempt ${retries + 1}/${maxRetries})`);
       }
       
       const result = await apiCall();
@@ -176,7 +180,6 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
       retries++;
       
       if (process.env.NODE_ENV === 'development') {
-        console.error(`API call failed (attempt ${retries}/${maxRetries}):`, error.message);
       }
       
       // Don't retry for certain error codes
@@ -192,7 +195,6 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
       // If we've used all retries, throw the error
       if (retries >= maxRetries) {
         if (process.env.NODE_ENV === 'development') {
-          console.error(`Max retries (${maxRetries}) exceeded, giving up`);
         }
         throw error;
       }
@@ -205,7 +207,6 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
         waitTime = Math.min(20000, waitTime * 2);
         
         if (process.env.NODE_ENV === 'development') {
-          console.warn(`Network error detected, increasing wait time to ${waitTime}ms`);
         }
       }
       
@@ -222,7 +223,17 @@ export const retryRequest = async (apiCall: () => Promise<any>, cacheKey?: strin
   throw lastError || new Error('Retry mechanism failed');
 };
 
-// Note: Auth token interceptor is already added above (lines 73-88)
+// Request interceptor to add auth token to requests
+api.interceptors.request.use(
+  (config) => {
+    const token = getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Response interceptor to handle common errors
 api.interceptors.response.use(
@@ -231,7 +242,7 @@ api.interceptors.response.use(
     if (process.env.NODE_ENV === 'development') {
       const contentEncoding = response.headers['content-encoding'];
       if (contentEncoding) {
-        console.log(`Response compressed with ${contentEncoding}`);
+        // Response compressed successfully
       }
     }
     return response;
@@ -287,7 +298,6 @@ api.interceptors.response.use(
         
         // Check if the error is likely due to backend not running
         if (error.code === 'ECONNREFUSED' || error.message?.includes('refused')) {
-          console.error('Backend server appears to be down:', diagnosticInfo);
         }
       }
     }
@@ -304,7 +314,6 @@ export const authAPI = {
       return response.data;
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Login failed:', error.message);
       }
       throw error;
     }
@@ -316,7 +325,6 @@ export const authAPI = {
       return response.data;
     } catch (error: any) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('Registration failed:', error.message);
       }
       throw error;
     }
@@ -856,178 +864,6 @@ export const shopAPI = {
   },
 };
 
-// Cart API
-export const cartAPI = {
-  // Get user's cart from database
-  getCart: async () => {
-    try {
-      const token = getAuthToken();
-      if (!token) {
-        return {
-          success: false,
-          message: 'Authentication required',
-          cart: null
-        };
-      }
-
-      const response = await api.get('/cart', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error getting cart from API:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Failed to get cart',
-        cart: null
-      };
-    }
-  },
-
-  // Add item to cart (saves to database)
-  addToCart: async (productId: string, quantity: number = 1, variants: any[] = []) => {
-    try {
-      const token = getAuthToken();
-      if (!token) {
-        return {
-          success: false,
-          message: 'Authentication required'
-        };
-      }
-
-      const response = await api.post('/cart/add', 
-        { productId, quantity, variants },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          }
-        }
-      );
-      return response.data;
-    } catch (error: any) {
-      console.error('Error adding to cart:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Failed to add item to cart'
-      };
-    }
-  },
-
-  // Update item quantity in cart
-  updateCartItem: async (productId: string, quantity: number) => {
-    try {
-      const token = getAuthToken();
-      if (!token) {
-        return {
-          success: false,
-          message: 'Authentication required'
-        };
-      }
-
-      const response = await api.put('/cart/update',
-        { productId, quantity },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          }
-        }
-      );
-      return response.data;
-    } catch (error: any) {
-      console.error('Error updating cart item:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Failed to update cart item'
-      };
-    }
-  },
-
-  // Remove item from cart
-  removeFromCart: async (productId: string) => {
-    try {
-      const token = getAuthToken();
-      if (!token) {
-        return {
-          success: false,
-          message: 'Authentication required'
-        };
-      }
-
-      const response = await api.delete(`/cart/remove/${productId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error removing from cart:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Failed to remove item from cart'
-      };
-    }
-  },
-
-  // Clear entire cart
-  clearCart: async () => {
-    try {
-      const token = getAuthToken();
-      if (!token) {
-        return {
-          success: false,
-          message: 'Authentication required'
-        };
-      }
-
-      const response = await api.delete('/cart/clear', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error clearing cart:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Failed to clear cart'
-      };
-    }
-  },
-
-  // Sync localStorage cart with database (merge)
-  syncCart: async (items: any[]) => {
-    try {
-      const token = getAuthToken();
-      if (!token) {
-        return {
-          success: false,
-          message: 'Authentication required',
-          cart: null
-        };
-      }
-
-      const response = await api.post('/cart/sync',
-        { items },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          }
-        }
-      );
-      return response.data;
-    } catch (error: any) {
-      console.error('Error syncing cart:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Failed to sync cart',
-        cart: null
-      };
-    }
-  },
-};
-
 // Order API
 export const orderAPI = {
   // Create order (authenticated users)
@@ -1518,8 +1354,8 @@ export const adminAPI = {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Admin API - getProducts error:', error);
-      return createErrorResponse(new Error('Failed to fetch products'));
+      const apiError = ErrorHandler.handle(error, 'Admin API - getProducts');
+      return createApiResponse(false, [], apiError.message, apiError.code);
     }
   },
 
@@ -1548,15 +1384,9 @@ export const adminAPI = {
         };
       }
 
-      console.log('Creating product with data:', productData);
-      console.log('Auth token present:', !!getAuthToken());
-      
       const response = await api.post('/admin/products', productData);
-      console.log('API response:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('API error:', error);
-      console.error('Error response:', error.response?.data);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to create product',
@@ -1567,16 +1397,9 @@ export const adminAPI = {
 
   updateProduct: async (id: string, productData: any) => {
     try {
-      console.log('Updating product with ID:', id);
-      console.log('Update data:', productData);
-      console.log('Auth token present:', !!getAuthToken());
-      
       const response = await api.put(`/admin/products/${id}`, productData);
-      console.log('Update API response:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('Update API error:', error);
-      console.error('Update error response:', error.response?.data);
       return {
         success: false,
         message: error.response?.data?.message || 'Failed to update product',
@@ -1844,65 +1667,32 @@ export const adminAPI = {
   },
   
   // Image management
-  uploadImage: async (file: File, retryCount = 0): Promise<{
-    success: boolean;
-    message: string;
-    imageUrl?: string;
-    publicId?: string;
-    filename?: string;
-    error?: string;
-  }> => {
+  uploadImage: async (file: File) => {
     const formData = new FormData();
     formData.append('image', file);
     
     // Get auth token using the correct key
     const token = getAuthToken();
     
-    try {
-      const response = await api.post('/admin/upload-image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`,
-        },
-        timeout: 60000, // 60 seconds for image uploads specifically
-      });
-      return response.data;
-    } catch (error: any) {
-      // Check if it's a server startup error and retry
-      if (error.message?.includes('Server is starting up') && retryCount < 3) {
-        console.log(`Server starting up, retrying upload in ${(retryCount + 1) * 10} seconds... (attempt ${retryCount + 1}/3)`);
-        await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 10000)); // Wait 10, 20, 30 seconds
-        return adminAPI.uploadImage(file, retryCount + 1);
-      }
-      throw error;
-    }
+    const response = await api.post('/admin/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
   },
   
   deleteImage: async (publicId: string) => {
-    try {
-      // Get auth token using the correct key
-      const token = getAuthToken();
-      console.log('Deleting image with publicId:', publicId);
-      console.log('PublicId type:', typeof publicId);
-      console.log('PublicId length:', publicId.length);
-      console.log('Auth token present:', !!token);
-      
-      // URL encode the publicId to handle forward slashes
-      const encodedPublicId = encodeURIComponent(publicId);
-      console.log('Encoded publicId:', encodedPublicId);
-      
-      const response = await api.delete(`/admin/delete-image/${encodedPublicId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      console.log('Delete image response:', response.data);
-      return response.data;
-    } catch (error: any) {
-      console.error('Delete image error:', error);
-      console.error('Delete image error response:', error.response?.data);
-      throw error; // Re-throw to let the component handle it
-    }
+    // Get auth token using the correct key
+    const token = getAuthToken();
+    
+    const response = await api.delete(`/admin/delete-image/${publicId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
   },
 
 

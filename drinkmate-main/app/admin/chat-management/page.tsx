@@ -84,7 +84,6 @@ import LazyChatWidget from '@/components/chat/LazyChatWidget'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { useCustomDialogs } from '@/hooks/use-custom-dialogs'
 import { Message, Conversation } from '@/types/chat'
 import { simpleETAService, SimpleETA } from '@/lib/services/simple-eta-service'
 
@@ -115,7 +114,6 @@ export default function ChatManagementPage() {
   const { user, isAuthenticated } = useAuth()
   const { isRTL } = useTranslation()
   const { socket: contextSocket, isConnected: contextConnected } = useSocket()
-  const { confirm } = useCustomDialogs()
   
   // Fallback socket connection
   const [fallbackSocket, setFallbackSocket] = useState<any>(null)
@@ -124,46 +122,6 @@ export default function ChatManagementPage() {
   // Use context socket if available, otherwise use fallback
   const socket = contextSocket || fallbackSocket
   const isConnected = contextConnected || fallbackConnected
-  
-  // Initialize fallback socket if context socket is not available
-  useEffect(() => {
-    if (!contextSocket && user && isAuthenticated && !fallbackSocket) {
-      const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000', {
-        auth: {
-          token: localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
-        },
-        transports: ['websocket', 'polling'],
-        timeout: 20000,
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: 15,
-        forceNew: true,
-        upgrade: true,
-        rememberUpgrade: false,
-        autoConnect: true,
-        multiplex: false,
-        closeOnBeforeunload: false
-      })
-      
-      newSocket.on('connect', () => {
-        console.log('🔥 Fallback socket connected:', newSocket.id)
-        setFallbackConnected(true)
-      })
-      
-      newSocket.on('disconnect', () => {
-        console.log('🔥 Fallback socket disconnected')
-        setFallbackConnected(false)
-      })
-      
-      newSocket.on('connect_error', (error) => {
-        console.error('🔥 Fallback socket connection error:', error)
-        setFallbackConnected(false)
-      })
-      
-      setFallbackSocket(newSocket)
-    }
-  }, [contextSocket, user, isAuthenticated, fallbackSocket])
   
   // State
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -547,6 +505,7 @@ export default function ChatManagementPage() {
       }
     }
     
+    // Return undefined if no cleanup is needed
     return undefined
   }, [contextSocket, user, fallbackSocket])
 
@@ -634,7 +593,7 @@ export default function ChatManagementPage() {
               updatedConv.assignee = {
                 id: user._id,
                 name: user.name || 'Support',
-                avatar: user.avatar || '' || ''
+                avatar: user.avatar
               }
             }
             
@@ -670,7 +629,7 @@ export default function ChatManagementPage() {
             updatedConv.assignee = {
               id: user._id,
               name: user.name || 'Support',
-              avatar: user.avatar || ''
+              avatar: user.avatar
             }
           }
           
@@ -919,7 +878,7 @@ export default function ChatManagementPage() {
             updatedConv.assignee = {
               id: user._id,
               name: user.name || 'Support',
-              avatar: user.avatar || ''
+              avatar: user.avatar
             }
           }
           
@@ -942,7 +901,7 @@ export default function ChatManagementPage() {
               updatedConv.assignee = {
                 id: user._id,
                 name: user.name || 'Support',
-                avatar: user.avatar || '' || ''
+                avatar: user.avatar
               }
             }
             
@@ -966,15 +925,7 @@ export default function ChatManagementPage() {
 
   // Handle conversation deletion
   const handleDeleteConversation = async (conversationId: string) => {
-    const confirmed = await confirm({
-      title: 'Delete Conversation',
-      description: 'Are you sure you want to delete this conversation? This action cannot be undone.',
-      variant: 'destructive',
-      confirmText: 'Delete Conversation',
-      cancelText: 'Cancel'
-    })
-    
-    if (!confirmed) {
+    if (!confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
       return
     }
 
@@ -998,7 +949,7 @@ export default function ChatManagementPage() {
       // Decode token to check admin status (without logging sensitive data)
       if (token) {
         try {
-          const payload = JSON.parse(atob(token.split('.')[1] || ''))
+          const payload = JSON.parse(atob(token.split('.')[1]))
           // Only log non-sensitive information
           console.log('Token validation successful')
         } catch (e) {
@@ -1006,14 +957,10 @@ export default function ChatManagementPage() {
         }
       }
       
-      const deleteUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/chat/${conversationId}`
-      console.log('Delete URL:', deleteUrl)
-      
-      const response = await fetch(deleteUrl, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${conversationId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`
         }
       })
 
@@ -1049,7 +996,7 @@ export default function ChatManagementPage() {
         
         toast.success('Conversation deleted successfully')
       } else {
-        let errorMessage = `Failed to delete conversation (Status: ${response.status})`
+        let errorMessage = 'Failed to delete conversation'
         try {
           // Try to get error details from response
           const contentType = response.headers.get('content-type')
@@ -1058,16 +1005,8 @@ export default function ChatManagementPage() {
           if (contentType && contentType.includes('application/json')) {
             const errorData = await response.json()
             console.error('Delete error response:', errorData)
-            console.log('Error data type:', typeof errorData)
-            console.log('Error data keys:', Object.keys(errorData || {}))
-            console.log('Error data length:', Object.keys(errorData || {}).length)
-            
             if (errorData && Object.keys(errorData).length > 0) {
               errorMessage = errorData.message || errorData.error || errorMessage
-            } else {
-              // Handle empty JSON response
-              console.warn('Received empty JSON response from server')
-              errorMessage = `Server returned empty response (Status: ${response.status})`
             }
           } else {
             // Try to get text response
@@ -1075,14 +1014,11 @@ export default function ChatManagementPage() {
             console.error('Raw error response:', errorText)
             if (errorText && errorText.trim()) {
               errorMessage = errorText
-            } else {
-              console.warn('Received empty text response from server')
-              errorMessage = `Server returned empty response (Status: ${response.status})`
             }
           }
         } catch (parseError) {
           console.error('Error parsing delete error response:', parseError)
-          errorMessage = `Failed to parse server response (Status: ${response.status})`
+          // Use default error message
         }
         
         toast.error(errorMessage)
@@ -1363,17 +1299,9 @@ export default function ChatManagementPage() {
                           variant="ghost"
                           size="sm"
                           className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50"
-                          onClick={async (e) => {
+                          onClick={(e) => {
                             e.stopPropagation()
-                            const confirmed = await confirm({
-                              title: 'Delete Conversation',
-                              description: 'Are you sure you want to delete this conversation?',
-                              variant: 'destructive',
-                              confirmText: 'Delete',
-                              cancelText: 'Cancel'
-                            })
-                            
-                            if (confirmed) {
+                            if (confirm('Are you sure you want to delete this conversation?')) {
                               handleDeleteConversation(conversation.id)
                             }
                           }}

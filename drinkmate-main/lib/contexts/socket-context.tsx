@@ -44,8 +44,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     }
 
     // Initialize socket connection
-    if (isConnectingRef.current || (socket && socket.connected)) {
-      console.log('🔥 Socket already connecting or connected, skipping')
+    if (isConnectingRef.current) {
       return
     }
 
@@ -82,20 +81,18 @@ export function SocketProvider({ children }: SocketProviderProps) {
       auth: {
         token: token
       },
-      transports: ['polling', 'websocket'], // Try polling first, then upgrade to websocket
-      timeout: 30000, // Increased timeout to 30 seconds
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      reconnectionAttempts: 20, // Increased attempts
+      reconnectionAttempts: 15, // Increased attempts
       forceNew: true,
       upgrade: true,
-      rememberUpgrade: true, // Remember successful upgrades
+      rememberUpgrade: false,
       autoConnect: true,
       multiplex: false,
-      closeOnBeforeunload: false,
-      withCredentials: true, // Enable credentials for CORS
-      path: '/socket.io/' // Explicit path
+      closeOnBeforeunload: false
     })
     
 
@@ -151,14 +148,6 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
     newSocket.on('error', (error) => {
       console.error('🔥 Socket error event:', error)
-      console.error('🔥 Socket error type:', typeof error)
-      console.error('🔥 Socket error keys:', error ? Object.keys(error) : 'null')
-    })
-    
-    newSocket.on('connect_error', (error) => {
-      console.error('🔥 Socket connect_error:', error)
-      console.error('🔥 Connect error message:', error.message)
-      console.error('🔥 Connect error description:', (error as any).description)
     })
 
     setSocket(newSocket)
@@ -185,24 +174,21 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
   // Call connectSocket when user or token changes
   useEffect(() => {
-    if (user && token && !isConnectingRef.current) {
+    if (user && token) {
       console.log('🔥 SocketProvider: User and token available, connecting socket')
       console.log('🔥 SocketProvider: User ID:', user._id)
       console.log('🔥 SocketProvider: Token length:', token.length)
       // Add a small delay to ensure the socket connection is established
       const timer = setTimeout(() => {
-        if (!isConnectingRef.current) {
-          connectSocket()
-        }
+        connectSocket()
       }, 1000) // Increased delay to ensure everything is ready
       return () => clearTimeout(timer)
-    } else if (!user || !token) {
+    } else {
       console.log('🔥 SocketProvider: No user or token, disconnecting socket')
       console.log('🔥 SocketProvider: User:', !!user, 'Token:', !!token)
       disconnectSocket()
+      return undefined
     }
-    
-    return undefined
   }, [user, token]) // Removed connectSocket and disconnectSocket from dependencies to prevent loops
 
   const joinChat = (chatId: string) => {

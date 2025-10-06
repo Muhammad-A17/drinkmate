@@ -61,6 +61,15 @@ class ApiClient {
   }
 
   private handleError(error: any) {
+    // Gracefully ignore transient network cancellations/timeouts during route/auth transitions
+    if (!error.response) {
+      if (process.env.NODE_ENV === 'development') {
+        // Downgrade noisy network errors to a warning to avoid alarming the user/dev tools
+        console.warn('API Warning:', error.message || 'Network issue')
+      }
+      return
+    }
+
     if (error.response?.status === 401) {
       this.clearAuthToken()
       this.redirectToLogin()

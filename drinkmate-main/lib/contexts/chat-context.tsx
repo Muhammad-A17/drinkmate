@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef, useMemo } from 'react'
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from './auth-context'
 import { useSocket } from './socket-context'
 import { Message, ChatSession, Conversation } from '@/types/chat'
@@ -24,7 +24,7 @@ interface ChatState {
   unreadCount: number
   
   // Typing indicators
-  typingUsers: string[]
+  typingUsers: Set<string>
   
   // Connection state
   isConnected: boolean
@@ -45,7 +45,6 @@ type ChatAction =
   | { type: 'SET_UNREAD_COUNT'; payload: number }
   | { type: 'ADD_TYPING_USER'; payload: string }
   | { type: 'REMOVE_TYPING_USER'; payload: string }
-  | { type: 'SET_TYPING_USERS'; payload: string[] }
   | { type: 'SET_CONNECTION_STATE'; payload: { isConnected: boolean; isReconnecting: boolean } }
   | { type: 'CLEAR_CHAT' }
 
@@ -59,7 +58,7 @@ const initialState: ChatState = {
   error: null,
   messages: [],
   unreadCount: 0,
-  typingUsers: [],
+  typingUsers: new Set(),
   isConnected: false,
   isReconnecting: false
 }
@@ -114,22 +113,13 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'ADD_TYPING_USER':
       return {
         ...state,
-        typingUsers: state.typingUsers.includes(action.payload) 
-          ? state.typingUsers 
-          : [...state.typingUsers, action.payload]
+        typingUsers: new Set([...state.typingUsers, action.payload])
       }
     
     case 'REMOVE_TYPING_USER':
-      return {
-        ...state,
-        typingUsers: state.typingUsers.filter(user => user !== action.payload)
-      }
-    
-    case 'SET_TYPING_USERS':
-      return {
-        ...state,
-        typingUsers: action.payload
-      }
+      const newTypingUsers = new Set(state.typingUsers)
+      newTypingUsers.delete(action.payload)
+      return { ...state, typingUsers: newTypingUsers }
     
     case 'SET_CONNECTION_STATE':
       return {
@@ -144,7 +134,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         currentChat: null,
         messages: [],
         unreadCount: 0,
-        typingUsers: []
+        typingUsers: new Set()
       }
     
     default:
@@ -439,16 +429,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     try {
       const chatData = await loadChatData(chatId)
       if (chatData) {
-        console.log('🔥 ChatProvider: Chat loaded successfully, messages count:', chatData.messages.length)
         dispatch({ type: 'SET_CURRENT_CHAT', payload: chatData })
-        
-        // Join the socket room immediately
-        if (socket && isConnected) {
-          console.log('🔥 ChatProvider: Joining socket room for chat:', chatId)
-          joinChat(chatId)
-        } else {
-          console.log('🔥 ChatProvider: Cannot join socket room - socket:', !!socket, 'connected:', isConnected)
-        }
+        joinChat(chatId)
       } else {
         dispatch({ type: 'SET_ERROR', payload: 'No chat data found' })
       }
@@ -457,7 +439,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }, [loadChatData, joinChat, socket, isConnected])
+  }, [loadChatData, joinChat])
 
   const createNewChat = useCallback(async () => {
     if (!user) return
@@ -542,7 +524,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   }, [state.unreadCount])
 
   const isTyping = useCallback((userId: string) => {
-    return state.typingUsers.includes(userId)
+    return state.typingUsers.has(userId)
   }, [state.typingUsers])
 
   // Update message status
@@ -569,14 +551,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.currentChat, getAuthToken])
 
-  // Rejoin chat room when socket reconnects
-  useEffect(() => {
-    if (socket && isConnected && state.currentChat) {
-      console.log('🔥 ChatProvider: Socket reconnected, rejoining chat:', state.currentChat._id)
-      joinChat(state.currentChat._id)
-    }
-  }, [socket, isConnected, state.currentChat, joinChat])
-
   // Socket event listeners
   useEffect(() => {
     if (!socket || !isConnected) {
@@ -587,7 +561,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     console.log('🔥 ChatProvider: Setting up socket event listeners')
     console.log('🔥 ChatProvider: Socket connected:', socket.connected)
     console.log('🔥 ChatProvider: Socket ID:', socket.id)
-    console.log('🔥 ChatProvider: Current chat:', state.currentChat?._id)
 
     const handleNewMessage = (data: { chatId: string; message: any }) => {
       console.log('🔥 ChatProvider: New message received:', data)
@@ -607,44 +580,26 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Check if message already exists to prevent duplicates
-      const realMessageId = data.message._id || data.message.id
       const messageExists = stateRef.current.messages.some((msg: Message) => {
-        if (realMessageId && (msg.id === realMessageId)) return true
-        if (msg.id.toString().startsWith('temp_')) return false // Never consider temp IDs as duplicates
+        // Check by real ID first (most reliable)
+        if (msg.id === data.message._id || msg.id === data.message.id) {
+          return true
+        }
+        
+        // Only check by content and timestamp if IDs don't match and content is identical
+        if (msg.content === data.message.content && data.message.content) {
+          const msgTime = new Date(msg.timestamp).getTime()
+          const dataTime = new Date(data.message.createdAt || data.message.timestamp).getTime()
+          // If timestamps are within 2 seconds, consider it a duplicate (reduced from 5 seconds)
+          return Math.abs(msgTime - dataTime) < 2000
+        }
+        
         return false
       })
       
       if (messageExists) {
-        console.log('🔥 ChatProvider: Message with ID already exists, skipping duplicate:', realMessageId)
+        console.log('🔥 ChatProvider: Message already exists, skipping duplicate')
         return
-      }
-      
-      // If we have a temporary message with the same content within last 5 seconds, replace it with the real one
-      const tempMessageIndex = stateRef.current.messages.findIndex((msg: Message) => {
-        if (!msg.id.toString().startsWith('temp_')) return false
-        const isSameSender = msg.sender === (data.message.sender === 'admin' || data.message.sender === 'agent' ? 'agent' : 'customer')
-        const isSameContent = msg.content === data.message.content
-        const messageTime = new Date(msg.timestamp).getTime()
-        const nowTime = Date.now()
-        const isRecent = (nowTime - messageTime) < 5000 // Only replace recent temp messages
-        return isSameSender && isSameContent && isRecent
-      })
-      
-      if (tempMessageIndex !== -1) {
-        console.log('🔥 ChatProvider: Replacing temporary message with real message')
-        const tempId = stateRef.current.messages[tempMessageIndex].id
-        dispatch({ 
-          type: 'UPDATE_MESSAGE', 
-          payload: { 
-            id: tempId, 
-            updates: {
-              id: realMessageId,
-              timestamp: data.message.createdAt || data.message.timestamp,
-              status: 'delivered'
-            }
-          } 
-        })
-        return // IMPORTANT: Return after updating
       }
       
       const message: Message = {
@@ -716,9 +671,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       socket.off('typing_start', handleTypingStart)
       socket.off('typing_stop', handleTypingStop)
       socket.off('test_event', testHandler)
-      
-      // Clear typing users on cleanup
-      dispatch({ type: 'SET_TYPING_USERS', payload: [] })
     }
   }, [socket, isConnected]) // Added isConnected to dependencies to re-register when connection state changes
 
@@ -764,8 +716,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       console.log('🔥 ChatProvider: Cleaning up on unmount')
       // Leave current chat if connected
       if (socket && state.currentChat) {
-        console.log('🔥 ChatProvider: Leaving chat on cleanup:', state.currentChat._id)
-        socket.emit('leave_chat', state.currentChat._id)
+        console.log('🔥 ChatProvider: Leaving chat on cleanup:', state.currentChat)
+        socket.emit('leave_chat', state.currentChat)
       }
     }
   }, [socket, state.currentChat])
@@ -776,12 +728,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       if (document.hidden) {
         console.log('🔥 ChatProvider: Page hidden, leaving chat if connected')
         if (socket && state.currentChat) {
-          socket.emit('leave_chat', state.currentChat._id)
+          socket.emit('leave_chat', state.currentChat)
         }
       } else {
         console.log('🔥 ChatProvider: Page visible, rejoining chat if connected')
         if (socket && state.currentChat) {
-          socket.emit('join_chat', state.currentChat._id)
+          socket.emit('join_chat', state.currentChat)
         }
       }
     }
@@ -793,7 +745,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [socket, state.currentChat])
 
-  const value: ChatContextType = useMemo(() => ({
+  const value: ChatContextType = {
     state,
     dispatch,
     openChat,
@@ -808,21 +760,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     updateMessageStatus,
     getUnreadCount,
     isTyping
-  }), [
-    state,
-    openChat,
-    closeChat,
-    toggleMinimize,
-    sendMessage,
-    loadChat,
-    createNewChat,
-    markAsRead,
-    startTyping,
-    stopTyping,
-    updateMessageStatus,
-    getUnreadCount,
-    isTyping
-  ])
+  }
 
   return (
     <ChatContext.Provider value={value}>

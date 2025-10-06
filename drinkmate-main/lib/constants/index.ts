@@ -1,8 +1,14 @@
 // Shared constants for the DrinkMate application
 
 // API Configuration
+// Prefer local API during development even if NEXT_PUBLIC_API_URL is set
+const isProdEnv = (process.env.NODE_ENV === 'production')
+const resolvedBaseUrl = isProdEnv
+  ? (process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com')
+  : 'http://localhost:3000'
+
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
+  BASE_URL: resolvedBaseUrl,
   TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000') || 30000,
   RETRY_ATTEMPTS: parseInt(process.env.NEXT_PUBLIC_API_RETRY_ATTEMPTS || '3') || 3,
   RETRY_DELAY: parseInt(process.env.NEXT_PUBLIC_API_RETRY_DELAY || '1000') || 1000,
@@ -232,6 +238,7 @@ export const API_ENDPOINTS = {
   REMOVE_FROM_CART: '/api/cart/remove',
   UPDATE_CART: '/api/cart/update',
   CLEAR_CART: '/api/cart/clear',
+  SYNC_CART: '/api/cart/sync',
   
   // Orders
   ORDERS: '/api/orders',

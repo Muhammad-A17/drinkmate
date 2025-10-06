@@ -228,3 +228,44 @@ export function createPaginatedResponse<T = any>(
     timestamp: new Date().toISOString(),
   });
 }
+
+// Error handler class for API operations
+export class ErrorHandler {
+  static handle(error: any, context?: string): { message: string; code: string } {
+    console.error(`Error in ${context || 'API'}:`, error);
+    
+    if (error.response?.data?.message) {
+      return {
+        message: error.response.data.message,
+        code: error.response.data.code || 'API_ERROR'
+      };
+    }
+    
+    if (error.message) {
+      return {
+        message: error.message,
+        code: 'NETWORK_ERROR'
+      };
+    }
+    
+    return {
+      message: 'An unexpected error occurred',
+      code: 'UNKNOWN_ERROR'
+    };
+  }
+}
+
+// API response creator
+export function createApiResponse<T = any>(
+  success: boolean,
+  data: T,
+  message: string = 'Success',
+  code?: string
+): { success: boolean; data: T; message: string; code?: string } {
+  return {
+    success,
+    data,
+    message,
+    ...(code && { code })
+  };
+}
