@@ -145,8 +145,8 @@ export default function AccountDashboard() {
           return
         }
 
-        // Fetch real orders from API
-        const ordersResponse = await fetch('/api/user/orders?limit=10', {
+        // Fetch real orders from API - limit to 7 for account page
+        const ordersResponse = await fetch('/api/user/orders?limit=7', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -154,15 +154,18 @@ export default function AccountDashboard() {
 
         if (ordersResponse.ok) {
           const ordersData = await ordersResponse.json()
-          if (ordersData.success && ordersData.data) {
+          // Support both shapes: { success, data: { orders } } and { success, orders }
+          const payload = ordersData?.data || ordersData
+          if (ordersData?.success && (payload?.orders || Array.isArray(payload))) {
+            const rawOrders = Array.isArray(payload) ? payload : (payload.orders || [])
             // Transform API data to match our Order interface
-            const transformedOrders: Order[] = ordersData.data.orders?.map((order: any) => ({
+            const transformedOrders: Order[] = rawOrders.map((order: any) => ({
               id: order._id || order.id,
-              number: order.orderNumber || order.order_number || `DM-${order._id?.slice(-8) || 'N/A'}`,
-              createdAt: order.createdAt || order.created_at || new Date().toISOString(),
+              number: order.orderNumber || order.order_number || order.id || `DM-${order._id?.slice(-8) || 'N/A'}`,
+              createdAt: order.createdAt || order.created_at || order.date || new Date().toISOString(),
               status: order.status || 'pending',
-              total: order.totalAmount || order.total_amount || 0,
-              itemsCount: order.items?.length || 0,
+              total: typeof order.total === 'number' ? order.total : (order.totalAmount || order.total_amount || 0),
+              itemsCount: Array.isArray(order.items) ? order.items.length : (order.itemsCount || 0),
               items: order.items?.map((item: any) => ({
                 name: item.name || 'Unknown Item',
                 quantity: item.quantity || 1,
@@ -431,6 +434,7 @@ export default function AccountDashboard() {
   const handleViewAllOrders = () => {
     router.push('/account/orders')
   }
+
 
 
   const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {

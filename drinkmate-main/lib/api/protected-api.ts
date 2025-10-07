@@ -40,7 +40,8 @@ export async function handleBackendResponse(response: Response) {
     )
   }
 
-  return await response.json()
+  const data = await response.json()
+  return NextResponse.json(data)
 }
 
 // Enhanced rate limiting with different tiers for different operations

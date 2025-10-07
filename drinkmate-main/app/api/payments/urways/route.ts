@@ -25,10 +25,11 @@ console.log('🔍 URWAYS Config on startup:', {
 
 /**
  * Generate hash for URWAYS API authentication
- * Based on working site format: SHA256(merchantId|amount|currency|orderId|customerEmail|customerName|description|returnUrl|cancelUrl|terminalId|password|action|trackId|udf1|udf2|udf3)
+ * Based on URWAY docs: SHA256(terminalId|amount|currency|orderId|customerEmail|customerName|description|returnUrl|cancelUrl|terminalId|password|action|trackId|udf1|udf2|udf3)
  */
-const generateHash = (trackid: string, amount: number, currency: string, orderId: string, customerEmail: string, customerName: string, description: string, returnUrl: string, cancelUrl: string): string => {
-  const hashString = `${URWAYS_CONFIG.merchantKey}|${amount}|${currency}|${orderId}|${customerEmail}|${customerName}|${description}|${returnUrl}|${cancelUrl}|${URWAYS_CONFIG.terminalId}|${URWAYS_CONFIG.terminalPassword}|0|${trackid.toUpperCase()}|DrinkMate|${orderId}|${customerEmail}`
+const generateHash = (trackid: string, amount: number, currency: string, orderId: string, customerEmail: string, customerName: string, description: string, returnUrl: string, cancelUrl: string, action: string = '1'): string => {
+  const normalizedAmount = Number(amount).toFixed(2)
+  const hashString = `${URWAYS_CONFIG.terminalId}|${normalizedAmount}|${currency}|${orderId}|${customerEmail}|${customerName}|${description}|${returnUrl}|${cancelUrl}|${URWAYS_CONFIG.terminalId}|${URWAYS_CONFIG.terminalPassword}|${action}|${trackid.toUpperCase()}|DrinkMate|${orderId}|${customerEmail}`
   console.log('🔐 Hash String:', hashString)
   const hash = crypto.createHash('sha256').update(hashString).digest('hex')
   console.log('🔐 Generated Hash:', hash)
@@ -152,15 +153,15 @@ export async function POST(request: NextRequest) {
                       request.headers.get('x-real-ip') || 
                       '8.8.8.8' // Fallback to a valid public IP
 
-    // Prepare URWAYS request payload using PascalCase field names
-    // Based on URWAYS official documentation
+    // Prepare URWAYS request payload using the correct format
+    // Based on URWAYS official documentation - using PascalCase field names
     const urwaysRequest = {
-      MerchantID: URWAYS_CONFIG.merchantKey,
+      MerchantID: URWAYS_CONFIG.terminalId, // Use terminal ID, not merchant key
       TerminalID: URWAYS_CONFIG.terminalId,
       Password: URWAYS_CONFIG.terminalPassword,
-      Action: '0', // 0 for creating payment session
+      Action: '1', // 1 for payment initiation
       TrackID: trackid.toUpperCase(),
-      Amount: amount.toFixed(2),
+      Amount: Number(amount).toFixed(2),
       Currency: currency,
       OrderID: orderId,
       CustomerEmail: customerEmail,
@@ -173,7 +174,7 @@ export async function POST(request: NextRequest) {
       UDF3: customerEmail,
       Country: 'SA', // Saudi Arabia
       MerchantIP: merchantIp,
-      RequestHash: generateHash(trackid, amount, currency, orderId, customerEmail, customerName, description || 'DrinkMate Order Payment', `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`, `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`)
+      RequestHash: generateHash(trackid, amount, currency, orderId, customerEmail, customerName, description || 'DrinkMate Order Payment', `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`, `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`, '1')
     }
 
     console.log('🚀 URWAYS Payment Request:', {
@@ -237,14 +238,17 @@ export async function POST(request: NextRequest) {
     // If URWAYS returns a payment id (e.g., PaymentId or paymentId), build hosted form URL
     const paymentId = urwaysResponse?.paymentId || urwaysResponse?.PaymentId || urwaysResponse?.tranid || urwaysResponse?.TranId
     if (paymentId) {
+      // Use the correct URAYS hosted form URL format
       const paymentUrl = `https://payments.urway-tech.com/URWAYPGService/direct.jsp?paymentid=${paymentId}`
+      console.log('✅ Generated URAYS payment URL:', paymentUrl)
       return addSecurityHeaders(NextResponse.json({
         success: true,
         data: {
           paymentUrl,
           transactionId: paymentId,
           trackId: urwaysRequest.TrackID,
-          amount
+          amount,
+          orderId: urwaysRequest.OrderID
         }
       }))
     }

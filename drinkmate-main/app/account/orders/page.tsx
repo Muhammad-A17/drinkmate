@@ -115,12 +115,61 @@ export default function OrdersPage() {
   ]
 
   useEffect(() => {
-    // Simulate API call
+    // Fetch real orders from API
     const fetchOrders = async () => {
       setLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setOrders(mockOrders)
-      setLoading(false)
+      try {
+        const token = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token')
+        if (!token) {
+          console.error('No auth token found')
+          setOrders([])
+          setLoading(false)
+          return
+        }
+
+        const response = await fetch('/api/user/orders?limit=50', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          // Support both shapes: { success, data: { orders } } and { success, orders }
+          const payload = data?.data || data
+          if (data?.success && (payload?.orders || Array.isArray(payload))) {
+            const rawOrders = Array.isArray(payload) ? payload : (payload.orders || [])
+            // Transform API data to match our Order interface
+            const transformedOrders: Order[] = rawOrders.map((order: any) => ({
+              id: order._id || order.id,
+              number: order.orderNumber || order.order_number || order.id || `DM-${order._id?.slice(-8) || 'N/A'}`,
+              createdAt: order.createdAt || order.created_at || order.date || new Date().toISOString(),
+              status: order.status || 'pending',
+              total: typeof order.total === 'number' ? order.total : (order.totalAmount || order.total_amount || 0),
+              itemsCount: Array.isArray(order.items) ? order.items.length : (order.itemsCount || 0),
+              items: order.items?.map((item: any) => ({
+                name: item.name || 'Unknown Item',
+                quantity: item.quantity || 1,
+                price: item.price || 0
+              })) || [],
+              trackingNumber: order.trackingNumber || order.tracking_number || null,
+              estimatedDelivery: order.estimatedDeliveryDate || order.estimated_delivery_date || null
+            })) || []
+            
+            setOrders(transformedOrders)
+          } else {
+            setOrders([])
+          }
+        } else {
+          console.error('Failed to fetch orders:', response.status, response.statusText)
+          setOrders([])
+        }
+      } catch (error) {
+        console.error('Error fetching orders:', error)
+        setOrders([])
+      } finally {
+        setLoading(false)
+      }
     }
 
     fetchOrders()

@@ -19,7 +19,7 @@ import TabbyInfoDialog from "@/components/checkout/TabbyInfoDialog"
 export default function CheckoutPage() {
   const router = useRouter()
   const { state, clearCart, removeItem, updateQuantity } = useCart()
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("card")
   const [isProcessing, setIsProcessing] = useState(false)
@@ -413,7 +413,7 @@ export default function CheckoutPage() {
     }
 
     // For guest users, also validate email
-    if (!user && !deliveryAddress.email) {
+    if (!isAuthenticated && !deliveryAddress.email) {
       toast.error("Please provide your email address")
         return false
       }
@@ -427,7 +427,7 @@ export default function CheckoutPage() {
       }
       
       // For guest users, also validate shipping email
-      if (!user && !shippingAddress.email) {
+      if (!isAuthenticated && !shippingAddress.email) {
         toast.error("Please provide email for shipping address")
         return false
       }
@@ -442,11 +442,11 @@ export default function CheckoutPage() {
     return true
   }
 
-  // Validate products before checkout
+  // Validate products before checkout - DISABLED to prevent false negatives
+  // Backend will handle all availability validation during order creation
   const validateProducts = useCallback(async (items: CartItem[]) => {
-    const validationErrors: string[] = []
-    
-    console.log('Validating cart items:', items.map(item => ({
+    console.log('Skipping client-side validation - backend will validate availability during order creation')
+    console.log('Cart items:', items.map(item => ({
       id: item.id,
       name: item.name,
       productId: item.productId,
@@ -454,69 +454,9 @@ export default function CheckoutPage() {
       productType: item.productType
     })))
     
-    for (const item of items) {
-      try {
-        let isValid = false
-        
-        // Check if it's a product with productId
-        if (item.productId && item.productType === 'product') {
-          const response = await shopAPI.getProduct(item.productId)
-          isValid = response.success && response.product
-        }
-        // Check if it's a bundle with bundleId
-        else if (item.bundleId && item.productType === 'bundle') {
-          try {
-            const response = await shopAPI.getBundle(item.bundleId)
-            isValid = response.success && response.bundle
-          } catch (error) {
-            console.error(`Error validating bundle ${item.name}:`, error)
-            isValid = false
-          }
-        }
-        // Check if it's a cylinder
-        else if (item.productType === 'cylinder') {
-          const response = await co2API.getCylinder(String(item.id))
-          isValid = response.success && response.cylinder
-        }
-        // For items without specific productType, try to validate using the item ID
-        else if (item.id) {
-          // Try to validate as a regular product first
-          try {
-            const productResponse = await shopAPI.getProduct(String(item.id))
-            if (productResponse.success && productResponse.product) {
-              isValid = true
-            } else {
-              // Try to validate as a bundle
-              const bundleResponse = await shopAPI.getBundle(String(item.id))
-              if (bundleResponse.success && bundleResponse.bundle) {
-                isValid = true
-              } else {
-                // Try to validate as a cylinder
-                const cylinderResponse = await co2API.getCylinder(String(item.id))
-                isValid = cylinderResponse.success && cylinderResponse.cylinder
-              }
-            }
-          } catch (error) {
-            console.error(`Error validating item ${item.name} with ID ${item.id}:`, error)
-            isValid = false
-          }
-        }
-        // If item has no ID, consider it invalid
-        else {
-          console.warn(`Cart item ${item.name} has no valid ID for validation`)
-          isValid = false
-        }
-        
-        if (!isValid) {
-          validationErrors.push(`"${item.name}" is no longer available`)
-        }
-      } catch (error) {
-        console.error(`Error validating ${item.name}:`, error)
-        validationErrors.push(`Unable to verify availability of "${item.name}"`)
-      }
-    }
-    
-    return validationErrors
+    // Return empty array - no validation errors
+    // Backend will handle product/bundle availability and return proper errors if needed
+    return []
   }, [])
 
   const handlePayment = async () => {
@@ -542,9 +482,9 @@ export default function CheckoutPage() {
         items: state.items.map((item: CartItem) => {
           // Map cart items to the format expected by the backend
           const orderItem: any = {
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
             image: item.image,
             color: item.color,
             sku: item.sku
@@ -556,8 +496,10 @@ export default function CheckoutPage() {
           } else if (item.bundleId && item.productType === 'bundle') {
             orderItem.bundle = item.bundleId
           } else if (item.id) {
-            // Fallback: use the item ID as product ID if no specific type is set
-            orderItem.product = item.id
+            // Extract the actual product ID from the cart item ID
+            // Cart item IDs are formatted as: ${productId}-${timestamp}-${random}
+            const actualProductId = String(item.id).split('-')[0]
+            orderItem.product = actualProductId
           }
           
           return orderItem
@@ -576,7 +518,7 @@ export default function CheckoutPage() {
 
       // Create order via API (authenticated or guest)
       let orderResponse
-      if (user && user._id) {
+      if (isAuthenticated) {
         // Authenticated user
         orderResponse = await orderAPI.createOrder(orderData)
       } else {
@@ -611,9 +553,13 @@ export default function CheckoutPage() {
         return
       }
 
+      // Extract created order id/number for fallback navigation if payment fails
+      const createdOrder = orderResponse.order || orderResponse.data?.order || orderResponse.data || {}
+      const createdOrderId = createdOrder._id || createdOrder.id || createdOrder.orderId || createdOrder.orderNumber
+
       // Validate customer data before payment
-      const customerName = deliveryAddress.fullName || 'Customer'
-      const customerEmail = deliveryAddress.email
+      const customerName = (isAuthenticated ? (user?.name || user?.username) : deliveryAddress.fullName) || 'Customer'
+      const customerEmail = isAuthenticated ? (user?.email || deliveryAddress.email) : deliveryAddress.email
       
       if (!customerEmail) {
         toast.error("Customer email is required for payment")
@@ -686,21 +632,30 @@ export default function CheckoutPage() {
         }
       }
 
-      const paymentData = await paymentResponse.json()
+      let paymentData: any = {}
+      try {
+        paymentData = await paymentResponse.json()
+      } catch (e) {
+        paymentData = {}
+      }
       console.log('🚀 Payment response data:', paymentData)
 
-      if (paymentData.success && (paymentData.paymentUrl || paymentData.data?.paymentUrl)) {
+      if (paymentData && paymentData.success && (paymentData.paymentUrl || paymentData.data?.paymentUrl)) {
         // Redirect to payment gateway
         const paymentUrl = paymentData.paymentUrl || paymentData.data?.paymentUrl
         window.location.href = paymentUrl
       } else {
-        console.error('🚀 Payment failed:', paymentData)
-        console.error('🚀 URWAYS Response Details:', paymentData.response)
-        console.error('🚀 Response Code:', paymentData.responseCode)
-        console.error('🚀 Backend Error Data:', paymentData.data)
-        const errorMessage = paymentData.message || paymentData.error || paymentData.data?.message || "Payment initiation failed"
+        console.error('🚀 Payment failed:', paymentData || {})
+        console.error('🚀 URWAYS Response Details:', paymentData?.response)
+        console.error('🚀 Response Code:', paymentData?.responseCode)
+        console.error('🚀 Backend Error Data:', paymentData?.data)
+        const errorMessage = paymentData?.message || paymentData?.error || paymentData?.data?.message || "Payment initiation failed"
         toast.error(errorMessage)
-        console.error('🚀 Full error response:', paymentData)
+        console.error('🚀 Full error response:', paymentData || {})
+        // Since order is already created (pending), navigate to orders page so user can see it
+        if (createdOrderId) {
+          router.push('/account/orders')
+        }
       }
       
     } catch (error) {
