@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/contexts/auth-context";
-import { shopAPI } from "@/lib/api";
+import { reviewAPI } from "@/lib/api/review-api";
 import { toast } from "sonner";
 
 interface Review {
@@ -54,18 +54,20 @@ export default function ProductReviews({ productId, reviews = [] }: ProductRevie
     
     try {
       // Call your API to submit the review
-      const response = await shopAPI.addReview(productId, {
+      const response = await reviewAPI.createReview({
+        productId,
         rating,
         title,
         comment
       });
+      const data = response?.data;
       
-      if (response.success) {
+      if (data?.success) {
         toast.success("Your review has been submitted");
         // Add the new review to the list
         setReviewList([
           {
-            _id: response.review._id || `temp-${Date.now()}`,
+            _id: (data.review?._id as string) || `temp-${Date.now()}`,
             user: {
               _id: user?._id || "",
               username: user?.username || "Anonymous",
@@ -86,7 +88,9 @@ export default function ProductReviews({ productId, reviews = [] }: ProductRevie
         setTitle("");
         setComment("");
       } else {
-        toast.error(response.message || "Failed to submit review");
+        // best-effort message from server if present
+        // @ts-ignore - message may not exist on type
+        toast.error((data as any)?.message || "Failed to submit review");
       }
     } catch (error) {
       console.error("Error submitting review:", error);

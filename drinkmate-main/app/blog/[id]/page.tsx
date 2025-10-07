@@ -7,7 +7,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import React, { useState, useEffect } from "react"
 import { useTranslation } from "@/lib/contexts/translation-context"
-import { blogAPI } from "@/lib/api"
+import { blogAPI } from "@/lib/api/blog-api"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
@@ -52,6 +52,36 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
   const [relatedPosts, setRelatedPosts] = useState<BlogPostData[]>([])
   const [previousPost, setPreviousPost] = useState<BlogPostData | null>(null)
   const [nextPost, setNextPost] = useState<BlogPostData | null>(null)
+  // Helper: map API BlogPost (author object) to local BlogPostData (author string)
+  const mapApiPostToLocal = (apiPost: any): BlogPostData => {
+    return {
+      _id: String(apiPost._id),
+      title: String(apiPost.title || ''),
+      content: String(apiPost.content || ''),
+      excerpt: String(apiPost.excerpt || ''),
+      image: String(apiPost.image || ''),
+      category: String(apiPost.category || ''),
+      author: typeof apiPost.author === 'object' && apiPost.author?.name ? String(apiPost.author.name) : String(apiPost.author || apiPost.authorName || ''),
+      authorName: String(apiPost.authorName || (apiPost.author?.name ?? '')),
+      publishDate: String(apiPost.publishDate || ''),
+      readTime: Number(apiPost.readTime) || 0,
+      views: Number(apiPost.views) || 0,
+      likes: Number(apiPost.likes) || 0,
+      comments: Number(Array.isArray(apiPost.comments) ? apiPost.comments.length : apiPost.comments || 0),
+      tags: Array.isArray(apiPost.tags) ? apiPost.tags : [],
+      slug: apiPost.slug ? String(apiPost.slug) : undefined,
+      commentsList: Array.isArray(apiPost.comments)
+        ? apiPost.comments.map((c: any) => ({
+            _id: String(c._id || ''),
+            user: String(c.user || ''),
+            username: String(c.username || ''),
+            comment: String(c.comment || ''),
+            isApproved: Boolean(c.isApproved),
+            createdAt: String(c.createdAt || c.date || new Date().toISOString()),
+          }))
+        : undefined,
+    }
+  }
   
   // Reading progress states
   const [readingProgress, setReadingProgress] = useState(0)
@@ -79,17 +109,21 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
         setError(null)
         
         const response = await blogAPI.getPost(id)
+        const data = response?.data
         
-        if (response.success && response.post) {
-          setBlogPost(response.post)
-          setRelatedPosts(response.relatedPosts || [])
-          setPreviousPost(response.previousPost || null)
-          setNextPost(response.nextPost || null)
+        if (data?.success && data.post) {
+          const mappedPost = mapApiPostToLocal(data.post)
+          setBlogPost(mappedPost)
+          setRelatedPosts(Array.isArray(data.relatedPosts) ? data.relatedPosts.map(mapApiPostToLocal) : [])
+          const prev = (data as any).previousPost ? mapApiPostToLocal((data as any).previousPost) : null
+          const next = (data as any).nextPost ? mapApiPostToLocal((data as any).nextPost) : null
+          setPreviousPost(prev)
+          setNextPost(next)
           
           // Set approved comments and ensure createdAt field exists
           try {
             setCommentsError(null)
-            const rawComments = response.post.comments || []
+            const rawComments = (data.post as any).comments || []
             
             // Validate and process comments safely
             const validComments = rawComments.filter((comment: any) => {
@@ -436,16 +470,17 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
         username: commentAuthor,
         email: commentEmail
       })
+      const data = response?.data
 
-      if (response.success) {
+      if (data?.success) {
         // Add the comment to the local state (it will be pending approval)
         const newCommentData = {
-          _id: response.comment?._id || Math.random().toString(),
-          user: response.comment?.user || '',
-          username: response.comment?.username || 'Anonymous',
-          comment: response.comment?.comment || '',
-          isApproved: Boolean(response.comment?.isApproved),
-          createdAt: response.comment?.createdAt || response.comment?.date || new Date().toISOString()
+          _id: data.comment?._id || Math.random().toString(),
+          user: data.comment?.user || '',
+          username: data.comment?.username || 'Anonymous',
+          comment: data.comment?.comment || '',
+          isApproved: Boolean(data.comment?.isApproved),
+          createdAt: data.comment?.createdAt || (data.comment as any)?.date || new Date().toISOString()
         }
 
         setComments(prev => [newCommentData, ...prev])
@@ -455,7 +490,7 @@ export default function BlogPost({ params }: { params: Promise<{ id: string }> }
         
         toast.success("Comment submitted successfully! It will appear after admin approval.")
       } else {
-        toast.error(response.message || "Failed to submit comment")
+        toast.error((data as any)?.message || "Failed to submit comment")
       }
     } catch (error) {
       console.error('Error submitting comment:', error)

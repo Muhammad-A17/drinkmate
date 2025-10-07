@@ -255,6 +255,17 @@ export const API_ENDPOINTS = {
   REVIEWS: '/api/reviews',
   REVIEW_BY_ID: (id: string) => `/api/reviews/${id}`,
   PRODUCT_REVIEWS: (productId: string) => `/api/reviews/product/${productId}`,
+  REVIEW_VOTE: (id: string) => `/api/reviews/${id}/vote`,
+  
+  // Blog
+  BLOG_POSTS: '/api/blog/posts',
+  BLOG_POST_BY_ID: (id: string) => `/api/blog/posts/${id}`,
+  BLOG_COMMENTS: (id: string) => `/api/blog/posts/${id}/comments`,
+  
+  // Testimonials
+  TESTIMONIALS: '/api/testimonials/testimonials',
+  TESTIMONIAL_BY_ID: (id: string) => `/api/testimonials/testimonials/${id}`,
+  SUBMIT_TESTIMONIAL: '/api/testimonials/submit',
   
   // Contact
   CONTACT: '/api/contact',
@@ -265,6 +276,9 @@ export const API_ENDPOINTS = {
   ADMIN_USERS: '/api/admin/users',
   ADMIN_CATEGORIES: '/api/admin/categories',
   ADMIN_STATS: '/api/admin/stats',
+  ADMIN_REVIEWS: '/api/reviews/admin/reviews',
+  ADMIN_BLOG_POSTS: '/api/blog/admin/posts',
+  ADMIN_TESTIMONIALS: '/api/testimonials/admin/testimonials',
 } as const
 
 // Error Messages

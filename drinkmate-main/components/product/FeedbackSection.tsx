@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Star, CheckCircle, Plus, X, Edit, Trash2 } from "lucide-react"
 import Image from "next/image"
 import { useAuth } from "@/lib/contexts/auth-context"
-import { shopAPI } from "@/lib/api"
+import { reviewAPI } from "@/lib/api/review-api"
 import { toast } from "sonner"
 
 interface FeedbackSectionProps {
@@ -128,9 +128,10 @@ export default function FeedbackSection({
         reviewData.bundle = bundleId
       }
 
-      const response = await shopAPI.createReview(reviewData)
+      const response = await reviewAPI.createReview(reviewData)
+      const data = response?.data
       
-      if (response.success) {
+      if (data?.success) {
         toast.success("Review submitted successfully! It will be visible after approval.")
         setIsAddingReview(false)
         setReviewForm({ rating: 5, title: '', comment: '', product: '', bundle: '' })
@@ -138,7 +139,7 @@ export default function FeedbackSection({
           onReviewAdded()
         }
       } else {
-        throw new Error(response.message || "Failed to submit review")
+        throw new Error((data as any)?.message || "Failed to submit review")
       }
     } catch (error: any) {
       console.error("Error submitting review:", error)
@@ -170,9 +171,10 @@ export default function FeedbackSection({
         ...(reviewForm.title && { title: reviewForm.title.trim() })
       }
 
-      const response = await shopAPI.updateReview(userReview._id, reviewData)
+      const response = await reviewAPI.updateReview(userReview._id, reviewData)
+      const data = response?.data
       
-      if (response.success) {
+      if (data?.success) {
         toast.success("Review updated successfully! It will be visible after approval.")
         setIsEditingReview(null)
         setReviewForm({ rating: 5, title: '', comment: '', product: '', bundle: '' })
@@ -180,7 +182,7 @@ export default function FeedbackSection({
           onReviewAdded()
         }
       } else {
-        throw new Error(response.message || "Failed to update review")
+        throw new Error((data as any)?.message || "Failed to update review")
       }
     } catch (error: any) {
       console.error("Error updating review:", error)
@@ -194,16 +196,17 @@ export default function FeedbackSection({
     if (!confirm("Are you sure you want to delete your review?")) return
 
     try {
-      const response = await shopAPI.deleteReview(userReview._id)
+      const response = await reviewAPI.deleteReview(userReview._id)
+      const data = response?.data
       
-      if (response.success) {
+      if (data?.success) {
         toast.success("Review deleted successfully")
         setUserReview(null)
         if (onReviewAdded) {
           onReviewAdded()
         }
       } else {
-        throw new Error(response.message || "Failed to delete review")
+        throw new Error((data as any)?.message || "Failed to delete review")
       }
     } catch (error: any) {
       console.error("Error deleting review:", error)

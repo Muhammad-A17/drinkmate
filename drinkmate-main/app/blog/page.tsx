@@ -6,7 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useTranslation } from "@/lib/contexts/translation-context"
 import { useState, useEffect } from "react"
-import { blogAPI } from "@/lib/api"
+import { blogAPI } from "@/lib/api/blog-api"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -141,9 +141,38 @@ export default function Blog() {
           sort: 'newest',
           language: 'en'
         })
-        
-        if (response.success) {
-          setBlogPosts(response.posts || [])
+        const data = response?.data
+
+        // Map API posts (author object) to local shape if needed
+        const mapApiPostToLocal = (apiPost: any) => ({
+          _id: String(apiPost._id),
+          title: String(apiPost.title || ''),
+          excerpt: String(apiPost.excerpt || ''),
+          image: String(apiPost.image || ''),
+          category: String(apiPost.category || ''),
+          author: typeof apiPost.author === 'object' && apiPost.author?.name ? String(apiPost.author.name) : String(apiPost.author || apiPost.authorName || ''),
+          authorName: String(apiPost.authorName || (apiPost.author?.name ?? '')),
+          publishDate: String(apiPost.publishDate || ''),
+          readTime: Number(apiPost.readTime) || 0,
+          views: Number(apiPost.views) || 0,
+          likes: Number(apiPost.likes) || 0,
+          tags: Array.isArray(apiPost.tags) ? apiPost.tags : [],
+          comments: Array.isArray(apiPost.comments)
+            ? apiPost.comments.map((c: any) => ({
+                _id: String(c._id || ''),
+                user: String(c.user || ''),
+                username: String(c.username || ''),
+                comment: String(c.comment || ''),
+                isApproved: Boolean(c.isApproved),
+                createdAt: String(c.createdAt || c.date || new Date().toISOString()),
+              }))
+            : [],
+          slug: apiPost.slug ? String(apiPost.slug) : undefined,
+        })
+
+        if (data?.success) {
+          const mapped = Array.isArray(data.posts) ? data.posts.map(mapApiPostToLocal) : []
+          setBlogPosts(mapped)
         } else {
           setError('Failed to fetch blog posts')
         }

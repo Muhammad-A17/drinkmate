@@ -1,462 +1,772 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/contexts/auth-context"
+import AdminLayout from "@/components/layout/AdminLayout"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useReviews } from "@/hooks/use-reviews"
-import ReviewHeader from "@/components/admin/reviews/ReviewHeader"
-import AdvancedFilters from "@/components/admin/reviews/AdvancedFilters"
-import ReviewAnalytics from "@/components/admin/reviews/ReviewAnalytics"
-import ReviewCard from "@/components/admin/reviews/ReviewCard"
-import ReviewDialogs from "@/components/admin/reviews/ReviewDialogs"
-import AdminLayout from "@/components/layout/AdminLayout"
-import type { 
-  Review, 
-  ReviewFilters, 
-  CreateReviewForm,
-  ResponseTemplate,
-  ModerationSettings
-} from "@/lib/types/review"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table"
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { 
+  Search, 
+  Plus, 
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  MessageSquare,
+  Star,
+  ThumbsUp,
+  ThumbsDown,
+  Loader2,
+  RefreshCw,
+  Download,
+  X,
+  AlertTriangle,
+  TrendingUp,
+  Users,
+  MessageCircle
+} from "lucide-react"
+import { format } from "date-fns"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { reviewAPI, Review, ReviewFilters, ReviewStats } from "@/lib/api/review-api"
+import { toast } from "sonner"
+import { useAdminErrorHandler } from "@/hooks/use-admin-error-handler"
 
 export default function ReviewsPage() {
-  const {
-    reviews,
-    products,
-    users,
-    isLoading,
-    selectedReviews,
-    setSelectedReviews,
-    handleStatusUpdate,
-    handleBulkAction,
-    handleCreateReview,
-    handleAdminResponse,
-    handleBulkImport,
-    generateReport,
-    handleModerationSettings,
-    getAnalytics
-  } = useReviews()
-
-  // UI State
-  const [activeTab, setActiveTab] = useState("all")
-  const [showCreateReview, setShowCreateReview] = useState(false)
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const router = useRouter()
+  const errorHandler = useAdminErrorHandler({
+    context: 'ReviewsPage',
+    defaultOptions: { category: 'server' }
+  })
+  
+  // State
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [stats, setStats] = useState<ReviewStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedReviews, setSelectedReviews] = useState<string[]>([])
+  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
+  
+  // Filters
+  const [filters, setFilters] = useState<ReviewFilters>({
+    status: "all",
+    rating: "all",
+    sort: "newest",
+    page: 1,
+    limit: 20
+  })
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalReviews, setTotalReviews] = useState(0)
+  
+  // Dialogs
   const [showReviewDetails, setShowReviewDetails] = useState(false)
   const [showAdminResponse, setShowAdminResponse] = useState(false)
-  const [showTemplates, setShowTemplates] = useState(false)
-  const [showBulkImport, setShowBulkImport] = useState(false)
-  const [showModeration, setShowModeration] = useState(false)
-  const [showWorkflow, setShowWorkflow] = useState(false)
-  const [showReports, setShowReports] = useState(false)
-  const [showAnalytics, setShowAnalytics] = useState(false)
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [selectedReview, setSelectedReview] = useState<Review | null>(null)
-  const [responseReview, setResponseReview] = useState<Review | null>(null)
+  const [adminResponse, setAdminResponse] = useState("")
+  
+  // Authentication check
+  useEffect(() => {
+    if (authLoading) return
+    
+    if (!isAuthenticated || !user || !user.isAdmin) {
+      router.push('/admin/login')
+      return
+    }
+    
+    fetchReviews()
+  }, [user, isAuthenticated, authLoading, router])
 
-  // Filters State
-  const [filters, setFilters] = useState<ReviewFilters>({
-    rating: "all",
-    verified: "all",
-    product: "all",
-    user: "all",
-    dateRange: {
-      from: "",
-      to: ""
+  // Fetch reviews
+  const fetchReviews = async () => {
+    try {
+      setLoading(true)
+      const response = await reviewAPI.getReviewsAdmin({
+        ...filters,
+        search: searchTerm || undefined,
+        page: currentPage
+      })
+      
+      const data = response?.data
+      if (data?.success) {
+        setReviews(data.reviews)
+        setStats(data.stats || null)
+        setTotalPages(data.totalPages)
+        setTotalReviews(data.totalReviews)
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error)
+      toast.error('Failed to fetch reviews')
+    } finally {
+      setLoading(false)
     }
-  })
+  }
 
-  // Filtered and sorted reviews
-  const filteredReviews = useMemo(() => {
-    let filtered = reviews
+  // Update filters
+  const updateFilters = (newFilters: Partial<ReviewFilters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }))
+    setCurrentPage(1)
+  }
 
-    // Tab filtering
-    if (activeTab !== "all") {
-      filtered = filtered.filter(review => review.status === activeTab)
-    }
+  // Search
+  const handleSearch = (value: string) => {
+    setSearchTerm(value)
+    setCurrentPage(1)
+  }
 
-    // Advanced filters
-    if (filters.rating !== "all") {
-      filtered = filtered.filter(review => review.rating.toString() === filters.rating)
-    }
-    if (filters.verified !== "all") {
-      filtered = filtered.filter(review => 
-        filters.verified === "verified" ? review.isVerifiedPurchase : !review.isVerifiedPurchase
-      )
-    }
-    if (filters.product !== "all") {
-      filtered = filtered.filter(review => 
-        review.product?._id === filters.product || review.bundle?._id === filters.product
-      )
-    }
-    if (filters.user !== "all") {
-      filtered = filtered.filter(review => review.user._id === filters.user)
-    }
-    if (filters.dateRange.from) {
-      filtered = filtered.filter(review => new Date(review.createdAt) >= new Date(filters.dateRange.from))
-    }
-    if (filters.dateRange.to) {
-      filtered = filtered.filter(review => new Date(review.createdAt) <= new Date(filters.dateRange.to))
-    }
+  // Refresh data
+  const refreshData = () => {
+    fetchReviews()
+  }
 
-    return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [reviews, activeTab, filters])
+  // Handle review selection
+  const handleSelectReview = (reviewId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedReviews(prev => [...prev, reviewId])
+    } else {
+      setSelectedReviews(prev => prev.filter(id => id !== reviewId))
+    }
+  }
 
-  // Selection handlers
+  // Handle select all
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedReviews(filteredReviews.map(review => review._id))
+      setSelectedReviews(reviews.map(review => review._id))
     } else {
       setSelectedReviews([])
     }
   }
 
-  const handleSelectReview = (reviewId: string, selected: boolean) => {
-    if (selected) {
-      setSelectedReviews([...selectedReviews, reviewId])
-    } else {
-      setSelectedReviews(selectedReviews.filter(id => id !== reviewId))
+  // Handle review actions
+  const handleReviewAction = async (reviewId: string, action: 'approve' | 'reject' | 'delete') => {
+    try {
+      setActionLoading(prev => ({ ...prev, [reviewId]: true }))
+      
+      let response
+      switch (action) {
+        case 'approve':
+          response = await reviewAPI.approveReview(reviewId)
+          break
+        case 'reject':
+          response = await reviewAPI.rejectReview(reviewId)
+          break
+        case 'delete':
+          response = await reviewAPI.deleteReview(reviewId)
+          break
+      }
+      
+      const data = response?.data
+      if (data?.success) {
+        toast.success(data.message)
+        fetchReviews()
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing review:`, error)
+      toast.error(`Failed to ${action} review`)
+    } finally {
+      setActionLoading(prev => ({ ...prev, [reviewId]: false }))
     }
   }
 
-  // Dialog handlers
-  const handleViewDetails = (review: Review) => {
+  // Handle bulk actions
+  const handleBulkAction = async (action: 'approve' | 'reject' | 'delete') => {
+    if (selectedReviews.length === 0) {
+      toast.error('Please select reviews to perform bulk action')
+      return
+    }
+
+    try {
+      const response = await reviewAPI.bulkUpdateReviews(selectedReviews, action)
+      
+      const data = response?.data
+      if (data?.success) {
+        toast.success(data.message)
+        setSelectedReviews([])
+        fetchReviews()
+      }
+    } catch (error) {
+      console.error(`Error performing bulk ${action}:`, error)
+      toast.error(`Failed to ${action} reviews`)
+    }
+  }
+
+  // Handle admin response
+  const handleAdminResponse = async () => {
+    if (!selectedReview || !adminResponse.trim()) {
+      toast.error('Please enter a response')
+      return
+    }
+
+    try {
+      const response = await reviewAPI.addAdminResponse(selectedReview._id, adminResponse)
+      
+      const data = response?.data
+      if (data?.success) {
+        toast.success('Admin response added successfully')
+        setShowAdminResponse(false)
+        setAdminResponse("")
+        setSelectedReview(null)
+        fetchReviews()
+      }
+    } catch (error) {
+      console.error('Error adding admin response:', error)
+      toast.error('Failed to add admin response')
+    }
+  }
+
+  // View review details
+  const viewReviewDetails = (review: Review) => {
     setSelectedReview(review)
     setShowReviewDetails(true)
   }
 
-  const handleAddResponse = (review: Review) => {
-    setResponseReview(review)
+  // Add admin response
+  const addAdminResponse = (review: Review) => {
+    setSelectedReview(review)
     setShowAdminResponse(true)
   }
 
-  const handleTemplateSelect = (template: ResponseTemplate) => {
-    // Template selection is handled in the dialog component
+  // Filtered reviews based on active tab
+  const filteredReviews = useMemo(() => {
+    if (filters.status === 'all') return reviews
+    return reviews.filter(review => review.status === filters.status)
+  }, [reviews, filters.status])
+
+  // Get status badge variant
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return <Badge className="bg-green-100 text-green-800">Approved</Badge>
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+      case 'rejected':
+        return <Badge className="bg-red-100 text-red-800">Rejected</Badge>
+      default:
+        return <Badge variant="secondary">{status}</Badge>
+    }
   }
 
-  // Analytics
-  const analytics = getAnalytics()
+  // Get rating stars
+  const getRatingStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`h-4 w-4 ${
+          i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+        }`}
+      />
+    ))
+  }
 
-  // Tab counts
-  const tabCounts = {
-    all: reviews.length,
-    pending: reviews.filter(r => r.status === "pending").length,
-    approved: reviews.filter(r => r.status === "approved").length,
-    rejected: reviews.filter(r => r.status === "rejected").length,
-    flagged: reviews.filter(r => r.flagged).length
+  if (authLoading || loading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-gray-600">Loading reviews...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    )
   }
 
   return (
     <AdminLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
-        {/* Premium Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-[#12d6fa]/10 to-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+      <div className="space-y-6 p-4 md:p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Reviews Management</h1>
+            <p className="text-gray-600">Manage product reviews and customer feedback</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button onClick={refreshData} variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
-        
-        <div className="container mx-auto p-6 relative z-10">
-          {/* Premium Header */}
-          <div className="relative mb-8">
-            <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20"></div>
-            <div className="relative p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
-                      <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                      </svg>
+
+        {/* Stats Cards */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center">
+                  <MessageCircle className="h-8 w-8 text-blue-600" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Total Reviews</p>
+                    <p className="text-2xl font-bold">{stats.totalReviews}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center">
+                  <Star className="h-8 w-8 text-yellow-600" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Average Rating</p>
+                    <p className="text-2xl font-bold">{stats.averageRating.toFixed(1)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center">
+                  <AlertTriangle className="h-8 w-8 text-yellow-600" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Pending</p>
+                    <p className="text-2xl font-bold">{stats.pendingReviews}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center">
+                  <Users className="h-8 w-8 text-green-600" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Verified</p>
+                    <p className="text-2xl font-bold">{stats.verifiedPurchases}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Filters and Search */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search reviews..."
+                    value={searchTerm}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Select value={filters.status} onValueChange={(value) => updateFilters({ status: value as any })}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filters.rating} onValueChange={(value) => updateFilters({ rating: value as any })}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Rating" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Ratings</SelectItem>
+                    <SelectItem value="5">5 Stars</SelectItem>
+                    <SelectItem value="4">4 Stars</SelectItem>
+                    <SelectItem value="3">3 Stars</SelectItem>
+                    <SelectItem value="2">2 Stars</SelectItem>
+                    <SelectItem value="1">1 Star</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filters.sort} onValueChange={(value) => updateFilters({ sort: value as any })}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="oldest">Oldest</SelectItem>
+                    <SelectItem value="rating_high">Rating High</SelectItem>
+                    <SelectItem value="rating_low">Rating Low</SelectItem>
+                    <SelectItem value="helpful">Most Helpful</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Bulk Actions */}
+        {selectedReviews.length > 0 && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  {selectedReviews.length} review(s) selected
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleBulkAction('approve')}
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Approve All
+                  </Button>
+                  <Button
+                    onClick={() => handleBulkAction('reject')}
+                    size="sm"
+                    variant="destructive"
+                  >
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Reject All
+                  </Button>
+                  <Button
+                    onClick={() => handleBulkAction('delete')}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete All
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Reviews Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Reviews ({totalReviews})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedReviews.length === reviews.length && reviews.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
+                    <TableHead>Review</TableHead>
+                    <TableHead>Product</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredReviews.map((review) => (
+                    <TableRow key={review._id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedReviews.includes(review._id)}
+                          onCheckedChange={(checked) => handleSelectReview(review._id, checked as boolean)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="max-w-xs">
+                          <p className="font-medium truncate">{review.title || 'No title'}</p>
+                          <p className="text-sm text-gray-600 truncate">{review.comment}</p>
+                          {review.helpfulVotes > 0 && (
+                            <div className="flex items-center mt-1 text-xs text-gray-500">
+                              <ThumbsUp className="h-3 w-3 mr-1" />
+                              {review.helpfulVotes}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="max-w-xs">
+                          <p className="font-medium truncate">
+                            {review.product?.name || review.bundle?.name || review.co2Cylinder?.name || 'Unknown'}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <Avatar className="h-8 w-8 mr-2">
+                            <AvatarFallback>
+                              {review.user.firstName?.[0] || review.user.username[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium text-sm">{review.user.username}</p>
+                            {review.isVerifiedPurchase && (
+                              <Badge variant="secondary" className="text-xs">Verified</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          {getRatingStars(review.rating)}
+                          <span className="ml-2 text-sm text-gray-600">({review.rating})</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(review.status)}
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-sm text-gray-600">
+                          {format(new Date(review.createdAt), 'MMM dd, yyyy')}
+                        </p>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => viewReviewDetails(review)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            {review.status === 'pending' && (
+                              <>
+                                <DropdownMenuItem 
+                                  onClick={() => handleReviewAction(review._id, 'approve')}
+                                  disabled={actionLoading[review._id]}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleReviewAction(review._id, 'reject')}
+                                  disabled={actionLoading[review._id]}
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Reject
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            <DropdownMenuItem onClick={() => addAdminResponse(review)}>
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              Add Response
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleReviewAction(review._id, 'delete')}
+                              disabled={actionLoading[review._id]}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-gray-600">
+                  Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalReviews)} of {totalReviews} reviews
+                </p>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Review Details Dialog */}
+        <Dialog open={showReviewDetails} onOpenChange={setShowReviewDetails}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Review Details</DialogTitle>
+            </DialogHeader>
+            {selectedReview && (
+              <div className="space-y-4">
+                <div className="flex items-start space-x-4">
+                  <Avatar className="h-12 w-12">
+                    <AvatarFallback>
+                      {selectedReview.user.firstName?.[0] || selectedReview.user.username[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-medium">{selectedReview.user.username}</h3>
+                      {selectedReview.isVerifiedPurchase && (
+                        <Badge variant="secondary">Verified Purchase</Badge>
+                      )}
+                      {getStatusBadge(selectedReview.status)}
                     </div>
-                    <div>
-                      <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                        Reviews Management
-                      </h1>
-                      <p className="text-gray-600 text-lg">
-                        Manage customer reviews, ratings, and feedback with advanced moderation tools
+                    <div className="flex items-center mt-1">
+                      {getRatingStars(selectedReview.rating)}
+                      <span className="ml-2 text-sm text-gray-600">({selectedReview.rating}/5)</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {format(new Date(selectedReview.createdAt), 'MMMM dd, yyyy')}
+                    </p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">Product</h4>
+                  <p className="text-gray-600">
+                    {selectedReview.product?.name || selectedReview.bundle?.name || selectedReview.co2Cylinder?.name || 'Unknown'}
+                  </p>
+                </div>
+                
+                {selectedReview.title && (
+                  <div>
+                    <h4 className="font-medium mb-2">Title</h4>
+                    <p className="text-gray-600">{selectedReview.title}</p>
+                  </div>
+                )}
+                
+                <div>
+                  <h4 className="font-medium mb-2">Review</h4>
+                  <p className="text-gray-600">{selectedReview.comment}</p>
+                </div>
+                
+                {selectedReview.images && selectedReview.images.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2">Images</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {selectedReview.images.map((image, index) => (
+                        <img
+                          key={index}
+                          src={image.url}
+                          alt={image.alt || 'Review image'}
+                          className="w-full h-32 object-cover rounded"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {selectedReview.adminResponse && (
+                  <div>
+                    <h4 className="font-medium mb-2">Admin Response</h4>
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-gray-600">{selectedReview.adminResponse.comment}</p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {format(new Date(selectedReview.adminResponse.date), 'MMMM dd, yyyy')}
                       </p>
                     </div>
                   </div>
-                </div>
+                )}
                 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-900">{filteredReviews.length}</div>
-                    <div className="text-sm text-gray-500">Filtered Reviews</div>
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <ThumbsUp className="h-4 w-4 mr-1" />
+                    {selectedReview.helpfulVotes} helpful
                   </div>
-                  <div className="w-px h-12 bg-gray-300"></div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-[#12d6fa]">{reviews.length}</div>
-                    <div className="text-sm text-gray-500">Total Reviews</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <button
-                    onClick={() => setShowCreateReview(true)}
-                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Create Review
-                  </button>
-                  
-                  <button
-                    onClick={() => setShowBulkImport(true)}
-                    className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                    </svg>
-                    Bulk Import
-                  </button>
-                  
-                  <button
-                    onClick={() => setShowTemplates(true)}
-                    className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Templates
-                  </button>
-                  
-                  <button
-                    onClick={() => setShowModeration(true)}
-                    className="border-2 border-gray-300 hover:border-purple-500 hover:bg-purple-50 px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    Moderation
-                  </button>
-                </div>
-                
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span>System Online</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-      {showAnalytics && <ReviewAnalytics analytics={analytics} />}
-
-      {showAdvancedFilters && (
-        <AdvancedFilters
-          filters={filters}
-          onFiltersChange={setFilters}
-          products={products}
-          users={users}
-        />
-      )}
-
-          {/* Premium Tabs */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-white/95 to-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/30"></div>
-            <div className="relative overflow-hidden rounded-2xl">
-              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gradient-to-br from-[#12d6fa] to-blue-600 rounded-xl shadow-lg">
-                      <svg className="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h2 className="text-3xl font-bold text-white">Reviews Directory</h2>
-                      <div className="flex items-center gap-4 mt-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-[#12d6fa] rounded-full animate-pulse"></div>
-                          <span className="text-gray-300">
-                            {filteredReviews.length} of {reviews.length} reviews
-                          </span>
-                        </div>
-                        {selectedReviews.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                            <span className="text-green-300">{selectedReviews.length} selected</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <ThumbsDown className="h-4 w-4 mr-1" />
+                    {selectedReview.unhelpfulVotes} not helpful
                   </div>
                 </div>
               </div>
-              <div className="bg-white p-6">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <TabsList className="grid w-full grid-cols-5 bg-gray-100 rounded-xl p-1">
-                      <TabsTrigger 
-                        value="all" 
-                        className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
-                      >
-                        All Reviews
-                        <Badge variant="secondary" className="ml-2">{tabCounts.all}</Badge>
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="pending" 
-                        className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
-                      >
-                        Pending
-                        <Badge variant="secondary" className="ml-2">{tabCounts.pending}</Badge>
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="approved" 
-                        className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
-                      >
-                        Approved
-                        <Badge variant="secondary" className="ml-2">{tabCounts.approved}</Badge>
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="rejected" 
-                        className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
-                      >
-                        Rejected
-                        <Badge variant="secondary" className="ml-2">{tabCounts.rejected}</Badge>
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="flagged" 
-                        className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg transition-all duration-300"
-                      >
-                        Flagged
-                        <Badge variant="secondary" className="ml-2">{tabCounts.flagged}</Badge>
-                      </TabsTrigger>
-                    </TabsList>
+            )}
+          </DialogContent>
+        </Dialog>
 
-                    {selectedReviews.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">
-                          {selectedReviews.length} selected
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleBulkAction("approve")}
-                          className="text-green-600 hover:bg-green-50 border-green-200"
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleBulkAction("reject")}
-                          className="text-red-600 hover:bg-red-50 border-red-200"
-                        >
-                          Reject
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleBulkAction("delete")}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-
-                  <TabsContent value={activeTab} className="space-y-4">
-                    {isLoading ? (
-                      <div className="flex items-center justify-center py-20">
-                        <div className="text-center">
-                          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-[#12d6fa]/20 to-blue-500/20 rounded-full flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#12d6fa]"></div>
-                          </div>
-                          <p className="text-lg font-medium text-gray-600">Loading reviews...</p>
-                        </div>
-                      </div>
-                    ) : filteredReviews.length === 0 ? (
-                      <div className="text-center py-20">
-                        <div className="relative">
-                          <div className="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center shadow-lg">
-                            <svg className="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                            </svg>
-                          </div>
-                          <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-[#12d6fa] to-blue-500 rounded-full animate-pulse"></div>
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-3">No reviews found</h3>
-                        <p className="text-gray-600 mb-8 text-lg max-w-md mx-auto">
-                          Try adjusting your filters or create a new review
-                        </p>
-                        <button
-                          onClick={() => setShowCreateReview(true)}
-                          className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2 mx-auto"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                          </svg>
-                          Create First Review
-                        </button>
-                      </div>
-                    ) : (
+        {/* Admin Response Dialog */}
+        <Dialog open={showAdminResponse} onOpenChange={setShowAdminResponse}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Admin Response</DialogTitle>
+              <DialogDescription>
+                Add a response to this review that will be visible to customers.
+              </DialogDescription>
+            </DialogHeader>
             <div className="space-y-4">
-              {/* Select All */}
-              <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-lg">
-                <Checkbox
-                  checked={selectedReviews.length === filteredReviews.length && filteredReviews.length > 0}
-                  onCheckedChange={handleSelectAll}
+              <div>
+                <Label htmlFor="response">Response</Label>
+                <Textarea
+                  id="response"
+                  placeholder="Enter your response..."
+                  value={adminResponse}
+                  onChange={(e) => setAdminResponse(e.target.value)}
+                  rows={4}
                 />
-                <span className="text-sm font-medium">
-                  Select all {filteredReviews.length} reviews
-                </span>
               </div>
-
-              {/* Review Cards */}
-              {filteredReviews.map((review) => (
-                <ReviewCard
-                  key={review._id}
-                  review={review}
-                  isSelected={selectedReviews.includes(review._id)}
-                  activeTab={activeTab}
-                  onSelectionChange={handleSelectReview}
-                  onStatusUpdate={handleStatusUpdate}
-                  onViewDetails={handleViewDetails}
-                  onAddResponse={handleAddResponse}
-                />
-              ))}
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Dialogs */}
-      <ReviewDialogs
-        showCreateReview={showCreateReview}
-        onCreateReviewClose={() => setShowCreateReview(false)}
-        onCreateReviewSubmit={handleCreateReview}
-        products={products}
-        users={users}
-        showReviewDetails={showReviewDetails}
-        onReviewDetailsClose={() => setShowReviewDetails(false)}
-        selectedReview={selectedReview}
-        showAdminResponse={showAdminResponse}
-        onAdminResponseClose={() => setShowAdminResponse(false)}
-        onAdminResponseSubmit={handleAdminResponse}
-        responseReview={responseReview}
-        showTemplates={showTemplates}
-        onTemplatesClose={() => setShowTemplates(false)}
-        onTemplateSelect={handleTemplateSelect}
-        showBulkImport={showBulkImport}
-        onBulkImportClose={() => setShowBulkImport(false)}
-        onBulkImportSubmit={handleBulkImport}
-        showModeration={showModeration}
-        onModerationClose={() => setShowModeration(false)}
-        onModerationSubmit={handleModerationSettings}
-        showWorkflow={showWorkflow}
-        onWorkflowClose={() => setShowWorkflow(false)}
-        showReports={showReports}
-        onReportsClose={() => setShowReports(false)}
-                onGenerateReport={generateReport}
-      />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowAdminResponse(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAdminResponse}>
+                Add Response
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   )

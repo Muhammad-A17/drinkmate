@@ -1,12 +1,29 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/contexts/auth-context"
 import AdminLayout from "@/components/layout/AdminLayout"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table"
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
@@ -15,972 +32,777 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { 
+  Search, 
   Plus, 
-  Edit, 
-  Trash2, 
-  Eye,
-  FileText,
-  Calendar,
-  MessageSquare,
-  ThumbsUp,
-  Eye as EyeIcon,
-  Tag,
-  Globe,
-  BarChart3,
-  Download,
-  Loader2,
+  MoreHorizontal,
   ChevronLeft,
   ChevronRight,
-  Settings,
-  Zap,
-  Shield,
-  Star,
-  Activity,
-  X,
-  Upload,
-  Save,
-  RefreshCw,
-  Search,
   Filter,
-  TrendingUp,
-  Users,
-  Clock,
+  Eye,
+  Edit, 
+  Trash2, 
   CheckCircle,
-  AlertTriangle
+  XCircle,
+  MessageSquare,
+  Clock,
+  Users,
+  Loader2,
+  RefreshCw,
+  Download,
+  X,
+  AlertTriangle,
+  TrendingUp,
+  FileText,
+  Calendar,
+  Tag,
+  Globe,
+  BookOpen
 } from "lucide-react"
-import { blogAPI } from "@/lib/api"
+import { format } from "date-fns"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { blogAPI, BlogPost, BlogFilters, BlogComment, CreateBlogPostData } from "@/lib/api/blog-api"
 import { toast } from "sonner"
-import CloudinaryImageUpload from "@/components/ui/cloudinary-image-upload"
-
-interface BlogPost {
-  _id: string
-  title: string
-  excerpt: string
-  content: string
-  category: string
-  tags: string[]
-  image?: string
-  author: string
-  authorName: string
-  isPublished: boolean
-  isFeatured: boolean
-  publishDate?: string
-  readTime: number
-  views: number
-  likes: number
-  comments: Array<{
-    _id: string
-    user: string
-    username: string
-    comment: string
-    isApproved: boolean
-    createdAt: string
-  }>
-  language: string
-  slug?: string
-  createdAt: string
-}
-
-interface BlogFormData {
-  title: string
-  excerpt: string
-  content: string
-  category: string
-  tags: string[]
-  isPublished: boolean
-  isFeatured: boolean
-  language: string
-  slug?: string
-}
+import { useAdminErrorHandler } from "@/hooks/use-admin-error-handler"
 
 export default function BlogPage() {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const router = useRouter()
+  const errorHandler = useAdminErrorHandler({
+    context: 'BlogPage',
+    defaultOptions: { category: 'server' }
+  })
+  
+  // State
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingPost, setEditingPost] = useState<BlogPost | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [selectedStatus, setSelectedStatus] = useState("all")
-  const [newTag, setNewTag] = useState("")
-  const [uploadedImages, setUploadedImages] = useState<string[]>([])
-
-  // Function to generate slug from title
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-      .trim()
-  }
-
-  const [formData, setFormData] = useState<BlogFormData>({
+  const [selectedPosts, setSelectedPosts] = useState<string[]>([])
+  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({})
+  
+  // Filters
+  const [filters, setFilters] = useState<BlogFilters>({
+    category: "all",
+    language: "en",
+    sort: "newest",
+    page: 1,
+    limit: 20
+  })
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalPosts, setTotalPosts] = useState(0)
+  
+  // Dialogs
+  const [showPostDetails, setShowPostDetails] = useState(false)
+  const [showCreatePost, setShowCreatePost] = useState(false)
+  const [showComments, setShowComments] = useState(false)
+  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null)
+  
+  // Form state
+  const [postForm, setPostForm] = useState<CreateBlogPostData>({
     title: "",
     excerpt: "",
     content: "",
-    category: "general",
-    tags: [],
+    category: "guide",
+    tags: [] as string[],
+    image: "",
     isPublished: false,
     isFeatured: false,
-    language: "en",
-    slug: ""
+    language: "en"
   })
 
-  // Fetch posts on component mount
+  // Authentication check
   useEffect(() => {
+    if (authLoading) return
+    
+    if (!isAuthenticated || !user || !user.isAdmin) {
+      router.push('/admin/login')
+      return
+    }
+    
     fetchPosts()
-  }, [])
+  }, [user, isAuthenticated, authLoading, router])
 
+  // Fetch posts
   const fetchPosts = async () => {
     try {
       setLoading(true)
-      const response = await blogAPI.getPostsAdmin({ limit: 100 }) // Get all posts for admin with comments
-      if (response.success) {
-        setPosts(response.posts || [])
+      const response = await blogAPI.getPostsAdmin({
+        ...filters,
+        search: searchTerm || undefined,
+        page: currentPage
+      })
+      const data = response?.data
+      if (data?.success) {
+        setPosts(data.posts || [])
+        setTotalPages(data.totalPages || 1)
+        setTotalPosts(data.totalPosts || 0)
       }
     } catch (error) {
-      console.error("Error fetching posts:", error)
-      toast.error("Failed to fetch blog posts")
+      console.error('Error fetching posts:', error)
+      toast.error('Failed to fetch blog posts')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+  // Update filters
+  const updateFilters = (newFilters: Partial<BlogFilters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }))
+    setCurrentPage(1)
+  }
 
-    // Validation
-    if (!formData.title.trim()) {
-      toast.error("Please enter a title")
-      setIsSubmitting(false)
-      return
-    }
-    if (!formData.excerpt.trim()) {
-      toast.error("Please enter an excerpt")
-      setIsSubmitting(false)
-      return
-    }
-    if (!formData.content.trim()) {
-      toast.error("Please enter content")
-      setIsSubmitting(false)
-      return
-    }
-    if (uploadedImages.length === 0) {
-      toast.error("Please upload a featured image")
-      setIsSubmitting(false)
-      return
-    }
+  // Search
+  const handleSearch = (value: string) => {
+    setSearchTerm(value)
+    setCurrentPage(1)
+  }
 
-    try {
-      // Prepare the data with image and slug
-      const postData = {
-        ...formData,
-        image: uploadedImages[0] || "", // Use the first uploaded image as the featured image
-        slug: formData.slug || generateSlug(formData.title), // Ensure slug is generated
-      }
+  // Refresh data
+  const refreshData = () => {
+    fetchPosts()
+  }
 
-      if (editingPost) {
-        await blogAPI.updatePost(editingPost._id, postData)
-        toast.success("Blog post updated successfully")
+  // Handle post selection
+  const handleSelectPost = (postId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedPosts(prev => [...prev, postId])
       } else {
-        await blogAPI.createPost(postData)
-        toast.success("Blog post created successfully")
+      setSelectedPosts(prev => prev.filter(id => id !== postId))
+    }
+  }
+
+  // Handle select all
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedPosts(posts.map(post => post._id))
+    } else {
+      setSelectedPosts([])
+    }
+  }
+
+  // Handle post actions
+  const handlePostAction = async (postId: string, action: 'delete') => {
+    try {
+      setActionLoading(prev => ({ ...prev, [postId]: true }))
+      
+      let response
+      switch (action) {
+        case 'delete':
+          response = await blogAPI.deletePost(postId)
+          break
       }
-
-      setIsDialogOpen(false)
-      resetForm()
-      fetchPosts()
-    } catch (error: any) {
-      console.error("Error saving post:", error)
-      toast.error(error.response?.data?.message || "Failed to save blog post")
+      
+      const data = response?.data
+      if (data?.success) {
+        toast.success(data.message)
+        fetchPosts()
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing post:`, error)
+      toast.error(`Failed to ${action} post`)
     } finally {
-      setIsSubmitting(false)
+      setActionLoading(prev => ({ ...prev, [postId]: false }))
     }
   }
 
-  const handleEdit = (post: BlogPost) => {
-    setEditingPost(post)
-    setFormData({
-      title: post.title,
-      excerpt: post.excerpt,
-      content: post.content,
-      category: post.category,
-      tags: post.tags,
-      isPublished: post.isPublished,
-      isFeatured: post.isFeatured,
-      language: post.language,
-      slug: post.slug || generateSlug(post.title)
-    })
-    // Set the uploaded images for editing
-    setUploadedImages(post.image ? [post.image] : [])
-    setIsDialogOpen(true)
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this blog post?")) return
-
+  // Handle create post
+  const handleCreatePost = async () => {
     try {
-      await blogAPI.deletePost(id)
-      toast.success("Blog post deleted successfully")
-      fetchPosts()
-    } catch (error: any) {
-      console.error("Error deleting post:", error)
-      toast.error(error.response?.data?.message || "Failed to delete blog post")
-    }
-  }
-
-  const handleApproveComment = async (postId: string, commentId: string) => {
-    try {
-      await blogAPI.approveComment(postId, commentId)
-      toast.success("Comment approved successfully")
-      fetchPosts()
-    } catch (error: any) {
-      console.error("Error approving comment:", error)
-      toast.error("Failed to approve comment")
-    }
-  }
-
-  const handleDeleteComment = async (postId: string, commentId: string) => {
-    if (!confirm("Are you sure you want to delete this comment?")) return
-
-    try {
-      await blogAPI.deleteComment(postId, commentId)
-      toast.success("Comment deleted successfully")
-      fetchPosts()
-    } catch (error: any) {
-      console.error("Error deleting comment:", error)
-      toast.error("Failed to delete comment")
-    }
-  }
-
-  const resetForm = () => {
-    setFormData({
+      const response = await blogAPI.createPost(postForm)
+      
+      const data = response?.data
+      if (data?.success) {
+        toast.success(data.message || 'Blog post created successfully')
+        setShowCreatePost(false)
+        setPostForm({
       title: "",
       excerpt: "",
       content: "",
-      category: "general",
+          category: "guide",
       tags: [],
+          image: "",
       isPublished: false,
       isFeatured: false,
-      language: "en",
-      slug: ""
-    })
-    setUploadedImages([])
-    setEditingPost(null)
-  }
-
-  const handleAddTag = () => {
-    if (newTag && !formData.tags.includes(newTag)) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag]
-      }))
-      setNewTag("")
+          language: "en"
+        })
+        fetchPosts()
+      }
+    } catch (error) {
+      console.error('Error creating post:', error)
+      toast.error('Failed to create blog post')
     }
   }
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }))
+  // Handle comment actions
+  const handleCommentAction = async (postId: string, commentId: string, action: 'approve' | 'delete') => {
+    try {
+      let response
+      switch (action) {
+        case 'approve':
+          response = await blogAPI.approveComment(postId, commentId)
+          break
+        case 'delete':
+          response = await blogAPI.deleteComment(postId, commentId)
+          break
+      }
+      
+      const data = response?.data
+      if (data?.success) {
+        toast.success(data.message)
+        fetchPosts()
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing comment:`, error)
+      toast.error(`Failed to ${action} comment`)
+    }
   }
 
-  const filteredPosts = posts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === "all" || post.category === selectedCategory
-    const matchesStatus = selectedStatus === "all" || 
-                         (selectedStatus === "published" && post.isPublished) ||
-                         (selectedStatus === "draft" && !post.isPublished)
-    return matchesSearch && matchesCategory && matchesStatus
-  })
+  // View post details
+  const viewPostDetails = (post: BlogPost) => {
+    setSelectedPost(post)
+    setShowPostDetails(true)
+  }
 
-  if (loading) {
+  // View comments
+  const viewComments = (post: BlogPost) => {
+    setSelectedPost(post)
+    setShowComments(true)
+  }
+
+  // Get status badge
+  const getStatusBadge = (isPublished: boolean, isFeatured: boolean) => {
+    if (isFeatured) {
+      return <Badge className="bg-purple-100 text-purple-800">Featured</Badge>
+    }
+    if (isPublished) {
+      return <Badge className="bg-green-100 text-green-800">Published</Badge>
+    }
+    return <Badge className="bg-yellow-100 text-yellow-800">Draft</Badge>
+  }
+
+  // Get category badge
+  const getCategoryBadge = (category: string) => {
+    const colors = {
+      recipes: "bg-orange-100 text-orange-800",
+      science: "bg-blue-100 text-blue-800",
+      guide: "bg-green-100 text-green-800",
+      products: "bg-purple-100 text-purple-800",
+      environment: "bg-emerald-100 text-emerald-800",
+      health: "bg-red-100 text-red-800",
+      lifestyle: "bg-pink-100 text-pink-800"
+    }
+    
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Loading blog posts...</div>
-      </div>
+      <Badge className={colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800"}>
+        {category}
+      </Badge>
+    )
+  }
+
+  if (authLoading || loading) {
+  return (
+    <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-gray-600">Loading blog posts...</p>
+        </div>
+                  </div>
+      </AdminLayout>
     )
   }
 
   return (
     <AdminLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
-        {/* Premium Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-indigo-600/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-400/20 to-pink-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-400/10 to-blue-600/10 rounded-full blur-3xl animate-pulse delay-500"></div>
-        </div>
-
-        <div className="relative z-10 space-y-8 p-6">
-          {/* Premium Header */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-8">
-            <div className="flex justify-between items-start">
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                    <FileText className="w-8 h-8 text-white" />
-                  </div>
+      <div className="space-y-6 p-4 md:p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
                   <div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                      Blog Management
-                    </h1>
-                    <p className="text-gray-600 text-lg mt-2">Create and manage blog posts, categories, and comments</p>
+            <h1 className="text-3xl font-bold">Blog Management</h1>
+            <p className="text-gray-600">Manage blog posts and content</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200">
-                    <Activity className="w-4 h-4 mr-1" />
-                    {posts.length} Total Posts
-                  </span>
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200">
-                    <CheckCircle className="w-4 h-4 mr-1" />
-                    {posts.filter(p => p.isPublished).length} Published
-                  </span>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <Button 
-                  onClick={() => setIsDialogOpen(true)}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Post
+          <div className="flex items-center space-x-2">
+            <Button onClick={() => setShowCreatePost(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Post
                 </Button>
-                <Button 
-                  onClick={fetchPosts}
-                  variant="outline"
-                  className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all duration-300"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
+            <Button onClick={refreshData} variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
                   Refresh
                 </Button>
-              </div>
             </div>
           </div>
 
-          {/* Premium Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Total Posts</p>
-                  <p className="text-3xl font-bold text-gray-900">{posts.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">All blog posts</p>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <FileText className="h-8 w-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Posts</p>
+                  <p className="text-2xl font-bold">{totalPosts}</p>
                 </div>
-                <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                  <FileText className="h-6 w-6 text-white" />
                 </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Published</p>
+                  <p className="text-2xl font-bold">{posts.filter(p => p.isPublished).length}</p>
               </div>
+            </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <AlertTriangle className="h-8 w-8 text-yellow-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Drafts</p>
+                  <p className="text-2xl font-bold">{posts.filter(p => !p.isPublished).length}</p>
+                </div>
+                </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <MessageSquare className="h-8 w-8 text-purple-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Comments</p>
+                  <p className="text-2xl font-bold">{posts.reduce((sum, p) => sum + p.comments.length, 0)}</p>
+              </div>
+            </div>
+            </CardContent>
+          </Card>
             </div>
             
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Published</p>
-                  <p className="text-3xl font-bold text-green-600">{posts.filter(p => p.isPublished).length}</p>
-                  <p className="text-xs text-gray-500 mt-1">Live posts</p>
-                </div>
-                <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
-                  <CheckCircle className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Drafts</p>
-                  <p className="text-3xl font-bold text-yellow-600">{posts.filter(p => !p.isPublished).length}</p>
-                  <p className="text-xs text-gray-500 mt-1">Unpublished</p>
-                </div>
-                <div className="p-3 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-lg">
-                  <Clock className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Total Views</p>
-                  <p className="text-3xl font-bold text-purple-600">
-                    {posts.reduce((sum, post) => sum + post.views, 0).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">All time views</p>
-                </div>
-                <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg">
-                  <Eye className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Premium Filters and Search */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg">
-                <Filter className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900">Advanced Filters</h3>
-              <div className="ml-auto flex items-center gap-2">
-                <span className="text-sm text-gray-500">
-                  Showing {filteredPosts.length} of {posts.length} posts
-                </span>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    setSearchTerm("")
-                    setSelectedCategory("all")
-                    setSelectedStatus("all")
-                  }}
-                  className="border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 transition-all duration-300"
-                >
-                  <X className="w-4 h-4 mr-1" />
-                  Clear All
-                </Button>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="search" className="text-sm font-medium text-gray-700">Search</Label>
+        {/* Filters and Search */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
-                    id="search"
                     placeholder="Search posts..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
                   />
                 </div>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="category" className="text-sm font-medium text-gray-700">Category</Label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
-                    <SelectValue placeholder="All categories" />
+              <div className="flex gap-2">
+                <Select value={filters.category} onValueChange={(value) => updateFilters({ category: value })}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All categories</SelectItem>
-                    <SelectItem value="recipes">Drink Recipes</SelectItem>
-                    <SelectItem value="tips">Tips & Tricks</SelectItem>
-                    <SelectItem value="news">Company News</SelectItem>
-                    <SelectItem value="health">Health Benefits</SelectItem>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="recipes">Recipes</SelectItem>
+                    <SelectItem value="science">Science</SelectItem>
+                    <SelectItem value="guide">Guide</SelectItem>
+                    <SelectItem value="products">Products</SelectItem>
+                    <SelectItem value="environment">Environment</SelectItem>
+                    <SelectItem value="health">Health</SelectItem>
+                    <SelectItem value="lifestyle">Lifestyle</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filters.language} onValueChange={(value) => updateFilters({ language: value as 'en' | 'ar' })}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="ar">Arabic</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filters.sort} onValueChange={(value) => updateFilters({ sort: value as any })}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="oldest">Oldest</SelectItem>
+                    <SelectItem value="popular">Popular</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="status" className="text-sm font-medium text-gray-700">Status</Label>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
-                    <SelectValue placeholder="All statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All statuses</SelectItem>
-                    <SelectItem value="published">Published</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Quick Actions</Label>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setSelectedStatus("published")}
-                    className="flex-1 border-2 border-green-200 hover:border-green-500 hover:bg-green-50 transition-all duration-300"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-1" />
-                    Published
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setSelectedCategory("recipes")}
-                    className="flex-1 border-2 border-blue-200 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
-                  >
-                    <Tag className="w-4 h-4 mr-1" />
-                    Recipes
-                  </Button>
                 </div>
-              </div>
-            </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Premium Blog Posts Table */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl overflow-hidden">
-            <div className="p-6 border-b border-gray-200/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
-                    <BarChart3 className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900">Blog Posts Management</h3>
-                    <p className="text-sm text-gray-500">
-                      {filteredPosts.length} of {posts.length} posts
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Export
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all duration-300"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Refresh
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
+        {/* Posts Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Blog Posts ({totalPosts})</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="overflow-x-auto">
-              {filteredPosts.length === 0 ? (
-                <div className="p-12 text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <FileText className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No blog posts found</h3>
-                  <p className="text-gray-500 mb-4">Try adjusting your search or filter criteria</p>
-                  <Button 
-                    onClick={() => {
-                      setSearchTerm("")
-                      setSelectedCategory("all")
-                      setSelectedStatus("all")
-                    }}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
-              ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gray-50/50">
-                      <TableHead className="font-semibold text-gray-700">Post Details</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Category</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Author</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Status</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Engagement</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Created</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Actions</TableHead>
+                  <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedPosts.length === posts.length && posts.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
+                    <TableHead>Post</TableHead>
+                    <TableHead>Author</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Views</TableHead>
+                    <TableHead>Comments</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredPosts.map((post) => (
-                      <TableRow 
-                        key={post._id}
-                        className="hover:bg-blue-50/50 transition-all duration-200 border-b border-gray-100"
-                      >
-                        <TableCell className="font-medium py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center">
-                              <FileText className="w-5 h-5 text-blue-600" />
-                            </div>
+                  {posts.map((post) => (
+                    <TableRow key={post._id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedPosts.includes(post._id)}
+                          onCheckedChange={(checked) => handleSelectPost(post._id, checked as boolean)}
+                        />
+                      </TableCell>
+                      <TableCell>
                             <div className="max-w-xs">
-                              <p className="font-semibold text-gray-900 line-clamp-1">{post.title}</p>
-                              <p className="text-xs text-gray-500 line-clamp-2 mt-1">
-                                {post.excerpt}
-                              </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs text-gray-400">
+                          <p className="font-medium truncate">{post.title}</p>
+                          <p className="text-sm text-gray-600 truncate">{post.excerpt}</p>
+                          <div className="flex items-center mt-1 text-xs text-gray-500">
+                            <Clock className="h-3 w-3 mr-1" />
                                   {post.readTime} min read
-                                </span>
-                                {post.language && (
-                                  <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
-                                    {post.language.toUpperCase()}
-                                  </span>
-                                )}
-                              </div>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="py-4">
-                          <Badge 
-                            variant="secondary" 
-                            className="bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
-                          >
-                            {post.category}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="py-4">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
-                              <span className="text-xs font-medium text-white">
-                                {post.authorName.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <span className="text-sm font-medium text-gray-900">{post.authorName}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-4">
-                          <div className="flex flex-col gap-1">
-                            <Badge 
-                              variant={post.isPublished ? "default" : "secondary"}
-                              className={post.isPublished 
-                                ? "bg-green-100 text-green-700 hover:bg-green-200" 
-                                : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-                              }
-                            >
-                              {post.isPublished ? "Published" : "Draft"}
-                            </Badge>
-                            {post.isFeatured && (
-                              <Badge variant="outline" className="border-yellow-300 text-yellow-700">
-                                <Star className="w-3 h-3 mr-1" />
-                                Featured
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-4">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1 text-sm text-gray-600">
-                              <Eye className="w-4 h-4" />
-                              <span className="font-medium">{post.views.toLocaleString()}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-sm text-gray-600">
-                              <MessageSquare className="w-4 h-4" />
-                              <span className="font-medium">{post.comments.length}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-sm text-gray-600">
-                              <ThumbsUp className="w-4 h-4" />
-                              <span className="font-medium">{post.likes}</span>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <Avatar className="h-8 w-8 mr-2">
+                            <AvatarFallback>
+                              {post.authorName[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium text-sm">{post.authorName}</p>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="py-4">
-                          <div className="text-sm text-gray-900">
-                            {new Date(post.createdAt).toLocaleDateString()}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {new Date(post.createdAt).toLocaleTimeString()}
+                      <TableCell>
+                        {getCategoryBadge(post.category)}
+                        </TableCell>
+                      <TableCell>
+                        {getStatusBadge(post.isPublished, post.isFeatured)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Eye className="h-4 w-4 mr-1" />
+                          {post.views}
                           </div>
                         </TableCell>
-                        <TableCell className="py-4">
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(post)}
-                              title="Edit Post"
-                              className="border-2 border-blue-200 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300"
-                            >
-                              <Edit className="w-4 h-4" />
+                      <TableCell>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <MessageSquare className="h-4 w-4 mr-1" />
+                          {post.comments.length}
+                          </div>
+                        </TableCell>
+                      <TableCell>
+                        <p className="text-sm text-gray-600">
+                          {format(new Date(post.publishDate || post.createdAt), 'MMM dd, yyyy')}
+                        </p>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDelete(post._id)}
-                              title="Delete Post"
-                              className="border-2 border-red-200 hover:border-red-500 hover:bg-red-50 transition-all duration-300"
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => viewPostDetails(post)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => viewComments(post)}>
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              View Comments
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handlePostAction(post._id, 'delete')}
+                              disabled={actionLoading[post._id]}
+                              className="text-red-600"
                             >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-              )}
-            </div>
           </div>
 
-          {/* Enhanced Comments Management */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl overflow-hidden">
-            <div className="p-6 border-b border-gray-200/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
-                    <MessageSquare className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900">Comments Management</h3>
-                    <p className="text-sm text-gray-500">
-                      {posts.flatMap(post => post.comments.filter(comment => !comment.isApproved)).length} pending • {posts.flatMap(post => post.comments.filter(comment => comment.isApproved)).length} approved
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-gray-600">
+                  Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalPosts)} of {totalPosts} posts
+                </p>
+                <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setSelectedStatus("pending")}
-                    className={selectedStatus === "pending" ? "bg-blue-100 text-blue-700 border-blue-300" : ""}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
                   >
-                    Pending ({posts.flatMap(post => post.comments.filter(comment => !comment.isApproved)).length})
+                    <ChevronLeft className="h-4 w-4" />
                   </Button>
+                  <span className="text-sm">
+                    Page {currentPage} of {totalPages}
+                  </span>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setSelectedStatus("approved")}
-                    className={selectedStatus === "approved" ? "bg-green-100 text-green-700 border-green-300" : ""}
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
                   >
-                    Approved ({posts.flatMap(post => post.comments.filter(comment => comment.isApproved)).length})
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-            </div>
-            
-            <div className="p-6">
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Post Details Dialog */}
+        <Dialog open={showPostDetails} onOpenChange={setShowPostDetails}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Post Details</DialogTitle>
+            </DialogHeader>
+            {selectedPost && (
               <div className="space-y-4">
-                {posts.flatMap(post => 
-                  post.comments.filter(comment => 
-                    selectedStatus === "pending" ? !comment.isApproved : comment.isApproved
-                  )
-                ).slice(0, 15).map((comment, index) => {
-                  const post = posts.find(p => p.comments.some(c => c._id === comment._id))
-                  return (
-                    <div key={index} className={`rounded-xl p-4 border transition-all duration-200 ${
-                      comment.isApproved 
-                        ? "bg-green-50/50 border-green-200/50 hover:bg-green-100/50" 
-                        : "bg-yellow-50/50 border-yellow-200/50 hover:bg-yellow-100/50"
-                    }`}>
-                      <div className="flex items-start justify-between">
+                <div className="flex items-start space-x-4">
+                  <img
+                    src={selectedPost.image}
+                    alt={selectedPost.title}
+                    className="w-24 h-24 object-cover rounded"
+                  />
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              comment.isApproved 
-                                ? "bg-gradient-to-br from-green-400 to-green-600" 
-                                : "bg-gradient-to-br from-yellow-400 to-orange-500"
-                            }`}>
-                              <span className="text-sm font-medium text-white">
-                                {comment.username.charAt(0).toUpperCase()}
-                              </span>
+                    <h3 className="text-xl font-bold">{selectedPost.title}</h3>
+                    <p className="text-gray-600 mt-1">{selectedPost.excerpt}</p>
+                    <div className="flex items-center space-x-2 mt-2">
+                      {getCategoryBadge(selectedPost.category)}
+                      {getStatusBadge(selectedPost.isPublished, selectedPost.isFeatured)}
+                      <Badge variant="outline">
+                        <Globe className="h-3 w-3 mr-1" />
+                        {selectedPost.language.toUpperCase()}
+                      </Badge>
                             </div>
+                  </div>
+                </div>
+                
                             <div>
-                              <span className="font-semibold text-gray-900">{comment.username}</span>
-                              <span className="text-sm text-gray-500 ml-2">on</span>
-                              <span className="font-medium text-blue-600 ml-1">{post?.title}</span>
-                              {comment.isApproved && (
-                                <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                  <CheckCircle className="w-3 h-3 mr-1" />
-                                  Approved
-                                </span>
-                              )}
+                  <h4 className="font-medium mb-2">Author</h4>
+                  <div className="flex items-center">
+                    <Avatar className="h-8 w-8 mr-2">
+                      <AvatarFallback>
+                        {selectedPost.authorName[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{selectedPost.authorName}</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">Content</h4>
+                  <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: selectedPost.content }} />
+                </div>
+                
+                {selectedPost.tags && selectedPost.tags.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2">Tags</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPost.tags.map((tag, index) => (
+                        <Badge key={index} variant="outline">
+                          <Tag className="h-3 w-3 mr-1" />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Stats</h4>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <div className="flex items-center">
+                        <Eye className="h-4 w-4 mr-2" />
+                        {selectedPost.views} views
                             </div>
+                      <div className="flex items-center">
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        {selectedPost.comments.length} comments
                           </div>
-                          <p className="text-gray-700 mb-3 leading-relaxed">{comment.comment}</p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
-                            <span>{new Date(comment.createdAt).toLocaleTimeString()}</span>
-                            <span className="text-blue-600">Post: {post?.title}</span>
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-2" />
+                        {selectedPost.readTime} min read
                           </div>
                         </div>
-                        <div className="flex gap-2 ml-4">
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Dates</h4>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <div>Created: {format(new Date(selectedPost.createdAt), 'MMM dd, yyyy')}</div>
+                      <div>Updated: {format(new Date(selectedPost.updatedAt), 'MMM dd, yyyy')}</div>
+                      {selectedPost.publishDate && (
+                        <div>Published: {format(new Date(selectedPost.publishDate), 'MMM dd, yyyy')}</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Comments Dialog */}
+        <Dialog open={showComments} onOpenChange={setShowComments}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Comments for "{selectedPost?.title}"</DialogTitle>
+            </DialogHeader>
+            {selectedPost && (
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {selectedPost.comments.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No comments yet</p>
+                ) : (
+                  selectedPost.comments.map((comment) => (
+                    <div key={comment._id} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{comment.username}</span>
+                            {comment.isApproved ? (
+                              <Badge className="bg-green-100 text-green-800">Approved</Badge>
+                            ) : (
+                              <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+                            )}
+                          </div>
+                          <p className="text-gray-600 mt-1">{comment.comment}</p>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {format(new Date(comment.date), 'MMM dd, yyyy HH:mm')}
+                          </p>
+                        </div>
+                        <div className="flex space-x-1">
                           {!comment.isApproved && (
                             <Button
                               size="sm"
-                              onClick={() => handleApproveComment(post?._id || "", comment._id)}
-                              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                              onClick={() => handleCommentAction(selectedPost._id, comment._id, 'approve')}
                             >
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Approve
+                              <CheckCircle className="h-4 w-4" />
                             </Button>
                           )}
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => handleDeleteComment(post?._id || "", comment._id)}
-                            className="shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                            onClick={() => handleCommentAction(selectedPost._id, comment._id, 'delete')}
                           >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Delete
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
                     </div>
-                  )
-                })}
-                {posts.flatMap(post => 
-                  post.comments.filter(comment => 
-                    selectedStatus === "pending" ? !comment.isApproved : comment.isApproved
-                  )
-                ).length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <MessageSquare className="w-8 h-8 text-gray-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {selectedStatus === "pending" ? "No pending comments" : "No approved comments"}
-                    </h3>
-                    <p className="text-gray-500">
-                      {selectedStatus === "pending" 
-                        ? "All comments have been approved" 
-                        : "No comments have been approved yet"}
-                    </p>
-                  </div>
+                  ))
                 )}
               </div>
-            </div>
-          </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
-          {/* Premium Add/Edit Blog Post Dialog */}
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden bg-white/95 backdrop-blur-xl border-2 border-white/20 shadow-2xl">
-              <DialogHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-200/50">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
-                    <FileText className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <DialogTitle className="text-2xl font-bold text-gray-900">
-                      {editingPost ? "Edit Blog Post" : "Create New Blog Post"}
-                    </DialogTitle>
-                    <p className="text-gray-600 mt-1">
-                      {editingPost ? "Update the blog post information below." : "Fill in the details to create a new blog post."}
-                    </p>
-                  </div>
-                </div>
+        {/* Create Post Dialog */}
+        <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Post</DialogTitle>
               </DialogHeader>
-              <div className="p-6 max-h-[70vh] overflow-y-auto">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="title" className="text-sm font-medium text-gray-700">Post Title *</Label>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title</Label>
                       <Input
                         id="title"
-                        value={formData.title}
-                        onChange={(e) => {
-                          const newTitle = e.target.value
-                          setFormData({ 
-                            ...formData, 
-                            title: newTitle,
-                            slug: generateSlug(newTitle)
-                          })
-                        }}
-                        required
-                        className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
-                        placeholder="Enter blog post title"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="slug" className="text-sm font-medium text-gray-700">URL Slug</Label>
-                      <Input
-                        id="slug"
-                        value={formData.slug}
-                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                        className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
-                        placeholder="url-friendly-slug"
-                      />
-                      <p className="text-xs text-gray-500">
-                        This will be used in the URL. Auto-generated from title.
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="category" className="text-sm font-medium text-gray-700">Category *</Label>
-                      <Select 
-                        value={formData.category} 
-                        onValueChange={(value) => setFormData({ ...formData, category: value })}
-                      >
-                        <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="recipes">Drink Recipes</SelectItem>
-                          <SelectItem value="tips">Tips & Tricks</SelectItem>
-                          <SelectItem value="news">Company News</SelectItem>
-                          <SelectItem value="health">Health Benefits</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  value={postForm.title}
+                  onChange={(e) => setPostForm(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter post title..."
+                />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="excerpt" className="text-sm font-medium text-gray-700">Excerpt *</Label>
+              <div>
+                <Label htmlFor="excerpt">Excerpt</Label>
                     <Textarea
                       id="excerpt"
-                      value={formData.excerpt}
-                      onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                  value={postForm.excerpt}
+                  onChange={(e) => setPostForm(prev => ({ ...prev, excerpt: e.target.value }))}
+                  placeholder="Enter post excerpt..."
                       rows={3}
-                      placeholder="Brief summary of the post..."
-                      required
-                      className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="content" className="text-sm font-medium text-gray-700">Content *</Label>
+              <div>
+                <Label htmlFor="content">Content</Label>
                     <Textarea
                       id="content"
-                      value={formData.content}
-                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                      rows={12}
-                      placeholder="Write your blog post content here..."
-                      required
-                      className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                  value={postForm.content}
+                  onChange={(e) => setPostForm(prev => ({ ...prev, content: e.target.value }))}
+                  placeholder="Enter post content..."
+                  rows={8}
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-700">Featured Image</Label>
-                      <CloudinaryImageUpload
-                        onImagesChange={(images) => {
-                          setUploadedImages(images)
-                        }}
-                        currentImages={uploadedImages}
-                        maxImages={1}
-                        disabled={isSubmitting}
-                        className="w-full"
-                      />
-                      <p className="text-xs text-gray-500">
-                        Upload a featured image for your blog post. This will be displayed as the main image.
-                      </p>
-                    </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <Select value={postForm.category} onValueChange={(value) => setPostForm(prev => ({ ...prev, category: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recipes">Recipes</SelectItem>
+                      <SelectItem value="science">Science</SelectItem>
+                      <SelectItem value="guide">Guide</SelectItem>
+                      <SelectItem value="products">Products</SelectItem>
+                      <SelectItem value="environment">Environment</SelectItem>
+                      <SelectItem value="health">Health</SelectItem>
+                      <SelectItem value="lifestyle">Lifestyle</SelectItem>
+                    </SelectContent>
+                  </Select>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="language" className="text-sm font-medium text-gray-700">Language</Label>
-                      <Select 
-                        value={formData.language} 
-                        onValueChange={(value) => setFormData({ ...formData, language: value })}
-                      >
-                        <SelectTrigger className="border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
-                          <SelectValue placeholder="Select language" />
+                <div>
+                  <Label htmlFor="language">Language</Label>
+                  <Select value={postForm.language} onValueChange={(value) => setPostForm(prev => ({ ...prev, language: value as 'en' | 'ar' }))}>
+                    <SelectTrigger>
+                      <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="en">English</SelectItem>
@@ -990,90 +812,46 @@ export default function BlogPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium text-gray-700">Tags</Label>
-                      <div className="flex gap-2">
+              <div>
+                <Label htmlFor="image">Featured Image URL</Label>
                         <Input
-                          placeholder="Add tag..."
-                          value={newTag}
-                          onChange={(e) => setNewTag(e.target.value)}
-                          className="w-48 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
-                        />
-                        <Button type="button" variant="outline" onClick={handleAddTag} className="border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300">
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
+                  id="image"
+                  value={postForm.image}
+                  onChange={(e) => setPostForm(prev => ({ ...prev, image: e.target.value }))}
+                  placeholder="Enter image URL..."
+                />
                     </div>
                     
-                    {formData.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {formData.tags.map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="flex items-center gap-1 bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
-                            {tag}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveTag(tag)}
-                              className="ml-1 hover:text-red-500 transition-colors"
-                              title="Remove tag"
-                              aria-label={`Remove ${tag} tag`}
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex gap-6">
+              <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                       <Checkbox 
                         id="isPublished" 
-                        checked={formData.isPublished}
-                        onCheckedChange={(checked) => 
-                          setFormData({...formData, isPublished: checked === true})
-                        }
-                        className="rounded text-blue-600 focus:ring-blue-500"
-                      />
-                      <Label htmlFor="isPublished" className="text-sm font-medium text-gray-700">Publish immediately</Label>
+                    checked={postForm.isPublished}
+                    onCheckedChange={(checked) => setPostForm(prev => ({ ...prev, isPublished: checked as boolean }))}
+                  />
+                  <Label htmlFor="isPublished">Published</Label>
                     </div>
+                
                     <div className="flex items-center space-x-2">
                       <Checkbox 
                         id="isFeatured" 
-                        checked={formData.isFeatured}
-                        onCheckedChange={(checked) => 
-                          setFormData({...formData, isFeatured: checked === true})
-                        }
-                        className="rounded text-blue-600 focus:ring-blue-500"
-                      />
-                      <Label htmlFor="isFeatured" className="text-sm font-medium text-gray-700">Featured post</Label>
+                    checked={postForm.isFeatured}
+                    onCheckedChange={(checked) => setPostForm(prev => ({ ...prev, isFeatured: checked as boolean }))}
+                  />
+                  <Label htmlFor="isFeatured">Featured</Label>
                     </div>
                   </div>
-
-                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsDialogOpen(false)}
-                      className="border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-300"
-                    >
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreatePost(false)}>
                       Cancel
                     </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={isSubmitting}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      {isSubmitting ? "Saving..." : editingPost ? "Update Post" : "Create Post"}
+              <Button onClick={handleCreatePost}>
+                Create Post
                     </Button>
-                  </div>
-                </form>
-              </div>
+            </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
       </div>
     </AdminLayout>
   )

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { adminAPI, shopAPI } from "@/lib/api"
+import { reviewAPI } from "@/lib/api/review-api"
 import { toast } from "sonner"
 import type { 
   Review, 
@@ -106,12 +107,11 @@ export const useReviews = () => {
 
   const handleCreateReview = async (formData: CreateReviewForm) => {
     try {
-      const response = await shopAPI.createReview({
+      const response = await reviewAPI.createReview({
         productId: formData.productId,
         rating: formData.rating,
         title: formData.title,
-        comment: formData.comment,
-        isVerifiedPurchase: formData.isVerifiedPurchase
+        comment: formData.comment
       })
 
       if (response.success) {
