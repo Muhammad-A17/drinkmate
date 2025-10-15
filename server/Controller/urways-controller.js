@@ -115,8 +115,8 @@ const createPayment = async (req, res) => {
       customerEmail: customerEmail,
       customerName: customerName,
       description: description || 'DrinkMate Order Payment',
-      returnURL: `${process.env.FRONTEND_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`,
-      cancelURL: `${process.env.FRONTEND_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`,
+      returnURL: `${process.env.FRONTEND_URL || 'https://drinkmate-project.netlify.app'}/payment/success?orderId=${orderId}`,
+      cancelURL: `${process.env.FRONTEND_URL || 'https://drinkmate-project.netlify.app'}/payment/cancel?orderId=${orderId}`,
       udf1: 'DrinkMate',
       udf2: orderId.toUpperCase(), // Make sure case matches
       udf3: customerEmail,

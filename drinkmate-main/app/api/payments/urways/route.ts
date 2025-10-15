@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Server-side validation:', {
       userAgent: userAgent.substring(0, 50) + '...',
       origin: origin,
-      isServerRequest: !origin.includes('localhost') && origin.includes('vercel.app')
+      isServerRequest: !origin.includes('localhost') && origin.includes('netlify.app')
     })
     
     const body = await request.json()
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
     // Generate track ID (lowercase as per URWAY docs)
     const trackid = `TXN_${orderId}`.toLowerCase()
 
-    // Get the actual server IP from Vercel headers or use a valid IP
+    // Get the actual server IP from Netlify headers or use a valid IP
     const merchantIp = request.headers.get('x-forwarded-for') || 
                       request.headers.get('x-real-ip') || 
                       '8.8.8.8' // Fallback to a valid public IP
@@ -167,14 +167,14 @@ export async function POST(request: NextRequest) {
       CustomerEmail: customerEmail,
       CustomerName: customerName,
       Description: description || 'DrinkMate Order Payment',
-      ReturnURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`,
-      CancelURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`,
+      ReturnURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-project.netlify.app'}/payment/success?orderId=${orderId}`,
+      CancelURL: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-project.netlify.app'}/payment/cancel?orderId=${orderId}`,
       UDF1: 'DrinkMate',
       UDF2: orderId,
       UDF3: customerEmail,
       Country: 'SA', // Saudi Arabia
       MerchantIP: merchantIp,
-      RequestHash: generateHash(trackid, amount, currency, orderId, customerEmail, customerName, description || 'DrinkMate Order Payment', `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/success?orderId=${orderId}`, `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-ruddy.vercel.app'}/payment/cancel?orderId=${orderId}`, '1')
+      RequestHash: generateHash(trackid, amount, currency, orderId, customerEmail, customerName, description || 'DrinkMate Order Payment', `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-project.netlify.app'}/payment/success?orderId=${orderId}`, `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate-project.netlify.app'}/payment/cancel?orderId=${orderId}`, '1')
     }
 
     console.log('🚀 URWAYS Payment Request:', {
@@ -296,7 +296,7 @@ export async function GET(request: NextRequest) {
       password: URWAYS_CONFIG.terminalPassword,
       action: '10', // 10 for payment status inquiry
       trackId: transactionId.toLowerCase(),
-      requestHash: generateHash(transactionId.toLowerCase(), 0, 'SAR', transactionId, 'test@test.com', 'Test User', 'Payment Verification', 'https://drinkmate-ruddy.vercel.app/success', 'https://drinkmate-ruddy.vercel.app/cancel')
+      requestHash: generateHash(transactionId.toLowerCase(), 0, 'SAR', transactionId, 'test@test.com', 'Test User', 'Payment Verification', 'https://drinkmate-project.netlify.app/success', 'https://drinkmate-project.netlify.app/cancel')
     }
 
     const response = await fetch(URWAYS_CONFIG.apiUrl, {

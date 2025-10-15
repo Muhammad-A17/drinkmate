@@ -14,7 +14,7 @@ const securityHeaders = helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "https://www.youtube.com", "https://www.googletagmanager.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      connectSrc: ["'self'", "https://api.cloudinary.com", "https://www.youtube.com", "wss:", "ws:", "https://drinkmate-ruddy.vercel.app", "https://drinkmates.vercel.app"],
+      connectSrc: ["'self'", "https://api.cloudinary.com", "https://www.youtube.com", "wss:", "ws:", "https://drinkmate-project.netlify.app", "https://drinkmate-project.netlify.app"],
       mediaSrc: ["'self'", "https://www.youtube.com"],
       objectSrc: ["'none'"],
       frameSrc: ["'self'", "https://www.youtube.com"],
@@ -169,8 +169,8 @@ const secureCORS = (req, res, next) => {
   const allowedOrigins = [
     process.env.FRONTEND_URL,
     process.env.CORS_ORIGIN,
-    'https://drinkmate-ruddy.vercel.app', // Production Vercel URL
-    'https://drinkmates.vercel.app', // Alternative production domain
+    'https://drinkmate-project.netlify.app', // Production Netlify URL
+    'https://drinkmate-project.netlify.app', // Alternative production domain
     'http://localhost:3001', // Development frontend
     'http://localhost:3002', // Development frontend (Next.js default)
     'http://localhost:3000' // Alternative development port

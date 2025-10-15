@@ -67,7 +67,7 @@ export const viewport = {
 export const metadata: Metadata = {
   title: "DrinkMate - Premium Soda Makers & Flavors | Create Carbonated Drinks at Home",
   description: "Discover premium DrinkMate soda makers, natural Italian flavors, and CO2 cylinders. Create delicious carbonated beverages at home with our innovative carbonation technology. Free shipping available!",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmates.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-project.netlify.app'),
   robots: {
     index: true,
     follow: true,
@@ -94,7 +94,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmates.vercel.app',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-project.netlify.app',
     siteName: 'DrinkMate',
     title: 'DrinkMate - Premium Soda Makers & Flavors',
     description: 'Create delicious carbonated beverages at home with DrinkMate soda makers, premium Italian flavors, and CO2 cylinders. Free shipping and 30-day money-back guarantee.',
@@ -123,7 +123,7 @@ export const metadata: Metadata = {
     'Italian flavors', 'premium beverages', 'carbonated water maker', 'sparkling water maker',
     'soda machine', 'beverage carbonator', 'CO2 refill', 'drink carbonation'
   ],
-  authors: [{ name: 'DrinkMate Team', url: 'https://drinkmates.vercel.app' }],
+  authors: [{ name: 'DrinkMate Team', url: 'https://drinkmate-project.netlify.app' }],
   category: 'Home Appliances',
   applicationName: 'DrinkMate',
   generator: 'Next.js',
@@ -179,8 +179,8 @@ export default function RootLayout({
           '@context': 'https://schema.org',
           '@type': 'Organization',
           'name': 'DrinkMate',
-          'url': process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmates.vercel.app',
-          'logo': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmates.vercel.app'}/logo.png`,
+          'url': process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-project.netlify.app',
+          'logo': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-project.netlify.app'}/logo.png`,
           'description': 'Premium soda makers, natural Italian flavors, and CO2 cylinders for creating delicious carbonated beverages at home.',
           'foundingDate': '2020',
           'sameAs': [
@@ -210,7 +210,7 @@ export default function RootLayout({
             '@type': 'SearchAction',
             'target': {
               '@type': 'EntryPoint',
-              'urlTemplate': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmates.vercel.app'}/search?q={search_term_string}`
+              'urlTemplate': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-project.netlify.app'}/search?q={search_term_string}`
             },
             'query-input': 'required name=search_term_string'
           }
@@ -221,7 +221,7 @@ export default function RootLayout({
           '@context': 'https://schema.org',
           '@type': 'WebSite',
           'name': 'DrinkMate',
-          'url': process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmates.vercel.app',
+          'url': process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-project.netlify.app',
           'description': 'Premium soda makers and carbonation solutions for home use',
           'publisher': {
             '@type': 'Organization',
@@ -231,7 +231,7 @@ export default function RootLayout({
             '@type': 'SearchAction',
             'target': {
               '@type': 'EntryPoint',
-              'urlTemplate': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmates.vercel.app'}/search?q={search_term_string}`
+              'urlTemplate': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-project.netlify.app'}/search?q={search_term_string}`
             },
             'query-input': 'required name=search_term_string'
           }

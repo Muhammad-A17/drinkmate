@@ -51,7 +51,7 @@ A modern, full-stack e-commerce platform for premium soda makers, CO2 cylinders,
 - **Security**: Helmet, CORS, Rate Limiting
 
 ### **Deployment**
-- **Frontend**: Vercel
+- **Frontend**: Netlify
 - **Backend**: Render.com
 - **Database**: MongoDB Atlas
 - **CDN**: Cloudinary
@@ -145,7 +145,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 
 ### **Image Zoom & TypeScript Fixes** (Latest)
 - ✅ Added image zoom functionality with modal components
-- ✅ Fixed TypeScript compilation errors for Vercel deployment
+- ✅ Fixed TypeScript compilation errors for Netlify deployment
 - ✅ Enhanced product image display with zoom capabilities
 - ✅ Updated pnpm lockfile to resolve dependency issues
 - ✅ Added proper type annotations for API functions
@@ -188,9 +188,9 @@ npm run dev
 
 ## 🚀 Deployment
 
-### **Frontend (Vercel)**
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
+### **Frontend (Netlify)**
+1. Connect your GitHub repository to Netlify
+2. Set environment variables in Netlify dashboard
 3. Deploy automatically on push to main branch
 
 ### **Backend (Render)**

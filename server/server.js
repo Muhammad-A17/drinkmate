@@ -475,7 +475,7 @@ setTimeout(() => {
         "http://127.0.0.1:3001",
         "http://127.0.0.1:3002",
         "http://127.0.0.1:8080",
-        "https://drinkmates.vercel.app",
+        "https://drinkmate-project.netlify.app",
         "https://drinkmates.onrender.com"
       ],
       methods: ["GET", "POST"],

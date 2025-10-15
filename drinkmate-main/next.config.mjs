@@ -125,7 +125,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'drinkmates.vercel.app',
+        hostname: 'drinkmate-project.netlify.app',
         port: '',
         pathname: '/**',
       },
