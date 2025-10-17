@@ -13,7 +13,7 @@ export { getAuthToken };
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 
   (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:3000' 
-    : 'https://drinkmates.onrender.com');
+    : 'https://drinkmate.sa/api');
 
 // Force local development URL when running locally
 const isLocalDev = typeof window !== 'undefined' && 
@@ -22,7 +22,7 @@ const isLocalDev = typeof window !== 'undefined' &&
 
 // For production, use the environment variable or fallback to production URL
 const FINAL_API_URL = process.env.NODE_ENV === 'production' 
-  ? (process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com')
+  ? (process.env.NEXT_PUBLIC_API_URL || 'https://drinkmate.sa/api')
   : (isLocalDev ? 'http://localhost:3000' : API_URL);
 
 

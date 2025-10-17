@@ -33,7 +33,7 @@ export default function SEO({
   structuredData,
 }: SEOProps) {
   const router = useRouter();
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-project.netlify.app';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate.sa';
   
   // Construct the canonical URL
   const fullCanonicalUrl = canonicalUrl 

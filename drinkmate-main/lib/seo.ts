@@ -37,7 +37,7 @@ export function generateMetadata({
   brand = 'DrinkMate',
   category,
 }: SEOProps): Metadata {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-project.netlify.app'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate.sa'
   const fullUrl = url ? `${baseUrl}${url}` : baseUrl
   const fullImageUrl = image.startsWith('http') ? image : `${baseUrl}${image}`
 
@@ -178,7 +178,7 @@ export function generateStructuredData({
   gtin?: string
   mpn?: string
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-project.netlify.app'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate.sa'
   const fullUrl = url ? `${baseUrl}${url}` : baseUrl
   const fullImageUrl = image ? (image.startsWith('http') ? image : `${baseUrl}${image}`) : undefined
 
@@ -270,7 +270,7 @@ export function generateStructuredData({
 }
 
 export function generateBreadcrumbStructuredData(items: Array<{ name: string; url: string }>) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-project.netlify.app'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate.sa'
   
   return {
     '@context': 'https://schema.org',

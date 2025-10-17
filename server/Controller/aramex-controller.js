@@ -206,7 +206,7 @@ exports.createShipment = async (req, res) => {
                 aramexLabelUrl: labelUrl,
                 status: 'shipped',
                 shippedAt: new Date(),
-                trackingUrl: `${process.env.FRONTEND_URL || 'http://localhost:3002'}/track-order/${waybillNumber}`
+                trackingUrl: `${process.env.FRONTEND_URL || 'https://drinkmate.sa'}/track-order/${waybillNumber}`
             };
 
             await order.save();

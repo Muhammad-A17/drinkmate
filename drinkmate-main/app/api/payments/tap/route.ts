@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
       customerEmail,
       customerName,
       description,
-      returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/success?orderId=${orderId}`,
-      cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/cancel?orderId=${orderId}`
+      returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate.sa'}/payment/success?orderId=${orderId}`,
+      cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://drinkmate.sa'}/payment/cancel?orderId=${orderId}`
     }
 
     const response = await paymentService.processTapPayment(paymentRequest)

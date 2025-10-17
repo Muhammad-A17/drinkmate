@@ -32,8 +32,8 @@ MONGODB_URI=your_mongodb_connection_string_here
 # ===========================================
 # FRONTEND CONFIGURATION
 # ===========================================
-FRONTEND_URL=https://drinkmate-project.netlify.app
-CORS_ORIGIN=https://drinkmate-project.netlify.app
+FRONTEND_URL=https://drinkmate.sa
+CORS_ORIGIN=https://drinkmate.sa
 
 # ===========================================
 # CLOUDINARY CONFIGURATION

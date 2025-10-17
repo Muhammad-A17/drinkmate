@@ -4,7 +4,7 @@
 // Prefer local API during development even if NEXT_PUBLIC_API_URL is set
 const isProdEnv = (process.env.NODE_ENV === 'production')
 const resolvedBaseUrl = isProdEnv
-  ? (process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com')
+  ? (process.env.NEXT_PUBLIC_API_URL || 'https://drinkmate.sa/api')
   : 'http://localhost:3000'
 
 export const API_CONFIG = {

@@ -69,7 +69,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
       socketUrl = 'http://localhost:3000';
     } else {
       // For production, use the production server
-      socketUrl = 'https://drinkmates.onrender.com';
+      socketUrl = 'https://drinkmate.sa';
     }
     
     console.log('🔥 Socket connecting to:', socketUrl)

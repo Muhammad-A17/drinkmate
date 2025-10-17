@@ -677,7 +677,7 @@ for your Drinkmate account.
             </div>
             
             <div class="button-container">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:3001'}/login" class="login-button">
+              <a href="${process.env.FRONTEND_URL || 'https://drinkmate.sa'}/login" class="login-button">
                 🔐 Login to Your Account
               </a>
             </div>
@@ -757,7 +757,7 @@ Hello ${userName},
 🎉 CONGRATULATIONS! Your password has been successfully reset!
 
 🔐 LOGIN TO YOUR ACCOUNT:
-${process.env.FRONTEND_URL || 'http://localhost:3001'}/login
+${process.env.FRONTEND_URL || 'https://drinkmate.sa'}/login
 
 ⚠️  SECURITY ALERT:
 If you didn't request this password reset, please contact our support team 
@@ -1046,7 +1046,7 @@ Welcome back! We're glad to have you back in your Drinkmate account.
             </div>
             
             <div class="cta-section">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:3001'}/shop" class="cta-button">
+              <a href="${process.env.FRONTEND_URL || 'https://drinkmate.sa'}/shop" class="cta-button">
                 🛍️ Start Shopping Now
               </a>
             </div>
@@ -1136,7 +1136,7 @@ amazing sparkling drinks at home!
 • Join our loyalty program
 
 🛍️ START SHOPPING NOW:
-${process.env.FRONTEND_URL || 'http://localhost:3001'}/shop
+${process.env.FRONTEND_URL || 'https://drinkmate.sa'}/shop
 
 Ready to create amazing sparkling drinks at home? Let's get started!
 

@@ -53,8 +53,8 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value: process.env.NODE_ENV === 'development' 
-              ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://www.googletagmanager.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:3000 https://api.cloudinary.com https://www.youtube.com https://drinkmates.onrender.com wss://drinkmates.onrender.com ws://localhost:* wss://localhost:*; media-src 'self' https://www.youtube.com https://res.cloudinary.com; frame-src 'self' https://www.youtube.com https://www.google.com https://maps.google.com; object-src 'self' data:; base-uri 'self'; form-action 'self';"
-              : "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com https://www.googletagmanager.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://drinkmates.onrender.com wss://drinkmates.onrender.com https://api.cloudinary.com https://www.youtube.com wss: ws:; media-src 'self' https://www.youtube.com https://res.cloudinary.com; frame-src 'self' https://www.youtube.com https://www.google.com https://maps.google.com; object-src 'self' data:; base-uri 'self'; form-action 'self';",
+              ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://www.googletagmanager.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:3000 https://api.cloudinary.com https://www.youtube.com https://drinkmate.sa wss://drinkmate.sa ws://localhost:* wss://localhost:*; media-src 'self' https://www.youtube.com https://res.cloudinary.com; frame-src 'self' https://www.youtube.com https://www.google.com https://maps.google.com; object-src 'self' data:; base-uri 'self'; form-action 'self';"
+              : "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com https://www.googletagmanager.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://drinkmate.sa wss://drinkmate.sa https://api.cloudinary.com https://www.youtube.com wss: ws:; media-src 'self' https://www.youtube.com https://res.cloudinary.com; frame-src 'self' https://www.youtube.com https://www.google.com https://maps.google.com; object-src 'self' data:; base-uri 'self'; form-action 'self';",
           },
         ],
       },
@@ -66,7 +66,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'https://drinkmates.onrender.com'}/:path*`,
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'https://drinkmate.sa/api'}/:path*`,
       },
       // SEO friendly URLs - convert dynamic pages to clean URLs
       {
@@ -125,13 +125,13 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'drinkmate-project.netlify.app',
+        hostname: 'drinkmate.sa',
         port: '',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'drinkmates.onrender.com',
+        hostname: 'drinkmate.sa',
         port: '',
         pathname: '/**',
       },

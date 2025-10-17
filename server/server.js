@@ -469,14 +469,12 @@ setTimeout(() => {
   const io = new Server(server, {
     cors: {
       origin: [
-        process.env.FRONTEND_URL || "http://localhost:3001",
+        process.env.FRONTEND_URL || "https://drinkmate.sa",
         "http://localhost:3002",
         "http://localhost:8080",
         "http://127.0.0.1:3001",
         "http://127.0.0.1:3002",
-        "http://127.0.0.1:8080",
-        "https://drinkmate-project.netlify.app",
-        "https://drinkmates.onrender.com"
+        "http://127.0.0.1:8080"
       ],
       methods: ["GET", "POST"],
       credentials: true,

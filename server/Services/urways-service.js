@@ -61,8 +61,8 @@ class UrwaysService {
                 customerEmail: customerEmail,
                 customerName: customerName || '',
                 description: description || `DrinkMate Order ${orderId}`,
-                returnURL: returnUrl || `${process.env.FRONTEND_URL}/payment/success?orderId=${orderId}`,
-                cancelURL: cancelUrl || `${process.env.FRONTEND_URL}/payment/cancel?orderId=${orderId}`,
+                returnURL: returnUrl || `${process.env.FRONTEND_URL || 'https://drinkmate.sa'}/payment/success?orderId=${orderId}`,
+                cancelURL: cancelUrl || `${process.env.FRONTEND_URL || 'https://drinkmate.sa'}/payment/cancel?orderId=${orderId}`,
                 terminalID: this.terminalId,
                 password: this.password,
                 action: '1', // 1 for payment
