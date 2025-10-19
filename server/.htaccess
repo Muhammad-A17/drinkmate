@@ -1,0 +1,21 @@
+PassengerAppRoot /home/aqualinesa/public_html/drinkmate.sa/server
+PassengerAppType node
+PassengerStartupFile server.js
+PassengerNodejs /opt/cpanel/ea-nodejs20/bin/node
+PassengerFriendlyErrorPages on
+
+# Set environment variables
+PassengerEnvVar NODE_ENV production
+PassengerEnvVar PORT 3000
+
+# Ensure the app restarts automatically if code changes
+PassengerRestartDir /home/aqualinesa/public_html/drinkmate.sa/server/tmp
+
+# Allow public access
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /server/
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+</IfModule>
+
