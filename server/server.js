@@ -423,40 +423,9 @@ app.use((req, res) => {
   });
 });
 
-// Start server on port 3000 (force port 3000)
+// Start server on the provided PORT (Railway sets this) or default to 3000 for local
 const PORT = parseInt(process.env.PORT, 10) || 3000;
 
-// Function to kill process on port 3000 if it exists
-function killProcessOnPort(port) {
-  const { exec } = require('child_process');
-  exec(`netstat -ano | findstr :${port}`, (error, stdout) => {
-    if (stdout) {
-      const lines = stdout.trim().split('\n');
-      lines.forEach(line => {
-        const parts = line.trim().split(/\s+/);
-        if (parts.length >= 5) {
-          const pid = parts[parts.length - 1];
-          if (pid && pid !== '0') {
-            console.log(`🔄 Killing process ${pid} on port ${port}`);
-            exec(`taskkill /F /PID ${pid}`, (err) => {
-              if (err) {
-                console.log(`⚠️  Could not kill process ${pid}: ${err.message}`);
-              } else {
-                console.log(`✅ Successfully killed process ${pid}`);
-              }
-            });
-          }
-        }
-      });
-    }
-  });
-}
-
-// Kill any existing process on port 3000
-killProcessOnPort(3000);
-
-// Wait a moment for the port to be freed
-setTimeout(() => {
   // Create HTTP server with timeout configuration
   const server = http.createServer(app);
   
@@ -521,7 +490,6 @@ setTimeout(() => {
       throw error;
     }
   });
-}, 2000);
 
 // Set up uncaught exception handlers
 handleUncaughtException();
