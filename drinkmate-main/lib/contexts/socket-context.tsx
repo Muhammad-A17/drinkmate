@@ -69,7 +69,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
       socketUrl = 'http://localhost:3000';
     } else {
       // For production, use the production server
-      socketUrl = 'https://drinkmate.sa';
+      socketUrl = 'https://drinkmate-production.up.railway.app';
     }
     
     console.log('🔥 Socket connecting to:', socketUrl)

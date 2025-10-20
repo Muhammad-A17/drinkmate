@@ -14,7 +14,7 @@ const securityHeaders = helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "https://www.youtube.com", "https://www.googletagmanager.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      connectSrc: ["'self'", "https://api.cloudinary.com", "https://www.youtube.com", "wss:", "ws:", "https://drinkmate.sa"],
+      connectSrc: ["'self'", "https://api.cloudinary.com", "https://www.youtube.com", "wss:", "ws:", "https://drinkmate-main-production.up.railway.app", "https://drinkmate-production.up.railway.app"],
       mediaSrc: ["'self'", "https://www.youtube.com"],
       objectSrc: ["'none'"],
       frameSrc: ["'self'", "https://www.youtube.com"],
@@ -169,7 +169,7 @@ const secureCORS = (req, res, next) => {
   const allowedOrigins = [
     process.env.FRONTEND_URL,
     process.env.CORS_ORIGIN,
-    'https://drinkmate.sa', // Production domain
+    'https://drinkmate-main-production.up.railway.app', // Frontend domain
     'http://localhost:3001', // Development frontend
     'http://localhost:3002', // Development frontend (Next.js default)
     'http://localhost:3000' // Alternative development port

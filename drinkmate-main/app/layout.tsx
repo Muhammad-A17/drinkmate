@@ -67,7 +67,7 @@ export const viewport = {
 export const metadata: Metadata = {
   title: "DrinkMate - Premium Soda Makers & Flavors | Create Carbonated Drinks at Home",
   description: "Discover premium DrinkMate soda makers, natural Italian flavors, and CO2 cylinders. Create delicious carbonated beverages at home with our innovative carbonation technology. Free shipping available!",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate.sa'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-main-production.up.railway.app'),
   robots: {
     index: true,
     follow: true,
@@ -94,7 +94,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate.sa',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-main-production.up.railway.app',
     siteName: 'DrinkMate',
     title: 'DrinkMate - Premium Soda Makers & Flavors',
     description: 'Create delicious carbonated beverages at home with DrinkMate soda makers, premium Italian flavors, and CO2 cylinders. Free shipping and 30-day money-back guarantee.',
@@ -123,7 +123,7 @@ export const metadata: Metadata = {
     'Italian flavors', 'premium beverages', 'carbonated water maker', 'sparkling water maker',
     'soda machine', 'beverage carbonator', 'CO2 refill', 'drink carbonation'
   ],
-  authors: [{ name: 'DrinkMate Team', url: 'https://drinkmate.sa' }],
+  authors: [{ name: 'DrinkMate Team', url: 'https://drinkmate-main-production.up.railway.app' }],
   category: 'Home Appliances',
   applicationName: 'DrinkMate',
   generator: 'Next.js',
@@ -171,7 +171,7 @@ export default function RootLayout({
         <meta name="referrer" content="strict-origin-when-cross-origin" />
         <meta httpEquiv="Content-Security-Policy" content={process.env.NODE_ENV === 'development' 
           ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:3000 https://api.cloudinary.com https://www.youtube.com https://drinkmate.sa wss://drinkmate.sa ws://localhost:* wss://localhost:*; media-src 'self' https://www.youtube.com https://res.cloudinary.com; frame-src 'self' https://www.youtube.com; object-src 'self' data:; base-uri 'self'; form-action 'self';"
-          : "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://drinkmate.sa wss://drinkmate.sa https://api.cloudinary.com https://www.youtube.com wss: ws:; media-src 'self' https://www.youtube.com https://res.cloudinary.com; frame-src 'self' https://www.youtube.com; object-src 'self' data:; base-uri 'self'; form-action 'self';"
+          : "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://drinkmate-production.up.railway.app https://drinkmate-main-production.up.railway.app wss://drinkmate-main-production.up.railway.app https://api.cloudinary.com https://www.youtube.com wss: ws:; media-src 'self' https://www.youtube.com https://res.cloudinary.com; frame-src 'self' https://www.youtube.com; object-src 'self' data:; base-uri 'self'; form-action 'self';"
         } />
         
         {/* Schema.org structured data for rich results */}
@@ -179,8 +179,8 @@ export default function RootLayout({
           '@context': 'https://schema.org',
           '@type': 'Organization',
           'name': 'DrinkMate',
-          'url': process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate.sa',
-          'logo': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate.sa'}/logo.png`,
+          'url': process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-main-production.up.railway.app',
+          'logo': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-main-production.up.railway.app'}/logo.png`,
           'description': 'Premium soda makers, natural Italian flavors, and CO2 cylinders for creating delicious carbonated beverages at home.',
           'foundingDate': '2020',
           'sameAs': [
@@ -210,7 +210,7 @@ export default function RootLayout({
             '@type': 'SearchAction',
             'target': {
               '@type': 'EntryPoint',
-              'urlTemplate': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate.sa'}/search?q={search_term_string}`
+              'urlTemplate': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-main-production.up.railway.app'}/search?q={search_term_string}`
             },
             'query-input': 'required name=search_term_string'
           }
@@ -221,7 +221,7 @@ export default function RootLayout({
           '@context': 'https://schema.org',
           '@type': 'WebSite',
           'name': 'DrinkMate',
-          'url': process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate.sa',
+          'url': process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-main-production.up.railway.app',
           'description': 'Premium soda makers and carbonation solutions for home use',
           'publisher': {
             '@type': 'Organization',
@@ -231,7 +231,7 @@ export default function RootLayout({
             '@type': 'SearchAction',
             'target': {
               '@type': 'EntryPoint',
-              'urlTemplate': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate.sa'}/search?q={search_term_string}`
+              'urlTemplate': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://drinkmate-main-production.up.railway.app'}/search?q={search_term_string}`
             },
             'query-input': 'required name=search_term_string'
           }

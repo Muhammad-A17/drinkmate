@@ -469,7 +469,7 @@ setTimeout(() => {
   const io = new Server(server, {
     cors: {
       origin: [
-        process.env.FRONTEND_URL || "https://drinkmate.sa",
+        process.env.FRONTEND_URL || "https://drinkmate-main-production.up.railway.app",
         "http://localhost:3002",
         "http://localhost:8080",
         "http://127.0.0.1:3001",
