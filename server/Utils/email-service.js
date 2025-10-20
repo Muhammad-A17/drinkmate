@@ -342,7 +342,7 @@ const emailTemplates = {
             </div>
             
             <div class="contact-links">
-              <a href="https://drinkmate.sa" class="contact-link">🌐 Website</a>
+              <a href="https://drinkmate-main-production.up.railway.app" class="contact-link">🌐 Website</a>
               <a href="mailto:support@drinkmate.sa" class="contact-link">📧 Support</a>
               <a href="tel:+966123456789" class="contact-link">📞 +966 12 345 6789</a>
             </div>
@@ -401,7 +401,7 @@ Best regards,
 The Drinkmate Team
 
 📞 Contact Information:
-• Website: https://drinkmate.sa
+• Website: https://drinkmate-main-production.up.railway.app
 • Support: support@drinkmate.sa
 • Phone: +966 12 345 6789
 
@@ -677,7 +677,7 @@ for your Drinkmate account.
             </div>
             
             <div class="button-container">
-              <a href="${process.env.FRONTEND_URL || 'https://drinkmate.sa'}/login" class="login-button">
+              <a href="${process.env.FRONTEND_URL || 'https://drinkmate-main-production.up.railway.app'}/login" class="login-button">
                 🔐 Login to Your Account
               </a>
             </div>
@@ -716,7 +716,7 @@ for your Drinkmate account.
             </div>
             
             <div class="contact-links">
-              <a href="https://drinkmate.sa" class="contact-link">🌐 Website</a>
+              <a href="https://drinkmate-main-production.up.railway.app" class="contact-link">🌐 Website</a>
               <a href="mailto:support@drinkmate.sa" class="contact-link">📧 Support</a>
               <a href="tel:+966123456789" class="contact-link">📞 +966 12 345 6789</a>
             </div>
@@ -757,7 +757,7 @@ Hello ${userName},
 🎉 CONGRATULATIONS! Your password has been successfully reset!
 
 🔐 LOGIN TO YOUR ACCOUNT:
-${process.env.FRONTEND_URL || 'https://drinkmate.sa'}/login
+${process.env.FRONTEND_URL || 'https://drinkmate-main-production.up.railway.app'}/login
 
 ⚠️  SECURITY ALERT:
 If you didn't request this password reset, please contact our support team 
@@ -777,7 +777,7 @@ Best regards,
 The Drinkmate Team
 
 📞 Contact Information:
-• Website: https://drinkmate.sa
+• Website: https://drinkmate-main-production.up.railway.app
 • Support: support@drinkmate.sa
 • Phone: +966 12 345 6789
 
@@ -1046,7 +1046,7 @@ Welcome back! We're glad to have you back in your Drinkmate account.
             </div>
             
             <div class="cta-section">
-              <a href="${process.env.FRONTEND_URL || 'https://drinkmate.sa'}/shop" class="cta-button">
+              <a href="${process.env.FRONTEND_URL || 'https://drinkmate-main-production.up.railway.app'}/shop" class="cta-button">
                 🛍️ Start Shopping Now
               </a>
             </div>
@@ -1084,7 +1084,7 @@ Welcome back! We're glad to have you back in your Drinkmate account.
             </div>
             
             <div class="contact-links">
-              <a href="https://drinkmate.sa" class="contact-link">🌐 Website</a>
+              <a href="https://drinkmate-main-production.up.railway.app" class="contact-link">🌐 Website</a>
               <a href="mailto:support@drinkmate.sa" class="contact-link">📧 Support</a>
               <a href="tel:+966123456789" class="contact-link">📞 +966 12 345 6789</a>
             </div>
@@ -1136,7 +1136,7 @@ amazing sparkling drinks at home!
 • Join our loyalty program
 
 🛍️ START SHOPPING NOW:
-${process.env.FRONTEND_URL || 'https://drinkmate.sa'}/shop
+${process.env.FRONTEND_URL || 'https://drinkmate-main-production.up.railway.app'}/shop
 
 Ready to create amazing sparkling drinks at home? Let's get started!
 
@@ -1146,7 +1146,7 @@ Welcome aboard!
 The Drinkmate Team
 
 📞 Contact Information:
-• Website: https://drinkmate.sa
+• Website: https://drinkmate-main-production.up.railway.app
 • Support: support@drinkmate.sa
 • Phone: +966 12 345 6789
 

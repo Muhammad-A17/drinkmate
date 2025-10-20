@@ -484,7 +484,7 @@ export default function OrdersPage() {
     if (!confirm(`Are you sure you want to delete order ${order.orderNumber}? This action cannot be undone.`)) return
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmate.sa/api'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://drinkmate-production.up.railway.app'
       const response = await fetch(`${API_URL}/api/orders/${order._id}`, {
         method: 'DELETE',
         headers: {
