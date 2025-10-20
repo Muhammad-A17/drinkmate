@@ -1,9 +1,0 @@
-PassengerAppRoot /home/aqualinesa/public_html/drinkmate.sa/server
-PassengerAppType node
-PassengerStartupFile server.js
-PassengerNodejs /opt/cpanel/ea-nodejs20/bin/node
-PassengerFriendlyErrorPages on
-
-PassengerEnvVar NODE_ENV production
-PassengerEnvVar PORT 3000
-PassengerRestartDir /home/aqualinesa/public_html/drinkmate.sa/server/tmp
