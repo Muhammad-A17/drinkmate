@@ -205,12 +205,11 @@ exports.getAllProducts = async (req, res) => {
         // Manually populate category field for products
         for (let product of products) {
             if (product.category && typeof product.category === 'string') {
-                // If category is a string, try to find the category by slug or name
+                // If category is a string, try to find the category by slug or name only
                 const category = await Category.findOne({
                     $or: [
                         { slug: product.category },
-                        { name: product.category },
-                        { _id: product.category }
+                        { name: product.category }
                     ]
                 });
                 if (category) {
@@ -730,12 +729,11 @@ exports.getProductsByCategory = async (req, res) => {
         // Manually populate category field for products
         for (let product of products) {
             if (product.category && typeof product.category === 'string') {
-                // If category is a string, try to find the category by slug or name
+                // If category is a string, try to find the category by slug or name only
                 const categoryObj = await Category.findOne({
                     $or: [
                         { slug: product.category },
-                        { name: product.category },
-                        { _id: product.category }
+                        { name: product.category }
                     ]
                 });
                 if (categoryObj) {
