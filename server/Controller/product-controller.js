@@ -205,13 +205,23 @@ exports.getAllProducts = async (req, res) => {
         // Manually populate category field for products
         for (let product of products) {
             if (product.category && typeof product.category === 'string') {
-                // If category is a string, try to find the category by slug or name only
-                const category = await Category.findOne({
-                    $or: [
-                        { slug: product.category },
-                        { name: product.category }
-                    ]
-                });
+                // Check if it's a valid ObjectId first
+                const isObjectId = /^[0-9a-fA-F]{24}$/.test(product.category);
+                
+                let category;
+                if (isObjectId) {
+                    // If it's a valid ObjectId, try to find by _id
+                    category = await Category.findById(product.category);
+                } else {
+                    // If it's not an ObjectId, try to find by slug or name
+                    category = await Category.findOne({
+                        $or: [
+                            { slug: product.category },
+                            { name: product.category }
+                        ]
+                    });
+                }
+                
                 if (category) {
                     product.category = {
                         _id: category._id,
