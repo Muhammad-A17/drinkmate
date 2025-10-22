@@ -5,11 +5,18 @@ const { authMiddleware } = require('../Middleware/auth-middleware');
 const adminMiddleware = require('../Middleware/admin-middleware');
 const { requireAdmin, requirePermission, auditLog } = require('../Middleware/authorization-middleware');
 const { getAllUsers, deleteUser } = require('../Controller/admin-controller');
+const adminUserController = require('../Controller/admin-user-controller');
+const adminOrderController = require('../Controller/admin-order-controller');
+const adminAnalyticsController = require('../Controller/admin-analytics-controller');
+const adminProductController = require('../Controller/admin-product-controller');
+const adminSystemController = require('../Controller/admin-system-controller');
+const adminDashboardController = require('../Controller/admin-dashboard-controller');
 const categoryController = require('../Controller/category-controller');
 const orderController = require('../Controller/order-controller');
 const statsController = require('../Controller/stats-controller');
 const contentController = require('../Controller/content-controller');
 const chartController = require('../Controller/chart-controller');
+const adminSettingsController = require('../Controller/admin-settings-controller');
 const { storage, deleteImage } = require('../Utils/cloudinary');
 const User = require('../Models/user-model');
 
@@ -629,5 +636,159 @@ async function checkDatabaseHealth() {
     };
   }
 }
+
+// ===========================================
+// ADMIN SETTINGS ROUTES
+// ===========================================
+
+// Get all settings
+router.get('/settings', authMiddleware, requirePermission('settings.read'), auditLog('settings.read', 'settings'), adminSettingsController.getSettings);
+
+// Update settings
+router.put('/settings', authMiddleware, requirePermission('settings.write'), auditLog('settings.write', 'settings'), adminSettingsController.updateSettings);
+
+// Test email configuration
+router.post('/settings/test-email', authMiddleware, requirePermission('settings.write'), auditLog('settings.test_email', 'settings'), adminSettingsController.testEmail);
+
+// Test payment gateway
+router.post('/settings/test-payment', authMiddleware, requirePermission('settings.write'), auditLog('settings.test_payment', 'settings'), adminSettingsController.testPaymentGateway);
+
+// Get system health
+router.get('/settings/health', authMiddleware, requirePermission('settings.read'), auditLog('settings.health', 'settings'), adminSettingsController.getSystemHealth);
+
+// ===========================================
+// ADMIN USER MANAGEMENT ROUTES
+// ===========================================
+
+// Get all users with advanced filtering
+router.get('/users', authMiddleware, requirePermission('users.read'), auditLog('users.read', 'users'), adminUserController.getAllUsers);
+
+// Get user by ID
+router.get('/users/:id', authMiddleware, requirePermission('users.read'), auditLog('users.read', 'user'), adminUserController.getUserById);
+
+// Update user
+router.put('/users/:id', authMiddleware, requirePermission('users.write'), auditLog('users.write', 'user'), adminUserController.updateUser);
+
+// Delete user
+router.delete('/users/:id', authMiddleware, requirePermission('users.delete'), auditLog('users.delete', 'user'), adminUserController.deleteUser);
+
+// Create admin user
+router.post('/users/admin', authMiddleware, requirePermission('users.create'), auditLog('users.create', 'admin_user'), adminUserController.createAdminUser);
+
+// Update user role
+router.put('/users/:id/role', authMiddleware, requirePermission('users.write'), auditLog('users.write', 'user_role'), adminUserController.updateUserRole);
+
+// Get user statistics
+router.get('/users/stats', authMiddleware, requirePermission('users.read'), auditLog('users.read', 'user_stats'), adminUserController.getUserStats);
+
+// Reset user password
+router.put('/users/:id/reset-password', authMiddleware, requirePermission('users.write'), auditLog('users.write', 'user_password'), adminUserController.resetUserPassword);
+
+// ===========================================
+// ADMIN ORDER MANAGEMENT ROUTES
+// ===========================================
+
+// Get all orders with advanced filtering
+router.get('/orders', authMiddleware, requirePermission('orders.read'), auditLog('orders.read', 'orders'), adminOrderController.getAllOrders);
+
+// Get order by ID
+router.get('/orders/:id', authMiddleware, requirePermission('orders.read'), auditLog('orders.read', 'order'), adminOrderController.getOrderById);
+
+// Update order status
+router.put('/orders/:id/status', authMiddleware, requirePermission('orders.write'), auditLog('orders.write', 'order_status'), adminOrderController.updateOrderStatus);
+
+// Update payment status
+router.put('/orders/:id/payment-status', authMiddleware, requirePermission('orders.write'), auditLog('orders.write', 'payment_status'), adminOrderController.updatePaymentStatus);
+
+// Update shipping information
+router.put('/orders/:id/shipping', authMiddleware, requirePermission('orders.write'), auditLog('orders.write', 'shipping_info'), adminOrderController.updateShippingInfo);
+
+// Cancel order
+router.put('/orders/:id/cancel', authMiddleware, requirePermission('orders.write'), auditLog('orders.write', 'order_cancel'), adminOrderController.cancelOrder);
+
+// Get order statistics
+router.get('/orders/stats', authMiddleware, requirePermission('orders.read'), auditLog('orders.read', 'order_stats'), adminOrderController.getOrderStats);
+
+// Get order analytics
+router.get('/orders/analytics', authMiddleware, requirePermission('orders.read'), auditLog('orders.read', 'order_analytics'), adminOrderController.getOrderAnalytics);
+
+// ===========================================
+// ADMIN ANALYTICS ROUTES
+// ===========================================
+
+// Get dashboard overview
+router.get('/analytics/dashboard', authMiddleware, requirePermission('analytics.read'), auditLog('analytics.read', 'dashboard'), adminAnalyticsController.getDashboardOverview);
+
+// Get sales analytics
+router.get('/analytics/sales', authMiddleware, requirePermission('analytics.read'), auditLog('analytics.read', 'sales'), adminAnalyticsController.getSalesAnalytics);
+
+// Get product analytics
+router.get('/analytics/products', authMiddleware, requirePermission('analytics.read'), auditLog('analytics.read', 'products'), adminAnalyticsController.getProductAnalytics);
+
+// Get customer analytics
+router.get('/analytics/customers', authMiddleware, requirePermission('analytics.read'), auditLog('analytics.read', 'customers'), adminAnalyticsController.getCustomerAnalytics);
+
+// Get chat analytics
+router.get('/analytics/chats', authMiddleware, requirePermission('analytics.read'), auditLog('analytics.read', 'chats'), adminAnalyticsController.getChatAnalytics);
+
+// ===========================================
+// ADMIN PRODUCT MANAGEMENT ROUTES
+// ===========================================
+
+// Get all products with advanced filtering
+router.get('/products', authMiddleware, requirePermission('products.read'), auditLog('products.read', 'products'), adminProductController.getAllProducts);
+
+// Get product by ID
+router.get('/products/:id', authMiddleware, requirePermission('products.read'), auditLog('products.read', 'product'), adminProductController.getProductById);
+
+// Create new product
+router.post('/products', authMiddleware, requirePermission('products.create'), auditLog('products.create', 'product'), adminProductController.createProduct);
+
+// Update product
+router.put('/products/:id', authMiddleware, requirePermission('products.write'), auditLog('products.write', 'product'), adminProductController.updateProduct);
+
+// Delete product
+router.delete('/products/:id', authMiddleware, requirePermission('products.delete'), auditLog('products.delete', 'product'), adminProductController.deleteProduct);
+
+// Bulk update products
+router.put('/products/bulk', authMiddleware, requirePermission('products.write'), auditLog('products.write', 'bulk_products'), adminProductController.bulkUpdateProducts);
+
+// Get product statistics
+router.get('/products/stats', authMiddleware, requirePermission('products.read'), auditLog('products.read', 'product_stats'), adminProductController.getProductStats);
+
+// Get low stock products
+router.get('/products/low-stock', authMiddleware, requirePermission('products.read'), auditLog('products.read', 'low_stock'), adminProductController.getLowStockProducts);
+
+// Update product stock
+router.put('/products/:id/stock', authMiddleware, requirePermission('products.write'), auditLog('products.write', 'product_stock'), adminProductController.updateProductStock);
+
+// Get product analytics
+router.get('/products/analytics', authMiddleware, requirePermission('products.read'), auditLog('products.read', 'product_analytics'), adminProductController.getProductAnalytics);
+
+// ===========================================
+// ADMIN SYSTEM HEALTH ROUTES
+// ===========================================
+
+// Get comprehensive system health
+router.get('/system/health', authMiddleware, requirePermission('system.read'), auditLog('system.read', 'health'), adminSystemController.getSystemHealth);
+
+// Get system logs
+router.get('/system/logs', authMiddleware, requirePermission('system.read'), auditLog('system.read', 'logs'), adminSystemController.getSystemLogs);
+
+// Get system metrics
+router.get('/system/metrics', authMiddleware, requirePermission('system.read'), auditLog('system.read', 'metrics'), adminSystemController.getSystemMetrics);
+
+// Restart service
+router.post('/system/restart', authMiddleware, requirePermission('system.admin'), auditLog('system.admin', 'restart'), adminSystemController.restartService);
+
+// ===========================================
+// ADMIN DASHBOARD ROUTES
+// ===========================================
+
+// Get complete dashboard data
+router.get('/dashboard', authMiddleware, requirePermission('dashboard.read'), auditLog('dashboard.read', 'dashboard'), adminDashboardController.getDashboardData);
+
+// Get quick actions data
+router.get('/dashboard/quick-actions', authMiddleware, requirePermission('dashboard.read'), auditLog('dashboard.read', 'quick_actions'), adminDashboardController.getQuickActions);
 
 module.exports = router;

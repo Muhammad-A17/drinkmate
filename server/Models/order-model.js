@@ -263,23 +263,21 @@ orderSchema.virtual('ageInDays').get(function() {
   return Math.floor((Date.now() - this.createdAt) / (1000 * 60 * 60 * 24));
 });
 
-// Indexes for better performance (orderNumber already has unique index)
-orderSchema.index({ user: 1, createdAt: -1 });
-orderSchema.index({ status: 1, createdAt: -1 });
-orderSchema.index({ 'paymentDetails.paymentStatus': 1 });
-orderSchema.index({ 'shippingAddress.email': 1 });
-
-// Additional performance indexes
-orderSchema.index({ createdAt: -1 }); // For recent orders queries
-orderSchema.index({ updatedAt: -1 }); // For order updates
-orderSchema.index({ 'shipping.aramexWaybillNumber': 1 }, { unique: true, sparse: true }); // For tracking
-orderSchema.index({ 'shipping.status': 1, createdAt: -1 }); // For shipping status queries
-orderSchema.index({ total: 1, createdAt: -1 }); // For revenue analysis
-orderSchema.index({ isGuestOrder: 1, createdAt: -1 }); // For guest order analysis
-orderSchema.index({ 'items.product': 1 }); // For product-based queries
-orderSchema.index({ 'items.bundle': 1 }); // For bundle-based queries
-orderSchema.index({ 'shippingAddress.city': 1, createdAt: -1 }); // For location-based queries
-orderSchema.index({ 'shippingAddress.country': 1, createdAt: -1 }); // For country-based queries
+// Performance indexes - consolidated to avoid duplicates
+orderSchema.index({ user: 1, createdAt: -1 }); // User orders
+orderSchema.index({ status: 1, createdAt: -1 }); // Status queries
+orderSchema.index({ 'paymentDetails.paymentStatus': 1 }); // Payment status
+orderSchema.index({ 'shippingAddress.email': 1 }); // Email lookups
+orderSchema.index({ createdAt: -1 }); // Recent orders
+orderSchema.index({ updatedAt: -1 }); // Order updates
+orderSchema.index({ 'shipping.aramexWaybillNumber': 1 }, { sparse: true }); // Tracking (removed unique to avoid conflicts)
+orderSchema.index({ 'shipping.status': 1, createdAt: -1 }); // Shipping status
+orderSchema.index({ total: 1, createdAt: -1 }); // Revenue analysis
+orderSchema.index({ isGuestOrder: 1, createdAt: -1 }); // Guest orders
+orderSchema.index({ 'items.product': 1 }); // Product queries
+orderSchema.index({ 'items.bundle': 1 }); // Bundle queries
+orderSchema.index({ 'shippingAddress.city': 1, createdAt: -1 }); // Location queries
+orderSchema.index({ 'shippingAddress.country': 1, createdAt: -1 }); // Country queries
 
 // Pre-save middleware
 orderSchema.pre('save', function(next) {

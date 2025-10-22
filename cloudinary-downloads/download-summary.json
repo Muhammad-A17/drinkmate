@@ -1,0 +1,128 @@
+{
+  "total": 56,
+  "success": 32,
+  "failed": 24,
+  "errors": [
+    {
+      "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1759395896/drinkmate/test-image.png",
+      "filename": "test-image.png",
+      "error": "HTTP 503: Service Unavailable"
+    },
+    {
+      "url": "https://res.cloudinary.com/da6dzmflp/image/upload/v1759395896/drinkmate/updated-test-image.png",
+      "filename": "updated-test-image.png",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151268/co2-cylinder-exchange-60l_abc123.jpg",
+      "filename": "co2-cylinder-exchange-60l_abc123.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151268/co2-cylinder-exchange-60l-1.jpg",
+      "filename": "co2-cylinder-exchange-60l-1.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151268/co2-cylinder-exchange-60l-2.jpg",
+      "filename": "co2-cylinder-exchange-60l-2.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151268/co2-cylinder-exchange-40l_def456.jpg",
+      "filename": "co2-cylinder-exchange-40l_def456.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151268/co2-cylinder-exchange-40l-1.jpg",
+      "filename": "co2-cylinder-exchange-40l-1.jpg",
+      "error": ""
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151268/co2-cylinder-exchange-130l_ghi789.jpg",
+      "filename": "co2-cylinder-exchange-130l_ghi789.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151268/co2-cylinder-exchange-130l-1.jpg",
+      "filename": "co2-cylinder-exchange-130l-1.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151268/co2-cylinder-exchange-130l-2.jpg",
+      "filename": "co2-cylinder-exchange-130l-2.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/strawberry-lemonade.jpg",
+      "filename": "strawberry-lemonade.jpg",
+      "error": "HTTP 503: Service Unavailable"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/lime-mojito.jpg",
+      "filename": "lime-mojito.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/grapefruit-juice.jpg",
+      "filename": "grapefruit-juice.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/blue-raspberry.jpg",
+      "filename": "blue-raspberry.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/orange-creamsicle.jpg",
+      "filename": "orange-creamsicle.jpg",
+      "error": "HTTP 503: Service Unavailable"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/grape-soda.jpg",
+      "filename": "grape-soda.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1756892915/co2-cylinder_placeholder.png",
+      "filename": "co2-cylinder_placeholder.png",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/grapefruit-juice.jpg",
+      "filename": "grapefruit-juice.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/grapefruit-juice.jpg",
+      "filename": "grapefruit-juice.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/strawberry-lemonade.jpg",
+      "filename": "strawberry-lemonade.jpg",
+      "error": "HTTP 503: Service Unavailable"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/blue-raspberry.jpg",
+      "filename": "blue-raspberry.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/lime-mojito.jpg",
+      "filename": "lime-mojito.jpg",
+      "error": "HTTP 404: Not Found"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/orange-creamsicle.jpg",
+      "filename": "orange-creamsicle.jpg",
+      "error": "HTTP 503: Service Unavailable"
+    },
+    {
+      "url": "https://res.cloudinary.com/dw2h8hejn/image/upload/v1757151071/grape-soda.jpg",
+      "filename": "grape-soda.jpg",
+      "error": "HTTP 404: Not Found"
+    }
+  ],
+  "timestamp": "2025-10-20T14:17:26.940Z"
+}

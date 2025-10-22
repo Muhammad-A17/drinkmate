@@ -453,9 +453,9 @@ const PORT = parseInt(process.env.PORT, 10) || 3000;
     transports: ['websocket', 'polling']
   });
 
-  // Initialize Socket service
-  const SocketService = require('./Services/socket-service');
-  new SocketService(io);
+  // Initialize improved Socket service
+  const ImprovedSocketService = require('./Services/improved-socket-service');
+  new ImprovedSocketService(io);
   
   // Make io available to routes
   app.set('io', io);
