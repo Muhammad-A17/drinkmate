@@ -54,10 +54,10 @@ class ImprovedSocketService {
         
         // Verify token with timeout
         const decoded = await this.verifyTokenWithTimeout(token);
-        console.log('✅ Token verified successfully for user:', decoded.userId);
+        console.log('✅ Token verified successfully for user:', decoded.id);
         
         // Get user from database
-        const user = await User.findById(decoded.userId).select('-password');
+        const user = await User.findById(decoded.id).select('-password');
         if (!user) {
           console.log('❌ User not found for token');
           return next(new Error('User not found'));

@@ -494,7 +494,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const token = getAuthToken()
       if (token) {
         fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/chat/${state.currentChat._id}/read`, {
-          method: 'POST',
+          method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

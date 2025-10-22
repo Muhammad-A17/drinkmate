@@ -197,11 +197,31 @@ exports.getAllProducts = async (req, res) => {
         // Execute query with pagination
         const products = await Product.find(filter)
             .select('name slug price originalPrice images averageRating reviewCount category shortDescription')
-            .populate('category', 'name slug')
             .sort(sort)
             .skip(skip)
             .limit(limit)
             .lean();
+            
+        // Manually populate category field for products
+        for (let product of products) {
+            if (product.category && typeof product.category === 'string') {
+                // If category is a string, try to find the category by slug or name
+                const category = await Category.findOne({
+                    $or: [
+                        { slug: product.category },
+                        { name: product.category },
+                        { _id: product.category }
+                    ]
+                });
+                if (category) {
+                    product.category = {
+                        _id: category._id,
+                        name: category.name,
+                        slug: category.slug
+                    };
+                }
+            }
+        }
             
         // Get total count for pagination
         const totalProducts = await Product.countDocuments(filter);
@@ -701,11 +721,32 @@ exports.getProductsByCategory = async (req, res) => {
                 { category: category.name }
             ]
         })
-        .select('name slug price originalPrice images averageRating reviewCount shortDescription subcategory')
+        .select('name slug price originalPrice images averageRating reviewCount shortDescription subcategory category')
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 })
         .lean();
+        
+        // Manually populate category field for products
+        for (let product of products) {
+            if (product.category && typeof product.category === 'string') {
+                // If category is a string, try to find the category by slug or name
+                const categoryObj = await Category.findOne({
+                    $or: [
+                        { slug: product.category },
+                        { name: product.category },
+                        { _id: product.category }
+                    ]
+                });
+                if (categoryObj) {
+                    product.category = {
+                        _id: categoryObj._id,
+                        name: categoryObj.name,
+                        slug: categoryObj.slug
+                    };
+                }
+            }
+        }
         
         // Get total count for pagination
         const totalProducts = await Product.countDocuments({ 

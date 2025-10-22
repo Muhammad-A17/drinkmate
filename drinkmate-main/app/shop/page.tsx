@@ -344,13 +344,20 @@ function ShopPageContent() {
         category: (p as any)?.category
       })))
       
+      // Find the category object to get the ObjectId
+      const selectedCategory = categories.find(cat => cat.slug === filters.category)
+      const categoryObjectId = selectedCategory?._id
+      
+      console.log('🔍 Selected category:', selectedCategory)
+      console.log('🔍 Category ObjectId:', categoryObjectId)
+      
       filtered = filtered.filter(product => {
         const category = (product as any)?.category
         const categoryId = typeof category === 'object' ? category?._id : category
         const categorySlug = typeof category === 'object' ? category?.slug : null
         
-        // Check both ID and slug matches
-        const matchesId = categoryId === filters.category
+        // Check if the product's category matches the selected category
+        const matchesId = categoryId === categoryObjectId
         const matchesSlug = categorySlug === filters.category
         
         // Also check if the category name matches common variations
@@ -371,6 +378,7 @@ function ShopPageContent() {
             categorySlug,
             categoryName,
             filterCategory: filters.category,
+            categoryObjectId,
             matches
           })
         }
@@ -553,7 +561,12 @@ function ShopPageContent() {
     products.forEach(product => {
       // Category counts
       const category = (product as any)?.category
-      const categorySlug = typeof category === 'object' ? category?.slug : category
+      const categoryId = typeof category === 'object' ? category?._id : category
+      
+      // Find the category by ObjectId to get the slug
+      const categoryObj = categories.find(cat => cat._id === categoryId)
+      const categorySlug = categoryObj?.slug
+      
       if (categorySlug) {
         counts.categories[categorySlug] = (counts.categories[categorySlug] || 0) + 1
       }
