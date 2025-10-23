@@ -48,6 +48,7 @@ export default function ProductGrid({
   wishlist?: Product[]
   comparisonList?: Product[]
 }) {
+  console.log('🎯 ProductGrid received products:', products.length, products.map(p => ({ name: p.name, category: p.category })))
   const { addItem } = useCart()
   const { animationState, triggerAddAnimation, hideNotification } = useCartAnimations()
 

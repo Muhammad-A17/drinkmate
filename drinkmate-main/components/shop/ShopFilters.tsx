@@ -114,12 +114,15 @@ export default function ShopFilters({
     console.log('🔧 ShopFilters: handleCategoryChange called with:', categorySlug)
     const newCategory = filters.category === categorySlug ? 'all' : categorySlug
     console.log('🔧 ShopFilters: newCategory will be:', newCategory)
-    handleFilterChange('category', newCategory)
-    // Reset subcategory when category changes
-    if (newCategory !== 'all') {
-      handleFilterChange('subcategory', 'all')
+    
+    // Update both category and subcategory in a single call
+    const newFilters = {
+      ...filters,
+      category: newCategory,
+      subcategory: newCategory !== 'all' ? 'all' : filters.subcategory
     }
-  }, [filters.category, handleFilterChange])
+    onFiltersChange(newFilters)
+  }, [filters, onFiltersChange])
 
   const handleSubcategoryChange = useCallback((subcategorySlug: string) => {
     const newSubcategory = filters.subcategory === subcategorySlug ? 'all' : subcategorySlug

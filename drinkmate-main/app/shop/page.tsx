@@ -80,6 +80,12 @@ function ShopPageContent() {
     searchQuery: ''
   })
   
+  // Debug log for filter state changes
+  useEffect(() => {
+    console.log('🔧 Filter state changed:', filters)
+    console.log('🔧 Current category filter:', filters.category)
+  }, [filters])
+  
   // Debounced search query for better performance
   const debouncedSearchQuery = useDebounce(filters.searchQuery, 300)
   
@@ -352,6 +358,7 @@ function ShopPageContent() {
     if (filters.category && filters.category !== 'all') {
       console.log('🔍 Applying category filter:', filters.category)
       console.log('🔍 Available categories:', categories.map(c => ({ name: c.name, slug: c.slug, _id: c._id })))
+      console.log('🔍 Total categories loaded:', categories.length)
       console.log('🔍 Sample product categories before filter:', filtered.slice(0, 3).map(p => ({
         name: (p as any)?.name,
         category: (p as any)?.category,
@@ -364,6 +371,8 @@ function ShopPageContent() {
       
       console.log('🔍 Selected category:', selectedCategory)
       console.log('🔍 Category ObjectId:', categoryObjectId)
+      console.log('🔍 All category slugs:', categories.map(c => c.slug))
+      console.log('🔍 Looking for slug:', filters.category)
       
       filtered = filtered.filter(product => {
         const category = (product as any)?.category
@@ -542,6 +551,14 @@ function ShopPageContent() {
     name: (p as any)?.name,
     category: (p as any)?.category
   })))
+  
+    console.log('📄 Current filter state:', filters)
+    console.log('📄 Total filtered products:', filteredProducts.length)
+    console.log('📄 Paginated products count:', paginatedProducts.length)
+    console.log('📄 Sample filtered products:', filteredProducts.slice(0, 3).map(p => ({
+      name: (p as any)?.name,
+      category: (p as any)?.category
+    })))
 
   // Count active filters
   const activeFilterCount = useMemo(() => {
@@ -1034,6 +1051,11 @@ function ShopPageContent() {
                   <span className="ml-1 hidden sm:inline">products found</span>
                   <span className="ml-1 sm:hidden">found</span>
                 </span>
+              </div>
+              
+              {/* Debug indicator */}
+              <div className="text-xs text-gray-500 bg-yellow-50 px-2 py-1 rounded">
+                Filter: {filters.category} | Total: {products.length} | Filtered: {filteredProducts.length}
               </div>
 
               {/* Enhanced Sort Dropdown */}
