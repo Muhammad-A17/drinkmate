@@ -318,6 +318,12 @@ function ShopPageContent() {
       currentCategory: filters.category
     })
     
+    console.log('🔍 Sample products before filtering:', products.slice(0, 3).map(p => ({
+      name: (p as any)?.name,
+      category: (p as any)?.category,
+      categoryType: typeof (p as any)?.category
+    })))
+    
     // Filter out invalid products first
     let filtered = products.filter(product => product && typeof product === 'object')
     console.log('🔍 After invalid filter:', filtered.length)
@@ -345,9 +351,11 @@ function ShopPageContent() {
     // Category filter
     if (filters.category && filters.category !== 'all') {
       console.log('🔍 Applying category filter:', filters.category)
+      console.log('🔍 Available categories:', categories.map(c => ({ name: c.name, slug: c.slug, _id: c._id })))
       console.log('🔍 Sample product categories before filter:', filtered.slice(0, 3).map(p => ({
         name: (p as any)?.name,
-        category: (p as any)?.category
+        category: (p as any)?.category,
+        categoryType: typeof (p as any)?.category
       })))
       
       // Find the category object to get the ObjectId
@@ -359,31 +367,34 @@ function ShopPageContent() {
       
       filtered = filtered.filter(product => {
         const category = (product as any)?.category
-        const categoryId = typeof category === 'object' ? category?._id : category
-        const categorySlug = typeof category === 'object' ? category?.slug : null
         
-        // Check if the product's category matches the selected category
-        const matchesId = categoryId === categoryObjectId
-        const matchesSlug = categorySlug === filters.category
+        // Handle both string and object category formats
+        let matches = false
         
-        // Also check if the category name matches common variations
-        const categoryName = typeof category === 'object' ? category?.name : null
-        const matchesName = categoryName && (
-          categoryName.toLowerCase().includes(filters.category.toLowerCase()) ||
-          filters.category.toLowerCase().includes(categoryName.toLowerCase())
-        )
-        
-        const matches = matchesId || matchesSlug || matchesName
+        if (typeof category === 'object' && category) {
+          // Category is an object with _id, name, slug
+          matches = category.slug === filters.category || 
+                   category._id === categoryObjectId ||
+                   category.name?.toLowerCase() === selectedCategory?.name?.toLowerCase() ||
+                   category.slug?.toLowerCase() === filters.category.toLowerCase()
+        } else if (typeof category === 'string') {
+          // Category is a string - could be slug, name, or ObjectId
+          matches = category === filters.category || 
+                   category === categoryObjectId ||
+                   category.toLowerCase() === selectedCategory?.name?.toLowerCase() ||
+                   category.toLowerCase() === selectedCategory?.slug?.toLowerCase() ||
+                   // Additional fallback: check if the string contains the category name
+                   (selectedCategory?.name ? category.toLowerCase().includes(selectedCategory.name.toLowerCase()) : false) ||
+                   (selectedCategory?.slug ? category.toLowerCase().includes(selectedCategory.slug.toLowerCase()) : false)
+        }
         
         // Only log the first few products to avoid spam
         if (filtered.indexOf(product) < 3) {
           console.log('🔍 Product category check:', {
             productName: (product as any)?.name,
             category,
-            categoryId,
-            categorySlug,
-            categoryName,
             filterCategory: filters.category,
+            selectedCategory: selectedCategory,
             categoryObjectId,
             matches
           })
@@ -501,7 +512,11 @@ function ShopPageContent() {
 
     console.log('🔍 Final filtered products:', {
       total: filtered.length,
-      sample: filtered[0]
+      sample: filtered[0],
+      allFilteredProducts: filtered.map(p => ({
+        name: (p as any)?.name,
+        category: (p as any)?.category
+      }))
     })
 
     return filtered
@@ -522,6 +537,11 @@ function ShopPageContent() {
     endIndex,
     paginatedProductsCount: paginatedProducts.length
   })
+  
+  console.log('📄 Paginated products being passed to ProductGrid:', paginatedProducts.map(p => ({
+    name: (p as any)?.name,
+    category: (p as any)?.category
+  })))
 
   // Count active filters
   const activeFilterCount = useMemo(() => {
@@ -1173,6 +1193,7 @@ function ShopPageContent() {
                   </div>
                 ) : (
                   <ProductGrid
+                    key={`products-${filters.category}-${filters.subcategory}-${filters.brand.join(',')}-${filters.priceRange[0]}-${filters.priceRange[1]}-${filters.rating}-${filters.inStock}-${filters.isNewProduct}-${filters.isBestSeller}-${filters.isOnSale}-${debouncedSearchQuery}-${sortBy}-${sortOrder}-${currentPage}`}
                     products={paginatedProducts}
                     loading={false}
                     dir={isRTL ? "rtl" : "ltr"}
