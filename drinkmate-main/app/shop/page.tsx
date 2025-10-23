@@ -130,7 +130,7 @@ function ShopPageContent() {
   // URL synchronization - only when not updating URL ourselves
   useEffect(() => {
     if (isUpdatingURL.current) {
-      isUpdatingURL.current = false
+      console.log('🔧 URL sync skipped - we are updating URL ourselves')
       return
     }
 
@@ -221,6 +221,11 @@ function ShopPageContent() {
 
     const newURL = params.toString() ? `?${params.toString()}` : ''
     router.replace(`/shop${newURL}`, { scroll: false })
+    
+    // Reset the flag after a short delay to allow URL sync to complete
+    setTimeout(() => {
+      isUpdatingURL.current = false
+    }, 100)
   }, [sortBy, sortOrder, currentPage, router])
 
   // Update URL when debounced search query changes
@@ -309,7 +314,8 @@ function ShopPageContent() {
     console.log('🔍 Starting product filtering with:', {
       totalProducts: products.length,
       filters,
-      debouncedSearchQuery
+      debouncedSearchQuery,
+      currentCategory: filters.category
     })
     
     // Filter out invalid products first
@@ -617,6 +623,7 @@ function ShopPageContent() {
 
   // Event handlers
   const handleFiltersChange = useCallback((newFilters: any) => {
+    console.log('🔧 handleFiltersChange called with:', newFilters)
     setFilters(newFilters)
     updateURL(newFilters)
     setCurrentPage(1) // Reset to first page when filters change

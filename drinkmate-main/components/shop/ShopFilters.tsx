@@ -111,7 +111,9 @@ export default function ShopFilters({
   }, [filters, onFiltersChange])
 
   const handleCategoryChange = useCallback((categorySlug: string) => {
+    console.log('🔧 ShopFilters: handleCategoryChange called with:', categorySlug)
     const newCategory = filters.category === categorySlug ? 'all' : categorySlug
+    console.log('🔧 ShopFilters: newCategory will be:', newCategory)
     handleFilterChange('category', newCategory)
     // Reset subcategory when category changes
     if (newCategory !== 'all') {
