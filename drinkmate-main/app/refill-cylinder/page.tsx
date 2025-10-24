@@ -374,10 +374,10 @@ export default function CO2() {
     <PageLayout currentPage="refill-cylinder">
       {/* Enhanced Refill Section Carousel */}
       <section className="py-8 md:py-16">
-        <div className="max-w-7xl mx-auto bg-white border border-gray-200 rounded-3xl relative h-[280px] md:h-[320px] flex items-center justify-between px-4 md:px-6 overflow-hidden shadow-lg">
+        <div className="max-w-7xl mx-auto bg-white border border-gray-200 rounded-3xl relative h-[280px] md:h-[320px] flex items-center justify-between px-4 md:px-6 overflow-hidden shadow-sm">
           {/* Enhanced Left Navigation Button */}
           <Button
-            className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-white bg-white/90 text-gray-700 shadow-lg z-10 hover:bg-white hover:border-[#12d6fa] hover:scale-110 transition-all duration-300 backdrop-blur-sm"
+            className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-white bg-white/90 text-gray-700 shadow-sm z-10 hover:bg-white hover:border-[#12d6fa] hover:scale-110 transition-all duration-300 backdrop-blur-sm"
             onClick={prevRefillSlide}
           >
             <ChevronLeft className="w-6 h-6" />
@@ -402,7 +402,7 @@ export default function CO2() {
                 {refillSlides[currentRefillSlide].buttonText && (
                   <Button 
                     onClick={() => window.location.href = refillSlides[currentRefillSlide].buttonText === "Refill Now" ? "/co2" : "/shop"}
-                    className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-bold px-8 py-4 rounded-full text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                    className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-bold px-8 py-4 rounded-full text-lg shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300"
                   >
                     {refillSlides[currentRefillSlide].buttonText}
                     <ArrowRight className="w-5 h-5 ml-2" />
@@ -420,7 +420,7 @@ export default function CO2() {
 
           {/* Enhanced Right Navigation Button */}
           <Button
-            className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-white bg-white/90 text-gray-700 shadow-lg z-10 hover:bg-white hover:border-[#12d6fa] hover:scale-110 transition-all duration-300 backdrop-blur-sm"
+            className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-white bg-white/90 text-gray-700 shadow-sm z-10 hover:bg-white hover:border-[#12d6fa] hover:scale-110 transition-all duration-300 backdrop-blur-sm"
             onClick={nextRefillSlide}
           >
             <ChevronRight className="w-6 h-6" />
@@ -434,7 +434,7 @@ export default function CO2() {
                 onClick={() => setCurrentRefillSlide(index)}
                 className={`w-4 h-4 rounded-full transition-all duration-300 ${
                   index === currentRefillSlide 
-                    ? "bg-[#12d6fa] scale-125 shadow-lg" 
+                    ? "bg-[#12d6fa] scale-125 shadow-sm" 
                     : "bg-white/60 hover:bg-white/80 hover:scale-110"
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
@@ -459,14 +459,14 @@ export default function CO2() {
                 <div className="absolute inset-0 bg-white rounded-3xl"></div>
                 
                 {/* Main Content */}
-                <div className="relative bg-white rounded-3xl border border-gray-200 shadow-2xl p-8">
+                <div className="relative bg-white rounded-3xl border border-gray-200 shadow-sm p-8">
                   <div className="relative">
                     <Image
                       src="https://res.cloudinary.com/da6dzmflp/image/upload/v1757353811/drinkmate/tgxojr9o5oiihkf6tv21.png"
                       alt="CO2 Cylinders"
                       width={600}
                       height={845}
-                      className="w-full h-auto object-contain drop-shadow-2xl"
+                      className="w-full h-auto object-contain drop-shadow-sm"
                       priority
                     />
                   </div>
@@ -476,7 +476,7 @@ export default function CO2() {
               {/* Order Summary - Hidden on mobile, shown on desktop under image */}
               {showBlocks && (
                 <div className="mt-8 hidden lg:block">
-                <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/20 shadow-2xl p-6">
+                <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/20 shadow-sm p-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Order Summary</h3>
                   
                   {/* Selected Cylinder Info */}
@@ -585,13 +585,13 @@ export default function CO2() {
               <div className="flex space-x-4">
                 <Button
                   onClick={handleDrinkmateClick}
-                  className="flex-1 h-32 bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-bold text-lg rounded-2xl transition-all duration-300 hover:shadow-lg hover:scale-105"
+                  className="flex-1 h-32 bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-bold text-lg rounded-2xl transition-all duration-300 hover:shadow-sm hover:scale-105"
                 >
                   Drinkmate
                 </Button>
                 <Button
                   onClick={handleNonDrinkmateClick}
-                  className="flex-1 h-32 bg-[#a8f387] hover:bg-[#9ae374] text-black font-bold text-lg rounded-2xl transition-all duration-300 hover:shadow-lg hover:scale-105"
+                  className="flex-1 h-32 bg-[#a8f387] hover:bg-[#9ae374] text-black font-bold text-lg rounded-2xl transition-all duration-300 hover:shadow-sm hover:scale-105"
                 >
                   Non-Drinkmate
                 </Button>
@@ -682,7 +682,7 @@ export default function CO2() {
                 
                 <div className="relative group">
                   <div className="absolute inset-0 bg-blue-50 rounded-3xl transition-all duration-300"></div>
-                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 shadow-2xl p-8 group-hover:shadow-3xl transition-all duration-300">
+                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 shadow-sm p-8 group-hover:shadow-md transition-all duration-300">
                     {/* Quantity Selection Form */}
                     <div className="mb-8">
                       <label className="block text-lg font-semibold text-gray-900 mb-4">
@@ -730,12 +730,12 @@ export default function CO2() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                         quantity >= 2 
-                          ? 'bg-blue-100 border-blue-300 shadow-lg scale-105' 
+                          ? 'bg-blue-100 border-blue-300 shadow-sm scale-105' 
                           : 'bg-blue-50 border-blue-200'
                       }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
                           quantity >= 2 
-                            ? 'bg-[#a8f387] shadow-lg scale-110' 
+                            ? 'bg-[#a8f387] shadow-sm scale-110' 
                             : 'bg-[#a8f387]/70'
                         }`}>
                           <span className="text-black font-black text-sm">2+</span>
@@ -752,12 +752,12 @@ export default function CO2() {
                       </div>
                       <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                         quantity >= 3 
-                          ? 'bg-blue-100 border-blue-300 shadow-lg scale-105' 
+                          ? 'bg-blue-100 border-blue-300 shadow-sm scale-105' 
                           : 'bg-blue-50 border-blue-200'
                       }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
                           quantity >= 3 
-                            ? 'bg-[#12d6fa] shadow-lg scale-110' 
+                            ? 'bg-[#12d6fa] shadow-sm scale-110' 
                             : 'bg-[#12d6fa]/70'
                         }`}>
                           <span className="text-white font-black text-sm">3+</span>
@@ -774,12 +774,12 @@ export default function CO2() {
                       </div>
                       <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                         quantity >= 4 
-                          ? 'bg-blue-100 border-blue-300 shadow-lg scale-105' 
+                          ? 'bg-blue-100 border-blue-300 shadow-sm scale-105' 
                           : 'bg-blue-50 border-blue-200'
                       }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
                           quantity >= 4 
-                            ? 'bg-[#12d6fa] shadow-lg scale-110' 
+                            ? 'bg-[#12d6fa] shadow-sm scale-110' 
                             : 'bg-[#12d6fa]/70'
                         }`}>
                           <span className="text-white font-black text-sm">4+</span>
@@ -805,7 +805,7 @@ export default function CO2() {
                   <div className="absolute inset-0 bg-blue-50 rounded-3xl transition-all duration-300"></div>
                   <Button
                     onClick={handleAddToCart}
-                    className="relative w-full bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-10 py-6 rounded-3xl font-black text-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 border-0 group-hover:shadow-3xl"
+                    className="relative w-full bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-10 py-6 rounded-3xl font-black text-xl transition-all duration-300 hover:shadow-md hover:scale-105 border-0 group-hover:shadow-lg"
                   >
                     <ShoppingCart className="w-6 h-6 mr-4 group-hover:animate-bounce" />
                     Add Premium Cylinders to Cart
@@ -816,14 +816,14 @@ export default function CO2() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Button
                     variant="outline"
-                    className="px-8 py-4 border-2 border-[#12d6fa] rounded-2xl font-bold text-lg hover:bg-[#12d6fa] hover:text-white hover:border-transparent transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                    className="px-8 py-4 border-2 border-[#12d6fa] rounded-2xl font-bold text-lg hover:bg-[#12d6fa] hover:text-white hover:border-transparent transition-all duration-300 hover:shadow-md hover:scale-105 group"
                   >
                     <Gift className="w-5 h-5 mr-3 group-hover:animate-pulse" />
                     Subscribe & Save 20%
                   </Button>
                   <Button
                     variant="outline"
-                    className="px-8 py-4 border-2 border-[#12d6fa] rounded-2xl font-bold text-lg hover:bg-[#12d6fa] hover:text-white hover:border-transparent transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                    className="px-8 py-4 border-2 border-[#12d6fa] rounded-2xl font-bold text-lg hover:bg-[#12d6fa] hover:text-white hover:border-transparent transition-all duration-300 hover:shadow-md hover:scale-105 group"
                   >
                     <Star className="w-5 h-5 mr-3 group-hover:animate-spin" />
                     Premium Membership
@@ -855,7 +855,7 @@ export default function CO2() {
 
                 {/* Order Summary - Mobile only, appears under Why Choose Our Premium Service */}
                 <div className="lg:hidden mt-6">
-                  <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/20 shadow-2xl p-6">
+                  <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/20 shadow-sm p-6">
                     <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Order Summary</h3>
                     
                     {/* Selected Cylinder Info */}
@@ -965,9 +965,9 @@ export default function CO2() {
               {/* Step 1 */}
               <div className="text-center group">
                 <div className="relative mb-8">
-                  <div className="w-full h-80 bg-blue-50 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-blue-200">
+                  <div className="w-full h-80 bg-blue-50 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-md transition-all duration-300 border-2 border-blue-200">
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-[#12d6fa] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-24 h-24 bg-[#12d6fa] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
                         <ShoppingCart className="w-12 h-12 text-white" />
                       </div>
                       <p className="text-[#12d6fa] font-bold text-lg">Order Online</p>
@@ -983,9 +983,9 @@ export default function CO2() {
               {/* Step 2 */}
               <div className="text-center group">
                 <div className="relative mb-8">
-                  <div className="w-full h-80 bg-blue-50 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-blue-200">
+                  <div className="w-full h-80 bg-blue-50 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-md transition-all duration-300 border-2 border-blue-200">
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-[#12d6fa] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-24 h-24 bg-[#12d6fa] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
                         <Truck className="w-12 h-12 text-black" />
                       </div>
                       <p className="text-[#12d6fa] font-bold text-lg">Schedule Pickup</p>
@@ -1001,9 +1001,9 @@ export default function CO2() {
               {/* Step 3 */}
               <div className="text-center group">
                 <div className="relative mb-8">
-                  <div className="w-full h-80 bg-blue-50 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-blue-200">
+                  <div className="w-full h-80 bg-blue-50 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-md transition-all duration-300 border-2 border-blue-200">
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-[#12d6fa] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-24 h-24 bg-[#12d6fa] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
                         <Shield className="w-12 h-12 text-white" />
                       </div>
                       <p className="text-[#12d6fa] font-bold text-lg">Receive Refilled</p>
@@ -1031,7 +1031,7 @@ export default function CO2() {
                   onClick={() => setActiveTab("faqs")}
                   className={`flex-1 py-4 px-8 font-bold text-center transition-all duration-300 rounded-xl ${
                     activeTab === "faqs" 
-                      ? "bg-[#12d6fa] text-white shadow-lg scale-105" 
+                      ? "bg-[#12d6fa] text-white shadow-sm scale-105" 
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                   }`}
                 >
@@ -1044,7 +1044,7 @@ export default function CO2() {
                   onClick={() => setActiveTab("description")}
                   className={`flex-1 py-4 px-8 font-bold text-center transition-all duration-300 rounded-xl ${
                     activeTab === "description" 
-                      ? "bg-[#12d6fa] text-white shadow-lg scale-105" 
+                      ? "bg-[#12d6fa] text-white shadow-sm scale-105" 
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                   }`}
                 >
@@ -1057,7 +1057,7 @@ export default function CO2() {
                   onClick={() => setActiveTab("reviews")}
                   className={`flex-1 py-4 px-8 font-bold text-center transition-all duration-300 rounded-xl ${
                     activeTab === "reviews" 
-                      ? "bg-[#12d6fa] text-white shadow-lg scale-105" 
+                      ? "bg-[#12d6fa] text-white shadow-sm scale-105" 
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                   }`}
                 >
@@ -1069,7 +1069,7 @@ export default function CO2() {
               </div>
 
               {/* Enhanced Tab Content */}
-              <div className="bg-white rounded-3xl shadow-2xl p-10 border border-gray-100">
+              <div className="bg-white rounded-3xl shadow-sm p-10 border border-gray-100">
                 {activeTab === "faqs" && (
                   <div>
                     <div className="text-center mb-12">
@@ -1099,7 +1099,7 @@ export default function CO2() {
                           answer: "We offer tiered pricing: 5% off for 2+ cylinders, 10% off for 3+ cylinders, and 15% off for 4+ cylinders. Plus, orders of 4+ cylinders get FREE delivery!"
                         }
                       ].map((faq, index) => (
-                        <div key={index} className="border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#12d6fa]/30 transition-all duration-300 group">
+                        <div key={index} className="border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-sm hover:border-[#12d6fa]/30 transition-all duration-300 group">
                           <button
                             onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
                             className="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-blue-50 transition-all duration-300 group-hover:scale-[1.02]"
@@ -1199,7 +1199,7 @@ export default function CO2() {
                           review: "Perfect for our SodaStream! The CO2 quality is excellent and the home pickup service saves so much time. Will definitely use again."
                         }
                       ].map((review, index) => (
-                        <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+                        <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-sm transition-all duration-200">
                           <div className="flex items-start justify-between mb-4">
                             <div>
                               <h4 className="font-semibold text-black text-lg">{review.name}</h4>
