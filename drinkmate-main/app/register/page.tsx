@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/lib/contexts/auth-context";
+import { useTranslation } from "@/lib/contexts/translation-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,7 @@ import PageLayout from "@/components/layout/PageLayout";
 import { toast } from "sonner";
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -230,9 +232,9 @@ export default function RegisterPage() {
                 className="h-10 w-auto"
               />
             </div>
-            <CardTitle className="text-2xl font-bold text-center text-gray-800">Create Account</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center text-gray-800">{t("auth.createAccount")}</CardTitle>
             <CardDescription className="text-center text-gray-600">
-              Join Drinkmate and start your sparkling journey
+              {t("auth.joinDrinkmate")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -413,10 +415,10 @@ export default function RegisterPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Creating account...
+                      {t("common.loading")}
                     </>
                   ) : (
-                    "Create Account"
+                    t("auth.createAccount")
                   )}
                 </Button>
               </div>

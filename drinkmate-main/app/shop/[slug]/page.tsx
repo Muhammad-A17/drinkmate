@@ -12,6 +12,7 @@ import styles from './styles.module.css'
 import { useCart } from "@/lib/contexts/cart-context"
 import { useTranslation } from "@/lib/contexts/translation-context"
 import { useWishlist } from "@/hooks/use-wishlist"
+import { getLocalizedProductData } from "@/lib/utils/product-localization"
 import { Button } from "@/components/ui/button"
 import { Product as ShopProduct, BaseProduct } from '@/lib/types'
 import {
@@ -129,7 +130,7 @@ interface QA {
 
 export default function ShopProductDetail() {
   const params = useParams()
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
   const { addItem } = useCart()
   const { isInWishlist, toggleWishlist } = useWishlist()
   const router = useRouter()
@@ -181,6 +182,9 @@ export default function ShopProductDetail() {
   const [qaFilter, setQAFilter] = useState("all")
   const [isVideoMuted, setIsVideoMuted] = useState(true)
   const [cartAnimation, setCartAnimation] = useState(false)
+
+  // Get localized product data
+  const localizedProduct = product ? getLocalizedProductData(product, language) : null
   const [wishlistAnimation, setWishlistAnimation] = useState(false)
   const [selectedColor, setSelectedColor] = useState("")
   const [selectedSize, setSelectedSize] = useState("")
@@ -473,7 +477,7 @@ export default function ShopProductDetail() {
     (platform: string) => {
       if (!product) return
       const url = typeof window !== "undefined" ? window.location.href : ""
-      const text = `Check out this amazing ${product.name} - ${product.description?.substring(0, 100) || 'No description available'}...`
+      const text = `Check out this amazing ${localizedProduct?.name || product.name} - ${localizedProduct?.description?.substring(0, 100) || product.description?.substring(0, 100) || 'No description available'}...`
 
       switch (platform) {
         case "facebook":
@@ -601,12 +605,12 @@ export default function ShopProductDetail() {
   }, [newQuestion, qaData])
 
   const stockMessage = useMemo(() => {
-    if (!product || product.stock === undefined || product.stock === null) return "In stock"
-    if (product.stock === 0) return "Out of stock"
-    if (product.stock <= 5) return `Only ${product.stock} left in stock!`
-    if (product.stock <= 10) return `${product.stock} in stock`
-    return "In stock"
-  }, [product?.stock])
+    if (!product || product.stock === undefined || product.stock === null) return t("product.inStock")
+    if (product.stock === 0) return t("product.outOfStock")
+    if (product.stock <= 5) return t("product.onlyLeftInStock").replace("{count}", product.stock.toString())
+    if (product.stock <= 10) return t("product.stockCount").replace("{count}", product.stock.toString())
+    return t("product.inStock")
+  }, [product?.stock, t])
 
   const getStockColor = useCallback(() => {
     if (!product || product.stock === undefined || product.stock === null) return "text-green-600"
@@ -994,7 +998,7 @@ export default function ShopProductDetail() {
                       )}
                     </div>
 
-                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 text-balance leading-tight">{product.name}</h1>
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 text-balance leading-tight">{localizedProduct?.name || product.name}</h1>
 
                     {/* Enhanced Rating */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
@@ -1156,11 +1160,11 @@ export default function ShopProductDetail() {
                       <div className="text-sm text-muted-foreground">
                         {(product.stock ?? 0) > 0 ? (
                           <span className="text-green-600">
-                            ✓ {product.stock} available
+                            ✓ {product.stock} {t("product.inStock")}
                           </span>
                         ) : (
                           <span className="text-red-600">
-                            ✗ Out of stock
+                            ✗ {t("product.outOfStock")}
                           </span>
                         )}
                       </div>
@@ -1299,7 +1303,7 @@ export default function ShopProductDetail() {
                 <TabsContent value="description" className="mt-6 sm:mt-8">
                   <div className="prose max-w-none">
                     <div className="bg-gradient-to-r from-[#12d6fa]/10 to-blue-50 p-4 sm:p-6 rounded-xl mb-6">
-                      <p className="text-base sm:text-lg leading-relaxed text-gray-700">{product.description}</p>
+                      <p className="text-base sm:text-lg leading-relaxed text-gray-700">{localizedProduct?.description || product.description}</p>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
@@ -1309,7 +1313,7 @@ export default function ShopProductDetail() {
                           Key Features
                         </h3>
                         <ul className="space-y-3">
-                          {product.features?.map((feature, index) => (
+                          {localizedProduct?.features?.map((feature, index) => (
                             <li key={index} className="flex items-start">
                               <Check className="w-4 h-4 text-[#12d6fa] mr-3 mt-0.5 flex-shrink-0" />
                               <div>
@@ -1367,12 +1371,12 @@ export default function ShopProductDetail() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        {product.specifications && Array.isArray(product.specifications) ? product.specifications.map((spec, index) => (
+                        {localizedProduct?.specifications && Array.isArray(localizedProduct.specifications) ? localizedProduct.specifications.map((spec, index) => (
                           <div key={index} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
                             <span className="font-medium text-gray-700">{spec.name}</span>
                             <span className="text-gray-600">{spec.value}</span>
                           </div>
-                        )) : product.specifications && Object.entries(product.specifications).map(([key, value]) => (
+                        )) : localizedProduct?.specifications && Object.entries(localizedProduct.specifications).map(([key, value]) => (
                           <div key={key} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
                             <span className="font-medium text-gray-700">{key}</span>
                             <span className="text-gray-600">{String(value)}</span>

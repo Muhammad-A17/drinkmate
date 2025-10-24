@@ -1587,6 +1587,132 @@ export interface Translations {
     cookies: string
   }
   
+  // Cart
+  cart: {
+    title: string
+    loading: string
+    error: string
+    retry: string
+    empty: string
+    emptyDescription: string
+    continueShopping: string
+    removeItem: string
+    updateQuantity: string
+    subtotal: string
+    shipping: string
+    tax: string
+    total: string
+    freeShipping: string
+    freeShippingThreshold: string
+    checkout: string
+    quantity: string
+    price: string
+    totalItems: string
+  }
+  
+  // Checkout
+  checkout: {
+    title: string
+    billingInformation: string
+    shippingInformation: string
+    paymentMethod: string
+    orderSummary: string
+    placeOrder: string
+    processingPayment: string
+    fullName: string
+    email: string
+    phone: string
+    city: string
+    district: string
+    nationalAddress: string
+    deliveryOptions: string
+    standardDelivery: string
+    expressDelivery: string
+    orderNotes: string
+    agreeToTerms: string
+    required: string
+    optional: string
+  }
+  
+  // Auth
+  auth: {
+    createAccount: string
+    joinDrinkmate: string
+    fullName: string
+    email: string
+    password: string
+    confirmPassword: string
+    agreeToTerms: string
+    alreadyHaveAccount: string
+    signIn: string
+    dontHaveAccount: string
+    signUp: string
+    forgotPassword: string
+    resetPassword: string
+    passwordRequirements: string
+    passwordMustContain: string
+    atLeast8Characters: string
+    oneUppercaseLetter: string
+    oneLowercaseLetter: string
+    oneNumber: string
+    oneSpecialCharacter: string
+    passwordsMustMatch: string
+    termsAndConditions: string
+    privacyPolicy: string
+  }
+  
+  // Contact
+  contact: {
+    loginToChat: string
+    startLiveChat: string
+  }
+  
+  // Product
+  product: {
+    inStock: string
+    outOfStock: string
+    onlyLeftInStock: string
+    stockCount: string
+    addToCart: string
+    buyNow: string
+    addToWishlist: string
+    removeFromWishlist: string
+    share: string
+    notifyMe: string
+    writeReview: string
+    askQuestion: string
+    description: string
+    specifications: string
+    reviews: string
+    questions: string
+    relatedProducts: string
+    youMayAlsoLike: string
+    frequentlyAskedQuestions: string
+    customerReviews: string
+    writeAReview: string
+    askAQuestion: string
+    submitReview: string
+    submitQuestion: string
+    rating: string
+    helpful: string
+    notHelpful: string
+    report: string
+    sortBy: string
+    filterBy: string
+    newest: string
+    oldest: string
+    highestRated: string
+    lowestRated: string
+    all: string
+    verified: string
+    recommended: string
+    pros: string
+    cons: string
+    wouldRecommend: string
+    yes: string
+    no: string
+  }
+  
   // Footer
   footer: {
     companyDescription: string
@@ -3931,6 +4057,122 @@ export const translations: Record<Language, Translations> = {
       terms: "Terms",
       cookies: "Cookies"
     },
+    cart: {
+      title: "Shopping Cart",
+      loading: "Loading cart...",
+      error: "An error occurred",
+      retry: "Retry",
+      empty: "Your cart is empty",
+      emptyDescription: "Add some items to your cart to get started",
+      continueShopping: "Continue Shopping",
+      removeItem: "Remove Item",
+      updateQuantity: "Update Quantity",
+      subtotal: "Subtotal",
+      shipping: "Shipping",
+      tax: "Tax",
+      total: "Total",
+      freeShipping: "FREE",
+      freeShippingThreshold: "Free shipping on orders over 150 SAR",
+      checkout: "Checkout",
+      quantity: "Quantity",
+      price: "Price",
+      totalItems: "Total Items"
+    },
+    checkout: {
+      title: "Checkout",
+      billingInformation: "Billing Information",
+      shippingInformation: "Shipping Information",
+      paymentMethod: "Payment Method",
+      orderSummary: "Order Summary",
+      placeOrder: "Place Order",
+      processingPayment: "Processing Payment...",
+      fullName: "Full Name",
+      email: "Email",
+      phone: "Phone",
+      city: "City",
+      district: "District",
+      nationalAddress: "National Address",
+      deliveryOptions: "Delivery Options",
+      standardDelivery: "Standard Delivery",
+      expressDelivery: "Express Delivery",
+      orderNotes: "Order Notes",
+      agreeToTerms: "I agree to the terms and conditions",
+      required: "Required",
+      optional: "Optional"
+    },
+    auth: {
+      createAccount: "Create Account",
+      joinDrinkmate: "Join Drinkmate and start your sparkling journey",
+      fullName: "Full Name",
+      email: "Email",
+      password: "Password",
+      confirmPassword: "Confirm Password",
+      agreeToTerms: "I agree to the Terms and Conditions and Privacy Policy",
+      alreadyHaveAccount: "Already have an account?",
+      signIn: "Sign In",
+      dontHaveAccount: "Don't have an account?",
+      signUp: "Sign Up",
+      forgotPassword: "Forgot Password?",
+      resetPassword: "Reset Password",
+      passwordRequirements: "Password Requirements",
+      passwordMustContain: "Password must contain:",
+      atLeast8Characters: "At least 8 characters",
+      oneUppercaseLetter: "One uppercase letter",
+      oneLowercaseLetter: "One lowercase letter",
+      oneNumber: "One number",
+      oneSpecialCharacter: "One special character",
+      passwordsMustMatch: "Passwords must match",
+      termsAndConditions: "Terms and Conditions",
+      privacyPolicy: "Privacy Policy"
+    },
+    contact: {
+      loginToChat: "Login to chat",
+      startLiveChat: "Start live chat"
+    },
+    product: {
+      inStock: "In stock",
+      outOfStock: "Out of stock",
+      onlyLeftInStock: "Only {count} left in stock!",
+      stockCount: "{count} in stock",
+      addToCart: "Add to Cart",
+      buyNow: "Buy Now",
+      addToWishlist: "Add to Wishlist",
+      removeFromWishlist: "Remove from Wishlist",
+      share: "Share",
+      notifyMe: "Notify Me",
+      writeReview: "Write a Review",
+      askQuestion: "Ask a Question",
+      description: "Description",
+      specifications: "Specifications",
+      reviews: "Reviews",
+      questions: "Questions",
+      relatedProducts: "Related Products",
+      youMayAlsoLike: "You May Also Like",
+      frequentlyAskedQuestions: "Frequently Asked Questions",
+      customerReviews: "Customer Reviews",
+      writeAReview: "Write a Review",
+      askAQuestion: "Ask a Question",
+      submitReview: "Submit Review",
+      submitQuestion: "Submit Question",
+      rating: "Rating",
+      helpful: "Helpful",
+      notHelpful: "Not Helpful",
+      report: "Report",
+      sortBy: "Sort by",
+      filterBy: "Filter by",
+      newest: "Newest",
+      oldest: "Oldest",
+      highestRated: "Highest Rated",
+      lowestRated: "Lowest Rated",
+      all: "All",
+      verified: "Verified",
+      recommended: "Recommended",
+      pros: "Pros",
+      cons: "Cons",
+      wouldRecommend: "Would you recommend this product?",
+      yes: "Yes",
+      no: "No"
+    },
     footer: {
       companyDescription: "Creating perfect sparkling drinks at home with premium Italian flavors and innovative soda makers",
       phone: "+966 50 123 4567",
@@ -5858,6 +6100,122 @@ export const translations: Record<Language, Translations> = {
       privacy: "الخصوصية",
       terms: "الشروط",
       cookies: "ملفات تعريف الارتباط"
+    },
+    cart: {
+      title: "سلة التسوق",
+      loading: "جاري تحميل السلة...",
+      error: "حدث خطأ",
+      retry: "إعادة المحاولة",
+      empty: "سلتك فارغة",
+      emptyDescription: "أضف بعض العناصر إلى سلة التسوق للبدء",
+      continueShopping: "متابعة التسوق",
+      removeItem: "إزالة العنصر",
+      updateQuantity: "تحديث الكمية",
+      subtotal: "المجموع الفرعي",
+      shipping: "الشحن",
+      tax: "الضريبة",
+      total: "المجموع",
+      freeShipping: "مجاني",
+      freeShippingThreshold: "شحن مجاني للطلبات فوق 150 ريال",
+      checkout: "إتمام الشراء",
+      quantity: "الكمية",
+      price: "السعر",
+      totalItems: "إجمالي العناصر"
+    },
+    checkout: {
+      title: "إتمام الشراء",
+      billingInformation: "معلومات الفواتير",
+      shippingInformation: "معلومات الشحن",
+      paymentMethod: "طريقة الدفع",
+      orderSummary: "ملخص الطلب",
+      placeOrder: "تأكيد الطلب",
+      processingPayment: "جاري معالجة الدفع...",
+      fullName: "الاسم الكامل",
+      email: "البريد الإلكتروني",
+      phone: "الهاتف",
+      city: "المدينة",
+      district: "الحي",
+      nationalAddress: "العنوان الوطني",
+      deliveryOptions: "خيارات التوصيل",
+      standardDelivery: "التوصيل العادي",
+      expressDelivery: "التوصيل السريع",
+      orderNotes: "ملاحظات الطلب",
+      agreeToTerms: "أوافق على الشروط والأحكام",
+      required: "مطلوب",
+      optional: "اختياري"
+    },
+    auth: {
+      createAccount: "إنشاء حساب",
+      joinDrinkmate: "انضم إلى درينكميت وابدأ رحلتك الغازية",
+      fullName: "الاسم الكامل",
+      email: "البريد الإلكتروني",
+      password: "كلمة المرور",
+      confirmPassword: "تأكيد كلمة المرور",
+      agreeToTerms: "أوافق على الشروط والأحكام وسياسة الخصوصية",
+      alreadyHaveAccount: "هل لديك حساب بالفعل؟",
+      signIn: "تسجيل الدخول",
+      dontHaveAccount: "ليس لديك حساب؟",
+      signUp: "إنشاء حساب",
+      forgotPassword: "نسيت كلمة المرور؟",
+      resetPassword: "إعادة تعيين كلمة المرور",
+      passwordRequirements: "متطلبات كلمة المرور",
+      passwordMustContain: "يجب أن تحتوي كلمة المرور على:",
+      atLeast8Characters: "8 أحرف على الأقل",
+      oneUppercaseLetter: "حرف كبير واحد",
+      oneLowercaseLetter: "حرف صغير واحد",
+      oneNumber: "رقم واحد",
+      oneSpecialCharacter: "رمز خاص واحد",
+      passwordsMustMatch: "يجب أن تتطابق كلمات المرور",
+      termsAndConditions: "الشروط والأحكام",
+      privacyPolicy: "سياسة الخصوصية"
+    },
+    contact: {
+      loginToChat: "تسجيل الدخول للدردشة",
+      startLiveChat: "بدء الدردشة المباشرة"
+    },
+    product: {
+      inStock: "متوفر",
+      outOfStock: "نفد المخزون",
+      onlyLeftInStock: "بقي {count} فقط في المخزون!",
+      stockCount: "{count} متوفر",
+      addToCart: "أضف إلى السلة",
+      buyNow: "اشتر الآن",
+      addToWishlist: "أضف إلى المفضلة",
+      removeFromWishlist: "إزالة من المفضلة",
+      share: "مشاركة",
+      notifyMe: "أخبرني",
+      writeReview: "اكتب مراجعة",
+      askQuestion: "اسأل سؤال",
+      description: "الوصف",
+      specifications: "المواصفات",
+      reviews: "المراجعات",
+      questions: "الأسئلة",
+      relatedProducts: "المنتجات ذات الصلة",
+      youMayAlsoLike: "قد يعجبك أيضاً",
+      frequentlyAskedQuestions: "الأسئلة الشائعة",
+      customerReviews: "مراجعات العملاء",
+      writeAReview: "اكتب مراجعة",
+      askAQuestion: "اسأل سؤال",
+      submitReview: "إرسال المراجعة",
+      submitQuestion: "إرسال السؤال",
+      rating: "التقييم",
+      helpful: "مفيد",
+      notHelpful: "غير مفيد",
+      report: "الإبلاغ",
+      sortBy: "ترتيب حسب",
+      filterBy: "تصفية حسب",
+      newest: "الأحدث",
+      oldest: "الأقدم",
+      highestRated: "الأعلى تقييماً",
+      lowestRated: "الأقل تقييماً",
+      all: "الكل",
+      verified: "موثق",
+      recommended: "موصى به",
+      pros: "الإيجابيات",
+      cons: "السلبيات",
+      wouldRecommend: "هل تنصح بهذا المنتج؟",
+      yes: "نعم",
+      no: "لا"
     },
     footer: {
       companyDescription: "إنشاء مشروبات غازية مثالية في المنزل مع النكهات الإيطالية عالية الجودة وصانعات الصودا المبتكرة",

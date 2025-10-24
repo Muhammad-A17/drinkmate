@@ -6,6 +6,7 @@ export interface BaseProduct {
   id?: string | number
   slug: string
   name: string
+  nameAr?: string // Arabic name
   title?: string // Alias for name for compatibility
   brand?: string
   price: number
@@ -23,8 +24,11 @@ export interface BaseProduct {
     order?: number 
   }> | string[]
   description?: string
+  descriptionAr?: string // Arabic description
   shortDescription?: string
+  shortDescriptionAr?: string // Arabic short description
   fullDescription?: string
+  fullDescriptionAr?: string // Arabic full description
   rating?: number | { average: number; count: number }
   reviews?: number
   averageRating?: number
@@ -60,6 +64,7 @@ export interface BaseProduct {
   } | string | number
   colors?: Array<{
     name: string
+    nameAr?: string // Arabic color name
     hexCode?: string
     hex?: string
     code?: string
@@ -67,7 +72,10 @@ export interface BaseProduct {
   } | string>
   variants?: Array<{
     id: string
+    name?: string
+    nameAr?: string // Arabic variant name
     colorName?: string
+    colorNameAr?: string // Arabic color name
     colorHex?: string
     image?: string
     price: number
@@ -75,8 +83,9 @@ export interface BaseProduct {
     inStock: boolean
   }>
   sizes?: string[]
-  features?: (string | { title: string; description?: string })[]
+  features?: (string | { title: string; titleAr?: string; description?: string; descriptionAr?: string })[]
   specifications?: Record<string, string>
+  specificationsAr?: Record<string, string> // Arabic specifications
   videos?: string[]
   documents?: Array<{
     name: string

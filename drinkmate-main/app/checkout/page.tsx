@@ -6,6 +6,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { useCart, CartItem } from "@/lib/contexts/cart-context"
 import { useAuth } from "@/lib/contexts/auth-context"
+import { useTranslation } from "@/lib/contexts/translation-context"
 import { orderAPI, shopAPI, co2API } from "@/lib/api"
 import paymentService from "@/lib/services/payment-service"
 import { toast } from "sonner"
@@ -20,6 +21,7 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { state, clearCart, removeItem, updateQuantity } = useCart()
   const { user, isAuthenticated } = useAuth()
+  const { t } = useTranslation()
   
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("card")
   const [isProcessing, setIsProcessing] = useState(false)
@@ -715,13 +717,13 @@ export default function CheckoutPage() {
             <div className="space-y-6">
               {/* Full Name Field */}
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t("checkout.fullName")} *</label>
                 <input
                   type="text"
                   value={deliveryAddress.fullName}
                   onChange={(e) => handleAddressChange("fullName", e.target.value)}
                   className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
-                  placeholder="Full Name"
+                  placeholder={t("checkout.fullName")}
                   required
                 />
               </div>
@@ -737,24 +739,24 @@ export default function CheckoutPage() {
               {/* District and City */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">District *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t("checkout.district")} *</label>
                    <input
                      type="text"
                     value={deliveryAddress.district}
                     onChange={(e) => handleAddressChange("district", e.target.value)}
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
-                    placeholder="District"
+                    placeholder={t("checkout.district")}
                      required
                    />
                  </div>
                  <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t("checkout.city")} *</label>
                    <input
                      type="text"
                     value={deliveryAddress.city}
                     onChange={(e) => handleAddressChange("city", e.target.value)}
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
-                    placeholder="City"
+                    placeholder={t("checkout.city")}
                      required
                    />
                  </div>
@@ -779,13 +781,13 @@ export default function CheckoutPage() {
               
               {/* Phone */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t("checkout.phone")} *</label>
                  <input
                    type="tel"
                    value={deliveryAddress.phone}
                    onChange={(e) => handleAddressChange("phone", e.target.value)}
                   className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
-                  placeholder="Phone Number"
+                  placeholder={t("checkout.phone")}
                    required
                  />
               </div>
@@ -793,19 +795,19 @@ export default function CheckoutPage() {
               {/* Email - Only for guest users */}
               {!user ? (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t("checkout.email")} *</label>
                   <input
                     type="email"
                     value={deliveryAddress.email}
                     onChange={(e) => handleAddressChange("email", e.target.value)}
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa] text-lg"
-                    placeholder="Email Address"
+                    placeholder={t("checkout.email")}
                     required
                   />
                 </div>
               ) : (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t("checkout.email")}</label>
                   <div className="w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 flex items-center">
                     <span>{deliveryAddress.email}</span>
                     <span className="ml-2 text-xs text-gray-500">(from your account)</span>
@@ -832,36 +834,36 @@ export default function CheckoutPage() {
                 <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900">Shipping Address</h3>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t("checkout.fullName")} *</label>
                  <input
                    type="text"
                       value={shippingAddress.fullName}
                       onChange={(e) => handleShippingAddressChange("fullName", e.target.value)}
                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                      placeholder="Full Name"
+                      placeholder={t("checkout.fullName")}
                    required
                  />
               </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">District *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t("checkout.district")} *</label>
                  <input
                    type="text"
                         value={shippingAddress.district}
                         onChange={(e) => handleShippingAddressChange("district", e.target.value)}
                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                        placeholder="District"
+                        placeholder={t("checkout.district")}
                         required
                  />
               </div>
                  <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                   <label className="block text-sm font-medium text-gray-700 mb-2">{t("checkout.city")} *</label>
                    <input
                      type="text"
                         value={shippingAddress.city}
                         onChange={(e) => handleShippingAddressChange("city", e.target.value)}
                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                     placeholder="City"
+                     placeholder={t("checkout.city")}
                      required
                    />
                     </div>
@@ -882,32 +884,32 @@ export default function CheckoutPage() {
                     <p className="text-xs text-gray-500 mt-1">Format: 4 letters followed by 4 numbers (e.g., JESA3591)</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t("checkout.phone")} *</label>
                     <input
                       type="tel"
                       value={shippingAddress.phone}
                       onChange={(e) => handleShippingAddressChange("phone", e.target.value)}
                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                      placeholder="Phone Number"
+                      placeholder={t("checkout.phone")}
                      required
                    />
                  </div>
                   {/* Email - Only for guest users */}
                   {!user ? (
                  <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t("checkout.email")} *</label>
                    <input
                         type="email"
                         value={shippingAddress.email}
                         onChange={(e) => handleShippingAddressChange("email", e.target.value)}
                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#12d6fa] focus:border-[#12d6fa]"
-                        placeholder="Email Address"
+                        placeholder={t("checkout.email")}
                      required
                    />
                  </div>
                   ) : (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t("checkout.email")}</label>
                       <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 flex items-center">
                         <span>{shippingAddress.email}</span>
                         <span className="ml-2 text-xs text-gray-500">(from your account)</span>
@@ -1240,10 +1242,10 @@ export default function CheckoutPage() {
                   {isProcessing ? (
                     <>
                       <Loader2 className="mr-2 w-5 h-5 animate-spin" />
-                      Processing Payment...
+                      {t("checkout.processingPayment")}
                     </>
                   ) : (
-                    "Place Order"
+                    t("checkout.placeOrder")
                   )}
                 </Button>
               </div>

@@ -779,10 +779,10 @@ function ContactPageContent() {
                       }
                       buttonText={
                         isChatStatusLoading 
-                          ? "Loading..."
+                          ? t("common.loading")
                           : !isAuthenticated 
-                            ? "Login to chat" 
-                            : "Start live chat"
+                            ? t("contact.loginToChat") 
+                            : t("contact.startLiveChat")
                       }
                       buttonAction={handleChatClick}
                       status={
@@ -889,10 +889,10 @@ function ContactPageContent() {
                     }
                     buttonText={
                       isChatStatusLoading 
-                        ? "Loading..."
+                        ? t("common.loading")
                         : !isAuthenticated 
-                          ? "Login to chat" 
-                          : "Start live chat"
+                          ? t("contact.loginToChat") 
+                          : t("contact.startLiveChat")
                     }
                     buttonAction={handleChatClick}
                     status={

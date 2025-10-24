@@ -17,11 +17,13 @@ import Banner from '@/components/layout/Banner'
 import { CartSettingsProvider } from '@/lib/contexts/cart-settings-context'
 import { Currency } from '@/utils/currency'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from '@/lib/contexts/translation-context'
 
 
 export default function CartPage() {
   const { items, totalPrice, totalItems, loading, error, updateTrigger, addItem, clearCart, updateQuantity, removeItem } = useCart()
   const { ref: summaryRef, inView: summaryInView } = useStickyInView()
+  const { t } = useTranslation()
   
   // Debug logging removed to prevent hydration issues
 
@@ -52,7 +54,7 @@ export default function CartPage() {
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading cart...</p>
+            <p className="text-gray-600">{t("cart.loading")}</p>
           </div>
         </div>
         <Footer />
@@ -74,7 +76,7 @@ export default function CartPage() {
               onClick={() => window.location.reload()} 
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              Retry
+              {t("cart.retry")}
             </button>
           </div>
         </div>

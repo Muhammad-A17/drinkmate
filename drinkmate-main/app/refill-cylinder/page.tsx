@@ -31,20 +31,20 @@ export default function CO2() {
   // Slideshow state (same as shop page)
   const refillSlides: RefillSlide[] = [
     {
-      headline: "REFILL MORE. SAVE MORE.",
-      description: "Now refill 4 cylinders all together for the price of 55 ﷼ each cylinder.",
-      buttonText: "Refill Now",
-      offerText: "*Offer valid for whole year*",
+      headline: "أعد التعبئة أكثر. وفر أكثر.",
+      description: "الآن أعد تعبئة 4 أسطوانات معاً بسعر 55 ﷼ لكل أسطوانة.",
+      buttonText: "أعد التعبئة الآن",
+      offerText: "*العرض صالح طوال السنة*",
     },
     {
-      headline: "PREMIUM ITALIAN FLAVORS NOW AVAILABLE",
-      description: "Experience authentic taste with our new premium Italian flavor collection.",
+      headline: "النكهات الإيطالية المميزة متوفرة الآن",
+      description: "استمتع بالطعم الأصيل مع مجموعتنا الجديدة من النكهات الإيطالية المميزة.",
       buttonText: "",
       offerText: "",
     },
     {
-      headline: "5% OFF ON FIRST ORDER FOR OUR NEW CUSTOMERS",
-      description: "Getting into sparkle game? Enjoy 5% off on your first order with drinkmate.",
+      headline: "خصم 5% على الطلب الأول للعملاء الجدد",
+      description: "تريد الدخول في لعبة الفقاعات؟ استمتع بخصم 5% على طلبك الأول مع درينكميت.",
       buttonText: "",
       offerText: "",
     },
@@ -391,8 +391,8 @@ export default function CO2() {
                   {refillSlides[currentRefillSlide].headline}
                 </h2>
                 <p className="text-gray-700 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
-                  {refillSlides[currentRefillSlide].headline === "REFILL MORE. SAVE MORE." ? (
-                    <>Now refill 4 cylinders all together for the price of <SaudiRiyal amount={55} size="sm" className="font-bold text-[#12d6fa]" /> each cylinder.</>
+                  {refillSlides[currentRefillSlide].headline === "أعد التعبئة أكثر. وفر أكثر." ? (
+                    <>الآن أعد تعبئة 4 أسطوانات معاً بسعر <SaudiRiyal amount={55} size="sm" className="font-bold text-[#12d6fa]" /> لكل أسطوانة.</>
                   ) : (
                     refillSlides[currentRefillSlide].description
                   )}
@@ -475,9 +475,9 @@ export default function CO2() {
               
               {/* Order Summary - Hidden on mobile, shown on desktop under image */}
               {showBlocks && (
-                <div className="mt-8 hidden lg:block">
+              <div className="mt-8 hidden lg:block">
                 <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/20 shadow-sm p-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Order Summary</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">ملخص الطلب</h3>
                   
                   {/* Selected Cylinder Info */}
                   {selectedCylinderData && (
@@ -569,8 +569,8 @@ export default function CO2() {
               {/* Choose Your Cylinder header */}
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                 <div>
-                  <h2 className="text-3xl font-black text-black tracking-tight">Choose Your Cylinder</h2>
-                  <p className="text-gray-600 mt-2">Select your cylinder type</p>
+                  <h2 className="text-3xl font-black text-black tracking-tight">اختر أسطوانتك</h2>
+                  <p className="text-gray-600 mt-2">اختر نوع الأسطوانة</p>
                 </div>
                 <a 
                   href="/contact" 
@@ -587,15 +587,15 @@ export default function CO2() {
                   onClick={handleDrinkmateClick}
                   className="flex-1 h-32 bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-bold text-lg rounded-2xl transition-all duration-300 hover:shadow-sm hover:scale-105"
                 >
-                  Drinkmate
+                  درينكميت
                 </Button>
                 <Button
                   onClick={handleNonDrinkmateClick}
                   className="flex-1 h-32 bg-[#a8f387] hover:bg-[#9ae374] text-black font-bold text-lg rounded-2xl transition-all duration-300 hover:shadow-sm hover:scale-105"
                 >
-                  Non-Drinkmate
+                  غير درينكميت
                 </Button>
-              </div>
+                            </div>
 
               {/* Non-Drinkmate Standard Threaded Option */}
               {cylinderType === "non-drinkmate" && (
@@ -611,14 +611,14 @@ export default function CO2() {
                       className="w-4 h-4 text-[#a8f387]"
                     />
                     <label htmlFor="standard-threaded" className="text-lg font-semibold text-gray-900">
-                      Standard Threaded
+                      خيوط قياسية
                     </label>
                           </div>
 
                   {/* Brand Dropdown */}
                   <Select value={nonDrinkmateBrand} onValueChange={handleNonDrinkmateBrandChange}>
                     <SelectTrigger className="w-full h-12 border-2 border-[#a8f387] rounded-xl">
-                      <SelectValue placeholder="Select your brand" />
+                      <SelectValue placeholder="اختر علامتك التجارية" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="errva">Errva</SelectItem>
@@ -673,10 +673,10 @@ export default function CO2() {
               <div className="space-y-8">
                 <div className="text-center">
                   <h3 className="text-3xl font-black text-black mb-3">
-                    Choose Your Quantity
+                      اختر الكمية
                   </h3>
                   <p className="text-gray-600 text-lg">
-                    Select the number of premium cylinders for refill/exchange
+                      اختر عدد الأسطوانات المميزة لإعادة التعبئة/التبديل
                   </p>
                 </div>
                 
@@ -686,7 +686,7 @@ export default function CO2() {
                     {/* Quantity Selection Form */}
                     <div className="mb-8">
                       <label className="block text-lg font-semibold text-gray-900 mb-4">
-                        Number of Cylinders to Refill/Exchange
+                        عدد الأسطوانات لإعادة التعبئة/التبديل
                       </label>
                       <div className="flex items-center justify-center space-x-4">
                         <button
@@ -712,7 +712,7 @@ export default function CO2() {
                         </button>
                       </div>
                       <p className="text-center text-sm text-gray-600 mt-3">
-                        Please return {quantity} empty cylinder{quantity > 1 ? 's' : ''}
+                        يرجى إرجاع {quantity} أسطوانة فارغة
                       </p>
                     </div>
                     
@@ -721,7 +721,7 @@ export default function CO2() {
                       <div className="flex items-center justify-center space-x-2">
                         <Truck className="w-5 h-5 text-[#12d6fa]" />
                         <span className="text-sm font-semibold text-gray-700">
-                          Estimated delivery time: 3-5 business days
+                          وقت التسليم المتوقع: 3-5 أيام عمل
                         </span>
                       </div>
                     </div>
@@ -742,11 +742,11 @@ export default function CO2() {
                         </div>
                         <div className={`text-sm font-bold transition-colors duration-300 ${
                           quantity >= 2 ? 'text-[#a8f387]' : 'text-gray-600'
-                        }`}>5% OFF</div>
-                        <div className="text-xs text-gray-600 font-medium">2+ cylinders</div>
+                        }`}>خصم 5%</div>
+                        <div className="text-xs text-gray-600 font-medium">2+ أسطوانات</div>
                         {quantity >= 2 && (
                           <div className="mt-1 text-xs font-semibold text-[#a8f387] animate-pulse">
-                            ✓ ACTIVE
+                            ✓ نشط
                           </div>
                         )}
                       </div>
@@ -764,11 +764,11 @@ export default function CO2() {
                         </div>
                         <div className={`text-sm font-bold transition-colors duration-300 ${
                           quantity >= 3 ? 'text-[#12d6fa]' : 'text-gray-600'
-                        }`}>10% OFF</div>
-                        <div className="text-xs text-gray-600 font-medium">3+ cylinders</div>
+                        }`}>خصم 10%</div>
+                        <div className="text-xs text-gray-600 font-medium">3+ أسطوانات</div>
                         {quantity >= 3 && (
                           <div className="mt-1 text-xs font-semibold text-[#12d6fa] animate-pulse">
-                            ✓ ACTIVE
+                            ✓ نشط
                           </div>
                         )}
                       </div>
@@ -786,11 +786,11 @@ export default function CO2() {
                         </div>
                         <div className={`text-sm font-bold transition-colors duration-300 ${
                           quantity >= 4 ? 'text-gray-800' : 'text-gray-600'
-                        }`}>15% OFF</div>
-                        <div className="text-xs text-gray-600 font-medium">+ FREE delivery</div>
+                        }`}>خصم 15%</div>
+                        <div className="text-xs text-gray-600 font-medium">+ تسليم مجاني</div>
                         {quantity >= 4 && (
                           <div className="mt-1 text-xs font-semibold text-[#a8f387] animate-pulse">
-                            ✓ ACTIVE
+                            ✓ نشط
                           </div>
                         )}
                       </div>
@@ -808,7 +808,7 @@ export default function CO2() {
                     className="relative w-full bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-10 py-6 rounded-3xl font-black text-xl transition-all duration-300 hover:shadow-md hover:scale-105 border-0 group-hover:shadow-lg"
                   >
                     <ShoppingCart className="w-6 h-6 mr-4 group-hover:animate-bounce" />
-                    Add Premium Cylinders to Cart
+                    أضف الأسطوانات المميزة إلى السلة
                     <ArrowRight className="w-5 h-5 ml-4 group-hover:translate-x-1 transition-transform duration-300" />
                   </Button>
                 </div>
@@ -819,36 +819,36 @@ export default function CO2() {
                     className="px-8 py-4 border-2 border-[#12d6fa] rounded-2xl font-bold text-lg hover:bg-[#12d6fa] hover:text-white hover:border-transparent transition-all duration-300 hover:shadow-md hover:scale-105 group"
                   >
                     <Gift className="w-5 h-5 mr-3 group-hover:animate-pulse" />
-                    Subscribe & Save 20%
+                    اشترك ووفر 20%
                   </Button>
                   <Button
                     variant="outline"
                     className="px-8 py-4 border-2 border-[#12d6fa] rounded-2xl font-bold text-lg hover:bg-[#12d6fa] hover:text-white hover:border-transparent transition-all duration-300 hover:shadow-md hover:scale-105 group"
                   >
                     <Star className="w-5 h-5 mr-3 group-hover:animate-spin" />
-                    Premium Membership
+                    عضوية مميزة
                   </Button>
                 </div>
                 
                 {/* Additional Premium Features */}
                 <div className="bg-blue-50 rounded-2xl p-6 border border-blue-200">
-                  <h4 className="text-lg font-bold text-gray-900 mb-4 text-center">Why Choose Our Premium Service?</h4>
+                  <h4 className="text-lg font-bold text-gray-900 mb-4 text-center">لماذا تختار خدمتنا المميزة؟</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-[#a8f387] flex-shrink-0" />
-                      <span className="text-sm font-medium text-gray-700">Food-grade CO2 certified</span>
+                      <span className="text-sm font-medium text-gray-700">CO2 معتمد للاستخدام الغذائي</span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-[#12d6fa] flex-shrink-0" />
-                      <span className="text-sm font-medium text-gray-700">3-5 day turnaround</span>
+                      <span className="text-sm font-medium text-gray-700">دورة 3-5 أيام</span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-[#a8f387] flex-shrink-0" />
-                      <span className="text-sm font-medium text-gray-700">Home pickup & delivery</span>
+                      <span className="text-sm font-medium text-gray-700">استلام وتسليم من المنزل</span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-[#12d6fa] flex-shrink-0" />
-                      <span className="text-sm font-medium text-gray-700">Quality guaranteed</span>
+                      <span className="text-sm font-medium text-gray-700">جودة مضمونة</span>
                     </div>
                   </div>
                 </div>
@@ -856,7 +856,7 @@ export default function CO2() {
                 {/* Order Summary - Mobile only, appears under Why Choose Our Premium Service */}
                 <div className="lg:hidden mt-6">
                   <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/20 shadow-sm p-6">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Order Summary</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">ملخص الطلب</h3>
                     
                     {/* Selected Cylinder Info */}
                     {selectedCylinderData && (
@@ -869,7 +869,7 @@ export default function CO2() {
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-900">{selectedCylinderData.name}</h4>
-                            <p className="text-sm text-gray-600">CO2 Cylinder Refill/Exchange</p>
+                            <p className="text-sm text-gray-600">إعادة تعبئة/تبديل أسطوانة CO2</p>
                           </div>
                         </div>
                       </div>
@@ -878,42 +878,42 @@ export default function CO2() {
                     {/* Quantity and Return Info */}
                     <div className="mb-6 space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-700">Quantity:</span>
-                        <span className="font-semibold text-gray-900">{quantity} cylinder{quantity > 1 ? 's' : ''}</span>
+                        <span className="text-gray-700">الكمية:</span>
+                        <span className="font-semibold text-gray-900">{quantity} أسطوانة</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-700">Return required:</span>
-                        <span className="font-semibold text-gray-900">{quantity} empty cylinder{quantity > 1 ? 's' : ''}</span>
+                        <span className="text-gray-700">مطلوب إرجاع:</span>
+                        <span className="font-semibold text-gray-900">{quantity} أسطوانة فارغة</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-700">Delivery time:</span>
-                        <span className="font-semibold text-[#12d6fa]">3-5 business days</span>
+                        <span className="text-gray-700">وقت التسليم:</span>
+                        <span className="font-semibold text-[#12d6fa]">3-5 أيام عمل</span>
                       </div>
                     </div>
                     
                     {/* Pricing Breakdown */}
                     <div className="space-y-3 mb-6">
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-700">Unit price:</span>
+                        <span className="text-gray-700">سعر الوحدة:</span>
                         <span className="font-semibold text-gray-900">
                           <SaudiRiyal amount={cylinderPrice} size="sm" />
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-700">Subtotal ({quantity} × <SaudiRiyal amount={cylinderPrice} size="sm" />):</span>
+                        <span className="text-gray-700">المجموع الفرعي ({quantity} × <SaudiRiyal amount={cylinderPrice} size="sm" />):</span>
                         <span className="font-semibold text-gray-900">
                           <SaudiRiyal amount={subtotal} size="sm" />
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-700">Delivery:</span>
+                        <span className="text-gray-700">التسليم:</span>
                         <span className={`font-semibold ${deliveryCharge === 0 ? 'text-[#a8f387]' : 'text-gray-900'}`}>
-                          {deliveryCharge === 0 ? 'FREE' : <SaudiRiyal amount={deliveryCharge} size="sm" />}
+                          {deliveryCharge === 0 ? 'مجاني' : <SaudiRiyal amount={deliveryCharge} size="sm" />}
                         </span>
                       </div>
                       {selectedCylinderData && (selectedCylinderData.originalPrice * quantity) - subtotal > 0 && (
                         <div className="flex justify-between items-center text-[#a8f387]">
-                          <span className="font-semibold">You save:</span>
+                          <span className="font-semibold">توفير:</span>
                           <span className="font-bold">
                             <SaudiRiyal amount={(selectedCylinderData.originalPrice * quantity) - subtotal} size="sm" />
                           </span>
@@ -924,7 +924,7 @@ export default function CO2() {
                     {/* Total */}
                     <div className="border-t border-gray-200 pt-4">
                       <div className="flex justify-between items-center">
-                        <span className="text-xl font-bold text-gray-900">Total:</span>
+                        <span className="text-xl font-bold text-gray-900">المجموع:</span>
                         <span className="text-2xl font-black text-[#12d6fa]">
                           <SaudiRiyal amount={total} size="lg" />
                         </span>
@@ -934,7 +934,7 @@ export default function CO2() {
                     {/* Additional Info */}
                     <div className="mt-6 text-center">
                       <p className="text-xs text-gray-500">
-                        * Empty cylinders will be picked up from your location
+                        * سيتم استلام الأسطوانات الفارغة من موقعك
                       </p>
                     </div>
                   </div>
@@ -954,10 +954,10 @@ export default function CO2() {
           <div className="py-16">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-black text-black mb-6">
-                How Refill/Exchange Works
+                كيف تعمل إعادة التعبئة/التبديل
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Our streamlined process makes cylinder refill and exchange simple and convenient
+                عملية مبسطة تجعل إعادة تعبئة وتبديل الأسطوانات بسيطة ومريحة
               </p>
             </div>
             
@@ -970,13 +970,13 @@ export default function CO2() {
                       <div className="w-24 h-24 bg-[#12d6fa] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
                         <ShoppingCart className="w-12 h-12 text-white" />
                       </div>
-                      <p className="text-[#12d6fa] font-bold text-lg">Order Online</p>
+                      <p className="text-[#12d6fa] font-bold text-lg">اطلب عبر الإنترنت</p>
                     </div>
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold text-black mb-4">Order Online</h3>
+                <h3 className="text-2xl font-bold text-black mb-4">اطلب عبر الإنترنت</h3>
                 <p className="text-gray-600 text-lg leading-relaxed">
-                  Select your cylinder type and quantity, then place your order through our website with just a few clicks.
+                  اختر نوع الأسطوانة والكمية، ثم ضع طلبك عبر موقعنا الإلكتروني بنقرة واحدة.
                 </p>
               </div>
 
@@ -988,13 +988,13 @@ export default function CO2() {
                       <div className="w-24 h-24 bg-[#12d6fa] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
                         <Truck className="w-12 h-12 text-black" />
                       </div>
-                      <p className="text-[#12d6fa] font-bold text-lg">Schedule Pickup</p>
+                      <p className="text-[#12d6fa] font-bold text-lg">جدولة الاستلام</p>
                     </div>
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold text-black mb-4">Schedule Pickup</h3>
+                <h3 className="text-2xl font-bold text-black mb-4">جدولة الاستلام</h3>
                 <p className="text-gray-600 text-lg leading-relaxed">
-                  We'll schedule a convenient time to pick up your empty cylinders from your location at no extra cost.
+                  سنحدد وقت مناسب لاستلام الأسطوانات الفارغة من موقعك بدون تكلفة إضافية.
                 </p>
               </div>
 
@@ -1006,13 +1006,13 @@ export default function CO2() {
                       <div className="w-24 h-24 bg-[#12d6fa] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
                         <Shield className="w-12 h-12 text-white" />
                       </div>
-                      <p className="text-[#12d6fa] font-bold text-lg">Receive Refilled</p>
+                      <p className="text-[#12d6fa] font-bold text-lg">استلام المعاد تعبئته</p>
                     </div>
                   </div>
                 </div>
-                <h3 className="text-2xl font-bold text-black mb-4">Receive Refilled Cylinders</h3>
+                <h3 className="text-2xl font-bold text-black mb-4">استلام الأسطوانات المعاد تعبئتها</h3>
                 <p className="text-gray-600 text-lg leading-relaxed">
-                  Get your freshly refilled CO2 cylinders delivered to your door within 3-5 business days, ready to use.
+                  احصل على أسطوانات CO2 المعاد تعبئتها حديثاً على باب منزلك خلال 3-5 أيام عمل، جاهزة للاستخدام.
                 </p>
               </div>
             </div>
@@ -1037,7 +1037,7 @@ export default function CO2() {
                 >
                   <div className="flex items-center justify-center space-x-2">
                     <Info className="w-5 h-5" />
-                    <span>FAQs</span>
+                    <span>الأسئلة الشائعة</span>
                   </div>
                 </button>
                 <button 
@@ -1050,7 +1050,7 @@ export default function CO2() {
                 >
                   <div className="flex items-center justify-center space-x-2">
                     <Shield className="w-5 h-5" />
-                    <span>Description</span>
+                    <span>الوصف</span>
                   </div>
                 </button>
                 <button 
@@ -1063,7 +1063,7 @@ export default function CO2() {
                 >
                   <div className="flex items-center justify-center space-x-2">
                     <Star className="w-5 h-5" />
-                    <span>Reviews</span>
+                    <span>التقييمات</span>
                   </div>
                 </button>
               </div>
@@ -1073,30 +1073,30 @@ export default function CO2() {
                 {activeTab === "faqs" && (
                   <div>
                     <div className="text-center mb-12">
-                      <h3 className="text-3xl font-black text-black mb-4">Frequently Asked Questions</h3>
-                      <p className="text-gray-600 text-lg">Everything you need to know about our premium cylinder service</p>
+                      <h3 className="text-3xl font-black text-black mb-4">الأسئلة الشائعة</h3>
+                      <p className="text-gray-600 text-lg">كل ما تحتاج لمعرفته حول خدمة الأسطوانات المميزة</p>
                     </div>
                     <div className="space-y-6">
                       {[
                         {
-                          question: "How long does the refill/exchange process take?",
-                          answer: "Our standard turnaround time is 3-5 business days from pickup to delivery. We'll schedule a convenient pickup time and notify you when your refilled cylinders are ready for delivery."
+                          question: "كم من الوقت تستغرق عملية إعادة التعبئة/التبديل؟",
+                          answer: "وقت الدوران المعياري لدينا هو 3-5 أيام عمل من الاستلام إلى التسليم. سنحدد وقت استلام مناسب ونخطرك عندما تكون أسطواناتك المعاد تعبئتها جاهزة للتسليم."
                         },
                         {
-                          question: "What cylinder brands do you accept?",
-                          answer: "We accept cylinders from all major brands including Drinkmate, SodaStream, Errva, Fawwar, Phillips, and many others. If you're unsure about compatibility, please contact our support team."
+                          question: "ما العلامات التجارية للأسطوانات التي تقبلونها؟",
+                          answer: "نقبل أسطوانات من جميع العلامات التجارية الرئيسية بما في ذلك درينكميت، سوداستريم، إيرفا، فووار، فيليبس، والعديد من العلامات الأخرى. إذا لم تكن متأكداً من التوافق، يرجى الاتصال بفريق الدعم لدينا."
                         },
                         {
-                          question: "Is the CO2 food-grade and safe?",
-                          answer: "Yes, we only use premium food-grade CO2 that meets all safety and quality standards for beverage use. Each cylinder is thoroughly tested and filled according to industry regulations."
+                          question: "هل CO2 صالح للاستخدام الغذائي وآمن؟",
+                          answer: "نعم، نستخدم فقط CO2 مميز صالح للاستخدام الغذائي يلبي جميع معايير السلامة والجودة للاستخدام في المشروبات. كل أسطوانة يتم اختبارها وملؤها وفقاً للوائح الصناعة."
                         },
                         {
-                          question: "Do I need to return the same number of cylinders?",
-                          answer: "Yes, please ensure you return the same number of empty cylinders as you're ordering refilled ones. This helps us maintain our exchange program efficiently."
+                          question: "هل أحتاج لإرجاع نفس عدد الأسطوانات؟",
+                          answer: "نعم، يرجى التأكد من إرجاع نفس عدد الأسطوانات الفارغة التي تطلبها معاد تعبئتها. هذا يساعدنا في الحفاظ على برنامج التبديل بكفاءة."
                         },
                         {
-                          question: "What are the quantity discounts?",
-                          answer: "We offer tiered pricing: 5% off for 2+ cylinders, 10% off for 3+ cylinders, and 15% off for 4+ cylinders. Plus, orders of 4+ cylinders get FREE delivery!"
+                          question: "ما هي خصومات الكمية؟",
+                          answer: "نقدم تسعير متدرج: خصم 5% لـ 2+ أسطوانات، خصم 10% لـ 3+ أسطوانات، وخصم 15% لـ 4+ أسطوانات. بالإضافة إلى ذلك، طلبات 4+ أسطوانات تحصل على تسليم مجاني!"
                         }
                       ].map((faq, index) => (
                         <div key={index} className="border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-sm hover:border-[#12d6fa]/30 transition-all duration-300 group">

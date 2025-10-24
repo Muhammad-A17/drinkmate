@@ -1113,7 +1113,7 @@ export default function AccessoriesBundleDetail() {
                       <div className="absolute top-4 right-4">
                         <div className="bg-blue-500 text-white px-2 py-1 rounded text-xs flex items-center">
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                          Loading...
+                          {t("common.loading")}
                         </div>
                       </div>
                     )}
