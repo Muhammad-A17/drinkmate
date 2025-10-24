@@ -51,10 +51,15 @@ export default function CO2() {
   ]
 
   const [currentRefillSlide, setCurrentRefillSlide] = useState(0)
-  const [selectedCylinder, setSelectedCylinder] = useState("drinkmate")
+  const [selectedCylinder, setSelectedCylinder] = useState("")
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState("faqs")
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
+  
+  // New state for button functionality
+  const [showBlocks, setShowBlocks] = useState(false)
+  const [cylinderType, setCylinderType] = useState("") // "drinkmate" or "non-drinkmate"
+  const [nonDrinkmateBrand, setNonDrinkmateBrand] = useState("")
 
   // Slideshow navigation
   const nextRefillSlide = () => {
@@ -315,6 +320,24 @@ export default function CO2() {
     setQuantity(newQuantity)
   }
 
+  // Button handlers
+  const handleDrinkmateClick = () => {
+    setCylinderType("drinkmate")
+    setSelectedCylinder("drinkmate")
+    setShowBlocks(true)
+  }
+
+  const handleNonDrinkmateClick = () => {
+    setCylinderType("non-drinkmate")
+    setShowBlocks(false) // Don't show blocks until brand is selected
+  }
+
+  const handleNonDrinkmateBrandChange = (brand: string) => {
+    setNonDrinkmateBrand(brand)
+    setSelectedCylinder(brand)
+    setShowBlocks(true) // Show blocks after brand selection
+  }
+
   if (loading) {
     return (
       <PageLayout currentPage="co2">
@@ -351,7 +374,7 @@ export default function CO2() {
     <PageLayout currentPage="refill-cylinder">
       {/* Enhanced Refill Section Carousel */}
       <section className="py-8 md:py-16">
-        <div className="max-w-7xl mx-auto bg-gradient-to-br from-[#f8fafc] via-[#f3f3f3] to-[#e2e8f0] rounded-3xl relative h-[280px] md:h-[320px] flex items-center justify-between px-4 md:px-6 overflow-hidden shadow-2xl">
+        <div className="max-w-7xl mx-auto bg-white border border-gray-200 rounded-3xl relative h-[280px] md:h-[320px] flex items-center justify-between px-4 md:px-6 overflow-hidden shadow-lg">
           {/* Enhanced Left Navigation Button */}
           <Button
             className="rounded-full w-12 h-12 flex items-center justify-center border-2 border-white bg-white/90 text-gray-700 shadow-lg z-10 hover:bg-white hover:border-[#12d6fa] hover:scale-110 transition-all duration-300 backdrop-blur-sm"
@@ -364,7 +387,7 @@ export default function CO2() {
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-8">
             <div className="text-center space-y-6">
               <div className="space-y-4">
-                <h2 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-[#12d6fa] to-[#a8f387] bg-clip-text text-transparent leading-tight animate-fade-in">
+                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight">
                   {refillSlides[currentRefillSlide].headline}
                 </h2>
                 <p className="text-gray-700 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
@@ -379,7 +402,7 @@ export default function CO2() {
                 {refillSlides[currentRefillSlide].buttonText && (
                   <Button 
                     onClick={() => window.location.href = refillSlides[currentRefillSlide].buttonText === "Refill Now" ? "/co2" : "/shop"}
-                    className="bg-gradient-to-r from-[#a8f387] to-[#9ae374] hover:from-[#9ae374] hover:to-[#8dd663] text-black font-bold px-8 py-4 rounded-full text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                    className="bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-bold px-8 py-4 rounded-full text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                   >
                     {refillSlides[currentRefillSlide].buttonText}
                     <ArrowRight className="w-5 h-5 ml-2" />
@@ -411,7 +434,7 @@ export default function CO2() {
                 onClick={() => setCurrentRefillSlide(index)}
                 className={`w-4 h-4 rounded-full transition-all duration-300 ${
                   index === currentRefillSlide 
-                    ? "bg-gradient-to-r from-[#12d6fa] to-[#a8f387] scale-125 shadow-lg" 
+                    ? "bg-[#12d6fa] scale-125 shadow-lg" 
                     : "bg-white/60 hover:bg-white/80 hover:scale-110"
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
@@ -451,15 +474,16 @@ export default function CO2() {
               </div>
               
               {/* Order Summary - Hidden on mobile, shown on desktop under image */}
-              <div className="mt-8 hidden lg:block">
+              {showBlocks && (
+                <div className="mt-8 hidden lg:block">
                 <div className="bg-white rounded-3xl border-2 border-[#12d6fa]/20 shadow-2xl p-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Order Summary</h3>
                   
                   {/* Selected Cylinder Info */}
                   {selectedCylinderData && (
-                    <div className="mb-6 p-4 bg-gradient-to-r from-[#12d6fa]/10 to-[#a8f387]/10 rounded-2xl border border-[#12d6fa]/20">
+                    <div className="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-200">
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-xl flex items-center justify-center">
+                        <div className="w-12 h-12 bg-[#12d6fa] rounded-xl flex items-center justify-center">
                           <span className="text-white font-bold text-lg">
                             {selectedCylinderData.name.charAt(0)}
                           </span>
@@ -536,135 +560,92 @@ export default function CO2() {
                   </div>
                 </div>
               </div>
+              )}
+
             </div>
 
             {/* Right Side - Controls (5 columns) */}
             <div className="lg:col-span-5 space-y-6">
-              {/* Enhanced Select a cylinder header */}
+              {/* Choose Your Cylinder header */}
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                 <div>
-                  <h2 className="text-3xl font-black text-black tracking-tight">Select Your Cylinder</h2>
-                  <p className="text-gray-600 mt-2">Choose from our premium collection</p>
+                  <h2 className="text-3xl font-black text-black tracking-tight">Choose Your Cylinder</h2>
+                  <p className="text-gray-600 mt-2">Select your cylinder type</p>
                 </div>
                 <a 
                   href="/contact" 
-                  className="inline-flex items-center space-x-2 text-[#12d6fa] text-sm font-semibold hover:text-[#0bc4e8] transition-colors duration-200 bg-[#12d6fa]/10 px-4 py-2 rounded-full hover:bg-[#12d6fa]/20"
+                  className="inline-flex items-center space-x-2 text-[#12d6fa] text-sm font-semibold hover:text-[#0bc4e8] transition-colors duration-200"
                 >
                   <Info className="w-4 h-4" />
                   <span>Need Help?</span>
                 </a>
               </div>
 
-              {/* Enhanced Premium Cylinder Brand Selection */}
-              <div className="space-y-8">
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#12d6fa]/20 to-[#a8f387]/20 rounded-3xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
-                  <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 shadow-2xl group-hover:shadow-3xl transition-all duration-300">
-                    <Select value={selectedCylinder} onValueChange={setSelectedCylinder}>
-                      <SelectTrigger className="w-full h-16 border-0 bg-transparent text-lg font-semibold focus:ring-0 focus:outline-none px-8 hover:bg-gray-50/50 transition-colors duration-200">
-                        <SelectValue placeholder="Choose your premium cylinder brand" />
-                      </SelectTrigger>
-                      <SelectContent className="border-0 shadow-2xl rounded-2xl max-h-96 overflow-y-auto">
-                        <SelectItem value="drinkmate" className="text-lg py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-full flex items-center justify-center text-white font-bold text-sm">D</div>
-                            <div>
-                              <div className="font-semibold">Drinkmate</div>
-                              <div className="text-sm text-gray-500">Premium Original</div>
-                            </div>
+              {/* Two Buttons */}
+              <div className="flex space-x-4">
+                <Button
+                  onClick={handleDrinkmateClick}
+                  className="flex-1 h-32 bg-[#12d6fa] hover:bg-[#0bc4e8] text-white font-bold text-lg rounded-2xl transition-all duration-300 hover:shadow-lg hover:scale-105"
+                >
+                  Drinkmate
+                </Button>
+                <Button
+                  onClick={handleNonDrinkmateClick}
+                  className="flex-1 h-32 bg-[#a8f387] hover:bg-[#9ae374] text-black font-bold text-lg rounded-2xl transition-all duration-300 hover:shadow-lg hover:scale-105"
+                >
+                  Non-Drinkmate
+                </Button>
+              </div>
+
+              {/* Non-Drinkmate Standard Threaded Option */}
+              {cylinderType === "non-drinkmate" && (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="standard-threaded"
+                      name="thread-type"
+                      value="standard-threaded"
+                      checked={true}
+                      readOnly
+                      className="w-4 h-4 text-[#a8f387]"
+                    />
+                    <label htmlFor="standard-threaded" className="text-lg font-semibold text-gray-900">
+                      Standard Threaded
+                    </label>
                           </div>
-                        </SelectItem>
-                        <SelectItem value="sodastream" className="text-lg py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-[#a8f387] to-[#9ae374] rounded-full flex items-center justify-center text-black font-bold text-sm">S</div>
-                            <div>
-                              <div className="font-semibold">SodaStream</div>
-                              <div className="text-sm text-gray-500">Classic Choice</div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="errva" className="text-lg py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-full flex items-center justify-center text-white font-bold text-sm">E</div>
-                            <div>
-                              <div className="font-semibold">Errva</div>
-                              <div className="text-sm text-gray-500">Reliable Brand</div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="fawwar" className="text-lg py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-[#a8f387] to-[#12d6fa] rounded-full flex items-center justify-center text-white font-bold text-sm">F</div>
-                            <div>
-                              <div className="font-semibold">Fawwar</div>
-                              <div className="text-sm text-gray-500">Quality Assured</div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="phillips" className="text-lg py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-full flex items-center justify-center text-white font-bold text-sm">P</div>
-                            <div>
-                              <div className="font-semibold">Phillips</div>
-                              <div className="text-sm text-gray-500">Professional Grade</div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="ultima-cosa" className="text-lg py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-[#a8f387] to-[#9ae374] rounded-full flex items-center justify-center text-black font-bold text-sm">U</div>
-                            <div>
-                              <div className="font-semibold">Ultima Cosa</div>
-                              <div className="text-sm text-gray-500">Premium Italian</div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="bubble-bro" className="text-lg py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-full flex items-center justify-center text-white font-bold text-sm">B</div>
-                            <div>
-                              <div className="font-semibold">Bubble Bro</div>
-                              <div className="text-sm text-gray-500">Modern Design</div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="yoco-cosa" className="text-lg py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-[#a8f387] to-[#12d6fa] rounded-full flex items-center justify-center text-white font-bold text-sm">Y</div>
-                            <div>
-                              <div className="font-semibold">Yoco Cosa</div>
-                              <div className="text-sm text-gray-500">Artisan Quality</div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="other-brand" className="text-lg py-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-700 rounded-full flex items-center justify-center text-white font-bold text-sm">O</div>
-                            <div>
-                              <div className="font-semibold">Other Brand Cylinders</div>
-                              <div className="text-sm text-gray-500">Universal Compatibility</div>
-                            </div>
-                          </div>
-                        </SelectItem>
+
+                  {/* Brand Dropdown */}
+                  <Select value={nonDrinkmateBrand} onValueChange={handleNonDrinkmateBrandChange}>
+                    <SelectTrigger className="w-full h-12 border-2 border-[#a8f387] rounded-xl">
+                      <SelectValue placeholder="Select your brand" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="errva">Errva</SelectItem>
+                      <SelectItem value="fawwar">Fawwar</SelectItem>
+                      <SelectItem value="phillips">Phillips</SelectItem>
+                      <SelectItem value="ultima-cosa">Ultima Cosa</SelectItem>
+                      <SelectItem value="bubble-bro">Bubble Bro</SelectItem>
+                      <SelectItem value="yoco-cosa">Yoco Cosa</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-              </div>
+              )}
 
-              {/* Premium Selected Cylinder Info */}
-              {selectedCylinderData && (
-                <div className="relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#12d6fa]/10 via-[#a8f387]/10 to-[#12d6fa]/5 rounded-3xl"></div>
-                  <div className="relative p-6 border border-[#12d6fa]/20 rounded-3xl shadow-lg backdrop-blur-sm">
+              {/* Hidden Blocks - Show when button is clicked */}
+              {showBlocks && (
+                <>
+                  {/* Premium Selected Cylinder Info - Only for Drinkmate */}
+                  {selectedCylinderData && cylinderType === "drinkmate" && (
+                    <div className="p-6 border border-gray-200 rounded-2xl bg-white">
                     <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 bg-[#12d6fa] rounded-2xl flex items-center justify-center flex-shrink-0">
                         <Info className="w-6 h-6 text-white" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-2">
                           <h4 className="text-xl font-bold text-gray-900">{selectedCylinderData.name}</h4>
-                          <div className="px-3 py-1 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white text-xs font-semibold rounded-full">
+                            <div className="px-3 py-1 bg-[#12d6fa] text-white text-xs font-semibold rounded-full">
                             PREMIUM
                           </div>
                         </div>
@@ -679,9 +660,8 @@ export default function CO2() {
                             <span className="text-gray-600">60L Capacity</span>
                           </div>
                           <div className="flex items-center space-x-1">
-                            <div className="w-2 h-2 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] rounded-full"></div>
+                            <div className="w-2 h-2 bg-[#12d6fa] rounded-full"></div>
                             <span className="text-gray-600">Premium Quality</span>
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -701,7 +681,7 @@ export default function CO2() {
                 </div>
                 
                 <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#a8f387]/20 to-[#12d6fa]/20 rounded-3xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
+                  <div className="absolute inset-0 bg-blue-50 rounded-3xl transition-all duration-300"></div>
                   <div className="relative bg-white rounded-3xl border-2 border-[#12d6fa]/30 shadow-2xl p-8 group-hover:shadow-3xl transition-all duration-300">
                     {/* Quantity Selection Form */}
                     <div className="mb-8">
@@ -718,7 +698,7 @@ export default function CO2() {
                         >
                           <Minus className="w-5 h-5" />
                         </button>
-                        <div className="w-20 h-12 bg-gradient-to-r from-[#12d6fa]/10 to-[#a8f387]/10 rounded-xl flex items-center justify-center border-2 border-[#12d6fa]/30">
+                        <div className="w-20 h-12 bg-blue-50 rounded-xl flex items-center justify-center border-2 border-blue-200">
                           <span className="text-2xl font-bold text-gray-900">{quantity}</span>
                         </div>
                         <button
@@ -737,7 +717,7 @@ export default function CO2() {
                     </div>
                     
                     {/* Delivery Information */}
-                    <div className="bg-gradient-to-r from-[#12d6fa]/10 to-[#a8f387]/10 rounded-2xl p-4 mb-6 border border-[#12d6fa]/20">
+                    <div className="bg-blue-50 rounded-2xl p-4 mb-6 border border-blue-200">
                       <div className="flex items-center justify-center space-x-2">
                         <Truck className="w-5 h-5 text-[#12d6fa]" />
                         <span className="text-sm font-semibold text-gray-700">
@@ -750,8 +730,8 @@ export default function CO2() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                         quantity >= 2 
-                          ? 'bg-gradient-to-br from-[#a8f387]/20 to-[#9ae374]/20 border-[#a8f387] shadow-lg scale-105' 
-                          : 'bg-gradient-to-br from-[#a8f387]/10 to-[#9ae374]/10 border-[#a8f387]/20'
+                          ? 'bg-blue-100 border-blue-300 shadow-lg scale-105' 
+                          : 'bg-blue-50 border-blue-200'
                       }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
                           quantity >= 2 
@@ -772,8 +752,8 @@ export default function CO2() {
                       </div>
                       <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                         quantity >= 3 
-                          ? 'bg-gradient-to-br from-[#12d6fa]/20 to-[#0bc4e8]/20 border-[#12d6fa] shadow-lg scale-105' 
-                          : 'bg-gradient-to-br from-[#12d6fa]/10 to-[#0bc4e8]/10 border-[#12d6fa]/20'
+                          ? 'bg-blue-100 border-blue-300 shadow-lg scale-105' 
+                          : 'bg-blue-50 border-blue-200'
                       }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
                           quantity >= 3 
@@ -794,13 +774,13 @@ export default function CO2() {
                       </div>
                       <div className={`text-center p-4 rounded-2xl border-2 transition-all duration-300 ${
                         quantity >= 4 
-                          ? 'bg-gradient-to-br from-[#12d6fa]/20 to-[#a8f387]/20 border-[#12d6fa] shadow-lg scale-105' 
-                          : 'bg-gradient-to-br from-[#12d6fa]/10 to-[#a8f387]/10 border-[#12d6fa]/20'
+                          ? 'bg-blue-100 border-blue-300 shadow-lg scale-105' 
+                          : 'bg-blue-50 border-blue-200'
                       }`}>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
                           quantity >= 4 
-                            ? 'bg-gradient-to-r from-[#12d6fa] to-[#a8f387] shadow-lg scale-110' 
-                            : 'bg-gradient-to-r from-[#12d6fa]/70 to-[#a8f387]/70'
+                            ? 'bg-[#12d6fa] shadow-lg scale-110' 
+                            : 'bg-[#12d6fa]/70'
                         }`}>
                           <span className="text-white font-black text-sm">4+</span>
                         </div>
@@ -822,10 +802,10 @@ export default function CO2() {
               {/* Enhanced Premium CTAs */}
               <div className="space-y-6">
                 <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] rounded-3xl blur-lg group-hover:blur-xl opacity-75 transition-all duration-300"></div>
+                  <div className="absolute inset-0 bg-blue-50 rounded-3xl transition-all duration-300"></div>
                   <Button
                     onClick={handleAddToCart}
-                    className="relative w-full bg-gradient-to-r from-[#12d6fa] to-[#a8f387] hover:from-[#0bc4e8] hover:to-[#9ae374] text-white px-10 py-6 rounded-3xl font-black text-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 border-0 group-hover:shadow-3xl"
+                    className="relative w-full bg-[#12d6fa] hover:bg-[#0bc4e8] text-white px-10 py-6 rounded-3xl font-black text-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 border-0 group-hover:shadow-3xl"
                   >
                     <ShoppingCart className="w-6 h-6 mr-4 group-hover:animate-bounce" />
                     Add Premium Cylinders to Cart
@@ -836,14 +816,14 @@ export default function CO2() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Button
                     variant="outline"
-                    className="px-8 py-4 border-2 border-[#a8f387] rounded-2xl font-bold text-lg hover:bg-gradient-to-r hover:from-[#a8f387] hover:to-[#9ae374] hover:text-black hover:border-transparent transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                    className="px-8 py-4 border-2 border-[#12d6fa] rounded-2xl font-bold text-lg hover:bg-[#12d6fa] hover:text-white hover:border-transparent transition-all duration-300 hover:shadow-xl hover:scale-105 group"
                   >
                     <Gift className="w-5 h-5 mr-3 group-hover:animate-pulse" />
                     Subscribe & Save 20%
                   </Button>
                   <Button
                     variant="outline"
-                    className="px-8 py-4 border-2 border-[#12d6fa] rounded-2xl font-bold text-lg hover:bg-gradient-to-r hover:from-[#12d6fa] hover:to-[#0bc4e8] hover:text-white hover:border-transparent transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                    className="px-8 py-4 border-2 border-[#12d6fa] rounded-2xl font-bold text-lg hover:bg-[#12d6fa] hover:text-white hover:border-transparent transition-all duration-300 hover:shadow-xl hover:scale-105 group"
                   >
                     <Star className="w-5 h-5 mr-3 group-hover:animate-spin" />
                     Premium Membership
@@ -851,7 +831,7 @@ export default function CO2() {
                 </div>
                 
                 {/* Additional Premium Features */}
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
+                <div className="bg-blue-50 rounded-2xl p-6 border border-blue-200">
                   <h4 className="text-lg font-bold text-gray-900 mb-4 text-center">Why Choose Our Premium Service?</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-center space-x-3">
@@ -880,9 +860,9 @@ export default function CO2() {
                     
                     {/* Selected Cylinder Info */}
                     {selectedCylinderData && (
-                      <div className="mb-6 p-4 bg-gradient-to-r from-[#12d6fa]/10 to-[#a8f387]/10 rounded-2xl border border-[#12d6fa]/20">
+                      <div className="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-200">
                         <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-[#12d6fa] to-[#a8f387] rounded-xl flex items-center justify-center">
+                          <div className="w-12 h-12 bg-[#12d6fa] rounded-xl flex items-center justify-center">
                             <span className="text-white font-bold text-lg">
                               {selectedCylinderData.name.charAt(0)}
                             </span>
@@ -961,6 +941,9 @@ export default function CO2() {
                 </div>
               </div>
 
+                </>
+              )}
+
             </div>
           </div>
 
@@ -982,9 +965,9 @@ export default function CO2() {
               {/* Step 1 */}
               <div className="text-center group">
                 <div className="relative mb-8">
-                  <div className="w-full h-80 bg-gradient-to-br from-[#12d6fa]/10 to-[#12d6fa]/5 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-[#12d6fa]/20">
+                  <div className="w-full h-80 bg-blue-50 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-blue-200">
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-gradient-to-br from-[#12d6fa] to-[#0bc4e8] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-24 h-24 bg-[#12d6fa] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
                         <ShoppingCart className="w-12 h-12 text-white" />
                       </div>
                       <p className="text-[#12d6fa] font-bold text-lg">Order Online</p>
@@ -1000,12 +983,12 @@ export default function CO2() {
               {/* Step 2 */}
               <div className="text-center group">
                 <div className="relative mb-8">
-                  <div className="w-full h-80 bg-gradient-to-br from-[#a8f387]/10 to-[#a8f387]/5 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-[#a8f387]/20">
+                  <div className="w-full h-80 bg-blue-50 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-blue-200">
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-gradient-to-br from-[#a8f387] to-[#9ae374] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-24 h-24 bg-[#12d6fa] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
                         <Truck className="w-12 h-12 text-black" />
                       </div>
-                      <p className="text-[#a8f387] font-bold text-lg">Schedule Pickup</p>
+                      <p className="text-[#12d6fa] font-bold text-lg">Schedule Pickup</p>
                     </div>
                   </div>
                 </div>
@@ -1018,9 +1001,9 @@ export default function CO2() {
               {/* Step 3 */}
               <div className="text-center group">
                 <div className="relative mb-8">
-                  <div className="w-full h-80 bg-gradient-to-br from-[#12d6fa]/10 to-[#a8f387]/10 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-[#12d6fa]/20">
+                  <div className="w-full h-80 bg-blue-50 rounded-3xl mb-6 flex items-center justify-center group-hover:shadow-2xl transition-all duration-300 border-2 border-blue-200">
                     <div className="text-center">
-                      <div className="w-24 h-24 bg-gradient-to-r from-[#12d6fa] to-[#a8f387] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-24 h-24 bg-[#12d6fa] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
                         <Shield className="w-12 h-12 text-white" />
                       </div>
                       <p className="text-[#12d6fa] font-bold text-lg">Receive Refilled</p>
@@ -1048,7 +1031,7 @@ export default function CO2() {
                   onClick={() => setActiveTab("faqs")}
                   className={`flex-1 py-4 px-8 font-bold text-center transition-all duration-300 rounded-xl ${
                     activeTab === "faqs" 
-                      ? "bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white shadow-lg scale-105" 
+                      ? "bg-[#12d6fa] text-white shadow-lg scale-105" 
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                   }`}
                 >
@@ -1061,7 +1044,7 @@ export default function CO2() {
                   onClick={() => setActiveTab("description")}
                   className={`flex-1 py-4 px-8 font-bold text-center transition-all duration-300 rounded-xl ${
                     activeTab === "description" 
-                      ? "bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white shadow-lg scale-105" 
+                      ? "bg-[#12d6fa] text-white shadow-lg scale-105" 
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                   }`}
                 >
@@ -1074,7 +1057,7 @@ export default function CO2() {
                   onClick={() => setActiveTab("reviews")}
                   className={`flex-1 py-4 px-8 font-bold text-center transition-all duration-300 rounded-xl ${
                     activeTab === "reviews" 
-                      ? "bg-gradient-to-r from-[#12d6fa] to-[#a8f387] text-white shadow-lg scale-105" 
+                      ? "bg-[#12d6fa] text-white shadow-lg scale-105" 
                       : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                   }`}
                 >
@@ -1119,7 +1102,7 @@ export default function CO2() {
                         <div key={index} className="border-2 border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#12d6fa]/30 transition-all duration-300 group">
                           <button
                             onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
-                            className="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-gradient-to-r hover:from-[#12d6fa]/5 hover:to-[#a8f387]/5 transition-all duration-300 group-hover:scale-[1.02]"
+                            className="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-blue-50 transition-all duration-300 group-hover:scale-[1.02]"
                           >
                             <span className="font-bold text-black text-xl group-hover:text-[#12d6fa] transition-colors duration-300">{faq.question}</span>
                             <ChevronDown 
@@ -1129,7 +1112,7 @@ export default function CO2() {
                             />
                           </button>
                           {openFAQ === index && (
-                            <div className="px-8 pb-6 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200">
+                            <div className="px-8 pb-6 bg-blue-50 border-t border-blue-200">
                               <p className="text-gray-700 leading-relaxed text-lg pt-2">{faq.answer}</p>
                             </div>
                           )}
