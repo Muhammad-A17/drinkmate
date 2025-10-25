@@ -1668,27 +1668,40 @@ export interface Translations {
   }
   
   // Product
-  product: {
-    inStock: string
-    outOfStock: string
-    onlyLeftInStock: string
-    stockCount: string
-    addToCart: string
-    buyNow: string
-    addToWishlist: string
-    removeFromWishlist: string
-    share: string
-    notifyMe: string
-    writeReview: string
-    askQuestion: string
-    description: string
-    specifications: string
-    reviews: string
-    questions: string
-    relatedProducts: string
-    youMayAlsoLike: string
-    frequentlyAskedQuestions: string
-    customerReviews: string
+    product: {
+      inStock: string
+      outOfStock: string
+      onlyLeftInStock: string
+      stockCount: string
+      addToCart: string
+      buyNow: string
+      addToWishlist: string
+      removeFromWishlist: string
+      share: string
+      notifyMe: string
+      writeReview: string
+      askQuestion: string
+      description: string
+      specifications: string
+      reviews: string
+      questions: string
+      relatedProducts: string
+      youMayAlsoLike: string
+      frequentlyAskedQuestions: string
+      customerReviews: string
+      save: string
+      goToCart: string
+      quantity: string
+      keyFeatures: string
+      technicalSpecifications: string
+      allReviews: string
+      allQuestions: string
+      usageFeatures: string
+      installationSetup: string
+      warrantySupport: string
+      sold: string
+      reviewsCount: string
+      questionsCount: string
     writeAReview: string
     askAQuestion: string
     submitReview: string
@@ -4150,6 +4163,19 @@ export const translations: Record<Language, Translations> = {
       youMayAlsoLike: "You May Also Like",
       frequentlyAskedQuestions: "Frequently Asked Questions",
       customerReviews: "Customer Reviews",
+      save: "Save",
+      goToCart: "Go to Cart",
+      quantity: "Quantity",
+      keyFeatures: "Key Features",
+      technicalSpecifications: "Technical Specifications",
+      allReviews: "All Reviews",
+      allQuestions: "All Questions",
+      usageFeatures: "Usage & Features",
+      installationSetup: "Installation & Setup",
+      warrantySupport: "Warranty & Support",
+      sold: "sold",
+      reviewsCount: "reviews",
+      questionsCount: "questions",
       writeAReview: "Write a Review",
       askAQuestion: "Ask a Question",
       submitReview: "Submit Review",
@@ -6194,6 +6220,19 @@ export const translations: Record<Language, Translations> = {
       youMayAlsoLike: "قد يعجبك أيضاً",
       frequentlyAskedQuestions: "الأسئلة الشائعة",
       customerReviews: "مراجعات العملاء",
+      save: "وفر",
+      goToCart: "اذهب إلى السلة",
+      quantity: "الكمية",
+      keyFeatures: "الميزات الرئيسية",
+      technicalSpecifications: "المواصفات التقنية",
+      allReviews: "جميع المراجعات",
+      allQuestions: "جميع الأسئلة",
+      usageFeatures: "الاستخدام والميزات",
+      installationSetup: "التثبيت والإعداد",
+      warrantySupport: "الضمان والدعم",
+      sold: "مباع",
+      reviewsCount: "مراجعة",
+      questionsCount: "سؤال",
       writeAReview: "اكتب مراجعة",
       askAQuestion: "اسأل سؤال",
       submitReview: "إرسال المراجعة",

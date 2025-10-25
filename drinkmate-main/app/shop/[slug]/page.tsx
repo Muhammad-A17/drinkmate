@@ -1042,7 +1042,7 @@ export default function ShopProductDetail() {
                       )}
                       {calculateSavings() > 0 && (
                         <Badge className="bg-green-100 text-green-800 text-xs sm:text-sm">
-                          Save <SaudiRiyal amount={calculateSavings()} size="sm" />
+                          {t("product.save")} <SaudiRiyal amount={calculateSavings()} size="sm" />
                         </Badge>
                       )}
                     </div>
@@ -1181,7 +1181,7 @@ export default function ShopProductDetail() {
                           size="lg"
                         >
                           <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                          Add to Cart
+                          {t("product.addToCart")}
                         </Button>
                       ) : (
                         <Button
@@ -1260,7 +1260,7 @@ export default function ShopProductDetail() {
                     className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
                   >
                     <Info className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-                    <span className="hidden sm:inline">Description</span>
+                    <span className="hidden sm:inline">{t("product.description")}</span>
                     <span className="sm:hidden">Info</span>
                   </TabsTrigger>
                   <TabsTrigger
@@ -1268,7 +1268,7 @@ export default function ShopProductDetail() {
                     className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
                   >
                     <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-                    <span className="hidden sm:inline">Specifications</span>
+                    <span className="hidden sm:inline">{t("product.specifications")}</span>
                     <span className="sm:hidden">Specs</span>
                   </TabsTrigger>
                   <TabsTrigger
@@ -1276,8 +1276,8 @@ export default function ShopProductDetail() {
                     className="data-[state=active]:bg-[#12d6fa] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 text-xs sm:text-sm py-2 sm:py-3 px-2 sm:px-4"
                   >
                     <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-                    <span className="hidden sm:inline">Reviews ({reviews.length})</span>
-                    <span className="sm:hidden">Reviews</span>
+                    <span className="hidden sm:inline">{t("product.reviews")} ({reviews.length})</span>
+                    <span className="sm:hidden">{t("product.reviews")}</span>
                     <span className="sm:hidden text-xs ml-1">({reviews.length})</span>
                   </TabsTrigger>
                   <TabsTrigger
@@ -1310,7 +1310,7 @@ export default function ShopProductDetail() {
                       <div>
                         <h3 className="text-lg font-semibold mb-4 flex items-center">
                           <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
-                          Key Features
+                          {t("product.keyFeatures")}
                         </h3>
                         <ul className="space-y-3">
                           {localizedProduct?.features?.map((feature, index) => (
@@ -1367,7 +1367,7 @@ export default function ShopProductDetail() {
                       <CardHeader>
                         <CardTitle className="flex items-center text-lg">
                           <Settings className="w-5 h-5 mr-2 text-[#12d6fa]" />
-                          Technical Specifications
+                          {t("product.technicalSpecifications")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -1496,7 +1496,7 @@ export default function ShopProductDetail() {
                                 <SelectValue placeholder="Filter by rating" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="all">All Reviews</SelectItem>
+                                <SelectItem value="all">{t("product.allReviews")}</SelectItem>
                                 <SelectItem value="5">5 Stars</SelectItem>
                                 <SelectItem value="4">4 Stars</SelectItem>
                                 <SelectItem value="3">3 Stars</SelectItem>
@@ -1725,10 +1725,10 @@ export default function ShopProductDetail() {
                                 <SelectValue placeholder="Filter by category" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="all">All Questions</SelectItem>
-                                <SelectItem value="Usage & Features">Usage & Features</SelectItem>
-                                <SelectItem value="Installation & Setup">Installation & Setup</SelectItem>
-                                <SelectItem value="Warranty & Support">Warranty & Support</SelectItem>
+                                <SelectItem value="all">{t("product.allQuestions")}</SelectItem>
+                                <SelectItem value="Usage & Features">{t("product.usageFeatures")}</SelectItem>
+                                <SelectItem value="Installation & Setup">{t("product.installationSetup")}</SelectItem>
+                                <SelectItem value="Warranty & Support">{t("product.warrantySupport")}</SelectItem>
                                 <SelectItem value="Quality & Certification">Quality & Certification</SelectItem>
                               </SelectContent>
                             </Select>
@@ -1760,9 +1760,9 @@ export default function ShopProductDetail() {
                                 <SelectValue placeholder="Select category" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="Usage & Features">Usage & Features</SelectItem>
-                                <SelectItem value="Installation & Setup">Installation & Setup</SelectItem>
-                                <SelectItem value="Warranty & Support">Warranty & Support</SelectItem>
+                                <SelectItem value="Usage & Features">{t("product.usageFeatures")}</SelectItem>
+                                <SelectItem value="Installation & Setup">{t("product.installationSetup")}</SelectItem>
+                                <SelectItem value="Warranty & Support">{t("product.warrantySupport")}</SelectItem>
                                 <SelectItem value="Quality & Certification">Quality & Certification</SelectItem>
                               </SelectContent>
                             </Select>
@@ -1846,7 +1846,7 @@ export default function ShopProductDetail() {
               <div className="mb-12">
                 <h2 className="text-2xl font-bold mb-6 flex items-center">
                   <Sparkles className="w-6 h-6 mr-2 text-[#12d6fa]" />
-                  You Might Also Like
+                  {t("product.youMayAlsoLike")}
                 </h2>
 
                 {loadingRelated ? (

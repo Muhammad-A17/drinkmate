@@ -1373,7 +1373,7 @@ export default function BundleDetailPage() {
                         size="lg"
                       >
                         <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                        <span className="text-base sm:text-lg">{isInCart(bundle._id) ? "Go to Cart" : "Add to Cart"}</span>
+                        <span className="text-base sm:text-lg">{isInCart(bundle._id) ? t("product.goToCart") : t("product.addToCart")}</span>
                       </Button>
                     ) : (
                       <Dialog open={showNotifyMe} onOpenChange={setShowNotifyMe}>

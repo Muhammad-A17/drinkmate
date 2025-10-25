@@ -549,6 +549,15 @@ export default function ProductsPage() {
     )
   }
 
+  // Debug: Log current state
+  console.log('ProductsPage render:', {
+    authLoading,
+    isAuthenticated,
+    user: user ? { isAdmin: user.isAdmin, email: user.email } : null,
+    products: products.length,
+    isLoading
+  })
+
   return (
     <AdminErrorBoundary>
       <AdminLayout>
@@ -597,24 +606,51 @@ export default function ProductsPage() {
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                        <Plus className="h-5 w-5 mr-2" />
-                        Add New Product
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>Add New Product</DialogTitle>
-                      </DialogHeader>
-                      <ProductForm 
-                        onSubmit={handleCreateProduct}
-                        onCancel={() => setIsAddProductOpen(false)}
-                        isSubmitting={isSubmitting}
-                      />
-                    </DialogContent>
-                  </Dialog>
+                  {/* Debug: Add Product Button */}
+                  <div className="bg-red-100 p-2 rounded">
+                    <span className="text-red-600 text-sm">DEBUG: Button should be visible</span>
+                    <div className="text-xs text-red-500">
+                      Auth: {isAuthenticated ? 'Yes' : 'No'} | 
+                      User: {user ? 'Yes' : 'No'} | 
+                      Admin: {user?.isAdmin ? 'Yes' : 'No'} | 
+                      Loading: {authLoading ? 'Yes' : 'No'}
+                    </div>
+                  </div>
+                  
+                  {/* Test Button - Should always be visible */}
+                  <Button className="bg-green-500 text-white px-4 py-2">
+                    TEST BUTTON
+                  </Button>
+                  {/* Simple Add Product Button - No Dialog */}
+                  <Button 
+                    onClick={() => setIsAddProductOpen(true)}
+                    className="bg-gradient-to-r from-[#12d6fa] to-blue-600 hover:from-[#12d6fa]/90 hover:to-blue-600/90 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <Plus className="h-5 w-5 mr-2" />
+                    Add New Product
+                  </Button>
+                  
+                  {/* Simple Modal - No Dialog Component */}
+                  {isAddProductOpen && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-lg p-6 max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4">
+                          <h2 className="text-xl font-bold">Add New Product</h2>
+                          <button 
+                            onClick={() => setIsAddProductOpen(false)}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <ProductForm 
+                          onSubmit={handleCreateProduct}
+                          onCancel={() => setIsAddProductOpen(false)}
+                          isSubmitting={isSubmitting}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex items-center gap-2 text-sm text-gray-500">
